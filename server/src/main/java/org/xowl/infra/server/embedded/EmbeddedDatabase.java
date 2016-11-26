@@ -17,10 +17,7 @@
 
 package org.xowl.infra.server.embedded;
 
-import org.xowl.infra.server.api.XOWLRule;
-import org.xowl.infra.server.api.XOWLStoredProcedure;
-import org.xowl.infra.server.api.XOWLStoredProcedureContext;
-import org.xowl.infra.server.api.XOWLUser;
+import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.impl.ControllerDatabase;
 import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.DatabaseImpl;
@@ -31,7 +28,6 @@ import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
-import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -83,16 +79,12 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
     @Override
     public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         Result result = dbController.sparql(sparql, defaultIRIs, namedIRIs, false);
-        if (result.isFailure())
-            return new XSPReplyFailure(((ResultFailure) result).getMessage());
         return new XSPReplyResult<>(result);
     }
 
     @Override
     public XSPReply sparql(Command sparql) {
         Result result = dbController.sparql(sparql, false);
-        if (result.isFailure())
-            return new XSPReplyFailure(((ResultFailure) result).getMessage());
         return new XSPReplyResult<>(result);
     }
 
@@ -230,7 +222,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
         try {
             RDFRuleStatus status = dbController.getRuleStatus(rule);
             if (status == null)
-                return new XSPReplyFailure("The rule is not active");
+                return new XSPReplyApiError(ApiV1.ERROR_RULE_NOT_ACTIVE);
             return new XSPReplyResult<>(status);
         } catch (Exception exception) {
             logger.error(exception);
@@ -298,8 +290,6 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
     public XSPReply executeStoredProcedure(String procedure, XOWLStoredProcedureContext context) {
         try {
             Result result = dbController.executeStoredProcedure(procedure, context, false);
-            if (result.isFailure())
-                return new XSPReplyFailure(((ResultFailure) result).getMessage());
             return new XSPReplyResult<>(result);
         } catch (Exception exception) {
             logger.error(exception);
@@ -313,7 +303,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             BufferedLogger logger = new BufferedLogger();
             dbController.upload(logger, syntax, content);
             if (!logger.getErrorMessages().isEmpty())
-                return new XSPReplyFailure(logger.getErrorsAsString());
+                return new XSPReplyApiError(ApiV1.ERROR_CONTENT_PARSING_FAILED, logger.getErrorsAsString());
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);

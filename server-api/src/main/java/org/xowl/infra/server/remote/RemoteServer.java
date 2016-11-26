@@ -497,9 +497,9 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      */
     XSPReply dbSPARQL(String database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         if (defaultIRIs != null && !defaultIRIs.isEmpty())
-            return new XSPReplyFailure("The specification of default graphs is not supported");
+            return new XSPReplyApiError(ApiV1.ERROR_DEFAULT_GRAPH_NOT_SUPPORTED);
         if (namedIRIs != null && !namedIRIs.isEmpty())
-            return new XSPReplyFailure("The specification of named graphs is not supported");
+            return new XSPReplyApiError(ApiV1.ERROR_NAMED_GRAPH_NOT_SUPPORTED);
         // not logged in
         if (currentUser == null)
             return XSPReplyNetworkError.instance();
@@ -1147,7 +1147,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         BufferedLogger logger = new BufferedLogger();
         serializer.serialize(logger, quads.iterator());
         if (!logger.getErrorMessages().isEmpty())
-            return new XSPReplyFailure(logger.getErrorsAsString());
+            return new XSPReplyApiError(ApiV1.ERROR_SERIALIZATION_FAILED, logger.getErrorsAsString());
         return dbUpload(database, writer.toString(), Repository.SYNTAX_NQUADS);
     }
 

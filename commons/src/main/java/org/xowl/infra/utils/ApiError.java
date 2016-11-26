@@ -93,4 +93,24 @@ public class ApiError implements Serializable {
                 TextUtils.escapeStringJSON(helpLink) +
                 "\" }";
     }
+
+    /**
+     * Serializes this error with a supplementary message
+     *
+     * @param supplementary The supplementary message, if any
+     * @return The serailized error
+     */
+    public String serializedJSON(String supplementary) {
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(ApiError.class.getCanonicalName()) +
+                "\", \"code\": " +
+                Integer.toString(code) +
+                ", \"message\": \"" +
+                TextUtils.escapeStringJSON(message) +
+                "\", \"helpLink\": \"" +
+                TextUtils.escapeStringJSON(helpLink) +
+                "\", \"content\": \"" +
+                TextUtils.escapeStringJSON(supplementary != null ? supplementary : "") +
+                "\" }";
+    }
 }

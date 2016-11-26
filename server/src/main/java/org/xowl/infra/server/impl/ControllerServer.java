@@ -19,10 +19,7 @@ package org.xowl.infra.server.impl;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.infra.server.ServerConfiguration;
-import org.xowl.infra.server.api.XOWLDatabase;
-import org.xowl.infra.server.api.XOWLPrivilege;
-import org.xowl.infra.server.api.XOWLRule;
-import org.xowl.infra.server.api.XOWLStoredProcedure;
+import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.base.BaseDatabasePrivileges;
 import org.xowl.infra.server.base.BaseUserPrivileges;
 import org.xowl.infra.server.xsp.*;
@@ -30,7 +27,6 @@ import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Result;
-import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.utils.Base64;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.BufferedLogger;
@@ -439,12 +435,12 @@ public class ControllerServer implements Closeable {
         if (!checkIsServerAdmin(client))
             return XSPReplyUnauthorized.instance();
         if (!name.matches("[_a-zA-Z0-9]+"))
-            return new XSPReplyFailure("Database name does not match requirements ([_a-zA-Z0-9]+)");
+            return new XSPReplyApiError(ApiV1.ERROR_DB_NAME_REQUIREMENT_FAILED);
 
         synchronized (databases) {
             DatabaseImpl result = databases.get(name);
             if (result != null)
-                return new XSPReplyFailure("The database already exists");
+                return new XSPReplyApiError(ApiV1.ERROR_DB_ALREADY_EXIST);
             File folder = new File(configuration.getDatabasesFolder(), name);
             try {
                 ProxyObject proxy = adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
@@ -554,8 +550,6 @@ public class ControllerServer implements Closeable {
         boolean canWrite = checkCanWrite(client, db);
         if (canWrite || checkCanRead(client, db)) {
             Result result = db.dbController.sparql(sparql, defaultIRIs, namedIRIs, !canWrite);
-            if (result.isFailure())
-                return new XSPReplyFailure(((ResultFailure) result).getMessage());
             return new XSPReplyResult<>(result);
         } else {
             return XSPReplyUnauthorized.instance();
@@ -870,7 +864,7 @@ public class ControllerServer implements Closeable {
             try {
                 RDFRuleStatus status = db.dbController.getRuleStatus(rule);
                 if (status == null)
-                    return new XSPReplyFailure("The rule is not active");
+                    return new XSPReplyApiError(ApiV1.ERROR_RULE_NOT_ACTIVE);
                 return new XSPReplyResult<>(status);
             } catch (Exception exception) {
                 logger.error(exception);
@@ -1006,8 +1000,6 @@ public class ControllerServer implements Closeable {
         if (canWrite || checkCanRead(client, db)) {
             try {
                 Result result = db.dbController.executeStoredProcedure(procedure, contextDefinition, !canWrite);
-                if (result.isFailure())
-                    return new XSPReplyFailure(((ResultFailure) result).getMessage());
                 return new XSPReplyResult<>(result);
             } catch (Exception exception) {
                 logger.error(exception);
@@ -1037,7 +1029,7 @@ public class ControllerServer implements Closeable {
                 BufferedLogger logger = new BufferedLogger();
                 db.dbController.upload(logger, syntax, content);
                 if (!logger.getErrorMessages().isEmpty())
-                    return new XSPReplyFailure(logger.getErrorsAsString());
+                    return new XSPReplyApiError(ApiV1.ERROR_CONTENT_PARSING_FAILED, logger.getErrorsAsString());
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
@@ -1106,12 +1098,12 @@ public class ControllerServer implements Closeable {
         if (!checkIsServerAdmin(client))
             return XSPReplyUnauthorized.instance();
         if (!login.matches("[_a-zA-Z0-9]+"))
-            return new XSPReplyFailure("Login does not meet requirements ([_a-zA-Z0-9]+)");
+            return new XSPReplyApiError(ApiV1.ERROR_USER_NAME_REQUIREMENT_FAILED);
         if (password.length() < configuration.getSecurityMinPasswordLength())
-            return new XSPReplyFailure("Password does not meet requirements (min length " + configuration.getSecurityMinPasswordLength() + ")");
+            return new XSPReplyApiError(ApiV1.ERROR_USER_PASSWORD_REQUIREMENT_FAILED, "Required minimal length: " + configuration.getSecurityMinPasswordLength());
         UserImpl user = doCreateUser(login, password);
         if (user == null)
-            return new XSPReplyFailure("User already exists");
+            return new XSPReplyApiError(ApiV1.ERROR_USER_ALREADY_EXIST);
         return new XSPReplyResult<>(user);
     }
 
@@ -1167,7 +1159,7 @@ public class ControllerServer implements Closeable {
      */
     private XSPReply doResetPassword(String name, String password) {
         if (password.length() < configuration.getSecurityMinPasswordLength())
-            return new XSPReplyFailure("Password does not meet requirements");
+            return new XSPReplyApiError(ApiV1.ERROR_USER_PASSWORD_REQUIREMENT_FAILED, "Required minimal length: " + configuration.getSecurityMinPasswordLength());
         UserImpl user = doGetUser(name);
         if (user == null)
             return XSPReplyNotFound.instance();

@@ -31,6 +31,10 @@ public class XSPReplyApiError implements XSPReply {
      * The API error to report
      */
     private final ApiError error;
+    /**
+     * The supplementary message for this error
+     */
+    private final String message;
 
     /**
      * Initializes this reply
@@ -39,6 +43,27 @@ public class XSPReplyApiError implements XSPReply {
      */
     public XSPReplyApiError(ApiError error) {
         this.error = error;
+        this.message = null;
+    }
+
+    /**
+     * Initializes this reply
+     *
+     * @param error   The API error to report
+     * @param message The supplementary message for this error
+     */
+    public XSPReplyApiError(ApiError error, String message) {
+        this.error = error;
+        this.message = message;
+    }
+
+    /**
+     * Gets the supplementary message for this error
+     *
+     * @return The supplementary message for this error
+     */
+    public String getSupplementaryMessage() {
+        return message;
     }
 
     /**
@@ -72,7 +97,9 @@ public class XSPReplyApiError implements XSPReply {
                 "\", \"kind\": \"" +
                 TextUtils.escapeStringJSON(XSPReplyApiError.class.getSimpleName()) +
                 "\", \"isSuccess\": false" +
-                ", \"message\": \"\"" +
+                ", \"message\": \"" +
+                TextUtils.escapeStringJSON(message != null ? message : "") +
+                "\"" +
                 ", \"payload\": " + error.serializedJSON() + "}";
     }
 
@@ -112,5 +139,26 @@ public class XSPReplyApiError implements XSPReply {
             }
         }
         return new ApiError(code, message, helpLink);
+    }
+
+    /**
+     * Loads the supplementary message from the AST definition, if any
+     *
+     * @param root The root of the AST definition
+     * @return The supplementary message, if any
+     */
+    public static String parseSupplementary(ASTNode root) {
+        for (ASTNode child : root.getChildren()) {
+            ASTNode nodeMemberName = child.getChildren().get(0);
+            String name = TextUtils.unescape(nodeMemberName.getValue());
+            name = name.substring(1, name.length() - 1);
+            if ("content".equals(name)) {
+                ASTNode nodeValue = child.getChildren().get(1);
+                String content = TextUtils.unescape(nodeValue.getValue());
+                content = content.substring(1, content.length() - 1);
+                return content;
+            }
+        }
+        return null;
     }
 }

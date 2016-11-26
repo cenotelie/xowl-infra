@@ -62,7 +62,7 @@ public class XSPReplyUtils {
         if (reply instanceof XSPReplyNotFound)
             return new HttpResponse(HttpURLConnection.HTTP_NOT_FOUND);
         if (reply instanceof XSPReplyApiError)
-            return new HttpResponse(HttpURLConnection.HTTP_BAD_REQUEST, HttpConstants.MIME_JSON, ((XSPReplyApiError) reply).getError().serializedJSON());
+            return new HttpResponse(HttpURLConnection.HTTP_BAD_REQUEST, HttpConstants.MIME_JSON, ((XSPReplyApiError) reply).getError().serializedJSON(((XSPReplyApiError) reply).getSupplementaryMessage()));
         if (reply instanceof XSPReplyException)
             return new HttpResponse(HttpURLConnection.HTTP_INTERNAL_ERROR, HttpConstants.MIME_TEXT_PLAIN, XSPReplyException.MESSAGE);
 
@@ -148,7 +148,7 @@ public class XSPReplyUtils {
             ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, response.getBodyAsString());
             if (root == null)
                 return new XSPReplyFailure(response.getBodyAsString());
-            return new XSPReplyApiError(XSPReplyApiError.parseApiError(root));
+            return new XSPReplyApiError(XSPReplyApiError.parseApiError(root), XSPReplyApiError.parseSupplementary(root));
         }
         if (response.getCode() == HttpURLConnection.HTTP_INTERNAL_ERROR)
             return new XSPReplyException(null); // exception not preserved
@@ -259,7 +259,7 @@ public class XSPReplyUtils {
         if (kind == null)
             return new XSPReplyFailure("Unexpected JSON format");
         if (XSPReplyApiError.class.getCanonicalName().equals(kind))
-            return new XSPReplyApiError(XSPReplyApiError.parseApiError(nodePayload));
+            return new XSPReplyApiError(XSPReplyApiError.parseApiError(nodePayload), message);
         if (XSPReplyException.class.getCanonicalName().equals(kind))
             return new XSPReplyException(null); // exception not preserved
         if (XSPReplyFailure.class.getCanonicalName().equals(kind))
