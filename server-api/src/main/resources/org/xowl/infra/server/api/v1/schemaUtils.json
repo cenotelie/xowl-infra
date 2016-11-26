@@ -2,6 +2,34 @@
   "$schema": "http://json-schema.org/schema",
   "id": "http://xowl.org/infra/utils/schema",
   "definitions": {
+    "ApiError": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "org.xowl.infra.utils.ApiError"
+          ]
+        },
+        "code": {
+          "type": "integer"
+        },
+        "message": {
+          "type": "string"
+        },
+        "helpLink": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "code",
+        "message",
+        "helpLink"
+      ]
+    },
     "Metric": {
       "type": "object",
       "properties": {

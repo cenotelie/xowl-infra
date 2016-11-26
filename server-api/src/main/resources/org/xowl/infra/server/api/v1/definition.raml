@@ -3,6 +3,7 @@
 title: xOWL Triple Store
 version: v1
 types:
+  ApiError: !include schemaUtils.json#/definitions/ApiError
   Metric: !include schemaUtils.json#/definitions/Metric
   MetricSnapshot: !include schemaUtils.json#/definitions/MetricSnapshot
   XOWLUser: !include schemaServerAPI.json#/definitions/XOWLUser
@@ -40,14 +41,61 @@ traits:
     usage: Apply this to any method that may fail
     description: Trait for requests that may fail due to reasons other that security and resource access failure
     responses:
+      400:
+        description: The request is malformed in some way
+        body:
+          application/json:
+            type: ApiError
+            example: |
+              {
+                "type": "org.xowl.infra.utils.ApiError",
+                "code": 1,
+                "message": "The main description of this error",
+                "helpLink": "http://xowl.org/supports/errors/001.html",
+                "content": "Supplementary information about the error"
+              }
+      500:
+        description: An unexpected error occured on the server
       501:
         description: The requested operation is not supported
-      520:
-        description: The operation failed on the server
+      560:
+        description: An unknown error error occured on the server
         body:
           text/plain:
             type: string
             description: The error message from the server
+  sparqlQuery:
+    usage: Apply this to any method that return SPARQL results
+    description: Trait for requests that return SPARQL results
+    responses:
+      200:
+        description: The result for the SPARQL query
+        body:
+          application/n-triples:
+            description: RDF triples in N-Triple syntax
+          application/n-quads:
+            description: RDF quadsin N-Quad syntax
+          text/turtle:
+            description: RDF triples in Turtle syntax
+          application/rdf+xml:
+            description: RDF triples in RDF/XML syntax
+          application/ld+json:
+            description: RDF quads in JSON-LD syntax
+          application/trig:
+            description: RDF quads in TriG syntax
+          application/sparql-results+xml:
+            description: SPARQL results in XML syntax
+          application/sparql-results+json:
+            description: SPARQL results in JSON syntax
+          text/csv:
+            description: SPARQL results in CSV syntax
+          text/tab-separated-values:
+            description: SPARQL results in TSV syntax
+      461:
+        description: The query failed
+        body:
+          text/plain:
+            description: The SPARQL error message
 baseUri: https://localhost:3443/api/v1
 /me:
   description: Represents the current user in its interaction with the server
@@ -242,7 +290,7 @@ baseUri: https://localhost:3443/api/v1
                 type: MetricSnapshot
     /sparql:
       description: The SPARQL endpoint for the database
-      is: [secured, mayFail, resourceAccess]
+      is: [secured, mayFail, resourceAccess, sparqlQuery]
       get:
         description: Executes a SPARQL query on the database
         queryParameters:
@@ -264,30 +312,6 @@ baseUri: https://localhost:3443/api/v1
             description: The URIs for the named graph
             example: ["http://example.com/graph1"]
             required: false
-        responses:
-          200:
-            description: The result for the SPARQL query
-            body:
-              application/n-triples:
-                description: RDF triples in N-Triple syntax
-              application/n-quads:
-                description: RDF quadsin N-Quad syntax
-              text/turtle:
-                description: RDF triples in Turtle syntax
-              application/rdf+xml:
-                description: RDF triples in RDF/XML syntax
-              application/ld+json:
-                description: RDF quads in JSON-LD syntax
-              application/trig:
-                description: RDF quads in TriG syntax
-              application/sparql-results+xml:
-                description: SPARQL results in XML syntax
-              application/sparql-results+json:
-                description: SPARQL results in JSON syntax
-              text/csv:
-                description: SPARQL results in CSV syntax
-              text/tab-separated-values:
-                description: SPARQL results in TSV syntax
       post:
         description: Executes a SPARQL quert on the database
         queryParameters:
@@ -597,6 +621,7 @@ baseUri: https://localhost:3443/api/v1
                     }
         post:
           description: Executes the stored procedure
+          is: [sparqlQuery]
           body:
             application/json:
               displayName: Procedure context
@@ -622,30 +647,6 @@ baseUri: https://localhost:3443/api/v1
                     }
                   ]
                 }
-          responses:
-            200:
-              description: The result of the procedure's execution
-              body:
-                application/n-triples:
-                  description: RDF triples in N-Triple syntax
-                application/n-quads:
-                  description: RDF quadsin N-Quad syntax
-                text/turtle:
-                  description: RDF triples in Turtle syntax
-                application/rdf+xml:
-                  description: RDF triples in RDF/XML syntax
-                application/ld+json:
-                  description: RDF quads in JSON-LD syntax
-                application/trig:
-                  description: RDF quads in TriG syntax
-                application/sparql-results+xml:
-                  description: SPARQL results in XML syntax
-                application/sparql-results+json:
-                  description: SPARQL results in JSON syntax
-                text/csv:
-                  description: SPARQL results in CSV syntax
-                text/tab-separated-values:
-                  description: SPARQL results in TSV syntax
 /users:
   description: The collection of users on the server
   is: [secured]
