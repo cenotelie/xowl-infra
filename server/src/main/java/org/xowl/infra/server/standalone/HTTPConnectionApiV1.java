@@ -116,12 +116,16 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      * @return The protocol reply with the user
      */
     private XSPReply checkForAuthToken() {
-        List<String> cookies = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_COOKIE);
-        if (cookies != null) {
-            for (String cookie : cookies) {
-                if (cookie.startsWith(ApiV1.AUTH_TOKEN + "=")) {
-                    String token = cookie.substring(ApiV1.AUTH_TOKEN.length() + 1);
-                    return controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
+        List<String> values = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_COOKIE);
+        if (values != null) {
+            for (String content : values) {
+                String[] parts = content.split(";");
+                for (String cookie : parts) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(ApiV1.AUTH_TOKEN + "=")) {
+                        String token = cookie.substring(ApiV1.AUTH_TOKEN.length() + 1);
+                        return controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
+                    }
                 }
             }
         }
