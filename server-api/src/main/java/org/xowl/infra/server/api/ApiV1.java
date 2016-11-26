@@ -31,4 +31,16 @@ public interface ApiV1 {
      * The name of the cookie for the authentication token
      */
     String AUTH_TOKEN = "__Secure-xOWL-Token-v1";
+
+    /**
+     * The resource that contains the definition for this version of the API
+     */
+    String RESOURCE_DEFINITION = "/org/xowl/infra/server/api/v1/definition.raml";
+    /**
+     * The resources that contains schema definitions for this version of the API
+     */
+    String[] RESOURCE_SCHEMAS = new String[]{
+            "org/xowl/infra/server/api/v1/schemaUtils.json",
+            "org/xowl/infra/server/api/v1/SchemaServerAPI.json"
+    };
 }

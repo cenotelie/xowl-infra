@@ -20,6 +20,7 @@ package org.xowl.infra.server.standalone;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.hime.redist.ASTNode;
+import org.xowl.infra.server.api.ApiV1;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.impl.ControllerServer;
@@ -46,15 +47,11 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class HTTPAPIConnection extends SafeRunnable {
+class HTTPConnectionApiV1 extends SafeRunnable {
     /**
      * The empty message
      */
     private static final byte[] EMPTY_MESSAGE = new byte[0];
-    /**
-     * The name of the authentication cookie
-     */
-    private static final String COOKIE_AUTH = "__Secure-Token";
 
     /**
      * The current controller
@@ -75,7 +72,7 @@ class HTTPAPIConnection extends SafeRunnable {
      * @param controller The current controller
      * @param exchange   The HTTP exchange to treat
      */
-    public HTTPAPIConnection(ControllerServer controller, HttpExchange exchange) {
+    public HTTPConnectionApiV1(ControllerServer controller, HttpExchange exchange) {
         super(Logging.getDefault());
         this.controller = controller;
         this.httpExchange = exchange;
@@ -102,8 +99,8 @@ class HTTPAPIConnection extends SafeRunnable {
         List<String> cookies = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_COOKIE);
         if (cookies != null) {
             for (String cookie : cookies) {
-                if (cookie.startsWith(COOKIE_AUTH + "=")) {
-                    String token = cookie.substring(COOKIE_AUTH.length() + 1);
+                if (cookie.startsWith(ApiV1.AUTH_TOKEN + "=")) {
+                    String token = cookie.substring(ApiV1.AUTH_TOKEN.length() + 1);
                     XSPReply reply = controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
                     if (reply != null && reply.isSuccess())
                         client = ((XSPReplyResult<UserImpl>) reply).getData();
@@ -145,8 +142,8 @@ class HTTPAPIConnection extends SafeRunnable {
             return response(HttpURLConnection.HTTP_UNAUTHORIZED);
         String token = ((XSPReplyResult<String>) reply).getData();
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
-                COOKIE_AUTH + "=" + token +
-                        "; Max-Age=" + Long.toString(controller.getSecurityTokenTTL() / 1000) +
+                ApiV1.AUTH_TOKEN + "=" + token +
+                        "; Max-Age=" + Long.toString(controller.getSecurityTokenTTL()) +
                         "; Path=/api" +
                         "; Secure" +
                         "; HttpOnly"
@@ -167,7 +164,7 @@ class HTTPAPIConnection extends SafeRunnable {
         if (!reply.isSuccess())
             return response(reply);
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
-                COOKIE_AUTH + "= " +
+                ApiV1.AUTH_TOKEN + "= " +
                         "; Max-Age=0" +
                         "; Path=/api" +
                         "; Secure" +
@@ -653,7 +650,7 @@ class HTTPAPIConnection extends SafeRunnable {
             List<String> passwords = params.get("password");
             if (passwords == null || passwords.isEmpty())
                 return response(HttpURLConnection.HTTP_BAD_REQUEST);
-            return response(controller.changePassword(client, passwords.get(0)));
+            return response(controller.updatePassword(client, name, passwords.get(0)));
         }
         if (resource.equals("/password/reset")) {
             if (!method.equals(HttpConstants.METHOD_POST))

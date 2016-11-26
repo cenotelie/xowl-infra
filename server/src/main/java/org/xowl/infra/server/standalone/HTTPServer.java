@@ -19,6 +19,7 @@ package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.*;
 import org.xowl.infra.server.ServerConfiguration;
+import org.xowl.infra.server.api.ApiV1;
 import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.utils.SSLGenerator;
 import org.xowl.infra.utils.collections.Couple;
@@ -69,6 +70,10 @@ public class HTTPServer implements Closeable {
      * The file name for the key store
      */
     private static final String KEY_STORE_FILE = "keystore.jks";
+    /**
+     * The URI prefix for served web resources
+     */
+    private static final String URI_PREFIX_WEB = "/web/";
 
     /**
      * Gets the key store
@@ -148,20 +153,20 @@ public class HTTPServer implements Closeable {
         }
         if (temp != null && sslContext != null) {
             server = temp;
-            server.createContext("/api", new HttpHandler() {
+            server.createContext(ApiV1.URI_PREFIX, new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
                     try {
-                        ((new HTTPAPIConnection(controller, httpExchange))).run();
+                        ((new HTTPConnectionApiV1(controller, httpExchange))).run();
                     } catch (Exception exception) {
                         Logging.getDefault().error(exception);
                     }
                 }
             });
-            server.createContext("/web/", new HttpHandler() {
+            server.createContext(URI_PREFIX_WEB, new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
-                    ((new HTTPWebConnection(httpExchange))).run();
+                    ((new HTTPConnectionWeb(httpExchange))).run();
                 }
             });
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {

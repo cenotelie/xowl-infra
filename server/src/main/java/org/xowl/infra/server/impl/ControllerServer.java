@@ -23,7 +23,6 @@ import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
-import org.xowl.infra.server.base.BaseDatabase;
 import org.xowl.infra.server.base.BaseDatabasePrivileges;
 import org.xowl.infra.server.base.BaseUserPrivileges;
 import org.xowl.infra.server.xsp.*;
@@ -85,7 +84,7 @@ public class ControllerServer implements Closeable {
      */
     private final Key securityKey;
     /**
-     * The time to live in milli-seconds of an authentication token
+     * The time to live in seconds of an authentication token
      */
     private final long securityTokenTTL;
     /**
@@ -126,7 +125,7 @@ public class ControllerServer implements Closeable {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
         keyGenerator.init(256);
         this.securityKey = keyGenerator.generateKey();
-        this.securityTokenTTL = configuration.getSecurityTokenTTL() * 1000;
+        this.securityTokenTTL = configuration.getSecurityTokenTTL();
         this.adminDB = newDB(new ControllerDatabase(
                 new File(configuration.getDatabasesFolder(), configuration.getAdminDBName()),
                 configuration.getDefaultMaxThreads(),
@@ -228,9 +227,9 @@ public class ControllerServer implements Closeable {
     }
 
     /**
-     * Gets the time to live in milli-seconds of an authentication token
+     * Gets the time to live in seconds of an authentication token
      *
-     * @return The time to live in milli-seconds of an authentication token
+     * @return The time to live in seconds of an authentication token
      */
     public long getSecurityTokenTTL() {
         return securityTokenTTL;
@@ -1221,7 +1220,7 @@ public class ControllerServer implements Closeable {
      */
     private String buildTokenFor(String login) {
         long timestamp = System.currentTimeMillis();
-        long validUntil = timestamp + securityTokenTTL;
+        long validUntil = timestamp + securityTokenTTL * 1000;
         byte[] text = login.getBytes(Files.CHARSET);
         byte[] tokenData = Arrays.copyOf(text, text.length + 8);
         tokenData[text.length] = (byte) ((validUntil & 0xFF00000000000000L) >>> 56);

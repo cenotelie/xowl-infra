@@ -34,7 +34,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class HTTPWebConnection extends SafeRunnable implements Runnable {
+class HTTPConnectionWeb extends SafeRunnable implements Runnable {
     /**
      * The HTTP exchange to treat
      */
@@ -45,7 +45,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
      *
      * @param exchange The HTTP exchange to treat
      */
-    public HTTPWebConnection(HttpExchange exchange) {
+    public HTTPConnectionWeb(HttpExchange exchange) {
         super(Logging.getDefault());
         this.httpExchange = exchange;
     }
@@ -126,7 +126,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
             return;
         }
 
-        InputStream input = HTTPAPIConnection.class.getResourceAsStream("/org/xowl/infra/server/site/" + resource);
+        InputStream input = HTTPConnectionApiV1.class.getResourceAsStream("/org/xowl/infra/server/site/" + resource);
         if (input == null) {
             response(HttpURLConnection.HTTP_NOT_FOUND, null);
             return;
