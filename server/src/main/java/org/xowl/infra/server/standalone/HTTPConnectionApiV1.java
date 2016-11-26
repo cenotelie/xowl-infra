@@ -26,6 +26,7 @@ import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.server.xsp.XSPReplyApiError;
 import org.xowl.infra.server.xsp.XSPReplyResult;
 import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
@@ -35,6 +36,7 @@ import org.xowl.infra.utils.concurrent.SafeRunnable;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
 import org.xowl.infra.utils.http.URIUtils;
+import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
@@ -143,13 +145,13 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
         List<String> logins = params.get("login");
         if (logins == null || logins.isEmpty())
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'login'");
+            return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'login'"));
         String password;
         try {
             password = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the request body");
+            return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         XSPReply reply = controller.login(httpExchange.getRemoteAddress().getAddress(), logins.get(0), password);
         if (reply == null)
@@ -251,7 +253,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
                 List<String> users = params.get("user");
                 if (users == null || users.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'user'");
+                    return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'user'"));
                 return response(controller.serverGrantAdmin(client, users.get(0)));
             }
             case "/server/revokeAdmin": {
@@ -260,7 +262,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
                 List<String> users = params.get("user");
                 if (users == null || users.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'user'");
+                    return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'user'"));
                 return response(controller.serverRevokeAdmin(client, users.get(0)));
             }
         }
@@ -339,13 +341,13 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         Headers rHeaders = httpExchange.getRequestHeaders();
         String contentType = Utils.getRequestContentType(rHeaders);
         if (contentType == null)
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected Content-Type header");
+            return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_HEADER_CONTENT_TYPE));
         String body;
         try {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+            return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         return response(controller.upload(client, name, contentType, body));
     }
@@ -394,7 +396,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+            return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         switch (method) {
             case HttpConstants.METHOD_GET:
@@ -402,17 +404,17 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     if (body != null && !body.isEmpty()) {
                         // should be empty
                         // ill-formed request
-                        return response(HttpURLConnection.HTTP_BAD_REQUEST, "Request body should be empty");
+                        return response(new XSPReplyApiError(ApiV1.ERROR_REQUEST_BODY_NOT_EMPTY));
                     } else {
                         return response(controller.sparql(client, name, query, defaults, named));
                     }
                 } else {
                     // ill-formed request
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'query'");
+                    return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'query'"));
                 }
             case HttpConstants.METHOD_POST:
                 if (body == null || body.isEmpty()) {
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query in request's body");
+                    return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_IN_BODY));
                 }
                 return response(controller.sparql(client, name, body, defaults, named));
         }
@@ -436,7 +438,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     return response(controller.setEntailmentRegime(client, name, body));
                 } catch (IOException exception) {
                     Logging.getDefault().error(exception);
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                    return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                 }
             case HttpConstants.METHOD_DELETE:
                 return response(controller.setEntailmentRegime(client, name, EntailmentRegime.none.toString()));
@@ -465,10 +467,10 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             List<String> users = params.get("user");
             List<String> accesses = params.get("access");
             if (users == null || users.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'user', 'access'");
+                return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'user', 'access'"));
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Query parameter 'access' must be one of: ADMIN, WRITE, READ");
+                return response(new XSPReplyApiError(ApiV1.ERROR_PARAMETER_RANGE, "Query parameter 'access' must be one of: ADMIN, WRITE, READ"));
             return response(controller.grantDatabase(client, users.get(0), name, privilege));
         }
         if (resource.equals("/privileges/revoke")) {
@@ -478,10 +480,10 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             List<String> users = params.get("user");
             List<String> accesses = params.get("access");
             if (users == null || users.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'user', 'access'");
+                return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'user', 'access'"));
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Query parameter 'access' must be one of: ADMIN, WRITE, READ");
+                return response(new XSPReplyApiError(ApiV1.ERROR_PARAMETER_RANGE, "Query parameter 'access' must be one of: ADMIN, WRITE, READ"));
             return response(controller.revokeDatabase(client, users.get(0), name, privilege));
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND);
@@ -508,7 +510,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                         return response(controller.addRule(client, name, body, actives != null && !actives.isEmpty() && actives.get(0).equals("true")));
                     } catch (IOException exception) {
                         Logging.getDefault().error(exception);
-                        return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                        return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                     }
                 }
             }
@@ -573,14 +575,15 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             case HttpConstants.METHOD_PUT: {
                 try {
                     String body = Utils.getRequestBody(httpExchange);
-                    ASTNode root = JSONLDLoader.parseJSON(Logging.getDefault(), body);
+                    BufferedLogger logger = new BufferedLogger();
+                    ASTNode root = JSONLDLoader.parseJSON(logger, body);
                     if (root == null)
-                        return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                        return response(new XSPReplyApiError(ApiV1.ERROR_CONTENT_PARSING_FAILED, logger.getErrorsAsString()));
                     BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, Logging.getDefault());
                     return response(controller.addStoredProcedure(client, name, procedure.getName(), procedure.getDefinition(), procedure.getParameters()));
                 } catch (IOException exception) {
                     Logging.getDefault().error(exception);
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                    return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                 }
             }
             case HttpConstants.METHOD_POST: {
@@ -589,7 +592,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     return response(controller.executeStoredProcedure(client, name, procedureId, body));
                 } catch (IOException exception) {
                     Logging.getDefault().error(exception);
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                    return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                 }
             }
         }
@@ -645,7 +648,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     return response(controller.createUser(client, name, password));
                 } catch (IOException exception) {
                     Logging.getDefault().error(exception);
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                    return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                 }
             }
         }
@@ -667,7 +670,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             password = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the request body");
+            return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         return response(controller.updatePassword(client, name, password));
     }
@@ -693,10 +696,10 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             List<String> databases = params.get("db");
             List<String> accesses = params.get("access");
             if (databases == null || databases.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'db', 'access'");
+                return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'db', 'access'"));
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Query parameter 'access' must be one of: ADMIN, WRITE, READ");
+                return response(new XSPReplyApiError(ApiV1.ERROR_PARAMETER_RANGE, "Query parameter 'access' must be one of: ADMIN, WRITE, READ"));
             return response(controller.grantDatabase(client, name, databases.get(0), privilege));
         }
         if (resource.equals("/privileges/revoke")) {
@@ -706,10 +709,10 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             List<String> databases = params.get("db");
             List<String> accesses = params.get("access");
             if (databases == null || databases.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'db', 'access'");
+                return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'db', 'access'"));
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Query parameter 'access' must be one of: ADMIN, WRITE, READ");
+                return response(new XSPReplyApiError(ApiV1.ERROR_PARAMETER_RANGE, "Query parameter 'access' must be one of: ADMIN, WRITE, READ"));
             return response(controller.revokeDatabase(client, name, databases.get(0), privilege));
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND);
