@@ -19,7 +19,7 @@ package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.*;
 import org.xowl.infra.server.ServerConfiguration;
-import org.xowl.infra.server.impl.ServerController;
+import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.utils.SSLGenerator;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logging;
@@ -118,7 +118,7 @@ public class HTTPServer implements Closeable {
      * @param configuration The current configuration
      * @param controller    The current controller
      */
-    public HTTPServer(ServerConfiguration configuration, final ServerController controller) {
+    public HTTPServer(ServerConfiguration configuration, final ControllerServer controller) {
         Logging.getDefault().info("Initializing the HTTPS server ...");
         this.configuration = configuration;
         SSLContext sslContext = null;

@@ -18,9 +18,9 @@
 package org.xowl.infra.server.embedded;
 
 import org.xowl.infra.server.ServerConfiguration;
-import org.xowl.infra.server.impl.DatabaseController;
+import org.xowl.infra.server.impl.ControllerDatabase;
 import org.xowl.infra.server.impl.DatabaseImpl;
-import org.xowl.infra.server.impl.ServerController;
+import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -29,7 +29,7 @@ import org.xowl.infra.utils.logging.Logger;
  *
  * @author Laurent Wouters
  */
-class EmbeddedController extends ServerController {
+class EmbeddedController extends ControllerServer {
     /**
      * Initializes this controller
      *
@@ -42,12 +42,12 @@ class EmbeddedController extends ServerController {
     }
 
     @Override
-    protected DatabaseImpl newDB(DatabaseController controller, ProxyObject proxy) {
+    protected DatabaseImpl newDB(ControllerDatabase controller, ProxyObject proxy) {
         return new EmbeddedDatabase(logger, controller, proxy);
     }
 
     @Override
-    protected DatabaseImpl newDB(DatabaseController controller, ProxyObject proxy, String name) {
+    protected DatabaseImpl newDB(ControllerDatabase controller, ProxyObject proxy, String name) {
         return new EmbeddedDatabase(logger, controller, proxy, name);
     }
 }

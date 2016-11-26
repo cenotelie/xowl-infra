@@ -18,7 +18,6 @@
 package org.xowl.infra.server.impl;
 
 import org.xowl.infra.server.base.BaseDatabase;
-import org.xowl.infra.store.ProxyObject;
 
 /**
  * Implementation of a XOWL database
@@ -27,36 +26,23 @@ import org.xowl.infra.store.ProxyObject;
  */
 public class DatabaseImpl extends BaseDatabase {
     /**
+     * The parent server controller
+     */
+    protected final ControllerServer serverController;
+    /**
      * The associated database controller
      */
-    protected final DatabaseController controller;
-    /**
-     * The proxy object that represents the database in the administration database
-     */
-    protected final ProxyObject proxy;
+    protected final ControllerDatabase dbController;
 
     /**
      * Initializes this structure
      *
-     * @param controller The associated database controller
-     * @param proxy      The proxy object that represents the database in the administration database
+     * @param serverController The parent server controller
+     * @param dbController     The associated database controller
      */
-    public DatabaseImpl(DatabaseController controller, ProxyObject proxy) {
-        super((String) proxy.getDataValue(Schema.ADMIN_NAME));
-        this.controller = controller;
-        this.proxy = proxy;
-    }
-
-    /**
-     * Initializes this structure
-     *
-     * @param controller The associated database controller
-     * @param proxy      The proxy object that represents the database in the administration database
-     * @param name       The name of the database
-     */
-    public DatabaseImpl(DatabaseController controller, ProxyObject proxy, String name) {
-        super(name);
-        this.controller = controller;
-        this.proxy = proxy;
+    public DatabaseImpl(ControllerServer serverController, ControllerDatabase dbController) {
+        super(dbController.getName());
+        this.serverController = serverController;
+        this.dbController = dbController;
     }
 }

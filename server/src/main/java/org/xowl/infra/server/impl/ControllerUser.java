@@ -17,32 +17,39 @@
 
 package org.xowl.infra.server.impl;
 
-import org.xowl.infra.server.base.BaseUser;
+import org.xowl.infra.store.ProxyObject;
 
 /**
- * Implementation of a XOWL User
+ * Implements a controller for a user
  *
  * @author Laurent Wouters
  */
-public class UserImpl extends BaseUser {
+public class ControllerUser {
     /**
-     * The parent server controller
+     * The proxy object representing this user in the administration database
      */
-    protected final ControllerServer serverController;
+    protected final ProxyObject proxy;
     /**
-     * The associated user controller
+     * The name of the user
      */
-    protected final ControllerUser userController;
+    private final String name;
 
     /**
-     * Initializes this user
+     * Initializes this controller
      *
-     * @param serverController The parent server controller
-     * @param userController   The associated user controller
+     * @param proxy The proxy object representing this user in the administration database
      */
-    public UserImpl(ControllerServer serverController, ControllerUser userController) {
-        super(userController.getName());
-        this.serverController = serverController;
-        this.userController = userController;
+    public ControllerUser(ProxyObject proxy) {
+        this.proxy = proxy;
+        this.name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
+    }
+
+    /**
+     * Gets the name of the user
+     *
+     * @return The name of the user
+     */
+    public String getName() {
+        return name;
     }
 }

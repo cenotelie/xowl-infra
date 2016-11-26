@@ -58,7 +58,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Laurent Wouters
  */
-public class DatabaseController implements Closeable {
+public class ControllerDatabase implements Closeable {
     /**
      * The configuration file for a repository
      */
@@ -114,6 +114,14 @@ public class DatabaseController implements Closeable {
 
 
     /**
+     * The proxy object that represents the database in the administration database
+     */
+    protected final ProxyObject proxy;
+    /**
+     * The database's name
+     */
+    private final String name;
+    /**
      * The database's location
      */
     private final File location;
@@ -156,9 +164,13 @@ public class DatabaseController implements Closeable {
      *
      * @param location         The database's location
      * @param defaultMaxThread The default maximum number of threads
+     * @param proxy            The proxy object that represents the database in the administration database
+     * @param name             The name of the database
      * @throws Exception When the location cannot be accessed
      */
-    public DatabaseController(File location, int defaultMaxThread) throws Exception {
+    public ControllerDatabase(File location, int defaultMaxThread, ProxyObject proxy, String name) throws Exception {
+        this.proxy = proxy;
+        this.name = name != null ? name : (String) proxy.getDataValue(Schema.ADMIN_NAME);
         this.location = location;
         this.configuration = loadConfiguration(location);
         this.repository = createRepository(configuration, location);
@@ -167,6 +179,27 @@ public class DatabaseController implements Closeable {
         this.currentThreads = new AtomicInteger(0);
         this.metricDB = new MetricComposite((MetricComposite) repository.getStore().getMetric(), "Database " + location.getAbsolutePath());
         initRepository();
+    }
+
+    /**
+     * Initializes this administration database
+     *
+     * @param location         The database's location
+     * @param defaultMaxThread The default maximum number of threads
+     * @param adminDbName      The expected name if the administrative database
+     * @throws Exception When the location cannot be accessed
+     */
+    public ControllerDatabase(File location, int defaultMaxThread, String adminDbName) throws Exception {
+        this.name = adminDbName;
+        this.location = location;
+        this.configuration = loadConfiguration(location);
+        this.repository = createRepository(configuration, location);
+        this.procedures = new HashMap<>();
+        this.maxThreads = getMaxThreads(defaultMaxThread, configuration);
+        this.currentThreads = new AtomicInteger(0);
+        this.metricDB = new MetricComposite((MetricComposite) repository.getStore().getMetric(), "Database " + location.getAbsolutePath());
+        initRepository();
+        this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + adminDbName);
     }
 
     /**
@@ -264,6 +297,32 @@ public class DatabaseController implements Closeable {
         currentThreads.decrementAndGet();
     }
 
+    /**
+     * Gets the name of the database
+     *
+     * @return The name of the database
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Gets the composite metric for this database
+     *
+     * @return The metric for this database
+     */
+    public Metric getMetric() {
+        return metricDB;
+    }
+
+    /**
+     * Gets a snapshot of the metrics for this database
+     *
+     * @return The snapshot
+     */
+    public MetricSnapshot getMetricSnapshot() {
+        return repository.getStore().getMetricSnapshot(System.nanoTime());
+    }
 
     /**
      * Executes a SPARQL command
@@ -815,24 +874,6 @@ public class DatabaseController implements Closeable {
         } finally {
             onThreadExit();
         }
-    }
-
-    /**
-     * Gets the composite metric for this database
-     *
-     * @return The metric for this database
-     */
-    public Metric getMetric() {
-        return metricDB;
-    }
-
-    /**
-     * Gets a snapshot of the metrics for this database
-     *
-     * @return The snapshot
-     */
-    public MetricSnapshot getMetricSnapshot() {
-        return repository.getStore().getMetricSnapshot(System.nanoTime());
     }
 
     @Override

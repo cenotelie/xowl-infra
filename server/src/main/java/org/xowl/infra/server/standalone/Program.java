@@ -18,7 +18,7 @@
 package org.xowl.infra.server.standalone;
 
 import org.xowl.infra.server.ServerConfiguration;
-import org.xowl.infra.server.impl.ServerController;
+import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.utils.logging.ConsoleLogger;
 import org.xowl.infra.utils.logging.DispatchLogger;
 import org.xowl.infra.utils.logging.FileLogger;
@@ -72,7 +72,7 @@ public class Program {
     /**
      * The top controller for this application
      */
-    private ServerController controller;
+    private ControllerServer controller;
     /**
      * The HTTP server
      */
@@ -137,7 +137,7 @@ public class Program {
             return false;
         }
         try {
-            controller = new ServerController(Logging.getDefault(), configuration) {
+            controller = new ControllerServer(Logging.getDefault(), configuration) {
 
                 @Override
                 public void onRequestShutdown() {

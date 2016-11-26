@@ -121,22 +121,22 @@ public class EmbeddedServer implements XOWLServer, Closeable {
 
     @Override
     public XSPReply serverGrantAdmin(XOWLUser target) {
-        return controller.grantServerAdmin(admin, target.getName());
+        return controller.serverGrantAdmin(admin, target.getName());
     }
 
     @Override
     public XSPReply serverGrantAdmin(String target) {
-        return controller.grantServerAdmin(admin, target);
+        return controller.serverGrantAdmin(admin, target);
     }
 
     @Override
     public XSPReply serverRevokeAdmin(XOWLUser target) {
-        return controller.revokeServerAdmin(admin, target.getName());
+        return controller.serverRevokeAdmin(admin, target.getName());
     }
 
     @Override
     public XSPReply serverRevokeAdmin(String target) {
-        return controller.revokeServerAdmin(admin, target);
+        return controller.serverRevokeAdmin(admin, target);
     }
 
     @Override
@@ -187,6 +187,6 @@ public class EmbeddedServer implements XOWLServer, Closeable {
      * @return The protocol reply
      */
     XSPReply userGetPrivileges(String user) {
-        return controller.getPrivilegesUser(admin, user);
+        return controller.getUserPrivileges(admin, user);
     }
 }

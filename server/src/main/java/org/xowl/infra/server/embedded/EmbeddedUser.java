@@ -27,11 +27,11 @@ import org.xowl.infra.store.ProxyObject;
  *
  * @author Laurent Wouters
  */
-public class EmbeddedUser extends UserImpl {
+class EmbeddedUser extends UserImpl {
     /**
      * The parent server
      */
-    private EmbeddedServer server;
+    private final EmbeddedServer server;
 
     /**
      * Initializes this user

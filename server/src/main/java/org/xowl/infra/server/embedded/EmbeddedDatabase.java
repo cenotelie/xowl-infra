@@ -20,7 +20,7 @@ package org.xowl.infra.server.embedded;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
-import org.xowl.infra.server.impl.DatabaseController;
+import org.xowl.infra.server.impl.ControllerDatabase;
 import org.xowl.infra.server.impl.DatabaseImpl;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.EntailmentRegime;
@@ -48,6 +48,11 @@ class EmbeddedDatabase extends DatabaseImpl {
      * The logger for this database
      */
     private final Logger logger;
+    /**
+     * The parent server
+     */
+    private final EmbeddedServer server;
+
 
     /**
      * Initializes this structure
@@ -56,9 +61,10 @@ class EmbeddedDatabase extends DatabaseImpl {
      * @param controller The associated database controller
      * @param proxy      The proxy object that represents the database in the administration database
      */
-    public EmbeddedDatabase(Logger logger, DatabaseController controller, ProxyObject proxy) {
+    public EmbeddedDatabase(Logger logger, ControllerDatabase controller, ProxyObject proxy, EmbeddedServer server) {
         super(controller, proxy);
         this.logger = logger;
+        this.server = server;
     }
 
     /**
@@ -69,9 +75,19 @@ class EmbeddedDatabase extends DatabaseImpl {
      * @param proxy      The proxy object that represents the database in the administration database
      * @param name       The name of the database
      */
-    public EmbeddedDatabase(Logger logger, DatabaseController controller, ProxyObject proxy, String name) {
+    public EmbeddedDatabase(Logger logger, ControllerDatabase controller, ProxyObject proxy, String name) {
         super(controller, proxy, name);
         this.logger = logger;
+    }
+
+    @Override
+    public XSPReply getMetric() {
+        return new XSPReplyResult<>(controller.getMetric());
+    }
+
+    @Override
+    public XSPReply getMetricSnapshot() {
+        return new XSPReplyResult<>(controller.getMetricSnapshot());
     }
 
     @Override
@@ -105,6 +121,19 @@ class EmbeddedDatabase extends DatabaseImpl {
         }
         return XSPReplySuccess.instance();
     }
+
+    @Override
+    public XSPReply getPrivileges() {
+        return controller.dbg
+    }
+
+
+
+
+
+
+
+
 
     @Override
     public XSPReply getRule(String name) {
@@ -271,13 +300,5 @@ class EmbeddedDatabase extends DatabaseImpl {
         }
     }
 
-    @Override
-    public XSPReply getMetric() {
-        return new XSPReplyResult<>(controller.getMetric());
-    }
 
-    @Override
-    public XSPReply getMetricSnapshot() {
-        return new XSPReplyResult<>(controller.getMetricSnapshot());
-    }
 }

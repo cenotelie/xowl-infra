@@ -22,7 +22,7 @@ import com.sun.net.httpserver.HttpExchange;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.base.BaseStoredProcedure;
-import org.xowl.infra.server.impl.ServerController;
+import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyResult;
@@ -59,7 +59,7 @@ class HTTPAPIConnection extends SafeRunnable {
     /**
      * The current controller
      */
-    private final ServerController controller;
+    private final ControllerServer controller;
     /**
      * The HTTP exchange to treat
      */
@@ -75,7 +75,7 @@ class HTTPAPIConnection extends SafeRunnable {
      * @param controller The current controller
      * @param exchange   The HTTP exchange to treat
      */
-    public HTTPAPIConnection(ServerController controller, HttpExchange exchange) {
+    public HTTPAPIConnection(ControllerServer controller, HttpExchange exchange) {
         super(Logging.getDefault());
         this.controller = controller;
         this.httpExchange = exchange;
@@ -239,7 +239,7 @@ class HTTPAPIConnection extends SafeRunnable {
                 List<String> users = params.get("user");
                 if (users == null || users.isEmpty())
                     return response(HttpURLConnection.HTTP_BAD_REQUEST);
-                return response(controller.grantServerAdmin(client, users.get(0)));
+                return response(controller.serverGrantAdmin(client, users.get(0)));
             }
             case "/server/revokeAdmin": {
                 if (!method.equals(HttpConstants.METHOD_POST))
@@ -248,7 +248,7 @@ class HTTPAPIConnection extends SafeRunnable {
                 List<String> users = params.get("user");
                 if (users == null || users.isEmpty())
                     return response(HttpURLConnection.HTTP_BAD_REQUEST);
-                return response(controller.revokeServerAdmin(client, users.get(0)));
+                return response(controller.serverRevokeAdmin(client, users.get(0)));
             }
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND, null);
@@ -441,7 +441,7 @@ class HTTPAPIConnection extends SafeRunnable {
         if (resource.equals("/privileges")) {
             if (!method.equals(HttpConstants.METHOD_GET))
                 return response(HttpURLConnection.HTTP_BAD_METHOD);
-            return response(controller.getPrivilegesDB(client, name));
+            return response(controller.getDatabasePrivileges(client, name));
         }
         if (resource.equals("/privileges/grant")) {
             if (!method.equals(HttpConstants.METHOD_POST))
@@ -454,7 +454,7 @@ class HTTPAPIConnection extends SafeRunnable {
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
                 return response(HttpURLConnection.HTTP_BAD_REQUEST);
-            return response(controller.grantDB(client, users.get(0), name, privilege));
+            return response(controller.grantDatabase(client, users.get(0), name, privilege));
         }
         if (resource.equals("/privileges/revoke")) {
             if (!method.equals(HttpConstants.METHOD_POST))
@@ -467,7 +467,7 @@ class HTTPAPIConnection extends SafeRunnable {
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
                 return response(HttpURLConnection.HTTP_BAD_REQUEST);
-            return response(controller.revokeDB(client, users.get(0), name, privilege));
+            return response(controller.revokeDatabase(client, users.get(0), name, privilege));
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND);
     }
@@ -662,7 +662,7 @@ class HTTPAPIConnection extends SafeRunnable {
             List<String> passwords = params.get("password");
             if (passwords == null || passwords.isEmpty())
                 return response(HttpURLConnection.HTTP_BAD_REQUEST);
-            return response(controller.resetPassword(client, name, passwords.get(0)));
+            return response(controller.updatePassword(client, name, passwords.get(0)));
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND);
     }
@@ -679,7 +679,7 @@ class HTTPAPIConnection extends SafeRunnable {
         if (resource.equals("/privileges")) {
             if (!method.equals(HttpConstants.METHOD_GET))
                 return response(HttpURLConnection.HTTP_BAD_METHOD);
-            return response(controller.getPrivilegesUser(client, name));
+            return response(controller.getUserPrivileges(client, name));
         }
         if (resource.equals("/privileges/grant")) {
             if (!method.equals(HttpConstants.METHOD_POST))
@@ -692,7 +692,7 @@ class HTTPAPIConnection extends SafeRunnable {
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
                 return response(HttpURLConnection.HTTP_BAD_REQUEST);
-            return response(controller.grantDB(client, name, databases.get(0), privilege));
+            return response(controller.grantDatabase(client, name, databases.get(0), privilege));
         }
         if (resource.equals("/privileges/revoke")) {
             if (!method.equals(HttpConstants.METHOD_POST))
@@ -705,7 +705,7 @@ class HTTPAPIConnection extends SafeRunnable {
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
                 return response(HttpURLConnection.HTTP_BAD_REQUEST);
-            return response(controller.revokeDB(client, name, databases.get(0), privilege));
+            return response(controller.revokeDatabase(client, name, databases.get(0), privilege));
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND);
     }
