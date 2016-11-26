@@ -141,7 +141,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/server/shutdown",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -166,7 +166,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/server/restart",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -196,7 +196,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/server/grantAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -226,7 +226,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/server/revokeAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -251,7 +251,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -276,7 +276,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -302,7 +302,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -332,7 +332,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -357,7 +357,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/users",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -382,7 +382,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -409,7 +409,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 password,
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -441,7 +441,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/metric",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -471,7 +471,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/statistics",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -510,7 +510,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 sparql,
                 Command.MIME_SPARQL_QUERY,
                 Result.SYNTAX_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -542,7 +542,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -575,7 +575,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 regime.toString(),
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -607,7 +607,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -642,7 +642,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -679,7 +679,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -711,7 +711,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/rules",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -742,7 +742,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -776,7 +776,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 content,
                 Repository.SYNTAX_RDFT,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -809,7 +809,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -840,7 +840,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -871,7 +871,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -902,7 +902,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -932,7 +932,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -963,7 +963,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -999,7 +999,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 procedure.serializedJSON(),
                 HttpConstants.MIME_JSON,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -1032,7 +1032,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -1066,7 +1066,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 context.serializedJSON(),
                 HttpConstants.MIME_JSON,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -1114,7 +1114,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 syntax,
                 true,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -1166,7 +1166,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/users/" + URIUtils.encodeComponent(toDelete),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -1199,7 +1199,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 password,
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
@@ -1231,7 +1231,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/users/" + URIUtils.encodeComponent(user) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyUnauthenticated.instance())
+        if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
