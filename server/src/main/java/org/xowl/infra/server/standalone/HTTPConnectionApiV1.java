@@ -90,24 +90,13 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             return;
         }
 
-        String resource = httpExchange.getRequestURI().getPath().substring("/api".length());
+        String resource = httpExchange.getRequestURI().getPath().substring(ApiV1.URI_PREFIX.length());
         if (resource.equals("/me/login")) {
             handleRequestLogin(method);
             return;
         }
 
-        List<String> cookies = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_COOKIE);
-        if (cookies != null) {
-            for (String cookie : cookies) {
-                if (cookie.startsWith(ApiV1.AUTH_TOKEN + "=")) {
-                    String token = cookie.substring(ApiV1.AUTH_TOKEN.length() + 1);
-                    XSPReply reply = controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
-                    if (reply != null && reply.isSuccess())
-                        client = ((XSPReplyResult<UserImpl>) reply).getData();
-                    break;
-                }
-            }
-        }
+        client = checkForAuthToken();
         if (client == null) {
             response(HttpURLConnection.HTTP_UNAUTHORIZED);
             return;
@@ -122,6 +111,27 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     }
 
     /**
+     * Checks for an authentication token
+     *
+     * @return The authenticate user, or null if none could be authenticated
+     */
+    private UserImpl checkForAuthToken() {
+        List<String> cookies = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_COOKIE);
+        if (cookies != null) {
+            for (String cookie : cookies) {
+                if (cookie.startsWith(ApiV1.AUTH_TOKEN + "=")) {
+                    String token = cookie.substring(ApiV1.AUTH_TOKEN.length() + 1);
+                    XSPReply reply = controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
+                    if (reply != null && reply.isSuccess())
+                        return ((XSPReplyResult<UserImpl>) reply).getData();
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Handles the request
      *
      * @param method The HTTP method
@@ -129,13 +139,19 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      */
     private int handleRequestLogin(String method) {
         if (!method.equals(HttpConstants.METHOD_POST))
-            return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
         Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
         List<String> logins = params.get("login");
-        List<String> passwords = params.get("password");
-        if (logins == null || passwords == null || logins.isEmpty() || passwords.isEmpty())
-            return response(HttpURLConnection.HTTP_BAD_REQUEST);
-        XSPReply reply = controller.login(httpExchange.getRemoteAddress().getAddress(), logins.get(0), passwords.get(0));
+        if (logins == null || logins.isEmpty())
+            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'login'");
+        String password;
+        try {
+            password = Utils.getRequestBody(httpExchange);
+        } catch (IOException exception) {
+            Logging.getDefault().error(exception);
+            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the request body");
+        }
+        XSPReply reply = controller.login(httpExchange.getRemoteAddress().getAddress(), logins.get(0), password);
         if (reply == null)
             return response(HttpURLConnection.HTTP_UNAUTHORIZED);
         if (!reply.isSuccess())
@@ -159,7 +175,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      */
     private int handleRequestLogout(String method) {
         if (!method.equals(HttpConstants.METHOD_POST))
-            return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
         XSPReply reply = controller.logout(client);
         if (!reply.isSuccess())
             return response(reply);
@@ -204,12 +220,12 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     private int handleResourceMe(String method, String resource) {
         if (resource.equals("/me")) {
             if (!method.equals(HttpConstants.METHOD_GET))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
             return response(controller.getUser(client, client.getName()));
         } else if (resource.equals("/me/logout")) {
             return handleRequestLogout(method);
         }
-        return response(HttpURLConnection.HTTP_NOT_FOUND, null);
+        return response(HttpURLConnection.HTTP_NOT_FOUND);
     }
 
     /**
@@ -223,32 +239,32 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         switch (resource) {
             case "/server/shutdown":
                 if (!method.equals(HttpConstants.METHOD_POST))
-                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
                 return response(controller.serverShutdown(client));
             case "/server/restart":
                 if (!method.equals(HttpConstants.METHOD_POST))
-                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
                 return response(controller.serverRestart(client));
             case "/server/grantAdmin": {
                 if (!method.equals(HttpConstants.METHOD_POST))
-                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
                 Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
                 List<String> users = params.get("user");
                 if (users == null || users.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'user'");
                 return response(controller.serverGrantAdmin(client, users.get(0)));
             }
             case "/server/revokeAdmin": {
                 if (!method.equals(HttpConstants.METHOD_POST))
-                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
                 Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
                 List<String> users = params.get("user");
                 if (users == null || users.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'user'");
                 return response(controller.serverRevokeAdmin(client, users.get(0)));
             }
         }
-        return response(HttpURLConnection.HTTP_NOT_FOUND, null);
+        return response(HttpURLConnection.HTTP_NOT_FOUND);
     }
 
     /**
@@ -261,7 +277,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     private int handleResourceDatabases(String method, String resource) {
         if (resource.equals("/databases")) {
             if (!method.equals(HttpConstants.METHOD_GET))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
             return response(controller.getDatabases(client));
         } else if (resource.startsWith("/databases/")) {
             String rest = resource.substring("/databases/".length());
@@ -310,7 +326,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             case HttpConstants.METHOD_POST:
                 return handleResourceDatabasePostData(name);
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD);
+        return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected methods: GET, PUT, DELETE, POST");
     }
 
     /**
@@ -323,13 +339,13 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         Headers rHeaders = httpExchange.getRequestHeaders();
         String contentType = Utils.getRequestContentType(rHeaders);
         if (contentType == null)
-            return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected Content-Type header");
         String body;
         try {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
-            return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
         }
         return response(controller.upload(client, name, contentType, body));
     }
@@ -343,7 +359,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      */
     private int handleResourceDatabaseMetric(String name, String method) {
         if (!method.equals(HttpConstants.METHOD_GET))
-            return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
         return response(controller.getDatabaseMetric(client, name));
     }
 
@@ -356,7 +372,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      */
     private int handleResourceDatabaseMetricSnapshot(String name, String method) {
         if (!method.equals(HttpConstants.METHOD_GET))
-            return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
         return response(controller.getDatabaseMetricSnapshot(client, name));
     }
 
@@ -378,7 +394,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
-            return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
         }
         switch (method) {
             case HttpConstants.METHOD_GET:
@@ -386,19 +402,21 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     if (body != null && !body.isEmpty()) {
                         // should be empty
                         // ill-formed request
-                        response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+                        return response(HttpURLConnection.HTTP_BAD_REQUEST, "Request body should be empty");
                     } else {
                         return response(controller.sparql(client, name, query, defaults, named));
                     }
                 } else {
                     // ill-formed request
-                    response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'query'");
                 }
-                break;
             case HttpConstants.METHOD_POST:
+                if (body == null || body.isEmpty()) {
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query in request's body");
+                }
                 return response(controller.sparql(client, name, body, defaults, named));
         }
-        return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+        return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected methods: GET, POST");
     }
 
     /**
@@ -418,12 +436,12 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     return response(controller.setEntailmentRegime(client, name, body));
                 } catch (IOException exception) {
                     Logging.getDefault().error(exception);
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
                 }
             case HttpConstants.METHOD_DELETE:
                 return response(controller.setEntailmentRegime(client, name, EntailmentRegime.none.toString()));
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD);
+        return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected methods: GET, PUT, DELETE");
     }
 
     /**
@@ -437,33 +455,33 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     private int handleResourceDatabasePrivileges(String name, String method, String resource) {
         if (resource.equals("/privileges")) {
             if (!method.equals(HttpConstants.METHOD_GET))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
             return response(controller.getDatabasePrivileges(client, name));
         }
         if (resource.equals("/privileges/grant")) {
             if (!method.equals(HttpConstants.METHOD_POST))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
             Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
             List<String> users = params.get("user");
             List<String> accesses = params.get("access");
             if (users == null || users.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'user', 'access'");
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Query parameter 'access' must be one of: ADMIN, WRITE, READ");
             return response(controller.grantDatabase(client, users.get(0), name, privilege));
         }
         if (resource.equals("/privileges/revoke")) {
             if (!method.equals(HttpConstants.METHOD_POST))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
             Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
             List<String> users = params.get("user");
             List<String> accesses = params.get("access");
             if (users == null || users.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'user', 'access'");
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Query parameter 'access' must be one of: ADMIN, WRITE, READ");
             return response(controller.revokeDatabase(client, users.get(0), name, privilege));
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND);
@@ -494,7 +512,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     }
                 }
             }
-            return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected methods: GET, PUT");
         }
 
         resource = resource.substring("/rules/".length());
@@ -506,11 +524,11 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             resource = resource.substring(index);
             if (resource.equals("/status")) {
                 if (!method.equals(HttpConstants.METHOD_GET))
-                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
                 return response(controller.getRuleStatus(client, name, ruleId));
             }
             if (!method.equals(HttpConstants.METHOD_POST))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
             if (resource.equals("/activate"))
                 return response(controller.activateRule(client, name, ruleId));
             if (resource.equals("/deactivate"))
@@ -524,7 +542,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 case HttpConstants.METHOD_DELETE:
                     return response(controller.removeRule(client, name, ruleId));
             }
-            return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected methods: GET, DELETE");
         }
     }
 
@@ -539,7 +557,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     private int handleResourceDatabaseProcedures(String name, String method, String resource) {
         if (resource.equals("/procedures")) {
             if (!method.equals(HttpConstants.METHOD_GET))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
             return response(controller.getStoredProcedures(client, name));
         }
 
@@ -555,10 +573,10 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             case HttpConstants.METHOD_PUT: {
                 try {
                     String body = Utils.getRequestBody(httpExchange);
-                    ASTNode root = JSONLDLoader.parseJSON(logger, body);
+                    ASTNode root = JSONLDLoader.parseJSON(Logging.getDefault(), body);
                     if (root == null)
                         return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
-                    BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, logger);
+                    BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, Logging.getDefault());
                     return response(controller.addStoredProcedure(client, name, procedure.getName(), procedure.getDefinition(), procedure.getParameters()));
                 } catch (IOException exception) {
                     Logging.getDefault().error(exception);
@@ -575,7 +593,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 }
             }
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD);
+        return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected methods: GET, PUT, POST, DELETE");
     }
 
 
@@ -589,7 +607,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     private int handleResourceUsers(String method, String resource) {
         if (resource.equals("/users")) {
             if (!method.equals(HttpConstants.METHOD_GET))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
             return response(controller.getUsers(client));
         } else if (resource.startsWith("/users/")) {
             String rest = resource.substring("/users/".length());
@@ -601,8 +619,8 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 return handleResourceUserNaked(name, method);
             rest = rest.substring(index);
             if (rest.equals("/password"))
-                return handleResourceUserPassword(name, method, rest);
-            if (rest.equals("/privileges"))
+                return handleResourceUserPassword(name, method);
+            if (rest.startsWith("/privileges"))
                 return handleResourceUserPrivileges(name, method, rest);
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND);
@@ -626,42 +644,32 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     String password = Utils.getRequestBody(httpExchange);
                     return response(controller.createUser(client, name, password));
                 } catch (IOException exception) {
-                    logger.error(exception);
-                    return response(HttpURLConnection.HTTP_INTERNAL_ERROR, exception.getMessage());
+                    Logging.getDefault().error(exception);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
                 }
             }
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD);
+        return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected methods: GET, PUT, DELETE");
     }
 
     /**
      * Handles the request
      *
-     * @param name     The database's name
-     * @param method   The HTTP method
-     * @param resource The accessed resource
+     * @param name   The database's name
+     * @param method The HTTP method
      * @return The response code
      */
-    private int handleResourceUserPassword(String name, String method, String resource) {
-        if (resource.equals("/password/change")) {
-            if (!method.equals(HttpConstants.METHOD_POST))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
-            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-            List<String> passwords = params.get("password");
-            if (passwords == null || passwords.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
-            return response(controller.updatePassword(client, name, passwords.get(0)));
+    private int handleResourceUserPassword(String name, String method) {
+        if (!method.equals(HttpConstants.METHOD_POST))
+            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
+        String password;
+        try {
+            password = Utils.getRequestBody(httpExchange);
+        } catch (IOException exception) {
+            Logging.getDefault().error(exception);
+            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the request body");
         }
-        if (resource.equals("/password/reset")) {
-            if (!method.equals(HttpConstants.METHOD_POST))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
-            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-            List<String> passwords = params.get("password");
-            if (passwords == null || passwords.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
-            return response(controller.updatePassword(client, name, passwords.get(0)));
-        }
-        return response(HttpURLConnection.HTTP_NOT_FOUND);
+        return response(controller.updatePassword(client, name, password));
     }
 
     /**
@@ -675,33 +683,33 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     private int handleResourceUserPrivileges(String name, String method, String resource) {
         if (resource.equals("/privileges")) {
             if (!method.equals(HttpConstants.METHOD_GET))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
             return response(controller.getUserPrivileges(client, name));
         }
         if (resource.equals("/privileges/grant")) {
             if (!method.equals(HttpConstants.METHOD_POST))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
             Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
             List<String> databases = params.get("db");
             List<String> accesses = params.get("access");
             if (databases == null || databases.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'db', 'access'");
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Query parameter 'access' must be one of: ADMIN, WRITE, READ");
             return response(controller.grantDatabase(client, name, databases.get(0), privilege));
         }
         if (resource.equals("/privileges/revoke")) {
             if (!method.equals(HttpConstants.METHOD_POST))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
             Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
             List<String> databases = params.get("db");
             List<String> accesses = params.get("access");
             if (databases == null || databases.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected query parameters: 'db', 'access'");
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Query parameter 'access' must be one of: ADMIN, WRITE, READ");
             return response(controller.revokeDatabase(client, name, databases.get(0), privilege));
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND);
