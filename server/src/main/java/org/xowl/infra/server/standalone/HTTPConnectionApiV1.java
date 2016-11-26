@@ -25,10 +25,7 @@ import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.UserImpl;
-import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyApiError;
-import org.xowl.infra.server.xsp.XSPReplyResult;
-import org.xowl.infra.server.xsp.XSPReplyUtils;
+import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.utils.Files;
@@ -98,11 +95,12 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             return;
         }
 
-        client = checkForAuthToken();
-        if (client == null) {
-            response(HttpURLConnection.HTTP_UNAUTHORIZED);
+        XSPReply reply = checkForAuthToken();
+        if (!reply.isSuccess()) {
+            response(reply);
             return;
         }
+        client = ((XSPReplyResult<UserImpl>) reply).getData();
         handleRequest(method, resource);
     }
 
@@ -115,22 +113,19 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     /**
      * Checks for an authentication token
      *
-     * @return The authenticate user, or null if none could be authenticated
+     * @return The protocol reply with the user
      */
-    private UserImpl checkForAuthToken() {
+    private XSPReply checkForAuthToken() {
         List<String> cookies = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_COOKIE);
         if (cookies != null) {
             for (String cookie : cookies) {
                 if (cookie.startsWith(ApiV1.AUTH_TOKEN + "=")) {
                     String token = cookie.substring(ApiV1.AUTH_TOKEN.length() + 1);
-                    XSPReply reply = controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
-                    if (reply != null && reply.isSuccess())
-                        return ((XSPReplyResult<UserImpl>) reply).getData();
-                    return null;
+                    return controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
                 }
             }
         }
-        return null;
+        return XSPReplyUnauthenticated.instance();
     }
 
     /**
@@ -154,10 +149,8 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         XSPReply reply = controller.login(httpExchange.getRemoteAddress().getAddress(), logins.get(0), password);
-        if (reply == null)
-            return response(HttpURLConnection.HTTP_UNAUTHORIZED);
         if (!reply.isSuccess())
-            return response(HttpURLConnection.HTTP_UNAUTHORIZED);
+            return response(reply);
         String token = ((XSPReplyResult<String>) reply).getData();
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
                 ApiV1.AUTH_TOKEN + "=" + token +

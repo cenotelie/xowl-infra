@@ -16,7 +16,7 @@ function doGetData() {
 		if (onOperationEnded(status, content)) {
 			renderAccesses(content.accesses);
 		}
-	}, xowl.getUser());
+	}, xowl.getLoggedInUser());
 }
 
 function onChangePassword() {
@@ -30,13 +30,11 @@ function onChangePassword() {
 	}
 	if (!onOperationRequest("Changing password ..."))
 		return;
-	xowl.changePassword(function (status, type, content) {
+	xowl.updatePassword(function (status, type, content) {
 		if (onOperationEnded(status, content)) {
 			displayMessage("success", "Your password has been updated.");
-			// update the token
-			xowl.login(function (status, type, content) {}, xowl.getUser(), password1);
 		}
-	}, password1);
+	}, xowl.getLoggedInUser(), password1);
 }
 
 function renderAccesses(accesses) {

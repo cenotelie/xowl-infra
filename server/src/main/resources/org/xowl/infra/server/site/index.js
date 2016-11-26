@@ -23,7 +23,7 @@ function doGetData() {
 				document.getElementById("panel-admin-new-user").style.display = "";
 			}
 		}
-	}, xowl.getUser());
+	}, xowl.getLoggedInUser());
 	xowl.getDatabases(function (status, type, content) {
 		if (onOperationEnded(status, content)) {
 			renderDatabases(content);

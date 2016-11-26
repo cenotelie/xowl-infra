@@ -19,7 +19,7 @@ XOWL.prototype.isLoggedIn = function () {
 	return (this.userName !== null);
 }
 
-XOWL.prototype.getUser = function () {
+XOWL.prototype.getLoggedInUser = function () {
 	return this.userName;
 }
 
@@ -122,7 +122,7 @@ XOWL.prototype.sparql = function (callback, db, sparql) {
 XOWL.prototype.getEntailmentFor = function (callback, db) {
 	this.doRequest(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content));
+			callback(code, "application/json", content);
 		} else {
 			callback(code, type, content);
 		}
@@ -257,8 +257,8 @@ XOWL.prototype.deleteUser = function (callback, login) {
 	this.doRequest(callback, "/users/" + encodeURIComponent(login), "DELETE", null, null);
 }
 
-XOWL.prototype.updatePassword = function (callback, pw) {
-	this.doRequest(callback, "/users/" + encodeURIComponent(this.getUser()), "POST", "text/plain", pw);
+XOWL.prototype.updatePassword = function (callback, user, pw) {
+	this.doRequest(callback, "/users/" + encodeURIComponent(user), "POST", "text/plain", pw);
 }
 
 XOWL.prototype.getUserPrivileges = function (callback, login) {

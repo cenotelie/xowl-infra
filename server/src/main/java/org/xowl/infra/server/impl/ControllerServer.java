@@ -251,11 +251,11 @@ public class ControllerServer implements Closeable {
      */
     public XSPReply login(InetAddress client, String login, String password) {
         if (isBanned(client))
-            return null;
+            return XSPReplyUnauthenticated.instance();
         if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
-            boolean banned = onLoginFailure(client);
+            onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " on initial login with " + login);
-            return banned ? null : XSPReplyFailure.instance();
+            return XSPReplyUnauthenticated.instance();
         }
         String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
@@ -266,19 +266,19 @@ public class ControllerServer implements Closeable {
                 hash = (String) proxy.getDataValue(Schema.ADMIN_PASSWORD);
         }
         if (proxy == null) {
-            boolean banned = onLoginFailure(client);
+            onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " on initial login with " + login);
-            return banned ? null : XSPReplyFailure.instance();
+            return XSPReplyUnauthenticated.instance();
         }
         if (!BCrypt.checkpw(password, hash)) {
-            boolean banned = onLoginFailure(client);
+            onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " on initial login with " + login);
-            return banned ? null : XSPReplyFailure.instance();
+            return XSPReplyUnauthenticated.instance();
         } else {
             synchronized (clients) {
                 clients.remove(client);
             }
-            logger.info("Authentication failure from " + client.toString() + " on initial login with " + login);
+            logger.info("Authentication success from " + client.toString() + " on initial login with " + login);
             return new XSPReplyResult<>(buildTokenFor(login));
         }
     }
@@ -301,12 +301,14 @@ public class ControllerServer implements Closeable {
      * @return The protocol reply, or null if the client is banned
      */
     public XSPReply authenticate(InetAddress client, String token) {
+        if (isBanned(client))
+            return XSPReplyUnauthenticated.instance();
         XSPReply reply = checkToken(token);
-        if (reply == null) {
+        if (reply == XSPReplyUnauthenticated.instance()) {
             // the token is invalid
-            boolean banned = onLoginFailure(client);
+            onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " with invalid token");
-            return banned ? null : XSPReplyFailure.instance();
+            return reply;
         }
         if (!reply.isSuccess()) {
             logger.info("Authentication failure from " + client.toString() + " with invalid token");
@@ -512,7 +514,7 @@ public class ControllerServer implements Closeable {
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
-            return new XSPReplyResult<>(db.getMetric());
+            return new XSPReplyResult<>(db.dbController.getMetric());
         }
         return XSPReplyUnauthorized.instance();
     }
@@ -531,7 +533,7 @@ public class ControllerServer implements Closeable {
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
-            return new XSPReplyResult<>(db.getMetricSnapshot());
+            return new XSPReplyResult<>(db.dbController.getMetricSnapshot());
         }
         return XSPReplyUnauthorized.instance();
     }
@@ -575,7 +577,7 @@ public class ControllerServer implements Closeable {
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkCanRead(client, db))
-            return new XSPReplyResult<>(db.getEntailmentRegime());
+            return new XSPReplyResult<>(db.dbController.getEntailmentRegime());
         return XSPReplyUnauthorized.instance();
     }
 
@@ -789,7 +791,7 @@ public class ControllerServer implements Closeable {
             return XSPReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
-                db.removeRule(rule);
+                db.dbController.removeRule(rule);
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
@@ -815,7 +817,7 @@ public class ControllerServer implements Closeable {
             return XSPReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
-                db.activateRule(rule);
+                db.dbController.activateRule(rule);
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
@@ -841,7 +843,7 @@ public class ControllerServer implements Closeable {
             return XSPReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
-                db.deactivateRule(rule);
+                db.dbController.deactivateRule(rule);
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
@@ -976,7 +978,7 @@ public class ControllerServer implements Closeable {
             return XSPReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
-                db.removeStoredProcedure(procedure);
+                db.dbController.removeStoredProcedure(procedure);
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
@@ -1252,7 +1254,7 @@ public class ControllerServer implements Closeable {
     private XSPReply checkToken(String token) {
         byte[] tokenBytes = Base64.decodeBase64(token);
         if (tokenBytes.length <= 32 + 8)
-            return null;
+            return XSPReplyUnauthenticated.instance();
         byte[] tokenData = Arrays.copyOf(tokenBytes, tokenBytes.length - 32);
         byte[] hashProvided = new byte[32];
         System.arraycopy(tokenBytes, tokenBytes.length - 32, hashProvided, 0, 32);
@@ -1264,7 +1266,7 @@ public class ControllerServer implements Closeable {
                 byte[] computedHash = securityMAC.doFinal(tokenData);
                 if (!Arrays.equals(hashProvided, computedHash))
                     // the token does not checks out ...
-                    return null;
+                    return XSPReplyUnauthenticated.instance();
             } catch (InvalidKeyException exception) {
                 logger.error(exception);
                 return new XSPReplyException(exception);

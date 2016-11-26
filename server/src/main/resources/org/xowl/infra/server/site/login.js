@@ -2,6 +2,7 @@
 // Provided under LGPL v3
 
 var xowl = new XOWL();
+var next = getParameterByName("next");
 
 function init() {
 	doSetupPage(xowl, false, [{name: "Login"}], function() {});
@@ -18,7 +19,10 @@ function onLoginButton() {
 	}
 	xowl.login(function (status, type, content) {
 		if (onOperationEnded(status, content, "Failed to login, verify your login and password.")) {
-			window.location.href = "index.html";
+			if (next == null || next == "")
+				window.location.href = "index.html";
+			else
+				window.location.href = next;
 		}
 	}, login, password);
 	return false;
