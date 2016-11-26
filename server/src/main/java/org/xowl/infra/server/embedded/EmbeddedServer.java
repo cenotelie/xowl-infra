@@ -57,7 +57,12 @@ public class EmbeddedServer implements XOWLServer, Closeable {
         this.controller = new ControllerServer(logger, configuration) {
             @Override
             protected DatabaseImpl newDB(ControllerDatabase dbController) {
-                return new EmbeddedDatabase(logger, this, dbController, admin);
+                return new EmbeddedDatabase(logger, this, dbController) {
+                    @Override
+                    protected UserImpl getAdminUser() {
+                        return admin;
+                    }
+                };
             }
 
             @Override

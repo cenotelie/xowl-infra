@@ -45,15 +45,11 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class EmbeddedDatabase extends DatabaseImpl {
+abstract class EmbeddedDatabase extends DatabaseImpl {
     /**
      * The logger for this database
      */
     private final Logger logger;
-    /**
-     * The administrator user
-     */
-    private final UserImpl admin;
 
     /**
      * Initializes this structure
@@ -61,13 +57,18 @@ class EmbeddedDatabase extends DatabaseImpl {
      * @param logger           The logger for this database
      * @param serverController The parent server controller
      * @param dbController     The associated database controller
-     * @param admin            The administrator user
      */
-    public EmbeddedDatabase(Logger logger, ControllerServer serverController, ControllerDatabase dbController, UserImpl admin) {
+    public EmbeddedDatabase(Logger logger, ControllerServer serverController, ControllerDatabase dbController) {
         super(serverController, dbController);
         this.logger = logger;
-        this.admin = admin;
     }
+
+    /**
+     * Gets the administrator user
+     *
+     * @return The administrator user
+     */
+    protected abstract UserImpl getAdminUser();
 
     @Override
     public XSPReply getMetric() {
@@ -113,7 +114,7 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply getPrivileges() {
-        return serverController.getDatabasePrivileges(admin, name);
+        return serverController.getDatabasePrivileges(getAdminUser(), name);
     }
 
     @Override
@@ -123,7 +124,7 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply grant(String user, int privilege) {
-        return serverController.grantDatabase(admin, user, name, privilege);
+        return serverController.grantDatabase(getAdminUser(), user, name, privilege);
     }
 
     @Override
@@ -133,7 +134,7 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply revoke(String user, int privilege) {
-        return serverController.revokeDatabase(admin, user, name, privilege);
+        return serverController.revokeDatabase(getAdminUser(), user, name, privilege);
     }
 
     @Override
