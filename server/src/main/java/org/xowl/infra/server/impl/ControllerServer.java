@@ -402,7 +402,7 @@ public class ControllerServer implements Closeable {
             }
             for (DatabaseImpl database : databases.values()) {
                 if (checkCanRead(client, database))
-                    result.add(new BaseDatabase(database.getName()));
+                    result.add(database);
             }
         }
         return new XSPReplyResultCollection<>(result);
@@ -422,7 +422,7 @@ public class ControllerServer implements Closeable {
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkCanRead(client, db)) {
-            return new XSPReplyResult<>(new BaseDatabase(name));
+            return new XSPReplyResult<>(db);
         }
         return XSPReplyUnauthorized.instance();
     }
