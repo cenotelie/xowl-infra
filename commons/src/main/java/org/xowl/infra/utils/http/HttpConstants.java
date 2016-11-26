@@ -161,6 +161,10 @@ public interface HttpConstants {
     String MIME_JSON = "application/json";
 
     /**
+     * HTTP code for an expired user session
+     */
+    int HTTP_SESSION_EXPIRED = 440;
+    /**
      * HTTP code for a SPARQL error
      */
     int HTTP_SPARQL_ERROR = 461;

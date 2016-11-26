@@ -301,13 +301,18 @@ public class ControllerServer implements Closeable {
      * @return The protocol reply, or null if the client is banned
      */
     public XSPReply authenticate(InetAddress client, String token) {
-        String login = checkToken(token);
-        if (login == null) {
+        XSPReply reply = checkToken(token);
+        if (reply == null) {
+            // the token is invalid
             boolean banned = onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " with invalid token");
             return banned ? null : XSPReplyFailure.instance();
         }
-        UserImpl user = getPrincipal(login);
+        if (!reply.isSuccess()) {
+            logger.info("Authentication failure from " + client.toString() + " with invalid token");
+            return reply;
+        }
+        UserImpl user = getPrincipal(((XSPReplyResult<String>) reply).getData());
         return new XSPReplyResult<>(user);
     }
 
@@ -1242,9 +1247,9 @@ public class ControllerServer implements Closeable {
      * Checks whether the token is valid
      *
      * @param token The authentication token to check
-     * @return The login of the principal user, or null if the token is invalid
+     * @return The protocol reply, or null if the token is invalid
      */
-    private String checkToken(String token) {
+    private XSPReply checkToken(String token) {
         byte[] tokenBytes = Base64.decodeBase64(token);
         if (tokenBytes.length <= 32 + 8)
             return null;
@@ -1262,7 +1267,7 @@ public class ControllerServer implements Closeable {
                     return null;
             } catch (InvalidKeyException exception) {
                 logger.error(exception);
-                return null;
+                return new XSPReplyException(exception);
             }
         }
 
@@ -1284,8 +1289,8 @@ public class ControllerServer implements Closeable {
                 | ((long) b7 & 0xFFL);
         if (System.currentTimeMillis() > validUntil)
             // the token expired
-            return null;
-        return new String(tokenBytes, 0, tokenBytes.length - 32 - 8, Files.CHARSET);
+            return XSPReplyExpiredSession.instance();
+        return new XSPReplyResult<>(new String(tokenBytes, 0, tokenBytes.length - 32 - 8, Files.CHARSET));
     }
 
     /**

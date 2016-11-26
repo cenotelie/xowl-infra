@@ -57,6 +57,8 @@ public class XSPReplyUtils {
             return new HttpResponse(HttpURLConnection.HTTP_UNAUTHORIZED);
         if (reply instanceof XSPReplyUnauthorized)
             return new HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
+        if (reply instanceof XSPReplyExpiredSession)
+            return new HttpResponse(HttpConstants.HTTP_SESSION_EXPIRED);
         if (reply instanceof XSPReplyUnsupported)
             return new HttpResponse(HttpURLConnection.HTTP_NOT_IMPLEMENTED);
         if (reply instanceof XSPReplyNotFound)
@@ -139,6 +141,8 @@ public class XSPReplyUtils {
             return XSPReplyUnauthenticated.instance();
         if (response.getCode() == HttpURLConnection.HTTP_FORBIDDEN)
             return XSPReplyUnauthorized.instance();
+        if (response.getCode() == HttpConstants.HTTP_SESSION_EXPIRED)
+            return XSPReplyExpiredSession.instance();
         if (response.getCode() == HttpURLConnection.HTTP_NOT_IMPLEMENTED)
             return XSPReplyUnsupported.instance();
         if (response.getCode() == HttpURLConnection.HTTP_NOT_FOUND)
@@ -262,6 +266,8 @@ public class XSPReplyUtils {
             return new XSPReplyApiError(XSPReplyApiError.parseApiError(nodePayload), message);
         if (XSPReplyException.class.getCanonicalName().equals(kind))
             return new XSPReplyException(null); // exception not preserved
+        if (XSPReplyExpiredSession.class.getCanonicalName().equals(kind))
+            return XSPReplyExpiredSession.instance();
         if (XSPReplyFailure.class.getCanonicalName().equals(kind))
             return new XSPReplyFailure(message);
         if (XSPReplyNetworkError.class.getCanonicalName().equals(kind))

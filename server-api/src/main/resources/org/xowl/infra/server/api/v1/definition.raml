@@ -31,6 +31,8 @@ traits:
         description: No user is logged-in, or the security token is invalid (expired).
       403:
         description: The logged-in user is not authorized to perform this operation.
+      440:
+        description: The user session has expired.
   resourceAccess:
     usage: Apply this to any method that refers to a particular resource
     description: Trait for requests that refer to particular resources
