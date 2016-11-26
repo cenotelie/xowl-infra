@@ -72,6 +72,11 @@ public class XSPReplyFailure implements XSPReply {
 
     @Override
     public String serializedJSON() {
-        return "{ \"isSuccess\": false, \"message\": \"" + (message == null ? "" : TextUtils.escapeStringJSON(message)) + "\" }";
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                "\", \"kind\": \"" +
+                TextUtils.escapeStringJSON(XSPReplyFailure.class.getSimpleName()) +
+                "\", \"isSuccess\": false," +
+                "\"message\": \"" + TextUtils.escapeStringJSON(message != null ? message : "FAILED") + "\"}";
     }
 }

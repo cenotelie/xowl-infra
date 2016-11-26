@@ -79,7 +79,12 @@ public class XSPReplyResultCollection<T> implements XSPReply {
 
     @Override
     public String serializedJSON() {
-        StringBuilder builder = new StringBuilder("{ \"isSuccess\": true, \"message\": \"\", \"payload\": [");
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"type\": \"");
+        builder.append(TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()));
+        builder.append("\", \"kind\": \"");
+        builder.append(TextUtils.escapeStringJSON(XSPReplyResultCollection.class.getSimpleName()));
+        builder.append("\", \"isSuccess\": true, \"message\": \"\", \"payload\": [");
         boolean first = true;
         for (T obj : data) {
             if (!first)

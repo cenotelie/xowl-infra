@@ -107,7 +107,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             dbController.setEntailmentRegime(regime);
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
         return XSPReplySuccess.instance();
     }
@@ -144,7 +144,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return new XSPReplyResultCollection<>(rules);
         } catch (IOException exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -157,7 +157,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return new XSPReplyResult<>(rule);
         } catch (IOException exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -168,7 +168,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return new XSPReplyResult<>(rule);
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -184,7 +184,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -200,7 +200,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -216,7 +216,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -234,7 +234,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return new XSPReplyResult<>(status);
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -245,7 +245,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return new XSPReplyResultCollection<>(procedures);
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -258,7 +258,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return new XSPReplyResult<>(procedure);
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -269,7 +269,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return new XSPReplyResult<>(procedure);
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -285,7 +285,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -303,7 +303,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return new XSPReplyResult<>(result);
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -317,7 +317,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 
@@ -328,7 +328,7 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
     }
 }

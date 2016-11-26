@@ -17,6 +17,8 @@
 
 package org.xowl.infra.server.xsp;
 
+import org.xowl.infra.utils.TextUtils;
+
 /**
  * Implements a reply to a xOWL server protocol request when a requested resource is not found
  *
@@ -63,6 +65,11 @@ public class XSPReplyNotFound implements XSPReply {
 
     @Override
     public String serializedJSON() {
-        return "{ \"isSuccess\": false, \"message\": \"NOT FOUND\", \"cause\": \"NOT FOUND\" }";
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                "\", \"kind\": \"" +
+                TextUtils.escapeStringJSON(XSPReplyNotFound.class.getSimpleName()) +
+                "\", \"isSuccess\": false," +
+                "\"message\": \"Not Found\"}";
     }
 }

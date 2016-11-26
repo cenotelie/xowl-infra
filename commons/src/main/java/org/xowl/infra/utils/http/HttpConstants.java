@@ -159,8 +159,13 @@ public interface HttpConstants {
      * The MIME content type for JSON
      */
     String MIME_JSON = "application/json";
+
     /**
-     * Unknown error from the server
+     * HTTP code for a SPARQL error
      */
-    int HTTP_UNKNOWN_ERROR = 520;
+    int HTTP_SPARQL_ERROR = 461;
+    /**
+     * HTTP code for an unknown error from the server
+     */
+    int HTTP_UNKNOWN_ERROR = 560;
 }

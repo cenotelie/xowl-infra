@@ -20,32 +20,37 @@ package org.xowl.infra.server.xsp;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user is not authenticated
+ * Implements a reply to a xOWL server protocol request when the request failed due to internal exception
  *
  * @author Laurent Wouters
  */
-public class XSPReplyUnauthenticated implements XSPReply {
+public class XSPReplyException implements XSPReply {
     /**
-     * The singleton instance
+     * The standard message for an exception
      */
-    private static XSPReplyUnauthenticated INSTANCE = null;
+    public static final String MESSAGE = "Internal server error, see log for more details.";
 
     /**
-     * Gets the singleton instance
-     *
-     * @return The singleton instance
+     * The thrown exception
      */
-    public synchronized static XSPReplyUnauthenticated instance() {
-        if (INSTANCE == null)
-            return new XSPReplyUnauthenticated();
-        return INSTANCE;
+    private final Throwable throwable;
+
+    /**
+     * Initializes this reply
+     *
+     * @param throwable The thrown exception
+     */
+    public XSPReplyException(Throwable throwable) {
+        this.throwable = throwable;
     }
 
     /**
-     * Initializes this instance
+     * Gets the thrown exception
+     *
+     * @return The thrown exception
      */
-    private XSPReplyUnauthenticated() {
-
+    public Throwable getThrowable() {
+        return throwable;
     }
 
     @Override
@@ -55,12 +60,12 @@ public class XSPReplyUnauthenticated implements XSPReply {
 
     @Override
     public String getMessage() {
-        return "UNAUTHENTICATED";
+        return throwable != null ? throwable.getMessage() : MESSAGE;
     }
 
     @Override
     public String serializedString() {
-        return "UNAUTHENTICATED";
+        return "ERROR: " + getMessage();
     }
 
     @Override
@@ -68,8 +73,8 @@ public class XSPReplyUnauthenticated implements XSPReply {
         return "{\"type\": \"" +
                 TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyUnauthenticated.class.getSimpleName()) +
+                TextUtils.escapeStringJSON(XSPReplyException.class.getSimpleName()) +
                 "\", \"isSuccess\": false," +
-                "\"message\": \"UNAUTHENTICATED\"}";
+                "\"message\": \"" + TextUtils.escapeStringJSON(getMessage()) + "\"}";
     }
 }

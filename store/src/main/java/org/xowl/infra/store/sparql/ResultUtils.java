@@ -18,8 +18,6 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.ParseError;
-import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
@@ -173,31 +171,10 @@ public class ResultUtils {
      */
     private static Result parseResponseJSON(String content) {
         NodeManager nodeManager = new CachedNodes();
-        JSONLDLoader loader = new JSONLDLoader(nodeManager) {
-            @Override
-            protected Reader getReaderFor(Logger logger, String iri) {
-                return null;
-            }
-        };
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(Logging.getDefault(), bufferedLogger);
-        ParseResult parseResult = loader.parse(dispatchLogger, new StringReader(content));
-        if (parseResult == null || !parseResult.isSuccess()) {
-            dispatchLogger.error("Failed to parse and load the solutions:");
-            if (parseResult != null) {
-                for (ParseError error : parseResult.getErrors()) {
-                    dispatchLogger.error(error);
-                }
-            }
-            StringBuilder builder = new StringBuilder();
-            for (Object error : bufferedLogger.getErrorMessages()) {
-                builder.append(error.toString());
-                builder.append("\n");
-            }
-            return new ResultFailure(builder.toString());
-        }
-
-        ASTNode nodeRoot = parseResult.getRoot();
+        ASTNode nodeRoot = JSONLDLoader.parseJSON(bufferedLogger, content);
+        if (nodeRoot == null)
+            return new ResultFailure(bufferedLogger.getErrorsAsString());
         if ("array".equals(nodeRoot.getSymbol().getName()))
             return new ResultFailure("Unexpected JSON format");
 

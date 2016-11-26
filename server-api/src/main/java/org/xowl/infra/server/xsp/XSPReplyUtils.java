@@ -18,32 +18,22 @@
 package org.xowl.infra.server.xsp;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.ParseError;
-import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.server.api.XOWLFactory;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.store.sparql.Result;
+import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.sparql.ResultUtils;
-import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
 import org.xowl.infra.utils.logging.BufferedLogger;
-import org.xowl.infra.utils.logging.DispatchLogger;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Utility APIs for the xOWL Server Protocol
@@ -59,6 +49,7 @@ public class XSPReplyUtils {
      * @return The HTTP response
      */
     public static HttpResponse toHttpResponse(XSPReply reply, List<String> acceptTypes) {
+        // XSP replies mapped to HTTP error codes
         if (reply == null)
             // client got banned
             return new HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
@@ -70,24 +61,66 @@ public class XSPReplyUtils {
             return new HttpResponse(HttpURLConnection.HTTP_NOT_IMPLEMENTED);
         if (reply instanceof XSPReplyNotFound)
             return new HttpResponse(HttpURLConnection.HTTP_NOT_FOUND);
-        // other failures
+        if (reply instanceof XSPReplyApiError)
+            return new HttpResponse(HttpURLConnection.HTTP_BAD_REQUEST, HttpConstants.MIME_JSON, ((XSPReplyApiError) reply).getError().serializedJSON());
+        if (reply instanceof XSPReplyException)
+            return new HttpResponse(HttpURLConnection.HTTP_INTERNAL_ERROR, HttpConstants.MIME_TEXT_PLAIN, XSPReplyException.MESSAGE);
+
+        // other failures (including XSPReplyFailure) mapped to HTTP_UNKNOWN_ERROR
         if (!reply.isSuccess())
             return new HttpResponse(HttpConstants.HTTP_UNKNOWN_ERROR, HttpConstants.MIME_TEXT_PLAIN, reply.getMessage());
+
         // handle special case of SPARQL
         if (reply instanceof XSPReplyResult && ((XSPReplyResult) reply).getData() instanceof Result) {
             // special handling for SPARQL
             Result sparqlResult = (Result) ((XSPReplyResult) reply).getData();
-            String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes != null ? httpNegotiateContentType(acceptTypes) : Repository.SYNTAX_NQUADS);
-            StringWriter writer = new StringWriter();
-            try {
-                sparqlResult.print(writer, resultType);
-            } catch (IOException exception) {
-                // cannot happen
-            }
-            return new HttpResponse(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpConstants.HTTP_UNKNOWN_ERROR, resultType, writer.toString());
+            if (sparqlResult.isSuccess()) {
+                String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes != null ? httpNegotiateContentType(acceptTypes) : Repository.SYNTAX_NQUADS);
+                StringWriter writer = new StringWriter();
+                try {
+                    sparqlResult.print(writer, resultType);
+                } catch (IOException exception) {
+                    // cannot happen
+                }
+                return new HttpResponse(HttpURLConnection.HTTP_OK, resultType, writer.toString());
+            } else
+                return new HttpResponse(HttpConstants.HTTP_SPARQL_ERROR, HttpConstants.MIME_TEXT_PLAIN, ((ResultFailure) sparqlResult).getMessage());
         }
-        // general case
-        return new HttpResponse(HttpURLConnection.HTTP_OK, HttpConstants.MIME_JSON, reply.serializedJSON());
+
+        // handle a single result
+        if (reply instanceof XSPReplyResult) {
+            Object data = ((XSPReplyResult) reply).getData();
+            if (data == null)
+                return new HttpResponse(HttpURLConnection.HTTP_OK);
+            if (data instanceof Serializable)
+                return new HttpResponse(HttpURLConnection.HTTP_OK, HttpConstants.MIME_JSON, ((Serializable) data).serializedJSON());
+            else
+                return new HttpResponse(HttpURLConnection.HTTP_OK, HttpConstants.MIME_TEXT_PLAIN, data.toString());
+        }
+
+        // handle a collection of results
+        if (reply instanceof XSPReplyResultCollection) {
+            Collection data = ((XSPReplyResultCollection) reply).getData();
+            StringBuilder builder = new StringBuilder("[");
+            boolean first = true;
+            for (Object obj : data) {
+                if (!first)
+                    builder.append(", ");
+                first = false;
+                if (obj instanceof Serializable)
+                    builder.append(((Serializable) obj).serializedJSON());
+                else {
+                    builder.append("\"");
+                    builder.append(TextUtils.escapeStringJSON(obj.toString()));
+                    builder.append("\"");
+                }
+            }
+            builder.append("]");
+            return new HttpResponse(HttpURLConnection.HTTP_OK, HttpConstants.MIME_JSON, builder.toString());
+        }
+
+        // general case, only OK
+        return new HttpResponse(HttpURLConnection.HTTP_OK);
     }
 
     /**
@@ -98,6 +131,7 @@ public class XSPReplyUtils {
      * @return The XSP reply
      */
     public static XSPReply fromHttpResponse(HttpResponse response, XOWLFactory factory) {
+        // XSP replies mapped to HTTP error codes
         if (response == null)
             return XSPReplyNetworkError.instance();
         // handle special HTTP codes
@@ -109,20 +143,38 @@ public class XSPReplyUtils {
             return XSPReplyUnsupported.instance();
         if (response.getCode() == HttpURLConnection.HTTP_NOT_FOUND)
             return XSPReplyNotFound.instance();
+        if (response.getCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, response.getBodyAsString());
+            if (root == null)
+                return new XSPReplyFailure(response.getBodyAsString());
+            return new XSPReplyApiError(XSPReplyApiError.parseApiError(root));
+        }
         if (response.getCode() == HttpURLConnection.HTTP_INTERNAL_ERROR)
-            return new XSPReplyFailure(response.getBodyAsString());
+            return new XSPReplyException(null); // exception not preserved
+
+        // other failures (including XSPReplyFailure) mapped to HTTP_UNKNOWN_ERROR
         if (response.getCode() == HttpConstants.HTTP_UNKNOWN_ERROR)
             return new XSPReplyFailure(response.getBodyAsString());
         // handle other failures
         if (response.getCode() != HttpURLConnection.HTTP_OK)
             return new XSPReplyFailure(response.getBodyAsString() != null ? response.getBodyAsString() : "failure (HTTP " + response.getCode() + ")");
+
         if (response.getContentType() != null && !response.getContentType().isEmpty()) {
             // we've got a content type
             if (response.getBodyAsString() != null && !response.getBodyAsString().isEmpty()) {
                 // we have content
-                if (HttpConstants.MIME_JSON.equals(response.getContentType()))
+                if (HttpConstants.MIME_JSON.equals(response.getContentType())) {
                     // pure JSON response
-                    return XSPReplyUtils.parseJSONResult(response.getBodyAsString(), factory);
+                    BufferedLogger bufferedLogger = new BufferedLogger();
+                    ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, response.getBodyAsString());
+                    if (root == null)
+                        return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+                    Object data = getJSONObject(root, factory);
+                    if (data instanceof Collection)
+                        return new XSPReplyResultCollection<>((Collection) data);
+                    return new XSPReplyResult<>(data);
+                }
                 if (HttpConstants.MIME_TEXT_PLAIN.equals(response.getContentType()))
                     // plain text
                     return new XSPReplyResult<>(response.getBodyAsString());
@@ -157,35 +209,13 @@ public class XSPReplyUtils {
      * @return The result
      */
     public static XSPReply parseJSONResult(String content, XOWLFactory factory) {
-        NodeManager nodeManager = new CachedNodes();
-        JSONLDLoader loader = new JSONLDLoader(nodeManager) {
-            @Override
-            protected Reader getReaderFor(Logger logger, String iri) {
-                return null;
-            }
-        };
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(Logging.getDefault(), bufferedLogger);
-        ParseResult parseResult = loader.parse(dispatchLogger, new StringReader(content));
-        if (parseResult == null || !parseResult.isSuccess()) {
-            dispatchLogger.error("Failed to parse the response");
-            if (parseResult != null) {
-                for (ParseError error : parseResult.getErrors()) {
-                    dispatchLogger.error(error);
-                }
-            }
-            StringBuilder builder = new StringBuilder();
-            for (Object error : bufferedLogger.getErrorMessages()) {
-                builder.append(error.toString());
-                builder.append("\n");
-            }
-            return new XSPReplyFailure(builder.toString());
-        }
-
-        if ("array".equals(parseResult.getRoot().getSymbol().getName()))
+        ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, content);
+        if (root == null)
+            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+        if ("array".equals(root.getSymbol().getName()))
             return new XSPReplyFailure("Unexpected JSON format");
-
-        return parseJSONResult(parseResult.getRoot(), factory);
+        return parseJSONResult(root, factory);
     }
 
     /**
@@ -196,80 +226,63 @@ public class XSPReplyUtils {
      * @return The result
      */
     public static XSPReply parseJSONResult(ASTNode root, XOWLFactory factory) {
-        ASTNode nodeIsSuccess = null;
-        ASTNode nodeMessage = null;
-        ASTNode nodeCause = null;
+        String kind = null;
+        boolean isSuccess = false;
+        String message = null;
         ASTNode nodePayload = null;
         for (ASTNode memberNode : root.getChildren()) {
             String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
             switch (memberName) {
-                case "isSuccess":
-                    nodeIsSuccess = memberValue;
+                case "kind": {
+                    kind = TextUtils.unescape(memberValue.getValue());
+                    kind = kind.substring(1, kind.length() - 1);
                     break;
-                case "message":
-                    nodeMessage = memberValue;
+                }
+                case "isSuccess": {
+                    String value = TextUtils.unescape(memberValue.getValue());
+                    isSuccess = Boolean.parseBoolean(value);
                     break;
-                case "cause":
-                    nodeCause = memberValue;
+                }
+                case "message": {
+                    message = TextUtils.unescape(memberValue.getValue());
+                    message = message.substring(1, message.length() - 1);
                     break;
+                }
                 case "payload":
                     nodePayload = memberValue;
                     break;
             }
         }
 
-        if (nodeIsSuccess == null)
+        if (kind == null)
             return new XSPReplyFailure("Unexpected JSON format");
-        boolean isSuccess = "true".equalsIgnoreCase(nodeIsSuccess.getValue());
-        if (!isSuccess && nodeCause != null) {
-            String cause = TextUtils.unescape(nodeCause.getValue());
-            cause = cause.substring(1, cause.length() - 1);
-            if ("UNAUTHENTICATED".equals(cause))
-                return XSPReplyUnauthenticated.instance();
-            else if ("UNAUTHORIZED".equals(cause))
-                return XSPReplyUnauthorized.instance();
-            else if ("UNSUPPORTED".equals(cause))
-                return XSPReplyUnsupported.instance();
-            else if ("NOT FOUND".equals(cause))
-                return XSPReplyNotFound.instance();
-            else if ("NETWORK ERROR".equals(cause)) {
-                String msg = null;
-                if (nodeMessage != null) {
-                    msg = TextUtils.unescape(nodeMessage.getValue());
-                    msg = msg.substring(1, msg.length() - 1);
-                }
-                if (msg == null)
-                    return XSPReplyNetworkError.instance();
-                return new XSPReplyNetworkError(msg);
-            } else
-                return new XSPReplyFailure(cause);
-        } else if (!isSuccess) {
-            if (nodeMessage == null)
-                return new XSPReplyFailure("Unexpected JSON format");
-            String message = TextUtils.unescape(nodeMessage.getValue());
-            message = message.substring(1, message.length() - 1);
+        if (XSPReplyApiError.class.getCanonicalName().equals(kind))
+            return new XSPReplyApiError(XSPReplyApiError.parseApiError(nodePayload));
+        if (XSPReplyException.class.getCanonicalName().equals(kind))
+            return new XSPReplyException(null); // exception not preserved
+        if (XSPReplyFailure.class.getCanonicalName().equals(kind))
             return new XSPReplyFailure(message);
-        } else {
-            // this is a success
-            if (nodePayload != null) {
-                if ("array".equals(nodePayload.getSymbol().getName())) {
-                    List<Object> payload = new ArrayList<>(nodePayload.getChildren().size());
-                    for (ASTNode child : nodePayload.getChildren())
-                        payload.add(getJSONObject(child, factory));
-                    return new XSPReplyResultCollection<>(payload);
-                } else {
-                    return new XSPReplyResult<>(getJSONObject(nodePayload, factory));
-                }
-            } else {
-                if (nodeMessage == null)
-                    return XSPReplySuccess.instance();
-                String message = TextUtils.unescape(nodeMessage.getValue());
-                message = message.substring(1, message.length() - 1);
-                return new XSPReplySuccess(message);
-            }
-        }
+        if (XSPReplyNetworkError.class.getCanonicalName().equals(kind))
+            return new XSPReplyNetworkError(message);
+        if (XSPReplyResult.class.getCanonicalName().equals(kind))
+            return new XSPReplyResult<>(getJSONObject(nodePayload, factory));
+        if (XSPReplyResultCollection.class.getCanonicalName().equals(kind))
+            return new XSPReplyResultCollection<>((Collection<? extends Object>) getJSONObject(nodePayload, factory));
+        if (XSPReplySuccess.class.getCanonicalName().equals(kind))
+            return new XSPReplySuccess(message);
+        if (XSPReplyUnauthenticated.class.getCanonicalName().equals(kind))
+            return XSPReplyUnauthenticated.instance();
+        if (XSPReplyUnauthorized.class.getCanonicalName().equals(kind))
+            return XSPReplyUnauthorized.instance();
+        if (XSPReplyUnsupported.class.getCanonicalName().equals(kind))
+            return XSPReplyUnsupported.instance();
+
+        if (isSuccess)
+            return new XSPReplySuccess(message);
+        else
+            return new XSPReplyFailure(message);
     }
 
     /**

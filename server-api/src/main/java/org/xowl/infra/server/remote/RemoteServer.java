@@ -1101,7 +1101,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             compressor.finish();
             input = byteBuffer.toByteArray();
         } catch (IOException exception) {
-            return new XSPReplyFailure(exception.getMessage());
+            return new XSPReplyException(exception);
         }
         // not logged in
         if (currentUser == null)

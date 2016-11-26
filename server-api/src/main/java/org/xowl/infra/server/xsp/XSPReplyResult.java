@@ -67,10 +67,22 @@ public class XSPReplyResult<T> implements XSPReply {
 
     @Override
     public String serializedJSON() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"type\": \"");
+        builder.append(TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()));
+        builder.append("\", \"kind\": \"");
+        builder.append(TextUtils.escapeStringJSON(XSPReplyResult.class.getSimpleName()));
+        builder.append("\", \"isSuccess\": true, \"message\": \"\", \"payload\": ");
         if (data == null)
-            return "{ \"isSuccess\": false, \"message\": \"NO DATA\", \"payload\": \"\" }";
-        if (data instanceof Serializable)
-            return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": " + ((Serializable) data).serializedJSON() + " }";
-        return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": \"" + TextUtils.escapeStringJSON(data.toString()) + "\" }";
+            builder.append("\"\"");
+        else if (data instanceof Serializable)
+            builder.append(((Serializable) data).serializedJSON());
+        else {
+            builder.append("\"");
+            builder.append(TextUtils.escapeStringJSON(data.toString()));
+            builder.append("\"");
+        }
+        builder.append("}");
+        return builder.toString();
     }
 }

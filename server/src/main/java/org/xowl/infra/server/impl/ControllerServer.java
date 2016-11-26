@@ -599,7 +599,7 @@ public class ControllerServer implements Closeable {
                 db.dbController.setEntailmentRegime(regime);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
             return XSPReplySuccess.instance();
         }
@@ -713,7 +713,7 @@ public class ControllerServer implements Closeable {
                 return new XSPReplyResultCollection<>(rules);
             } catch (IOException exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -741,7 +741,7 @@ public class ControllerServer implements Closeable {
                 return new XSPReplyResult<>(rule);
             } catch (IOException exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -768,7 +768,7 @@ public class ControllerServer implements Closeable {
                 return new XSPReplyResult<>(rule);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -794,7 +794,7 @@ public class ControllerServer implements Closeable {
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -820,7 +820,7 @@ public class ControllerServer implements Closeable {
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -846,7 +846,7 @@ public class ControllerServer implements Closeable {
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -874,7 +874,7 @@ public class ControllerServer implements Closeable {
                 return new XSPReplyResult<>(status);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -899,7 +899,7 @@ public class ControllerServer implements Closeable {
                 return new XSPReplyResultCollection<>(procedures);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -927,7 +927,7 @@ public class ControllerServer implements Closeable {
                 return new XSPReplyResult<>(procedure);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -955,7 +955,7 @@ public class ControllerServer implements Closeable {
                 return new XSPReplyResult<>(procedure);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -981,7 +981,7 @@ public class ControllerServer implements Closeable {
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -1011,7 +1011,7 @@ public class ControllerServer implements Closeable {
                 return new XSPReplyResult<>(result);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();
@@ -1041,7 +1041,7 @@ public class ControllerServer implements Closeable {
                 return XSPReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyFailure(exception.getMessage());
+                return new XSPReplyException(exception);
             }
         }
         return XSPReplyUnauthorized.instance();

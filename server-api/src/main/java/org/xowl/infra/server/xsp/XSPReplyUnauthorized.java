@@ -17,6 +17,8 @@
 
 package org.xowl.infra.server.xsp;
 
+import org.xowl.infra.utils.TextUtils;
+
 /**
  * Implements a reply to a xOWL server protocol request when the user is not authorized to perform the request
  *
@@ -63,6 +65,11 @@ public class XSPReplyUnauthorized implements XSPReply {
 
     @Override
     public String serializedJSON() {
-        return "{ \"isSuccess\": false, \"message\": \"UNAUTHORIZED\", \"cause\": \"UNAUTHORIZED\" }";
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                "\", \"kind\": \"" +
+                TextUtils.escapeStringJSON(XSPReplyUnauthorized.class.getSimpleName()) +
+                "\", \"isSuccess\": false," +
+                "\"message\": \"UNAUTHORIZED\"}";
     }
 }

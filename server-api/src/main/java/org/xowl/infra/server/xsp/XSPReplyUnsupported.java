@@ -17,6 +17,8 @@
 
 package org.xowl.infra.server.xsp;
 
+import org.xowl.infra.utils.TextUtils;
+
 /**
  * Implements a reply to a xOWL server protocol request when the requested operation is not supported
  *
@@ -62,6 +64,11 @@ public class XSPReplyUnsupported implements XSPReply {
 
     @Override
     public String serializedJSON() {
-        return "{ \"isSuccess\": false, \"message\": \"UNSUPPORTED\", \"cause\": \"UNSUPPORTED\" }";
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                "\", \"kind\": \"" +
+                TextUtils.escapeStringJSON(XSPReplyUnsupported.class.getSimpleName()) +
+                "\", \"isSuccess\": false," +
+                "\"message\": \"UNSUPPORTED\"}";
     }
 }
