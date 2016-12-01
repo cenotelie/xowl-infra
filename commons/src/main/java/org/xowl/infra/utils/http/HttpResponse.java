@@ -18,6 +18,11 @@
 package org.xowl.infra.utils.http;
 
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.collections.Couple;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * A response to an HTTP request
@@ -41,6 +46,10 @@ public class HttpResponse {
      * The content type for the response body, if any
      */
     private final String contentType;
+    /**
+     * The response's headers
+     */
+    private Collection<Couple<String, String>> headers;
 
     /**
      * Gets the HTTP response code
@@ -88,6 +97,29 @@ public class HttpResponse {
             return bodyString;
         }
         return null;
+    }
+
+    /**
+     * Gets the response's header
+     *
+     * @return The response's header
+     */
+    public Collection<Couple<String, String>> getHeaders() {
+        if (headers == null)
+            return Collections.emptyList();
+        return Collections.unmodifiableCollection(headers);
+    }
+
+    /**
+     * Adds a header for the response
+     *
+     * @param name  The header's name
+     * @param value The header's associated value
+     */
+    public void addHeader(String name, String value) {
+        if (headers == null)
+            headers = new ArrayList<>();
+        headers.add(new Couple<>(name, value));
     }
 
     /**
