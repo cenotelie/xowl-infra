@@ -159,7 +159,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
                 ApiV1.AUTH_TOKEN + "=" + token +
                         "; Max-Age=" + Long.toString(controller.getSecurityTokenTTL()) +
-                        "; Path=/api" +
+                        "; Path=" + ApiV1.URI_PREFIX +
                         "; Secure" +
                         "; HttpOnly"
         ));
@@ -181,7 +181,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
                 ApiV1.AUTH_TOKEN + "= " +
                         "; Max-Age=0" +
-                        "; Path=/api" +
+                        "; Path=" + ApiV1.URI_PREFIX +
                         "; Secure" +
                         "; HttpOnly"
         ));
