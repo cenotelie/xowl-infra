@@ -149,7 +149,6 @@
                 <configuration>
                     <instructions>
                         <XOWL-Changeset>${changeSet}</XOWL-Changeset>
-                        <XOWL-Build-User>${user.name}</XOWL-Build-User>
                         <XOWL-Build-Tag>${env.BUILD_TAG}</XOWL-Build-Tag>
                         <XOWL-Build-Timestamp>${timestamp}</XOWL-Build-Timestamp>
                     </instructions>
