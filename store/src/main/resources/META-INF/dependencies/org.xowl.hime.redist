@@ -1,0 +1,7 @@
+type = Java Library
+name = Hime Runtime
+version = 2.0.5
+copyright = Copyright (c) 2016 Laurent Wouters
+link = https://bitbucket.org/laurentw/hime
+licenseName = LGPL v3
+licenseText = /META-INF/dependencies/org.xowl.hime.redist.license

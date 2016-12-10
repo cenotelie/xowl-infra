@@ -57,6 +57,7 @@
 					<instructions>
 						<Import-Package>!sun.*,*</Import-Package>
 						<Embed-Transitive>false</Embed-Transitive>
+						<XOWL-Dependencies>org.xowl.hime.redist; org.w3c.www.schemas.rdf; org.w3c.www.schemas.rdfs; org.w3c.www.schemas.owl</XOWL-Dependencies>
 					</instructions>
 				</configuration>
 			</plugin>

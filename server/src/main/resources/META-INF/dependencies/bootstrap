@@ -1,0 +1,7 @@
+type = Web Framework
+name = Bootstrap
+version = 3.3.5
+copyright = Copyright (c) 2011-2016 Twitter, Inc.
+link = http://getbootstrap.com/
+licenseName = MIT
+licenseText = /META-INF/dependencies/bootstrap.license

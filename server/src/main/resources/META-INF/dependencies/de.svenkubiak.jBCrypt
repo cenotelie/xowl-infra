@@ -1,0 +1,7 @@
+type = Java Library
+name = jBCrypt
+version = 0.4
+copyright = Copyright (c) 2006 Damien Miller
+link = http://www.mindrot.org/projects/jBCrypt/
+licenseName = BSD
+licenseText = /META-INF/dependencies/de.svenkubiak.jBCrypt.license

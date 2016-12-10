@@ -1,0 +1,7 @@
+type = RDF Schema
+name = W3C RDF Schema
+version = 1.1
+copyright = Copyright (c) 2002 World Wide Web Consortium, (MIT, ERCIM, Keio, Beihang)
+link = http://www.w3.org/1999/02/22-rdf-syntax-ns
+licenseName = W3C Document License
+licenseText = /META-INF/dependencies/org.w3c.www.schemas.license
