@@ -30,4 +30,5 @@ function renderProduct(product) {
 	document.getElementById("field-copyright").value = product.copyright;
 	document.getElementById("field-vendor").value = product.vendor;
 	document.getElementById("field-license-name").value = product.license.name;
+	document.getElementById("field-license-text").value = product.license.fullText;
 }
