@@ -55,6 +55,26 @@ XOWL.prototype.logout = function () {
  * Server Management
  ****************************************************/
 
+XOWL.prototype.getServerProduct = function (callback) {
+	this.doRequest(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content));
+		} else {
+			callback(code, type, content);
+		}
+	}, "/server/product", "GET", null, null);
+}
+
+XOWL.prototype.getServerProductDependencies = function (callback) {
+	this.doRequest(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content));
+		} else {
+			callback(code, type, content);
+		}
+	}, "/server/product/dependencies", "GET", null, null);
+}
+
 XOWL.prototype.serverShutdown = function (callback) {
 	this.doRequest(callback, "/server/shutdown", "POST", null, null);
 }

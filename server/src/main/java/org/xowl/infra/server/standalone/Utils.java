@@ -23,6 +23,8 @@ import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.Logging;
+import org.xowl.infra.utils.product.EmbeddedDependency;
+import org.xowl.infra.utils.product.Product;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,6 +41,48 @@ import java.util.zip.GZIPInputStream;
  * @author Laurent Wouters
  */
 class Utils {
+    /**
+     * The product description for this server
+     */
+    private static Product PRODUCT;
+
+    /**
+     * Gets the product description for this server
+     *
+     * @return The product description
+     */
+    public static synchronized Product getProduct() {
+        if (PRODUCT == null) {
+            try {
+                PRODUCT = new Product(Program.class);
+            } catch (IOException exception) {
+                Logging.getDefault().error(exception);
+            }
+        }
+        return PRODUCT;
+    }
+
+    /**
+     * The dependencies embedded into this product
+     */
+    private static Collection<EmbeddedDependency> DEPENDENCIES;
+
+    /**
+     * Gets the dependencies embedded into this product
+     *
+     * @return The embedded dependencies
+     */
+    public static synchronized Collection<EmbeddedDependency> getDependencies() {
+        if (DEPENDENCIES == null) {
+            try {
+                DEPENDENCIES = Collections.unmodifiableCollection(EmbeddedDependency.getDependenciesFor(Program.class));
+            } catch (IOException exception) {
+                Logging.getDefault().error(exception);
+            }
+        }
+        return DEPENDENCIES;
+    }
+
     /**
      * Gets the request body of the specified request
      *

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>xOWL Triple Store Server</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/web/assets/favicon.png">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/app.css">
+</head>
+
+<body>
+<div id="placeholder-header"></div>
+<div class="body">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="field-identifier">Identifier:</label>
+                                <input type="text" class="form-control" id="field-identifier" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-name">Name:</label>
+                                <input type="text" class="form-control" id="field-name" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-version-number">Version Number:</label>
+                                <input type="text" class="form-control" id="field-version-number" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-version-scm-tag">Version SCM Tag:</label>
+                                <input type="text" class="form-control" id="field-version-scm-tag" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-version-build-user">Version Build User:</label>
+                                <input type="text" class="form-control" id="field-version-build-user" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-version-build-tag">Version Build Tag:</label>
+                                <input type="text" class="form-control" id="field-version-build-tag" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-version-build-timestamp">Version Build User:</label>
+                                <input type="text" class="form-control" id="field-version-build-timestamp" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-copyright">Copyright:</label>
+                                <input type="text" class="form-control" id="field-copyright" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-vendor">Vendor:</label>
+                                <input type="text" class="form-control" id="field-vendor" readonly/>
+                            </div>
+                            <div class="form-group">
+                                <label for="field-license-name">License:</label>
+                                <input type="text" class="form-control" id="field-license-name" readonly/>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="placeholder-footer"></div>
+
+<script src="/web/xowl-api-server.js"></script>
+<script src="/web/xowl-api-ui.js"></script>
+<script src="product.js"></script>
+<script>init();</script>
+</body>
+
+</html>

@@ -236,6 +236,14 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      */
     private int handleResourceServer(String method, String resource) {
         switch (resource) {
+            case "/server/product":
+                if (!method.equals(HttpConstants.METHOD_GET))
+                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
+                return response(new XSPReplyResult<>(Utils.getProduct()));
+            case "/server/product/dependencies":
+                if (!method.equals(HttpConstants.METHOD_GET))
+                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
+                return response(new XSPReplyResultCollection<>(Utils.getDependencies()));
             case "/server/shutdown":
                 if (!method.equals(HttpConstants.METHOD_POST))
                     return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
