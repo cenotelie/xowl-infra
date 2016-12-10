@@ -54,14 +54,14 @@
 							<mainClass>org.xowl.infra.server.standalone.Program</mainClass>
 						</manifest>
 						<manifestEntries>
-							<Bundle-Name>${pom.name}</Bundle-Name>
-							<Bundle-Description>${pom.description}</Bundle-Description>
-							<Bundle-SymbolicName>${pom.groupId}.${pom.artifactId}</Bundle-SymbolicName>
-							<Bundle-Version>${pom.version}</Bundle-Version>
+							<Bundle-Name>${project.name}</Bundle-Name>
+							<Bundle-Description>${project.description}</Bundle-Description>
+							<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+							<Bundle-Version>${project.version}</Bundle-Version>
 							<Bundle-License>http://www.gnu.org/licenses/lgpl.txt</Bundle-License>
 							<Bundle-Vendor>${project.organization.name}</Bundle-Vendor>
 							<Bundle-DocURL>${project.organization.url}</Bundle-DocURL>
-							<XOWL-Product-Link>${pom.url}</XOWL-Product-Link>
+							<XOWL-Product-Link>${project.url}</XOWL-Product-Link>
 							<XOWL-SCM-Tag>${changeSet}</XOWL-SCM-Tag>
 							<XOWL-Build-Tag>${env.BUILD_TAG}</XOWL-Build-Tag>
 							<XOWL-Build-Timestamp>${timestamp}</XOWL-Build-Timestamp>
