@@ -34,6 +34,7 @@ public class ManifestUtils {
      *
      * @param type A type
      * @return The manifest for the jar that contains the type
+     * @throws IOException When a resource cannot be read
      */
     public static Manifest getManifest(Class<?> type) throws IOException {
         String target = type.getResource(type.getSimpleName() + ".class").toString();

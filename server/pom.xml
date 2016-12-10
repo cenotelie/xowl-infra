@@ -61,9 +61,12 @@
 							<Bundle-License>http://www.gnu.org/licenses/lgpl.txt</Bundle-License>
 							<Bundle-Vendor>${project.organization.name}</Bundle-Vendor>
 							<Bundle-DocURL>${project.organization.url}</Bundle-DocURL>
-							<XOWL-Changeset>${changeSet}</XOWL-Changeset>
+							<XOWL-Product-Link>${pom.url}</XOWL-Product-Link>
+							<XOWL-SCM-Tag>${changeSet}</XOWL-SCM-Tag>
 							<XOWL-Build-Tag>${env.BUILD_TAG}</XOWL-Build-Tag>
 							<XOWL-Build-Timestamp>${timestamp}</XOWL-Build-Timestamp>
+							<XOWL-License-Name>LGPL v3</XOWL-License-Name>
+							<XOWL-License-Resource>/META-INF/dependencies/org.xowl.hime.redist.license</XOWL-License-Resource>
 							<XOWL-Dependencies>org.xowl.hime.redist; org.w3c.www.schemas.rdf; org.w3c.www.schemas.rdfs; org.w3c.www.schemas.owl; org.clojure.clojure; bootstrap; de.svenkubiak.jBCrypt</XOWL-Dependencies>
 						</manifestEntries>
 					</archive>
