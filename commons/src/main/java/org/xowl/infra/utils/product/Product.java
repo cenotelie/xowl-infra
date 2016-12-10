@@ -65,6 +65,30 @@ public class Product implements Serializable {
     /**
      * Initializes this version info
      *
+     * @param identifier The unique identifier of this product
+     * @param name       The product's name
+     * @param type       The type that is contained in the bundle for the product
+     * @throws IOException When a resource cannot be read
+     */
+    public Product(String identifier, String name, Class<?> type) throws IOException {
+        Manifest manifest = ManifestUtils.getManifest(type);
+        this.identifier = identifier;
+        this.name = name;
+        this.version = new VersionInfo(manifest);
+        this.vendor = manifest.getMainAttributes().getValue("Bundle-Vendor");
+        this.copyright = "Copyright (c) " + vendor;
+        this.vendorLink = manifest.getMainAttributes().getValue("Bundle-DocURL");
+        this.link = manifest.getMainAttributes().getValue("XOWL-Product-Link");
+        this.license = new LicenseEmbedded(
+                manifest.getMainAttributes().getValue("XOWL-License-Name"),
+                type,
+                manifest.getMainAttributes().getValue("XOWL-License-Resource")
+        );
+    }
+
+    /**
+     * Initializes this version info
+     *
      * @param type The type that is contained in the bundle for the product
      * @throws IOException When a resource cannot be read
      */

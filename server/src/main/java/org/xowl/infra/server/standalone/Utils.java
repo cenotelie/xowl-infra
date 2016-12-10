@@ -54,7 +54,10 @@ class Utils {
     public static synchronized Product getProduct() {
         if (PRODUCT == null) {
             try {
-                PRODUCT = new Product(Program.class);
+                PRODUCT = new Product(
+                        "org.xowl.infra.server.TripleStoreServer",
+                        "xOWL Triple Store Server",
+                        Program.class);
             } catch (IOException exception) {
                 Logging.getDefault().error(exception);
             }
