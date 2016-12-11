@@ -25,16 +25,11 @@ function init() {
 }
 
 function doGetData() {
-	if (!onOperationRequest("Loading ...", 2))
+	if (!onOperationRequest("Loading ..."))
 		return;
 	xowl.getEntailmentFor(function (status, type, content) {
 		if (onOperationEnded(status, content)) {
 			document.getElementById('field-entailment').value = content;
-		}
-	}, dbName);
-	xowl.getDBProcedures(function (status, type, content) {
-		if (onOperationEnded(status, content)) {
-			renderProcedures(content);
 		}
 	}, dbName);
 }
@@ -126,50 +121,4 @@ function onImport() {
 		}, dbName, selectedMIME, reader.result);
 	}
 	reader.readAsBinaryString(file);
-}
-
-function onDeleteProcedure(procedure) {
-	var result = confirm("Remove procedure " + procedure.name + "?");
-	if (!result)
-		return;
-	if (!onOperationRequest("Removing procedure " + procedure.name + " ..."))
-		return;
-	xowl.removeDBProcedure(function (status, type, content) {
-		if (onOperationEnded(status, content)) {
-			displayMessage("success", "Removed procedure " + procedure.name + ".");
-			waitAndGo("db.html?db=" + encodeURIComponent(dbName));
-		}
-	}, dbName, procedure.name);
-}
-
-function renderProcedures(procedures) {
-	procedures.sort(function (a, b) {
-		return a.name.localeCompare(b.name);
-	});
-	var table = document.getElementById("procedures");
-	for (var i = 0; i != procedures.length; i++) {
-		var cells = [
-			document.createElement("td"),
-			document.createElement("td")
-		];
-		var revoke = renderRevoke();
-		(function (procedure) {
-			revoke.onclick = function () {
-				onDeleteProcedure(procedure);
-			}
-		})(procedures[i]);
-		cells[0].appendChild(revoke);
-		cells[1].appendChild(renderProcedureName(procedures[i]));
-		var row = document.createElement("tr");
-		row.appendChild(cells[0]);
-		row.appendChild(cells[1]);
-		table.appendChild(row);
-	}
-}
-
-function renderProcedureName(procedure) {
-	var a = document.createElement("a");
-	a.href = "procedure.html?db=" + encodeURIComponent(dbName) + "&procedure=" + encodeURIComponent(procedure.name);
-	a.appendChild(document.createTextNode(procedure.name));
-	return a;
 }

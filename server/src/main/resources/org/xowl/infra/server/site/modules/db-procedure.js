@@ -7,11 +7,15 @@ var procName = getParameterByName("procedure");
 
 function init() {
 	doSetupPage(xowl, true, [
-		{name: "Database " + dbName, uri: "db.html?id=" + encodeURIComponent(dbName)},
-		{name: "Procedure " + procName}], function() {
+		{name: "Database " + dbName, uri: "db.html?db=" + encodeURIComponent(dbName)},
+		{name: "Procedures", uri: "db-procedures.html?db=" + encodeURIComponent(dbName)},
+		{name: "Procedure " + procName}
+	], function() {
 		if (!dbName || dbName === null || dbName === "")
 			return;
 		if (!procName || procName === null || procName === "")
+			return;
+		if (!onOperationRequest("Loading ..."))
 			return;
 		xowl.getDBProcedure(function (status, type, content) {
 			if (onOperationEnded(status, content)) {

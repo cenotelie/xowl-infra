@@ -13,8 +13,10 @@ var DEFAULT_QUERY =
 
 function init() {
 	doSetupPage(xowl, true, [
-		{name: "Database " + dbName, uri: "db.html?id=" + encodeURIComponent(dbName)},
-		{name: "New Procedure"}], function() {
+		{name: "Database " + dbName, uri: "db.html?db=" + encodeURIComponent(dbName)},
+		{name: "Procedures", uri: "db-procedures.html?db=" + encodeURIComponent(dbName)},
+		{name: "New Procedure"}
+	], function() {
 		if (!dbName || dbName === null || dbName === "")
 			return;
 		document.getElementById("field-definition").value = DEFAULT_QUERY;
@@ -39,7 +41,7 @@ function onCreateProcedure() {
 	xowl.addDBProcedure(function (status, type, content) {
 		if (onOperationEnded(status, content)) {
 			displayMessage("success", "Created procedure " + name + ".");
-			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
+			waitAndGo("db-procedures.html?db=" + encodeURIComponent(dbName));
 		}
 	}, dbName, {
 		"type": "org.xowl.infra.server.api.XOWLStoredProcedure",

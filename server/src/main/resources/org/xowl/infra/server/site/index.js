@@ -59,7 +59,7 @@ function renderDatabases(databases) {
 		link_settings.appendChild(text_name);
 		var link_sparql = document.createElement("a");
 		link_sparql.style.marginLeft = "10px";
-		link_sparql.href = "modules/sparql.html?db=" + encodeURIComponent(databases[i].name);
+		link_sparql.href = "modules/db-sparql.html?db=" + encodeURIComponent(databases[i].name);
 		link_sparql.appendChild(icon_sparql);
 		link_sparql.appendChild(text_sparql);
 		var cell1 = document.createElement("td");

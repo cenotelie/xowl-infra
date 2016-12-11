@@ -15,6 +15,8 @@ function init() {
 			return;
 		if (!rule || rule === null || rule === "")
 			return;
+		if (!onOperationRequest("Loading ..."))
+			return;
 		xowl.getDBRule(function (status, type, content) {
 			if (onOperationEnded(status, content)) {
 				document.getElementById("field-rule-definition").value = content.definition;
