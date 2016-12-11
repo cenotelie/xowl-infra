@@ -126,7 +126,7 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
             return;
         }
 
-        InputStream input = HTTPConnectionApiV1.class.getResourceAsStream("/org/xowl/infra/server/site/" + resource);
+        InputStream input = HTTPConnectionWeb.class.getResourceAsStream("/org/xowl/infra/server/site/" + resource);
         if (input == null) {
             response(HttpURLConnection.HTTP_NOT_FOUND, null);
             return;
@@ -151,7 +151,7 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
      */
     private String getMime(String resource) {
         if (resource.endsWith(".html"))
-            return "text/html";
+            return HttpConstants.MIME_HTML;
         if (resource.endsWith(".css"))
             return "text/css";
         if (resource.endsWith(".js"))
@@ -172,6 +172,10 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
             return "image/png";
         if (resource.endsWith(".gif"))
             return "image/gif";
+        if (resource.endsWith(".raml"))
+            return HttpConstants.MIME_RAML;
+        if (resource.endsWith(".json"))
+            return HttpConstants.MIME_JSON;
         return "";
     }
 

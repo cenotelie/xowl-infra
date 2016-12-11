@@ -159,6 +159,14 @@ public interface HttpConstants {
      * The MIME content type for JSON
      */
     String MIME_JSON = "application/json";
+    /**
+     * MIME type for HTML resources
+     */
+    String MIME_HTML = "text/html";
+    /**
+     * MIME type for RAML resources
+     */
+    String MIME_RAML = "application/raml+yaml";
 
     /**
      * HTTP code for an expired user session
