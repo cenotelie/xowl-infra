@@ -127,12 +127,14 @@ public class GraphPatternSelect implements GraphPattern {
 
     @Override
     public GraphPattern clone(Map<String, Node> parameters) {
-        return new GraphPatternSelect(
+        GraphPatternSelect result = new GraphPatternSelect(
                 isDistinct,
                 isReduced,
                 where.clone(parameters),
                 modifier != null ? modifier.clone(parameters) : null,
                 values != null ? (GraphPatternInlineData) values.clone(parameters) : null
         );
+        result.projection.addAll(projection);
+        return result;
     }
 }

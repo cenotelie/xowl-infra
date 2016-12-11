@@ -451,7 +451,6 @@ function rdfToDom(value) {
 	if (value.type === "uri") {
 		var dom = document.createElement("a");
 		dom.appendChild(document.createTextNode(getShortURI(value.value)));
-		dom.href = "/web/modules/core/discovery/explorer.html?id=" + encodeURIComponent(value.value);
 		dom.classList.add("rdfIRI");
 		return dom;
 	} else if (value.type === "bnode") {
