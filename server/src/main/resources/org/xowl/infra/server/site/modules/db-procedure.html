@@ -20,19 +20,48 @@
             <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div style="margin-bottom: 10px;">
-                            <form>
-                                <div class="form-group">
-                                    <label for="field-name">Name (IRI):</label>
-                                    <input type="text" class="form-control" id="field-name" readonly/>
-                                </div>
-                                <div class="form-group">
-                                    <label for="field-params">Parameters:</label>
-                                    <input id="field-params" class="form-control" type="text" readonly/>
-                                </div>
-                            </form>
-                        </div>
                         <textarea class="form-control" rows="20" id="field-definition" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Execution parameters
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th style="width: 15%;">Parameter</th>
+                                <th style="width: 85%;">Value</th>
+                            </tr>
+                            </thead>
+                            <tbody id="parameters">
+                            </tbody>
+                        </table>
+                        <div>
+                            <a class="btn btn-primary" onclick="onExecute()">Execute</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Results
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-bordered table-hover">
+                            <thead id="result-heads">
+                            </thead>
+                            <tbody id="result-data">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -42,6 +71,7 @@
 <div id="placeholder-footer"></div>
 
 <script src="/web/xowl-api-server.js"></script>
+<script src="/web/xowl-api-nquads.js"></script>
 <script src="/web/xowl-api-ui.js"></script>
 <script src="db-procedure.js"></script>
 <script>init();</script>

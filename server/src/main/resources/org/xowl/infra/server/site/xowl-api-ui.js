@@ -448,7 +448,7 @@ function getShortURI(value) {
  * @return The HTML DOM rendering of the node
  */
 function rdfToDom(value) {
-	if (value.type === "uri" || value.type === "iri") {
+	if (value.type === "uri") {
 		var dom = document.createElement("a");
 		dom.appendChild(document.createTextNode(getShortURI(value.value)));
 		dom.href = "/web/modules/core/discovery/explorer.html?id=" + encodeURIComponent(value.value);
@@ -459,39 +459,12 @@ function rdfToDom(value) {
 		dom.appendChild(document.createTextNode('_:' + value.value));
 		dom.classList.add("rdfBlank");
 		return dom;
-	} else if (value.type === "blank") {
-		var dom = document.createElement("span");
-		dom.appendChild(document.createTextNode('_:' + value.id));
-		dom.classList.add("rdfBlank");
-		return dom;
 	} else if (value.type === "variable") {
 		var dom = document.createElement("span");
 		dom.appendChild(document.createTextNode('?' + value.value));
 		dom.classList.add("rdfVariable");
 		return dom;
-	} else if (value.hasOwnProperty("lexical")) {
-		var span1 = document.createElement("span");
-		span1.appendChild(document.createTextNode('"' + value.lexical + '"'));
-		var dom = document.createElement("span");
-		dom.classList.add("rdfLiteral");
-		dom.appendChild(span1);
-		if (value.datatype !== null) {
-			dom.appendChild(document.createTextNode("^^<"));
-			var link = document.createElement("a");
-			link.appendChild(document.createTextNode(getShortURI(value.datatype)));
-			link.href = "/web/modules/core/discovery/explorer.html?id=" + encodeURIComponent(value.datatype);
-			link.classList.add("rdfIRI");
-			dom.appendChild(link);
-			dom.appendChild(document.createTextNode(">"));
-		}
-		if (value.lang !== null) {
-			var span2 = document.createElement("span");
-			span2.appendChild(document.createTextNode('@' + value.lang));
-			span2.classList.add("badge");
-			dom.appendChild(span2);
-		}
-		return dom;
-	} else {
+	} else if (value.type === "literal") {
 		var span1 = document.createElement("span");
 		span1.appendChild(document.createTextNode('"' + value.value + '"'));
 		var dom = document.createElement("span");
@@ -501,14 +474,13 @@ function rdfToDom(value) {
 			dom.appendChild(document.createTextNode("^^<"));
 			var link = document.createElement("a");
 			link.appendChild(document.createTextNode(getShortURI(value.datatype)));
-			link.href = "/web/modules/core/discovery/explorer.html?id=" + encodeURIComponent(value.datatype);
 			link.classList.add("rdfIRI");
 			dom.appendChild(link);
 			dom.appendChild(document.createTextNode(">"));
 		}
-		if (value.hasOwnProperty("xml:lang")) {
+		if (value["xml:lang"] !== null) {
 			var span2 = document.createElement("span");
-			span2.appendChild(document.createTextNode('@' + value["xml:lang"]));
+			span2.appendChild(document.createTextNode('@' + value.lang));
 			span2.classList.add("badge");
 			dom.appendChild(span2);
 		}
