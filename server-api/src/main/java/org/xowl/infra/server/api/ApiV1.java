@@ -37,13 +37,13 @@ public interface ApiV1 {
     /**
      * The resource that contains the definition for this version of the API
      */
-    String RESOURCE_DEFINITION = "/org/xowl/infra/server/api/v1/definition.raml";
+    String RESOURCE_DEFINITION = "/org/xowl/infra/server/site/api/v1/definition.raml";
     /**
      * The resources that contains schema definitions for this version of the API
      */
     String[] RESOURCE_SCHEMAS = new String[]{
-            "org/xowl/infra/server/api/v1/schemaUtils.json",
-            "org/xowl/infra/server/api/v1/SchemaServerAPI.json"
+            "org/xowl/infra/server/site/api/v1/schemaUtils.json",
+            "org/xowl/infra/server/site/api/v1/SchemaServerAPI.json"
     };
 
 
