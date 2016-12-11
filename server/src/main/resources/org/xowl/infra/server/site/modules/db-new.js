@@ -16,7 +16,7 @@ function onCreateDB() {
 	xowl.createDatabase(function (status, type, content) {
 		if (onOperationEnded(status, content)) {
 			displayMessage("success", "Created database " + name + ".");
-			waitAndGo("db.html?id=" + encodeURIComponent(name));
+			waitAndGo("db.html?db=" + encodeURIComponent(name));
 		}
 	}, name);
 }

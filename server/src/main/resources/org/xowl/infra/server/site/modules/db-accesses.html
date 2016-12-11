@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>xOWL: Database Accesses</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/web/assets/favicon.png">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/app.css">
+</head>
+
+<body>
+<div id="placeholder-header"></div>
+<div class="body">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Access management
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                            <tr>
+                                <th style="width: 25%;">User</th>
+                                <th style="width: 25%;">Is Admin</th>
+                                <th style="width: 25%;">Can Write</th>
+                                <th style="width: 25%;">Can Read</th>
+                            </tr>
+                            </thead>
+                            <tbody id="accesses">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Grant access to user
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="field-grant-user">User</label>
+                            <input type="text" class="form-control" id="field-grant-user" placeholder="name"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="field-grant-right">Access</label>
+                            <select id="field-grant-right" class="form-control">
+                                <option>READ</option>
+                                <option>WRITE</option>
+                                <option>ADMIN</option>
+                            </select>
+                        </div>
+                        <a class="btn btn-primary" onclick="onGrant()">Grant</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="placeholder-footer"></div>
+
+<script src="/web/xowl-api-server.js"></script>
+<script src="/web/xowl-api-ui.js"></script>
+<script src="db-accesses.js"></script>
+<script>init();</script>
+</body>
+
+</html>

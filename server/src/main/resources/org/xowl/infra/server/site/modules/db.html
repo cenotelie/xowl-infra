@@ -47,11 +47,12 @@
             </div>
             <div class="col-md-4">
                 <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <a style="cursor: pointer;" onclick="toggleImport()">Import content</a>
-                    </div>
-                    <div class="panel-body" id="panel-import" style="display: none;">
-                        <form>
+                    <div class="panel-body">
+                        <div><a class="btn" href="db-sparql.html" id="link-sparql">SPARQL</a></div>
+                        <div><a class="btn" href="db-accesses.html" id="link-accesses">Manage Accesses</a></div>
+                        <div><a class="btn" href="db-rules.html" id="link-rules">Manage Rules</a></div>
+                        <div><a class="btn" href="db-procedures.html" id="link-procedures">Manage Stored Procedures</a></div>
+                        <!--<form>
                             <div class="form-group">
                                 <label for="import-file">Select file to import</label>
                                 <input type="file" id="import-file" name="import-file"/>
@@ -71,89 +72,7 @@
                                 </div>
                             </div>
                             <a class="btn btn-primary" onclick="onImport()">Submit</a>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-8">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Access management
-                    </div>
-                    <div class="panel-body">
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                            <tr>
-                            <tr>
-                                <th style="width: 25%;">User</th>
-                                <th style="width: 25%;">Is Admin</th>
-                                <th style="width: 25%;">Can Write</th>
-                                <th style="width: 25%;">Can Read</th>
-                            </tr>
-                            </thead>
-                            <tbody id="accesses">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <a style="cursor: pointer;" onclick="toggleGrant()">Grant access to user</a>
-                    </div>
-                    <div class="panel-body" id="panel-grant" style="display: none;">
-                        <div class="form-group">
-                            <label for="field-grant-user">User</label>
-                            <input type="text" class="form-control" id="field-grant-user" placeholder="name"/>
-                        </div>
-                        <div class="form-group">
-                            <label for="field-grant-right">Access</label>
-                            <select id="field-grant-right" class="form-control">
-                                <option>READ</option>
-                                <option>WRITE</option>
-                                <option>ADMIN</option>
-                            </select>
-                        </div>
-                        <a class="btn btn-primary" onclick="onGrant()">Grant</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-8">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Rule management
-                    </div>
-                    <div class="panel-body">
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                            <tr>
-                                <th style="width: 15%;">Action</th>
-                                <th style="width: 70%;">Rule</th>
-                                <th style="width: 15%;">Active</th>
-                            </tr>
-                            </thead>
-                            <tbody id="rules">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <a style="cursor: pointer;" onclick="toggleRule()">Create new rule</a>
-                    </div>
-                    <div class="panel-body" id="panel-rule" style="display: none;">
-                        <div class="form-group">
-                            <label for="field-rule-definition">Definition</label>
-                            <textarea class="form-control" rows="10" id="field-rule-definition"></textarea>
-                        </div>
-                        <a class="btn btn-primary" onclick="onCreateRule()">Create rule</a>
+                        </form>-->
                     </div>
                 </div>
             </div>

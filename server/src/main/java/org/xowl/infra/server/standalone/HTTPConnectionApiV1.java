@@ -89,7 +89,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             return;
         }
 
-        String resource = httpExchange.getRequestURI().getPath().substring(ApiV1.URI_PREFIX.length());
+        String resource = httpExchange.getRequestURI().getRawPath().substring(ApiV1.URI_PREFIX.length());
         if (resource.equals("/me/login")) {
             handleRequestLogin(method);
             return;
@@ -756,7 +756,8 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         byte[] buffer = message != null ? message.getBytes(Files.CHARSET) : new byte[0];
         Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
-            httpExchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.MIME_TEXT_PLAIN);
+            if (buffer.length > 0 && !httpExchange.getResponseHeaders().containsKey(HttpConstants.HEADER_CONTENT_TYPE))
+                httpExchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.MIME_TEXT_PLAIN);
             httpExchange.sendResponseHeaders(code, buffer.length);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);

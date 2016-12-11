@@ -14,8 +14,9 @@ var DEFAULT_QUERY =
 
 function init() {
 	doSetupPage(xowl, true, [
-		{name: "Database " + dbName, uri: "db.html?id=" + encodeURIComponent(dbName)},
-		{name: "SPARQL"}], function() {
+		{name: "Database " + dbName, uri: "db.html?db=" + encodeURIComponent(dbName)},
+		{name: "SPARQL"}
+	], function() {
 		if (!dbName || dbName === null || dbName === "")
 			return;
 		document.getElementById("sparql").value = DEFAULT_QUERY;

@@ -54,12 +54,12 @@ function renderDatabases(databases) {
 		text_sparql.appendChild(document.createTextNode(" SPARQL"));
 		var link_settings = document.createElement("a");
 		link_settings.style.marginLeft = "10px";
-		link_settings.href = "/web/modules/db.html?id=" + encodeURIComponent(databases[i].name);
+		link_settings.href = "modules/db.html?db=" + encodeURIComponent(databases[i].name);
 		link_settings.appendChild(icon_db);
 		link_settings.appendChild(text_name);
 		var link_sparql = document.createElement("a");
 		link_sparql.style.marginLeft = "10px";
-		link_sparql.href = "/web/modules/sparql.html?db=" + encodeURIComponent(databases[i].name);
+		link_sparql.href = "modules/sparql.html?db=" + encodeURIComponent(databases[i].name);
 		link_sparql.appendChild(icon_sparql);
 		link_sparql.appendChild(text_sparql);
 		var cell1 = document.createElement("td");
@@ -85,7 +85,7 @@ function renderUsers(users) {
 		var text = document.createElement("span");
 		text.appendChild(document.createTextNode(" " + users[i].name));
 		var link = document.createElement("a");
-		link.href = "/web/modules/user.html?id=" + encodeURIComponent(users[i].name);
+		link.href = "modules/user.html?id=" + encodeURIComponent(users[i].name);
 		link.appendChild(icon);
 		link.appendChild(text);
 		var cell = document.createElement("td");

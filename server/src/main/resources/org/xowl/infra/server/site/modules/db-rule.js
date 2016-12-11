@@ -7,8 +7,10 @@ var rule = getParameterByName("rule");
 
 function init() {
 	doSetupPage(xowl, true, [
-		{name: "Database " + dbName, uri: "db.html?id=" + encodeURIComponent(dbName)},
-		{name: "Rule " + rule}], function() {
+		{name: "Database " + dbName, uri: "db.html?db=" + encodeURIComponent(dbName)},
+		{name: "Rules", uri: "db-rules.html?db=" + encodeURIComponent(dbName)},
+		{name: "Rule " + rule}
+	], function() {
 		if (!dbName || dbName === null || dbName === "")
 			return;
 		if (!rule || rule === null || rule === "")

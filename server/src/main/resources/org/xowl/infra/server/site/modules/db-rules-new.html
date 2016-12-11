@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>xOWL: Rule Definition</title>
+    <title>xOWL: New Database Rule</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="/web/assets/favicon.png">
@@ -15,23 +15,19 @@
 <body>
 <div id="placeholder-header"></div>
 <div class="body">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <textarea class="form-control" rows="25" id="field-rule-definition" readonly></textarea>
-                    </div>
-                </div>
-            </div>
+    <div class="panel-body">
+        <div class="form-group">
+            <label for="field-rule-definition">Definition</label>
+            <textarea class="form-control" rows="20" id="field-rule-definition"></textarea>
         </div>
+        <a class="btn btn-primary" onclick="onCreateRule()">Create rule</a>
     </div>
 </div>
 <div id="placeholder-footer"></div>
 
 <script src="/web/xowl-api-server.js"></script>
 <script src="/web/xowl-api-ui.js"></script>
-<script src="rule.js"></script>
+<script src="db-rules-new.js"></script>
 <script>init();</script>
 </body>
 
