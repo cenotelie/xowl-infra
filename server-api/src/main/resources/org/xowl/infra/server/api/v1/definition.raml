@@ -4,6 +4,8 @@ title: xOWL Triple Store
 version: v1
 types:
   ApiError: !include schemaUtils.json#/definitions/ApiError
+  Product: !include schemaUtils.json#/definitions/Product
+  EmbeddedDependencies: !include schemaUtils.json#/definitions/EmbeddedDependencies
   Metric: !include schemaUtils.json#/definitions/Metric
   MetricSnapshot: !include schemaUtils.json#/definitions/MetricSnapshot
   XOWLUser: !include schemaServerAPI.json#/definitions/XOWLUser
@@ -155,6 +157,65 @@ baseUri: https://localhost:3443/api/v1
               required: true
 /server:
   description: Represents the server
+  /product:
+    description: Represents the product that describes this server
+    is: [secured, mayFail]
+    get:
+      description: Gets the description of the product for this server
+      responses:
+        200:
+          description: The description of the product for this server
+          body:
+            application/json:
+              type: Product
+              example: |
+                {
+                  "type": "org.xowl.infra.utils.product.Product",
+                  "identifier": "org.xowl.infra.server.TripleStoreServer",
+                  "name": "xOWL Triple Store Server",
+                  "version": {
+                    "number": "2.0.0",
+                    "scmTag": "ffffffff",
+                    "buildUser": "jenkins",
+                    "buildTag": "jenkins-xxx-42",
+                    "buildTimestamp": "01/01/2010 10:10"
+                  },
+                  "copyright": "Copyright (c) Association Cénotélie",
+                  "vendor": "Association Cénotélie",
+                  "vendorLink": "http://cenotelie.fr",
+                  "link": "http://xowl.org",
+                  "license": {
+                    "name": "LGPLv3",
+                    "fullText": "..."
+                  }
+                }
+    /dependencies:
+      description: Represents the dependencies embedded by this product
+      is: [secured, mayFail]
+      get:
+        description: Gets the dependencies embedded by this product
+        responses:
+          200:
+            description: The dependencies embedded by this product
+            body:
+              application/json:
+                type: EmbeddedDependencies
+                example: |
+                  [
+                    {
+                      "type": "org.xowl.infra.utils.product.EmbeddedDependency",
+                      "identifier": "org.xowl.hime.redist",
+                      "name": "Hime Runtime",
+                      "contentType": "Java",
+                      "version": "2.0.5",
+                      "copyright": "Copyright (c) 2016 Laurent Wouters",
+                      "link": "https://bitbucket.org/laurentw/hime",
+                      "license": {
+                        "name": "LGPLv3",
+                        "fullText": "..."
+                      }
+                    }
+                  ]
   /shutdown:
     description: Action to shutdown the server
     is: [secured, mayFail]
@@ -211,7 +272,7 @@ baseUri: https://localhost:3443/api/v1
         description: Returns a list of the databases
         body:
           application/json:
-            schema: XOWLDatabases
+            type: XOWLDatabases
             example: |
               [ {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db1"}, {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db2"} ]
   /{dbId}:
@@ -224,7 +285,7 @@ baseUri: https://localhost:3443/api/v1
           description: Returns the description of the database
           body:
             application/json:
-              schema: XOWLDatabase
+              type: XOWLDatabase
               example: |
                 {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db1"}
     put:
@@ -234,7 +295,7 @@ baseUri: https://localhost:3443/api/v1
           description: Returns the created database
           body:
             application/json:
-              schema: XOWLDatabase
+              type: XOWLDatabase
               example: |
                 {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db1"}
     delete:
@@ -659,7 +720,7 @@ baseUri: https://localhost:3443/api/v1
         description: Returns a list of the users
         body:
           application/json:
-            schema: XOWLUsers
+            type: XOWLUsers
             example: |
               [ {"type": "org.xowl.infra.server.api.XOWLUser", "name": "user1"}, {"type": "org.xowl.infra.server.api.XOWLUser", "name": "user2"} ]
   /{userId}:
@@ -672,7 +733,7 @@ baseUri: https://localhost:3443/api/v1
           description: Returns a description of the requested user
           body:
             application/json:
-              schema: XOWLUser
+              type: XOWLUser
               example: |
                 {"type": "org.xowl.infra.server.api.XOWLUser", "name": "user1"}
     delete:
@@ -691,7 +752,7 @@ baseUri: https://localhost:3443/api/v1
           description: Returns the created user
           body:
             application/json:
-              schema: XOWLUser
+              type: XOWLUser
               example: |
                 {"type": "org.xowl.infra.server.api.XOWLUser", "name": "{userId}"}
     /password:
@@ -716,7 +777,7 @@ baseUri: https://localhost:3443/api/v1
             description: Returns the privileges assigned to the user for databases
             body:
               application/json:
-                schema: XOWLUserPrivileges
+                type: XOWLUserPrivileges
                 example: |
                   {
                     "type": "org.xowl.infra.server.api.XOWLUserPrivileges",
