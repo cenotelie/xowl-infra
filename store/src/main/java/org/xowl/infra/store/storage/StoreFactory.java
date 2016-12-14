@@ -18,8 +18,6 @@
 package org.xowl.infra.store.storage;
 
 import org.xowl.infra.store.storage.persistent.StorageException;
-import org.xowl.infra.store.storage.remote.Connection;
-import org.xowl.infra.store.storage.remote.SPARQLConnection;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
@@ -44,11 +42,7 @@ public class StoreFactory {
         /**
          * An on-disk storage
          */
-        OnDisk,
-        /**
-         * A remote storage
-         */
-        Remote,
+        OnDisk
     }
 
     /**
@@ -63,18 +57,6 @@ public class StoreFactory {
          * The location of the on-disk storage, if necessary
          */
         private File location;
-        /**
-         * The location for an HTTP remote host
-         */
-        private String httpEndpoint;
-        /**
-         * The login for a remote host
-         */
-        private String remoteLogin;
-        /**
-         * The password for a remote host
-         */
-        private String remotePassword;
         /**
          * Whether the store is read-only
          */
@@ -111,22 +93,6 @@ public class StoreFactory {
         public Config onDisk(File location) {
             primaryStorage = StorageType.OnDisk;
             this.location = location;
-            return this;
-        }
-
-        /**
-         * Selects a remote storage accessed through a standard SPARQL endpoint
-         *
-         * @param endpoint The location of the HTTP remote host
-         * @param login    The login for the remote host, if any
-         * @param password The password for the remote host, if any
-         * @return This configuration element
-         */
-        public Config remoteHTTP(String endpoint, String login, String password) {
-            primaryStorage = StorageType.Remote;
-            httpEndpoint = endpoint;
-            remoteLogin = login;
-            remotePassword = password;
             return this;
         }
 
@@ -172,13 +138,6 @@ public class StoreFactory {
                         Logging.getDefault().error(exception);
                         return null;
                     }
-                    break;
-                }
-                case Remote: {
-                    Connection connection = null;
-                    if (httpEndpoint != null)
-                        connection = new SPARQLConnection(httpEndpoint, remoteLogin, remotePassword);
-                    primary = new RemoteStore(connection, isReadonly);
                     break;
                 }
             }
