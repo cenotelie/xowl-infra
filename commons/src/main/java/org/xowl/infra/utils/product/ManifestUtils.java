@@ -42,7 +42,6 @@ public class ManifestUtils {
         target = target + JarFile.MANIFEST_NAME;
         URL url = new URL(target);
 
-        Manifest manifest;
         try (InputStream stream = url.openStream()) {
             return new Manifest(stream);
         }
