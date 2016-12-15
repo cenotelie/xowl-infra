@@ -123,7 +123,7 @@ public interface HttpConstants {
     /**
      * The HTTP Strict-Transport-Security header.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security>Strict-Transport-Security header on MDN</a>
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security">Strict-Transport-Security header on MDN</a>
      */
     String HEADER_STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security";
     /**

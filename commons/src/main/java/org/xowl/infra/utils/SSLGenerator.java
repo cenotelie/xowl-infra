@@ -33,6 +33,7 @@ public class SSLGenerator {
      * Generates a key store with a new self-signed certificate
      *
      * @param target The target file for the key store
+     * @param alias  Common name for the certificate
      * @return The password to the key store
      */
     public static String generateKeyStore(File target, String alias) {

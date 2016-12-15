@@ -180,6 +180,7 @@ public class Configuration {
     /**
      * Removes the specified property - value pair from the specified section
      *
+     * @param section  Name of the section in the config file
      * @param property A property
      * @param value    The associated value to remove
      */
