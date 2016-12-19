@@ -35,8 +35,10 @@ public class TextUtils {
      * The supported escape sequences:
      * - \ u XXXX for unicode characters in the BMP with codepoint XXXX.
      * - \ U XXXXXXXX for unicode characters outside the BMP with codepoint XXXXXXXX.
+     * - \0 for the unicode character 0
+     * - \a for the unicode alert character (U+0007)
      * - \t, \b, \r, \n, \f for the corresponding control characters (tab, backspace, carriage return, line feed, form feed).
-     * - \C for C, where C is any character other than t, b, r, n, f, u and U.
+     * - \C for C, where C is any character other than 0, a, t, b, r, n, f, u and U.
      *
      * @param value A string that can contain escape sequences
      * @return The equivalent string with the escape sequences replaced by their value
@@ -48,7 +50,13 @@ public class TextUtils {
             char c = value.charAt(i);
             if (c == '\\') {
                 char n = value.charAt(i + 1);
-                if (n == 't') {
+                if (n == '0') {
+                    buffer[next++] = '\u0000';
+                    i++;
+                } else if (n == 'a') {
+                    buffer[next++] = '\u0007';
+                    i++;
+                } else if (n == 't') {
                     buffer[next++] = '\t';
                     i++;
                 } else if (n == 'b') {
@@ -84,7 +92,7 @@ public class TextUtils {
                         buffer[next++] = str.charAt(j);
                     i += 9;
                 } else {
-                    // \C for C, where C is any character other than t, b, r, n, f, u and U
+                    // \C for C, where C is any character other than 0, a, t, b, r, n, f, u and U
                     buffer[next++] = n;
                     i++;
                 }
@@ -187,7 +195,7 @@ public class TextUtils {
     /**
      * Escapes basic special characters in the specified string assuming the result will be quoted with the double quotes characters (")
      * All characters are copied as-is, except for the following, which are escaped with a reverse solidus (\) prefix:
-     * ", \ and special control characters \t, \r, \n, \b, \f.
+     * ", \ and special control characters \0, \a, \t, \r, \n, \b, \f.
      *
      * @param value The value to escape
      * @return The escaped value
@@ -200,6 +208,10 @@ public class TextUtils {
                 builder.append("\\\"");
             else if (c == '\\')
                 builder.append("\\\\");
+            else if (c == '\u0000')
+                builder.append("\\0");
+            else if (c == '\u0007')
+                builder.append("\\a");
             else if (c == '\t')
                 builder.append("\\t");
             else if (c == '\r')

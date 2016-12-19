@@ -18,6 +18,7 @@
 package org.xowl.infra.utils.config;
 
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.TextUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -293,72 +294,16 @@ public class Configuration {
             } else if (line.contains("=")) {
                 String[] parts = line.split("=");
                 if (parts.length == 2) {
-                    current.add(parts[0].trim(), replaceEscapees(parts[1].trim()));
+                    current.add(parts[0].trim(), TextUtils.unescape(parts[1].trim()));
                 } else if (parts.length > 2) {
                     java.lang.StringBuilder buffer = new java.lang.StringBuilder(parts[1]);
                     for (int i = 2; i != parts.length; i++) {
                         buffer.append("=");
                         buffer.append(parts[i]);
                     }
-                    current.add(parts[0].trim(), replaceEscapees(buffer.toString().trim()));
+                    current.add(parts[0].trim(), TextUtils.unescape(buffer.toString().trim()));
                 }
             }
         }
-    }
-
-    /**
-     * Replaces the escape sequences by their value in the specified string
-     *
-     * @param value A string
-     * @return The same string with the escape sequences replaced
-     */
-    private String replaceEscapees(String value) {
-        /*  Sequence
-            \\          \ (a single backslash, escaping the escape character)
-            \0          Null character
-            \a          Bell/Alert/Audible
-            \b          Backspace, Bell character for some applications
-            \t          Tab character
-            \r          Carriage return
-            \n          Newline
-        */
-        String[] parts = value.split("\\\\");
-        if (parts.length == 0 || parts.length == 1)
-            return value;
-        StringBuilder builder = new StringBuilder(parts[0]);
-        for (int i = 1; i != parts.length; i++) {
-            String part = parts[i];
-            if (part.isEmpty()) {
-                // replaces "\\" to "\"
-                builder.append("\\");
-                i++;
-            } else {
-                char first = part.charAt(0);
-                switch (first) {
-                    case '0':
-                        builder.append("\u0000");
-                        break;
-                    case 'a':
-                        builder.append("\u0007");
-                        break;
-                    case 'b':
-                        builder.append("\b");
-                        break;
-                    case 't':
-                        builder.append("\t");
-                        break;
-                    case 'r':
-                        builder.append("\r");
-                        break;
-                    case 'n':
-                        builder.append("\n");
-                        break;
-                    default:
-                        break;
-                }
-                builder.append(part.substring(1));
-            }
-        }
-        return builder.toString();
     }
 }
