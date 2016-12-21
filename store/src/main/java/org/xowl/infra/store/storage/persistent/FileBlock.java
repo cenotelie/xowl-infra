@@ -151,92 +151,92 @@ class FileBlock implements AutoCloseable, IOElement {
     }
 
     @Override
-    public byte readByte(int index) throws StorageException {
+    public byte readByte(int index) {
         return buffer.get(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public byte[] readBytes(int index, int length) throws StorageException {
+    public byte[] readBytes(int index, int length) {
         byte[] result = new byte[length];
         readBytes(index, result, 0, length);
         return result;
     }
 
     @Override
-    public synchronized void readBytes(int index, byte[] buffer, int start, int length) throws StorageException {
+    public synchronized void readBytes(int index, byte[] buffer, int start, int length) {
         this.buffer.position(index & INDEX_MASK_LOWER);
         this.buffer.get(buffer, start, length);
     }
 
     @Override
-    public char readChar(int index) throws StorageException {
+    public char readChar(int index) {
         return buffer.getChar(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public int readInt(int index) throws StorageException {
+    public int readInt(int index) {
         return buffer.getInt(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public long readLong(int index) throws StorageException {
+    public long readLong(int index) {
         return buffer.getLong(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public float readFloat(int index) throws StorageException {
+    public float readFloat(int index) {
         return buffer.getFloat(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public double readDouble(int index) throws StorageException {
+    public double readDouble(int index) {
         return buffer.getDouble(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public void writeByte(int index, byte value) throws StorageException {
+    public void writeByte(int index, byte value) {
         buffer.put(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeBytes(int index, byte[] value) throws StorageException {
+    public void writeBytes(int index, byte[] value) {
         writeBytes(index, value, 0, value.length);
     }
 
     @Override
-    public void writeBytes(int index, byte[] buffer, int start, int length) throws StorageException {
+    public void writeBytes(int index, byte[] buffer, int start, int length) {
         this.buffer.position(index & INDEX_MASK_LOWER);
         this.buffer.put(buffer, start, length);
         isDirty = true;
     }
 
     @Override
-    public void writeChar(int index, char value) throws StorageException {
+    public void writeChar(int index, char value) {
         buffer.putChar(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeInt(int index, int value) throws StorageException {
+    public void writeInt(int index, int value) {
         buffer.putInt(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeLong(int index, long value) throws StorageException {
+    public void writeLong(int index, long value) {
         buffer.putLong(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeFloat(int index, float value) throws StorageException {
+    public void writeFloat(int index, float value) {
         buffer.putFloat(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeDouble(int index, double value) throws StorageException {
+    public void writeDouble(int index, double value) {
         buffer.putDouble(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }

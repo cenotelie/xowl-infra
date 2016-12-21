@@ -159,9 +159,8 @@ abstract class IOAccess implements AutoCloseable {
      * Reads a single byte at the current index
      *
      * @return The byte
-     * @throws StorageException When an IO operation failed
      */
-    public byte readByte() throws StorageException {
+    public byte readByte() {
         if (!withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         byte value = element.readByte(index);
@@ -174,9 +173,8 @@ abstract class IOAccess implements AutoCloseable {
      *
      * @param length The number of bytes to read
      * @return The bytes
-     * @throws StorageException When an IO operation failed
      */
-    public byte[] readBytes(int length) throws StorageException {
+    public byte[] readBytes(int length) {
         if (!withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         byte[] value = element.readBytes(index, length);
@@ -190,9 +188,8 @@ abstract class IOAccess implements AutoCloseable {
      * @param buffer The buffer to fill
      * @param start  The index in the buffer to start filling at
      * @param length The number of bytes to read
-     * @throws StorageException When an IO operation failed
      */
-    public void readBytes(byte[] buffer, int start, int length) throws StorageException {
+    public void readBytes(byte[] buffer, int start, int length) {
         if (!withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         element.readBytes(index, buffer, start, length);
@@ -203,9 +200,8 @@ abstract class IOAccess implements AutoCloseable {
      * Reads a single char at the current index
      *
      * @return The char
-     * @throws StorageException When an IO operation failed
      */
-    public char readChar() throws StorageException {
+    public char readChar() {
         if (!withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         char value = element.readChar(index);
@@ -217,9 +213,8 @@ abstract class IOAccess implements AutoCloseable {
      * Reads a single int at the current index
      *
      * @return The int
-     * @throws StorageException When an IO operation failed
      */
-    public int readInt() throws StorageException {
+    public int readInt() {
         if (!withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         int value = element.readInt(index);
@@ -231,9 +226,8 @@ abstract class IOAccess implements AutoCloseable {
      * Reads a single long at the current index
      *
      * @return The long
-     * @throws StorageException When an IO operation failed
      */
-    public long readLong() throws StorageException {
+    public long readLong() {
         if (!withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         long value = element.readLong(index);
@@ -245,9 +239,8 @@ abstract class IOAccess implements AutoCloseable {
      * Reads a single float at the current index
      *
      * @return The float
-     * @throws StorageException When an IO operation failed
      */
-    public float readFloat() throws StorageException {
+    public float readFloat() {
         if (!withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         float value = element.readFloat(index);
@@ -259,9 +252,8 @@ abstract class IOAccess implements AutoCloseable {
      * Reads a single double at the current index
      *
      * @return The double
-     * @throws StorageException When an IO operation failed
      */
-    public double readDouble() throws StorageException {
+    public double readDouble() {
         if (!withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         double value = element.readDouble(index);
@@ -273,9 +265,8 @@ abstract class IOAccess implements AutoCloseable {
      * Writes a single byte at the current index
      *
      * @param value The byte to write
-     * @throws StorageException When an IO operation failed
      */
-    public void writeByte(byte value) throws StorageException {
+    public void writeByte(byte value) {
         if (!writable || !withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         element.writeByte(index, value);
@@ -286,9 +277,8 @@ abstract class IOAccess implements AutoCloseable {
      * Writes bytes at the current index
      *
      * @param value The bytes to write
-     * @throws StorageException When an IO operation failed
      */
-    public void writeBytes(byte[] value) throws StorageException {
+    public void writeBytes(byte[] value) {
         if (!writable || !withinBounds(value.length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         element.writeBytes(index, value);
@@ -301,9 +291,8 @@ abstract class IOAccess implements AutoCloseable {
      * @param buffer The buffer with the bytes to write
      * @param start  The index in the buffer to start writing from
      * @param length The number of bytes to write
-     * @throws StorageException When an IO operation failed
      */
-    public void writeBytes(byte[] buffer, int start, int length) throws StorageException {
+    public void writeBytes(byte[] buffer, int start, int length) {
         if (!writable || !withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         element.writeBytes(index, buffer, start, length);
@@ -314,9 +303,8 @@ abstract class IOAccess implements AutoCloseable {
      * Writes a single char at the current index
      *
      * @param value The char to write
-     * @throws StorageException When an IO operation failed
      */
-    public void writeChar(char value) throws StorageException {
+    public void writeChar(char value) {
         if (!writable || !withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         element.writeChar(index, value);
@@ -327,9 +315,8 @@ abstract class IOAccess implements AutoCloseable {
      * Writes a single int at the current index
      *
      * @param value The int to write
-     * @throws StorageException When an IO operation failed
      */
-    public void writeInt(int value) throws StorageException {
+    public void writeInt(int value) {
         if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         element.writeInt(index, value);
@@ -340,9 +327,8 @@ abstract class IOAccess implements AutoCloseable {
      * Writes a single long at the current index
      *
      * @param value The long to write
-     * @throws StorageException When an IO operation failed
      */
-    public void writeLong(long value) throws StorageException {
+    public void writeLong(long value) {
         if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         element.writeLong(index, value);
@@ -353,9 +339,8 @@ abstract class IOAccess implements AutoCloseable {
      * Writes a single float at the current index
      *
      * @param value The float to write
-     * @throws StorageException When an IO operation failed
      */
-    public void writeFloat(float value) throws StorageException {
+    public void writeFloat(float value) {
         if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         element.writeFloat(index, value);
@@ -366,9 +351,8 @@ abstract class IOAccess implements AutoCloseable {
      * Writes a single double at the current index
      *
      * @param value The double to write
-     * @throws StorageException When an IO operation failed
      */
-    public void writeDouble(double value) throws StorageException {
+    public void writeDouble(double value) {
         if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         element.writeDouble(index, value);
