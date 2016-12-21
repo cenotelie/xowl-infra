@@ -128,7 +128,7 @@ class PersistedMap {
         try {
             while (true) {
                 // inspect the current node
-                boolean isLeaf = accessCurrent.readChar() == 1;
+                boolean isLeaf = accessCurrent.skip(8).readChar() == NODE_IS_LEAF;
                 char count = accessCurrent.readChar();
                 if (isLeaf)
                     return getOnNode(accessCurrent, key, count);
@@ -159,7 +159,7 @@ class PersistedMap {
     private long getOnNode(IOAccess accessCurrent, long key, char count) throws StorageException {
         for (int i = 0; i != count; i++) {
             // read entry data
-            int entryKey = accessCurrent.readInt();
+            long entryKey = accessCurrent.readLong();
             long entryPtr = accessCurrent.readLong();
             if (entryKey == key) {
                 // found the key
@@ -181,14 +181,14 @@ class PersistedMap {
     private long getChild(IOAccess accessCurrent, long key, char count) throws StorageException {
         for (int i = 0; i != count; i++) {
             // read entry data
-            int entryKey = accessCurrent.readInt();
+            long entryKey = accessCurrent.readLong();
             long entryPtr = accessCurrent.readLong();
             if (key < entryKey) {
                 // go through this child
                 return entryPtr;
             }
         }
-        return accessCurrent.skip(4).readLong();
+        return accessCurrent.skip(8).readLong();
     }
 
     /**
