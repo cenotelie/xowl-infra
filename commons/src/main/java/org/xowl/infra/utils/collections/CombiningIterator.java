@@ -20,7 +20,7 @@ package org.xowl.infra.utils.collections;
 import java.util.Iterator;
 
 /**
- * Representing an iterator computing the cross-produce of two collections
+ * Representing an iterator computing the cross-product of two collections
  *
  * @param <X> The first type of data to iterate over
  * @param <Y> The second type of data to iterate over
@@ -28,7 +28,7 @@ import java.util.Iterator;
  */
 public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
     /**
-     * The current result that has been return by the next function
+     * The current result for the iterator
      */
     protected final Couple<X, Y> current;
     /**
@@ -40,11 +40,11 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
      */
     protected X nextLeft;
     /**
-     * The current iterator for the right elements
+     * The current iterator for the elements on the right
      */
     protected Iterator<Y> rightIterator;
     /**
-     * The last right iterator used for the last result
+     * The last iterator on the right used for the last result
      */
     protected Iterator<Y> lastRightIterator;
     /**

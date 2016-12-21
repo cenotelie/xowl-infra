@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Represents a buffer of T elements that is fast when removing elements from it
+ * Represents a buffer of T elements that is fast when removing elements from it.
  * This class is NOT thread-safe when inserting and removing elements.
  * However, due to its inner representation, the provided iterator is thread-safe.
  *
