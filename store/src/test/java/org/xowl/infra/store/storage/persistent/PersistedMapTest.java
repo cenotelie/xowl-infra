@@ -69,7 +69,7 @@ public class PersistedMapTest {
     /**
      * Tests the map for concurrent insertions and atomic replace
      *
-     * @throws IOException
+     * @throws IOException When an IO operation fails
      * @throws StorageException When an IO operation fails
      */
     @Test
