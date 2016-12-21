@@ -442,7 +442,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                     // the literal is already there, return its key
                     if (allocated != FileStore.KEY_NULL) {
                         // a literal was allocated in the meantime, free it
-                        store.free(allocated);
+                        store.free(allocated, ENTRY_LITERAL_SIZE);
                     }
                     return current;
                 }

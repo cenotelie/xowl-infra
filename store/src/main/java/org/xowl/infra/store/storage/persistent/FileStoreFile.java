@@ -257,7 +257,17 @@ class FileStoreFile extends FileBackend {
         try (IOAccess access = this.access(index - 2, 2, false)) {
             length = access.readChar();
         }
+        free(index, length);
+    }
 
+    /**
+     * Frees the object at the specified index
+     *
+     * @param index  The index of an object in this store
+     * @param length The expected length of the object to free
+     * @throws StorageException When an IO operation fails
+     */
+    public void free(int index, int length) throws StorageException {
         try (FileBlockTS preamble = getBlockFor(0)) {
             // get the number of pools
             int poolCount;

@@ -344,6 +344,21 @@ class FileStore implements AutoCloseable {
     }
 
     /**
+     * Frees the object for the specified key
+     *
+     * @param key    The key of the entry to free
+     * @param length The expected length of the object to free
+     * @throws StorageException When an IO operation failed
+     */
+    public void free(long key, int length) throws StorageException {
+        if (isReadonly)
+            throw new StorageException("The store is read only");
+        if (key == KEY_NULL)
+            throw new StorageException("Invalid key (null key)");
+        files.get(getFileIndexFor(key)).free(getShortKey(key), length);
+    }
+
+    /**
      * Gets the name of the i-th file
      *
      * @param radical The name radical

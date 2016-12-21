@@ -210,7 +210,7 @@ class PersistedMapStage1 {
                     }
                 }
             }
-            store.free(currentNode);
+            store.free(currentNode, NODE_SIZE);
             currentNode = next;
         }
 
