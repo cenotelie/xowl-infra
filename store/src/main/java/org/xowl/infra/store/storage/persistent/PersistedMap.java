@@ -290,7 +290,7 @@ class PersistedMap {
                 boolean hasChanged = inspect(accessCurrent, accessChild, child, valueNew != FileStore.KEY_NULL);
                 while (hasChanged) {
                     accessChild.close();
-                    count = accessCurrent.seek(2).readChar();
+                    count = accessCurrent.seek(8 + 2).readChar();
                     child = getChild(accessCurrent, key, count);
                     accessChild = store.accessW(child);
                     hasChanged = inspect(accessCurrent, accessChild, child, valueNew != FileStore.KEY_NULL);
@@ -405,7 +405,7 @@ class PersistedMap {
      * @throws StorageException When an IO operation fails
      */
     private boolean inspect(IOAccess accessFather, IOAccess accessCurrent, long current, boolean isInsert) throws StorageException {
-        boolean isLeaf = accessCurrent.reset().readChar() == 1;
+        boolean isLeaf = accessCurrent.seek(8).readChar() == NODE_IS_LEAF;
         char count = accessCurrent.readChar();
         if (isInsert && count >= 2 * N) {
             // split the current node
