@@ -32,7 +32,7 @@ import java.util.List;
  * <p>
  * n is the rate of the tree
  * Invariant: The number of keys (k) of a node is in [n-1, 2n+1].
- * => The number of children of a node is in [n, 2n+2].
+ * => The number of keys of a node is in [n, 2n+2].
  * Invariant: Exception to the above is the root node.
  * Invariant: A node that is not a leaf has at most k keys and k+1 children.
  * Invariant: The keyed data are all at the leaves.
@@ -426,13 +426,8 @@ class PersistedMap {
                 splitInternal(accessFather, accessCurrent, current, count);
             return true;
         } else if (!isInsert && count <= N) {
-            if (accessFather == null)
-                // cannot merge the root node
-                return false;
-            if (isLeaf)
-                return mergeLeaf(accessFather, accessCurrent, current, count);
-            else
-                return mergeInternal(accessFather, accessCurrent, current, count);
+            // cannot merge the root node
+            return accessFather != null && merge(accessFather, accessCurrent, current, isLeaf);
         }
         return false;
     }
@@ -442,7 +437,7 @@ class PersistedMap {
      *
      * @param accessCurrent The access to the current node
      * @param current       The entry for the node to split
-     * @param count         The number of children in the current node
+     * @param count         The number of keys in the current node
      * @throws StorageException When an IO operation fails
      */
     private void splitRootInternal(IOAccess accessCurrent, long current, char count) throws StorageException {
@@ -489,7 +484,7 @@ class PersistedMap {
      *
      * @param accessCurrent The access to the current node
      * @param current       The entry for the node to split
-     * @param count         The number of children in the current node
+     * @param count         The number of keys in the current node
      * @throws StorageException When an IO operation fails
      */
     private void splitRootLeaf(IOAccess accessCurrent, long current, char count) throws StorageException {
@@ -544,7 +539,7 @@ class PersistedMap {
      * @param accessFather  The access to the parent node
      * @param accessCurrent The access to the current node
      * @param current       The entry for the node to split
-     * @param count         The number of children in the current node
+     * @param count         The number of keys in the current node
      * @throws StorageException When an IO operation fails
      */
     private void splitInternal(IOAccess accessFather, IOAccess accessCurrent, long current, char count) throws StorageException {
@@ -576,7 +571,7 @@ class PersistedMap {
      * @param accessFather  The access to the parent node
      * @param accessCurrent The access to the current node
      * @param current       The entry for the node to split
-     * @param count         The number of children in the current node
+     * @param count         The number of keys in the current node
      * @throws StorageException When an IO operation fails
      */
     private void splitLeaf(IOAccess accessFather, IOAccess accessCurrent, long current, char count) throws StorageException {
@@ -659,45 +654,255 @@ class PersistedMap {
      * @param accessFather  The access to the parent node
      * @param accessCurrent The access to the current node
      * @param current       The entry for the node to merge
-     * @param count         The number of children in the current node
+     * @param isLeaf        Whether the current node is a leaf node
      * @return Whether any modification occurred
      * @throws StorageException When an IO operation fails
      */
-    private boolean mergeInternal(IOAccess accessFather, IOAccess accessCurrent, long current, int count) throws StorageException {
+    private boolean merge(IOAccess accessFather, IOAccess accessCurrent, long current, boolean isLeaf) throws StorageException {
+        // find the left and right neighbours for the current node
+        int fatherCount = accessFather.seek(8 + 2).readChar();
+        long neighbourLeft = FileStore.KEY_NULL;
+        long neighbourRight = FileStore.KEY_NULL;
+        long previousValue = FileStore.KEY_NULL;
+        int indexCurrent = -1;
+        for (int i = 0; i != fatherCount + 1; i++) {
+            long value = accessFather.skip(8).readLong();
+            if (value == current) {
+                neighbourLeft = previousValue;
+                if (i != fatherCount)
+                    neighbourRight = accessFather.skip(8).readLong();
+                indexCurrent = i;
+                break;
+            }
+            previousValue = value;
+        }
+
+        // try to merge with the neighbour on the right if any
+        if (neighbourRight != FileStore.KEY_NULL) {
+            boolean freeRight;
+            try (IOAccess accessRight = store.accessW(neighbourRight)) {
+                freeRight = isLeaf
+                        ? tryMergeLeaf(accessFather, accessCurrent, accessRight, indexCurrent, neighbourRight)
+                        : tryMergeInternal(accessFather, accessCurrent, accessRight, indexCurrent, neighbourRight);
+            }
+            if (freeRight)
+                store.free(neighbourRight, NODE_SIZE);
+            return true;
+        }
+
+        // try to merge with the neighbour on the left if any
+        if (neighbourLeft != FileStore.KEY_NULL) {
+            boolean freeRight;
+            try (IOAccess accessLeft = store.accessW(neighbourLeft)) {
+                freeRight = isLeaf
+                        ? tryMergeLeaf(accessFather, accessLeft, accessCurrent, indexCurrent - 1, current)
+                        : tryMergeInternal(accessFather, accessLeft, accessCurrent, indexCurrent - 1, current);
+            }
+            if (freeRight)
+                store.free(current, NODE_SIZE);
+            return true;
+        }
+
+        // no merge happened
         return false;
     }
 
     /**
-     * Tries to merge a leaf node with its neighbour
+     * Tries to merge the left and right nodes
      *
-     * @param accessFather  The access to the parent node
-     * @param accessCurrent The access to the current node
-     * @param current       The entry for the node to merge
-     * @param count         The number of children in the current node
-     * @return Whether any modification occurred
-     * @throws StorageException When an IO operation fails
+     * @param father         The access for the father of both nodes
+     * @param left           The left node
+     * @param right          The right node
+     * @param indexLeft      The index of the left node in the father node
+     * @param neighbourRight The entry for the right node
+     * @return Whether the right node shall be freed
      */
-    private boolean mergeLeaf(IOAccess accessFather, IOAccess accessCurrent, long current, int count) throws StorageException {
-
-
-        int fatherCount = accessFather.seek(8 + 2).readChar();
-
-        long neighbourLeft = FileStore.KEY_NULL;
-        long neighbourRight = FileStore.KEY_NULL;
-        long previousValue = FileStore.KEY_NULL;
-        for (int i = 0; i != fatherCount; i++) {
-            long key = accessFather.readLong();
-            long value = accessFather.readLong();
-            if (value == current) {
-                neighbourLeft = previousValue;
-                neighbourRight = accessFather.skip(8).readLong();
-                break;
+    private boolean tryMergeInternal(IOAccess father, IOAccess left, IOAccess right, int indexLeft, long neighbourRight) {
+        int countLeft = left.seek(8 + 2).readChar();
+        int countRight = right.seek(8 + 2).readChar();
+        if (countLeft <= N) {
+            if (countRight <= N) {
+                // merge left and right in left
+                doMergeLeftRight(father, left, right, indexLeft, countLeft, countRight);
+                return true;
             } else {
-                previousValue = value;
+                // transfer keys from right to left
+                int transferred = countRight - N;
+                left.seek(8 + 2).writeChar((char) (countLeft + transferred));
+                right.seek(8 + 2).writeChar((char) (countRight - transferred));
+                left.seek(HEAD_SIZE + countLeft * CHILD_SIZE);
+                right.seek(HEAD_SIZE);
+                for (int i = 0; i != transferred; i++) {
+                    left.writeLong(right.readLong());
+                    left.writeLong(right.readLong());
+                }
+                left.writeLong(0);
+                left.writeLong(neighbourRight);
+                // repack the right node
+                long firstKey = 0;
+                for (int i = transferred; i != countRight + 1; i++) {
+                    right.seek(HEAD_SIZE + i * CHILD_SIZE);
+                    long key = right.readLong();
+                    long value = right.readLong();
+                    if (i == transferred)
+                        firstKey = key;
+                    right.seek(HEAD_SIZE + (i - transferred) * CHILD_SIZE);
+                    right.writeLong(key);
+                    right.writeLong(value);
+                }
+                // update the father
+                father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
+                return false;
             }
+        } else if (countRight <= N) {
+            // transfer keys from left to right
+            int transferred = countLeft - N;
+            left.seek(8 + 2).writeChar((char) (countLeft - transferred));
+            right.seek(8 + 2).writeChar((char) (countRight + transferred));
+            // move the current data in the right node
+            for (int i = countRight; i != -1; i--) {
+                right.seek(HEAD_SIZE + i * CHILD_SIZE);
+                long key = right.readLong();
+                long value = right.readLong();
+                right.seek(HEAD_SIZE + (i + transferred) * CHILD_SIZE);
+                right.writeLong(key);
+                right.writeLong(value);
+            }
+            // transfer
+            left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE);
+            right.seek(HEAD_SIZE);
+            long firstKey = 0;
+            for (int i = 0; i != transferred; i++) {
+                long key = left.readLong();
+                if (i == 0)
+                    firstKey = 0;
+                right.writeLong(key);
+                right.writeLong(left.readLong());
+            }
+            left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE);
+            left.writeLong(0);
+            left.writeLong(neighbourRight);
+            father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
+            return false;
         }
-
+        // both left and right have more than N keys, should not happen ...
         return false;
+    }
+
+    /**
+     * Tries to merge the left and right nodes
+     *
+     * @param father         The access for the father of both nodes
+     * @param left           The left node
+     * @param right          The right node
+     * @param indexLeft      The index of the left node in the father node
+     * @param neighbourRight The entry for the right node
+     * @return Whether the right node shall be freed
+     */
+    private boolean tryMergeLeaf(IOAccess father, IOAccess left, IOAccess right, int indexLeft, long neighbourRight) {
+        int countLeft = left.seek(8 + 2).readChar();
+        int countRight = right.seek(8 + 2).readChar();
+        if (countLeft <= N) {
+            if (countRight <= N) {
+                // merge left and right in left
+                doMergeLeftRight(father, left, right, indexLeft, countLeft, countRight);
+                return true;
+            } else {
+                // transfer keys from right to left
+                int transferred = countRight - N;
+                left.seek(8 + 2).writeChar((char) (countLeft + transferred));
+                right.seek(8 + 2).writeChar((char) (countRight - transferred));
+                left.seek(HEAD_SIZE + countLeft * CHILD_SIZE);
+                right.seek(HEAD_SIZE);
+                for (int i = 0; i != transferred; i++) {
+                    left.writeLong(right.readLong());
+                    left.writeLong(right.readLong());
+                }
+                left.writeLong(0);
+                left.writeLong(neighbourRight);
+                // repack the right node
+                long firstKey = 0;
+                for (int i = transferred; i != countRight + 1; i++) {
+                    right.seek(HEAD_SIZE + i * CHILD_SIZE);
+                    long key = right.readLong();
+                    long value = right.readLong();
+                    if (i == transferred)
+                        firstKey = key;
+                    right.seek(HEAD_SIZE + (i - transferred) * CHILD_SIZE);
+                    right.writeLong(key);
+                    right.writeLong(value);
+                }
+                // update the father
+                father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
+                return false;
+            }
+        } else if (countRight <= N) {
+            // transfer keys from left to right
+            int transferred = countLeft - N;
+            left.seek(8 + 2).writeChar((char) (countLeft - transferred));
+            right.seek(8 + 2).writeChar((char) (countRight + transferred));
+            // move the current data in the right node
+            for (int i = countRight; i != -1; i--) {
+                right.seek(HEAD_SIZE + i * CHILD_SIZE);
+                long key = right.readLong();
+                long value = right.readLong();
+                right.seek(HEAD_SIZE + (i + transferred) * CHILD_SIZE);
+                right.writeLong(key);
+                right.writeLong(value);
+            }
+            // transfer
+            left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE);
+            right.seek(HEAD_SIZE);
+            long firstKey = 0;
+            for (int i = 0; i != transferred; i++) {
+                long key = left.readLong();
+                if (i == 0)
+                    firstKey = 0;
+                right.writeLong(key);
+                right.writeLong(left.readLong());
+            }
+            left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE);
+            left.writeLong(0);
+            left.writeLong(neighbourRight);
+            father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
+            return false;
+        }
+        // both left and right have more than N keys, should not happen ...
+        return false;
+    }
+
+    /**
+     * Implements the merge of the left and right nodes into the left node
+     *
+     * @param father     The access for the father of both nodes
+     * @param left       The left node
+     * @param right      The right node
+     * @param indexLeft  The index of the left node in the father node
+     * @param countLeft  The number of keys in the left node
+     * @param countRight The number of keys in the right node
+     */
+    private void doMergeLeftRight(IOAccess father, IOAccess left, IOAccess right, int indexLeft, int countLeft, int countRight) {
+        left.seek(8 + 2).writeChar((char) (countLeft + countRight));
+        left.seek(HEAD_SIZE + countLeft * CHILD_SIZE);
+        right.seek(HEAD_SIZE);
+        for (int i = 0; i != countRight + 1; i++) {
+            left.writeLong(right.readLong());
+            left.writeLong(right.readLong());
+        }
+        // update the father header
+        int countFather = father.seek(8 + 2).readChar();
+        father.seek(8 + 2).writeChar((char) (countFather - 1));
+        // shift the keys and pointers
+        long keyRight = father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE + CHILD_SIZE).readLong();
+        father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(keyRight);
+        for (int i = indexLeft + 2; i < countFather + 2; i++) {
+            father.seek(HEAD_SIZE + i * CHILD_SIZE);
+            long key = father.readLong();
+            long value = father.readLong();
+            father.seek(HEAD_SIZE + (i - 1) * CHILD_SIZE);
+            father.writeLong(key);
+            father.writeLong(value);
+        }
     }
 
     /**
