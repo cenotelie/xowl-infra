@@ -43,15 +43,15 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     /**
      * Entry for the next blank value data
      */
-    private static final long DATA_NEXT_BLANK_ENTRY = 0x2002;
+    private static final long DATA_NEXT_BLANK_ENTRY = FileBlock.BLOCK_SIZE + FileStoreFile.FILE_OBJECT_HEADER_SIZE;
     /**
      * Entry for the string map data
      */
-    private static final long DATA_STRING_MAP_ENTRY = 0x200C;
+    private static final long DATA_STRING_MAP_ENTRY = DATA_NEXT_BLANK_ENTRY + 8 + FileStoreFile.FILE_OBJECT_HEADER_SIZE;
     /**
      * Entry for the literal map data
      */
-    private static final long DATA_LITERAL_MAP_ENTRY = 0x2056;
+    private static final long DATA_LITERAL_MAP_ENTRY = DATA_STRING_MAP_ENTRY + PersistedMap.HEAD_SIZE + FileStoreFile.FILE_OBJECT_HEADER_SIZE;
 
     /**
      * The size of the overhead for a string entry

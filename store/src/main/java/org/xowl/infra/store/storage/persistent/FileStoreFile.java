@@ -74,7 +74,7 @@ class FileStoreFile extends FileBackend {
     /**
      * Size of the header for each object stored in a file
      */
-    private static final int FILE_OBJECT_HEADER_SIZE = 2;
+    public static final int FILE_OBJECT_HEADER_SIZE = 2;
     /**
      * Minimum size of objects in this store
      */

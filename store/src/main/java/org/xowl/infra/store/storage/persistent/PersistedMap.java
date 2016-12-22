@@ -72,6 +72,10 @@ class PersistedMap {
      * Marker for leaf nodes
      */
     private static final char NODE_IS_LEAF = 1;
+    /**
+     * The size of the map's head
+     */
+    public static final int HEAD_SIZE = NODE_SIZE;
 
     /**
      * Represents an entry in this map
@@ -673,7 +677,7 @@ class PersistedMap {
          * @return The top item
          */
         public long pop() {
-            return items[head++];
+            return items[head--];
         }
 
         /**
@@ -716,7 +720,7 @@ class PersistedMap {
             // initializes the stack with the content of the head
             clearOnNode(accessHead, stack, entries);
             // deletes the tree, starting with nodes on the stack
-            while (stack.isEmpty()) {
+            while (!stack.isEmpty()) {
                 long current = stack.pop();
                 try (IOAccess accessCurrent = store.accessR(current)) {
                     clearOnNode(accessCurrent, stack, entries);
@@ -853,7 +857,7 @@ class PersistedMap {
                 try {
                     this.currentCount = 0;
                     this.nextIndex = 0;
-                    while (stack.isEmpty()) {
+                    while (!stack.isEmpty()) {
                         if (inspectNode(stack.pop()))
                             break;
                     }

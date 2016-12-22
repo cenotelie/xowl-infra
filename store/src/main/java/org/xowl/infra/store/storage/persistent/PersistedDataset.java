@@ -27,7 +27,10 @@ import org.xowl.infra.utils.metrics.Metric;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents a persisted RDF dataset
@@ -66,23 +69,23 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     /**
      * Entry for the next blank value data
      */
-    private static final long DATA_MAP_SUBJECT_IRI_ENTRY = 0x2002;
+    private static final long DATA_MAP_SUBJECT_IRI_ENTRY = FileBlock.BLOCK_SIZE + FileStoreFile.FILE_OBJECT_HEADER_SIZE;
     /**
      * Entry for the string map data
      */
-    private static final long DATA_MAP_SUBJECT_BLANK_ENTRY = 0x204C;
+    private static final long DATA_MAP_SUBJECT_BLANK_ENTRY = DATA_MAP_SUBJECT_IRI_ENTRY + PersistedMap.HEAD_SIZE + FileStoreFile.FILE_OBJECT_HEADER_SIZE;
     /**
      * Entry for the literal map data
      */
-    private static final long DATA_MAP_SUBJECT_ANON_ENTRY = 0x2096;
+    private static final long DATA_MAP_SUBJECT_ANON_ENTRY = DATA_MAP_SUBJECT_BLANK_ENTRY + PersistedMap.HEAD_SIZE + FileStoreFile.FILE_OBJECT_HEADER_SIZE;
     /**
      * Entry for the string map data
      */
-    private static final long DATA_MAP_INDEX_IRI_ENTRY = 0x20E0;
+    private static final long DATA_MAP_INDEX_IRI_ENTRY = DATA_MAP_SUBJECT_ANON_ENTRY + PersistedMap.HEAD_SIZE + FileStoreFile.FILE_OBJECT_HEADER_SIZE;
     /**
      * Entry for the literal map data
      */
-    private static final long DATA_MAP_INDEX_BLANK_ENTRY = 0x212A;
+    private static final long DATA_MAP_INDEX_BLANK_ENTRY = DATA_MAP_INDEX_IRI_ENTRY + PersistedMap.HEAD_SIZE + FileStoreFile.FILE_OBJECT_HEADER_SIZE;
 
     /**
      * Iterator over the quad node in a bucket
@@ -2913,8 +2916,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         return new AdaptingIterator<>(map.entries(), new Adapter<Long>() {
             @Override
             public <X> Long adapt(X element) {
-                Map.Entry<Long, Long> mapEntry = (Map.Entry<Long, Long>) element;
-                return mapEntry.getValue();
+                PersistedMap.Entry mapEntry = (PersistedMap.Entry) element;
+                return mapEntry.value;
             }
         });
     }
