@@ -154,9 +154,8 @@ class PersistedMap {
      * @param key           The stage 2 key to look for
      * @param count         The number of entries in the node
      * @return The associated value, or FileStore.Key_NULL when none is found
-     * @throws StorageException When an IO operation fails
      */
-    private long getOnNode(IOAccess accessCurrent, long key, char count) throws StorageException {
+    private long getOnNode(IOAccess accessCurrent, long key, char count) {
         for (int i = 0; i != count; i++) {
             // read entry data
             long entryKey = accessCurrent.readLong();
@@ -176,9 +175,8 @@ class PersistedMap {
      * @param key           The stage 2 key to look for
      * @param count         The number of entries in the node
      * @return The descendant
-     * @throws StorageException When an IO operation fails
      */
-    private long getChild(IOAccess accessCurrent, long key, char count) throws StorageException {
+    private long getChild(IOAccess accessCurrent, long key, char count) {
         for (int i = 0; i != count; i++) {
             // read entry data
             long entryKey = accessCurrent.readLong();
@@ -230,16 +228,16 @@ class PersistedMap {
     public boolean compareAndSet(long key, long valueOld, long valueNew) throws StorageException {
         IOAccess accessFather = null;
         IOAccess accessCurrent = store.accessW(head);
-        inspect(null, accessCurrent, head, valueNew != FileStore.KEY_NULL);
         try {
+            inspect(null, accessCurrent, head, valueNew != FileStore.KEY_NULL);
             while (true) {
                 // inspect the current node
-                boolean isLeaf = accessCurrent.reset().readChar() == 1;
+                boolean isLeaf = accessCurrent.seek(8).readChar() == NODE_IS_LEAF;
                 char count = accessCurrent.readChar();
                 if (isLeaf) {
                     // look into the entries of this node
                     for (int i = 0; i != count; i++) {
-                        int entryKey = accessCurrent.readInt();
+                        long entryKey = accessCurrent.readLong();
                         long entryValue = accessCurrent.readLong();
                         if (entryKey == key)
                             // found the key
@@ -284,9 +282,8 @@ class PersistedMap {
      * @param valueOld      The old value to replace (FileStore.KEY_NULL, if this is expected to be an insertion)
      * @param valueNew      The new value for the key (FileStore.KEY_NULL, if this is expected to be a removal)
      * @return Whether the operation succeeded
-     * @throws StorageException When an IO operation fails
      */
-    private boolean doCompareAndReplace(IOAccess accessCurrent, int index, char count, long entryValue, long valueOld, long valueNew) throws StorageException {
+    private boolean doCompareAndReplace(IOAccess accessCurrent, int index, char count, long entryValue, long valueOld, long valueNew) {
         if (entryValue != valueOld)
             // oops, compare failed
             return false;
@@ -299,15 +296,15 @@ class PersistedMap {
             // shift the data to the left
             for (int i = index + 1; i != count + 1; i++) {
                 accessCurrent.seek(NODE_HEADER + i * CHILD_SIZE);
-                int key = accessCurrent.readInt();
+                long key = accessCurrent.readLong();
                 long value = accessCurrent.readLong();
                 accessCurrent.skip(-CHILD_SIZE * 2);
-                accessCurrent.writeInt(key);
+                accessCurrent.writeLong(key);
                 accessCurrent.writeLong(value);
             }
             // update the header
             count--;
-            accessCurrent.seek(2).writeChar(count);
+            accessCurrent.seek(8 + 2).writeChar(count);
             return true;
         }
     }
@@ -321,9 +318,8 @@ class PersistedMap {
      * @param valueOld      The old value to replace (FileStore.KEY_NULL, if this is expected to be an insertion)
      * @param valueNew      The new value for the key (FileStore.KEY_NULL, if this is expected to be a removal)
      * @return Whether the operation succeeded
-     * @throws StorageException When an IO operation fails
      */
-    private boolean doInsert(IOAccess accessCurrent, char count, long key, long valueOld, long valueNew) throws StorageException {
+    private boolean doInsert(IOAccess accessCurrent, char count, long key, long valueOld, long valueNew) {
         if (valueNew != FileStore.KEY_NULL) {
             // this is an insertion
             if (valueOld != FileStore.KEY_NULL)
@@ -333,7 +329,7 @@ class PersistedMap {
             int insertAt = count;
             accessCurrent.seek(NODE_HEADER);
             for (int i = 0; i != count; i++) {
-                int entryKey = accessCurrent.readInt();
+                long entryKey = accessCurrent.readLong();
                 accessCurrent.skip(8);
                 if (entryKey > key) {
                     insertAt = i;
@@ -343,9 +339,9 @@ class PersistedMap {
             // shift the existing data to the right
             for (int i = count; i != insertAt - 1; i--) {
                 accessCurrent.seek(NODE_HEADER + i * CHILD_SIZE);
-                int entryKey = accessCurrent.readInt();
+                long entryKey = accessCurrent.readLong();
                 long entryValue = accessCurrent.readLong();
-                accessCurrent.writeInt(entryKey);
+                accessCurrent.writeLong(entryKey);
                 accessCurrent.writeLong(entryValue);
             }
             // write the inserted key-value
@@ -354,7 +350,7 @@ class PersistedMap {
             accessCurrent.writeLong(valueNew);
             // update the header
             count++;
-            accessCurrent.seek(2).writeChar(count);
+            accessCurrent.seek(8 + 2).writeChar(count);
             return true;
         } else {
             // the entry is not found and the new value is the null key
@@ -380,9 +376,9 @@ class PersistedMap {
             // split the current node
             if (accessFather == null) {
                 if (isLeaf)
-                    splitRootLeaf(accessCurrent, count);
+                    splitRootLeaf(accessCurrent, current, count);
                 else
-                    splitRootInternal(accessCurrent, count);
+                    splitRootInternal(accessCurrent, current, count);
             } else if (isLeaf)
                 splitLeaf(accessFather, accessCurrent, current, count);
             else
@@ -399,44 +395,46 @@ class PersistedMap {
      * Splits the root node when it is an internal node
      *
      * @param accessCurrent The access to the current node
+     * @param current       The entry for the node to split
      * @param count         The number of children in the current node
      * @throws StorageException When an IO operation fails
      */
-    private void splitRootInternal(IOAccess accessCurrent, char count) throws StorageException {
+    private void splitRootInternal(IOAccess accessCurrent, long current, char count) throws StorageException {
         // number of keys to transfer to the right (not including the fallback pointer)
         int countRight = (count == 2 * N) ? N - 1 : N;
         long left = store.allocate(NODE_SIZE);
         long right = store.allocate(NODE_SIZE);
-        int maxLeft;
+        long maxLeft;
         // write the new left node
         accessCurrent.seek(NODE_HEADER);
         try (IOAccess accessLeft = store.accessW(left)) {
+            accessLeft.writeLong(current);
             accessLeft.writeChar((char) 0);
             accessLeft.writeChar((char) N);
             for (int i = 0; i != N; i++) {
-                accessLeft.writeInt(accessCurrent.readInt());
+                accessLeft.writeLong(accessCurrent.readLong());
                 accessLeft.writeLong(accessCurrent.readLong());
             }
-            maxLeft = accessCurrent.readInt();
-            accessLeft.writeInt(0);
+            maxLeft = accessCurrent.readLong();
+            accessLeft.writeLong(0);
             accessLeft.writeLong(accessCurrent.readLong());
         }
         // write the new right node
         try (IOAccess accessRight = store.accessW(right)) {
+            accessRight.writeLong(current);
             accessRight.writeChar((char) 0);
             accessRight.writeChar((char) countRight);
             for (int i = 0; i != countRight + 1; i++) {
-                accessRight.writeInt(accessCurrent.readInt());
+                accessRight.writeLong(accessCurrent.readLong());
                 accessRight.writeLong(accessCurrent.readLong());
             }
         }
         // rewrite the root node
-        accessCurrent.reset();
-        accessCurrent.writeChar((char) 0);
+        accessCurrent.seek(8 + 2);
         accessCurrent.writeChar((char) 1); // only one key
-        accessCurrent.writeInt(maxLeft);
+        accessCurrent.writeLong(maxLeft);
         accessCurrent.writeLong(left);
-        accessCurrent.writeInt(0);
+        accessCurrent.writeLong(0);
         accessCurrent.writeLong(right);
     }
 
@@ -444,10 +442,11 @@ class PersistedMap {
      * Splits the root node when it is a leaf
      *
      * @param accessCurrent The access to the current node
+     * @param current       The entry for the node to split
      * @param count         The number of children in the current node
      * @throws StorageException When an IO operation fails
      */
-    private void splitRootLeaf(IOAccess accessCurrent, char count) throws StorageException {
+    private void splitRootLeaf(IOAccess accessCurrent, long current, char count) throws StorageException {
         // number of keys to transfer to the right (not including the neighbour pointer)
         int countRight = (count == 2 * N) ? N : N + 1;
         long left = store.allocate(NODE_SIZE);
@@ -455,37 +454,39 @@ class PersistedMap {
         // write the new left node
         accessCurrent.seek(NODE_HEADER);
         try (IOAccess accessLeft = store.accessW(left)) {
-            accessLeft.writeChar((char) 1);
+            accessLeft.writeLong(current);
+            accessLeft.writeChar(NODE_IS_LEAF);
             accessLeft.writeChar((char) N);
             for (int i = 0; i != N; i++) {
-                accessLeft.writeInt(accessCurrent.readInt());
+                accessLeft.writeLong(accessCurrent.readLong());
                 accessLeft.writeLong(accessCurrent.readLong());
             }
-            accessLeft.writeInt(0);
+            accessLeft.writeLong(0);
             accessLeft.writeLong(right);
         }
         // write the new right node
-        int rightFirstKey = 0;
+        long rightFirstKey = 0;
         try (IOAccess accessRight = store.accessW(right)) {
-            accessRight.writeChar((char) 1);
+            accessRight.writeLong(current);
+            accessRight.writeChar(NODE_IS_LEAF);
             accessRight.writeChar((char) countRight);
             for (int i = 0; i != countRight; i++) {
-                int key = accessCurrent.readInt();
+                long key = accessCurrent.readLong();
                 if (i == 0)
                     rightFirstKey = key;
-                accessRight.writeInt(key);
+                accessRight.writeLong(key);
                 accessRight.writeLong(accessCurrent.readLong());
             }
-            accessRight.writeInt(0);
+            accessRight.writeLong(0);
             accessRight.writeLong(FileStore.KEY_NULL);
         }
         // rewrite the root node
-        accessCurrent.reset();
+        accessCurrent.seek(8);
         accessCurrent.writeChar((char) 0);
         accessCurrent.writeChar((char) 1); // only one key
-        accessCurrent.writeInt(rightFirstKey);
+        accessCurrent.writeLong(rightFirstKey);
         accessCurrent.writeLong(left);
-        accessCurrent.writeInt(0);
+        accessCurrent.writeLong(0);
         accessCurrent.writeLong(right);
     }
 
@@ -504,18 +505,19 @@ class PersistedMap {
         accessCurrent.seek(NODE_HEADER + (N + 1) * CHILD_SIZE);
         long right = store.allocate(NODE_SIZE);
         try (IOAccess accessRight = store.accessW(right)) {
+            accessRight.writeLong(current);
             accessRight.writeChar((char) 0);
             accessRight.writeChar((char) countRight);
             // write the transferred key-values and the neighbour pointer
             for (int i = 0; i != countRight + 1; i++) {
-                accessRight.writeInt(accessCurrent.readInt());
+                accessRight.writeLong(accessCurrent.readLong());
                 accessRight.writeLong(accessCurrent.readLong());
             }
         }
         // update the data for the split node
-        accessCurrent.seek(2).writeChar((char) N);
-        int maxLeft = accessCurrent.seek(NODE_HEADER + N * CHILD_SIZE).readInt();
-        accessCurrent.skip(-4).writeInt(0);
+        accessCurrent.seek(8 + 2).writeChar((char) N);
+        long maxLeft = accessCurrent.seek(NODE_HEADER + N * CHILD_SIZE).readLong();
+        accessCurrent.skip(-8).writeLong(0);
         // update the data for the parent
         splitInsertInParent(accessFather, current, right, maxLeft);
     }
@@ -534,24 +536,25 @@ class PersistedMap {
         int countRight = (count == 2 * N) ? N : N + 1;
         accessCurrent.seek(NODE_HEADER + N * CHILD_SIZE);
         long right = store.allocate(NODE_SIZE);
-        int rightFirstKey = 0;
+        long rightFirstKey = 0;
         try (IOAccess accessRight = store.accessW(right)) {
-            accessRight.writeChar((char) 1);
+            accessRight.writeLong(current);
+            accessRight.writeChar(NODE_IS_LEAF);
             accessRight.writeChar((char) countRight);
             // write the transferred key-values and the neighbour pointer
             for (int i = 0; i != countRight + 1; i++) {
-                int key = accessCurrent.readInt();
+                long key = accessCurrent.readLong();
                 long value = accessCurrent.readLong();
                 if (i == 0)
                     rightFirstKey = key;
-                accessRight.writeInt(key);
+                accessRight.writeLong(key);
                 accessRight.writeLong(value);
             }
         }
         // update the data for the split node
-        accessCurrent.seek(2).writeChar((char) N);
+        accessCurrent.seek(8 + 2).writeChar((char) N);
         accessCurrent.seek(NODE_HEADER + N * CHILD_SIZE);
-        accessCurrent.writeInt(0);
+        accessCurrent.writeLong(0);
         accessCurrent.writeLong(right);
         // update the data for the parent
         splitInsertInParent(accessFather, current, right, rightFirstKey);
@@ -566,13 +569,13 @@ class PersistedMap {
      * @param rightFirstKey The first key of the split node on the right
      * @throws StorageException When an IO operation fails
      */
-    private void splitInsertInParent(IOAccess access, long leftNode, long rightNode, int rightFirstKey) throws StorageException {
-        char count = access.seek(2).readChar();
+    private void splitInsertInParent(IOAccess access, long leftNode, long rightNode, long rightFirstKey) throws StorageException {
+        char count = access.seek(8 + 2).readChar();
         // find the index where to insert
         int insertAt = count;
-        int originalKey = 0;
+        long originalKey = 0;
         for (int i = 0; i != count; i++) {
-            int key = access.readInt();
+            long key = access.readLong();
             long value = access.readLong();
             if (value == leftNode) {
                 insertAt = i;
@@ -583,20 +586,20 @@ class PersistedMap {
         // move the data on the right
         for (int i = count; i != insertAt; i--) {
             access.seek(NODE_HEADER + i * CHILD_SIZE);
-            int entryKey = access.readInt();
+            long entryKey = access.readLong();
             long entryValue = access.readLong();
-            access.writeInt(entryKey);
+            access.writeLong(entryKey);
             access.writeLong(entryValue);
         }
         // write the new pointers
         access.seek(NODE_HEADER + insertAt * CHILD_SIZE);
-        access.writeInt(rightFirstKey);
+        access.writeLong(rightFirstKey);
         access.writeLong(leftNode);
-        access.writeInt(originalKey);
+        access.writeLong(originalKey);
         access.writeLong(rightNode);
         // update count
         count++;
-        access.seek(2).writeChar(count);
+        access.seek(8 + 2).writeChar(count);
     }
 
 
