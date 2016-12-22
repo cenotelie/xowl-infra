@@ -772,17 +772,19 @@ class PersistedMap {
      */
     private void doTransferToLeftInternal(IOAccess father, IOAccess left, IOAccess right, int indexLeft, int countLeft, int countRight) {
         int transferred = countRight - N;
-        left.seek(8 + 2).writeChar((char) (countLeft + transferred + 1));
+        left.seek(8 + 2).writeChar((char) (countLeft + transferred));
+        right.seek(8 + 2).writeChar((char) (countRight - transferred));
         // use the key for the left node in the father as the key for the remainder on the left
         long leftKey = father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).readLong();
         left.seek(HEAD_SIZE + countLeft * CHILD_SIZE).writeLong(leftKey);
         left.skip(8);
-        right.seek(8 + 2).writeChar((char) (countRight - transferred));
         right.seek(HEAD_SIZE);
-        for (int i = 0; i != transferred; i++) {
+        for (int i = 0; i != transferred - 1; i++) {
             left.writeLong(right.readLong());
             left.writeLong(right.readLong());
         }
+        // write key for the new remainder
+        left.seek(HEAD_SIZE + (countLeft + transferred) * CHILD_SIZE).writeLong(0);
         // repack the right node
         long firstKey = 0;
         for (int i = transferred; i != countRight + 1; i++) {
@@ -822,8 +824,11 @@ class PersistedMap {
             right.writeLong(key);
             right.writeLong(value);
         }
+        // use the key for the left node in the father as the key for the remainder on the left
+        long leftKey = father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).readLong();
+        left.seek(HEAD_SIZE + countLeft * CHILD_SIZE).writeLong(leftKey);
         // transfer
-        left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE);
+        left.seek(HEAD_SIZE + (countLeft - transferred + 1) * CHILD_SIZE);
         right.seek(HEAD_SIZE);
         long firstKey = 0;
         for (int i = 0; i != transferred; i++) {
@@ -833,9 +838,9 @@ class PersistedMap {
             right.writeLong(key);
             right.writeLong(left.readLong());
         }
-        left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE);
-        left.writeLong(0);
-        left.writeLong(neighbourRight);
+        // write key for the new remainder
+        left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE).writeLong(0);
+        // update the father
         father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
     }
 
