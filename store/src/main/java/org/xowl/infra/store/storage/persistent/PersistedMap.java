@@ -35,8 +35,10 @@ import java.util.List;
  * => The number of children of a node is in [n, 2n+2].
  * Invariant: Exception to the above is the root node.
  * Invariant: A node that is not a leaf has at most k keys and k+1 children.
- * Invariant: All the leaves are a the same height.
  * Invariant: The keyed data are all at the leaves.
+ * <p>
+ * The leaf nodes contains a pointer to their right neighbour, i.e. the next leaf node.
+ * This pointer can be used for iterating over the leaf nodes.
  *
  * @author Laurent Wouters
  */
@@ -424,8 +426,13 @@ class PersistedMap {
                 splitInternal(accessFather, accessCurrent, current, count);
             return true;
         } else if (!isInsert && count <= N) {
-            // TODO: do merge
-            return false;
+            if (accessFather == null)
+                // cannot merge the root node
+                return false;
+            if (isLeaf)
+                return mergeLeaf(accessFather, accessCurrent, current, count);
+            else
+                return mergeInternal(accessFather, accessCurrent, current, count);
         }
         return false;
     }
@@ -500,6 +507,7 @@ class PersistedMap {
                 accessLeft.writeLong(accessCurrent.readLong());
                 accessLeft.writeLong(accessCurrent.readLong());
             }
+            // write the leaf neighbour
             accessLeft.writeLong(0);
             accessLeft.writeLong(right);
         }
@@ -516,6 +524,7 @@ class PersistedMap {
                 accessRight.writeLong(key);
                 accessRight.writeLong(accessCurrent.readLong());
             }
+            // write the leaf neighbour
             accessRight.writeLong(0);
             accessRight.writeLong(FileStore.KEY_NULL);
         }
@@ -589,10 +598,14 @@ class PersistedMap {
                 accessRight.writeLong(key);
                 accessRight.writeLong(value);
             }
+            // write the leaf neighbour
+            accessRight.writeLong(accessCurrent.readLong());
+            accessRight.writeLong(accessCurrent.readLong());
         }
         // update the data for the split node
         accessCurrent.seek(8 + 2).writeChar((char) N);
         accessCurrent.seek(NODE_HEADER + N * CHILD_SIZE);
+        // write the new leaf neighbour
         accessCurrent.writeLong(0);
         accessCurrent.writeLong(right);
         // update the data for the parent
@@ -638,6 +651,53 @@ class PersistedMap {
         // update count
         count++;
         access.seek(8 + 2).writeChar(count);
+    }
+
+    /**
+     * Tries to merge an internal node with its neighbour
+     *
+     * @param accessFather  The access to the parent node
+     * @param accessCurrent The access to the current node
+     * @param current       The entry for the node to merge
+     * @param count         The number of children in the current node
+     * @return Whether any modification occurred
+     * @throws StorageException When an IO operation fails
+     */
+    private boolean mergeInternal(IOAccess accessFather, IOAccess accessCurrent, long current, int count) throws StorageException {
+        return false;
+    }
+
+    /**
+     * Tries to merge a leaf node with its neighbour
+     *
+     * @param accessFather  The access to the parent node
+     * @param accessCurrent The access to the current node
+     * @param current       The entry for the node to merge
+     * @param count         The number of children in the current node
+     * @return Whether any modification occurred
+     * @throws StorageException When an IO operation fails
+     */
+    private boolean mergeLeaf(IOAccess accessFather, IOAccess accessCurrent, long current, int count) throws StorageException {
+
+
+        int fatherCount = accessFather.seek(8 + 2).readChar();
+
+        long neighbourLeft = FileStore.KEY_NULL;
+        long neighbourRight = FileStore.KEY_NULL;
+        long previousValue = FileStore.KEY_NULL;
+        for (int i = 0; i != fatherCount; i++) {
+            long key = accessFather.readLong();
+            long value = accessFather.readLong();
+            if (value == current) {
+                neighbourLeft = previousValue;
+                neighbourRight = accessFather.skip(8).readLong();
+                break;
+            } else {
+                previousValue = value;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -775,10 +835,6 @@ class PersistedMap {
      */
     private class EntriesIterator implements Iterator<Entry> {
         /**
-         * The stack of nodes to inspect
-         */
-        private final Stack stack;
-        /**
          * The keys in the current node
          */
         private final long[] currentKeys;
@@ -790,6 +846,10 @@ class PersistedMap {
          * The current number of key-value mappings in the current node
          */
         private int currentCount;
+        /**
+         * The neighbour of the current node
+         */
+        private long currentNeighbour;
         /**
          * The next index in the current node
          */
@@ -805,42 +865,60 @@ class PersistedMap {
          * @throws StorageException When an IO operation fails
          */
         public EntriesIterator() throws StorageException {
-            this.stack = new Stack();
             this.currentKeys = new long[CHILD_COUNT];
             this.currentValues = new long[CHILD_COUNT];
             this.currentCount = 0;
+            this.currentNeighbour = FileStore.KEY_NULL;
             this.nextIndex = 0;
             this.result = new Entry(0, 0);
-            // walk the tree until a leaf node is found
-            if (inspectNode(head))
-                return;
-            while (stack.isEmpty()) {
-                if (inspectNode(stack.pop()))
-                    return;
+            findLeafNode();
+        }
+
+        /**
+         * Finds the first leaf node for the tree
+         *
+         * @throws StorageException When an IO operation fails
+         */
+        private void findLeafNode() throws StorageException {
+            IOAccess accessFather = null;
+            IOAccess accessCurrent = store.accessR(head);
+            try {
+                while (true) {
+                    // inspect the current node
+                    boolean isLeaf = accessCurrent.skip(8).readChar() == NODE_IS_LEAF;
+                    if (isLeaf) {
+                        loadLeafNode(accessCurrent);
+                        break;
+                    } else {
+                        long next = accessCurrent.seek(HEAD_SIZE + 8).readLong();
+                        // free the father if any, rotate the accesses and access the next node
+                        if (accessFather != null)
+                            accessFather.close();
+                        accessFather = accessCurrent;
+                        accessCurrent = store.accessR(next);
+                    }
+                }
+            } finally {
+                if (accessFather != null)
+                    accessFather.close();
+                if (accessCurrent != null)
+                    accessCurrent.close();
             }
         }
 
         /**
-         * Inspects a B+ tree node
+         * Loads the data for a leaf node
          *
-         * @param current The node to inspect
-         * @return Whether the current node is a leaf node
+         * @param access The access to the leaf node
          */
-        private boolean inspectNode(long current) throws StorageException {
-            try (IOAccess accessCurrent = store.accessR(current)) {
-                boolean isLeaf = accessCurrent.seek(8).readChar() == NODE_IS_LEAF;
-                if (isLeaf) {
-                    currentCount = accessCurrent.readChar();
-                    for (int i = 0; i != currentCount; i++) {
-                        currentKeys[i] = accessCurrent.readLong();
-                        currentValues[i] = accessCurrent.readLong();
-                    }
-                    return true;
-                } else {
-                    stack.pushChildren(accessCurrent);
-                    return false;
-                }
+        private void loadLeafNode(IOAccess access) {
+            currentCount = access.seek(8 + 2).readChar();
+            for (int i = 0; i != currentCount; i++) {
+                currentKeys[i] = access.readLong();
+                currentValues[i] = access.readLong();
             }
+            nextIndex = 0;
+            currentNeighbour = access.skip(8).readLong();
         }
 
         @Override
@@ -852,15 +930,10 @@ class PersistedMap {
         public Entry next() {
             result.reset(currentKeys[nextIndex], currentValues[nextIndex]);
             nextIndex++;
-            if (nextIndex >= currentCount) {
+            if (nextIndex >= currentCount && currentNeighbour != FileStore.KEY_NULL) {
                 // go to next node
-                try {
-                    this.currentCount = 0;
-                    this.nextIndex = 0;
-                    while (!stack.isEmpty()) {
-                        if (inspectNode(stack.pop()))
-                            break;
-                    }
+                try (IOAccess access = store.accessR(currentNeighbour)) {
+                    loadLeafNode(access);
                 } catch (StorageException exception) {
                     Logging.getDefault().error(exception);
                 }
