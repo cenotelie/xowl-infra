@@ -20,8 +20,9 @@ package org.xowl.infra.store.storage.persistent;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logging;
 
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Implements a (long -> long) map that is persisted in files.
@@ -73,6 +74,41 @@ class PersistedMap {
      */
     private static final char NODE_IS_LEAF = 1;
 
+    /**
+     * Represents an entry in this map
+     */
+    public static class Entry {
+        /**
+         * The key for this entry
+         */
+        public long key;
+        /**
+         * The value associated to the key
+         */
+        public long value;
+
+        /**
+         * Initializes this entry
+         *
+         * @param key   The key for this entry
+         * @param value The value associated to the key
+         */
+        public Entry(long key, long value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        /**
+         * Resets this entry
+         *
+         * @param key   The key for this entry
+         * @param value The value associated to the key
+         */
+        private void reset(long key, long value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
 
     /**
      * The backing store
@@ -602,44 +638,131 @@ class PersistedMap {
     }
 
     /**
+     * The stack for visiting the nodes in the tree
+     */
+    private static class Stack {
+        /**
+         * The stack's items
+         */
+        public long[] items;
+        /**
+         * The stack's head (index of the top item)
+         * -1 when the stack is empty
+         */
+        public int head;
+
+        /**
+         * Initializes this stack
+         */
+        public Stack() {
+            this.items = new long[CHILD_COUNT * 2];
+            this.head = -1;
+        }
+
+        /**
+         * Ensures that the specified number of items can be inserted in the stack
+         *
+         * @param count The number of items to insert
+         */
+        public void ensureInsert(int count) {
+            while (head + count >= items.length) {
+                items = Arrays.copyOf(items, items.length + CHILD_COUNT);
+            }
+        }
+
+        /**
+         * Pushes a new item onto the stack
+         *
+         * @param item The item to push
+         */
+        public void push(long item) {
+            items[++head] = item;
+        }
+
+        /**
+         * Pops the stack's head
+         *
+         * @return The top item
+         */
+        public long pop() {
+            return items[head++];
+        }
+
+        /**
+         * Gets whether the stack is empty
+         *
+         * @return Whether the stack is empty
+         */
+        public boolean isEmpty() {
+            return head == -1;
+        }
+    }
+
+    /**
      * Removes all entries from this map
      *
      * @throws StorageException When an IO operation fails
      */
     public void clear() throws StorageException {
-        long[] stack = new long[CHILD_COUNT];
-        int stackHead = -1;
+        clear(null);
+    }
+
+    /**
+     * Removes all entries from this map
+     *
+     * @param entries The buffer for removed entries
+     * @throws StorageException When an IO operation fails
+     */
+    public void clear(List<Entry> entries) throws StorageException {
+        Stack stack = new Stack();
         try (IOAccess accessHead = store.accessW(head)) {
             // initializes the stack with the content of the head
-            boolean isLeaf = accessHead.readChar() == 1;
-            char count = accessHead.readChar();
-            if (!isLeaf) {
-                long entryPtr;
-                for (int i = 0; i != count; i++) {
-                    entryPtr = accessHead.skip(4).readLong();
-                    stack[++stackHead] = entryPtr;
-                }
-                entryPtr = accessHead.skip(4).readLong();
-                if (entryPtr != FileStore.KEY_NULL)
-                    stack[++stackHead] = entryPtr;
-            }
-
+            clearAddChildrenToStack(accessHead, stack, entries);
             // deletes the tree, starting with nodes on the stack
-            while (stackHead != -1) {
-                long current = stack[stackHead];
-                stackHead--;
+            while (stack.isEmpty()) {
+                long current = stack.pop();
                 try (IOAccess accessCurrent = store.accessR(current)) {
-                    isLeaf = accessHead.readChar() == 1;
-                    count = accessHead.readChar();
-                    if (isLeaf) {
+                    clearAddChildrenToStack(accessCurrent, stack, entries);
+                }
+                store.free(current, NODE_SIZE);
+            }
+            // rewrite the head
+            accessHead.seek(8);
+            accessHead.writeChar(NODE_IS_LEAF);
+            accessHead.writeChar((char) 0);
+            accessHead.writeLong(0);
+            accessHead.writeLong(FileStore.KEY_NULL);
+        }
+    }
 
-                    } else {
-
-                    }
-
-
+    /**
+     * Adds the children of the current node represented by its access to the specified stack
+     *
+     * @param accessCurrent The access to the current node
+     * @param stack         The stack of nodes to inspect
+     * @param entries       The buffer of entries, if required
+     */
+    private void clearAddChildrenToStack(IOAccess accessCurrent, Stack stack, List<Entry> entries) {
+        accessCurrent.seek(8);
+        boolean isLeaf = accessCurrent.readChar() == NODE_IS_LEAF;
+        char count = accessCurrent.readChar();
+        if (isLeaf) {
+            if (entries != null) {
+                for (int i = 0; i != count; i++) {
+                    entries.add(new Entry(
+                            accessCurrent.readLong(),
+                            accessCurrent.readLong()
+                    ));
                 }
             }
+        } else {
+            stack.ensureInsert(count + 1);
+            for (int i = 0; i != count; i++) {
+                stack.push(accessCurrent.skip(8).readLong());
+            }
+            long value = accessCurrent.skip(8).readLong();
+            if (value != FileStore.KEY_NULL)
+                stack.push(value);
         }
     }
 
@@ -649,14 +772,14 @@ class PersistedMap {
      * @return An iterator over the entries
      * @throws StorageException When an IO operation fails
      */
-    public Iterator<Map.Entry<Long, Long>> entries() throws StorageException {
+    public Iterator<Entry> entries() throws StorageException {
         return new Iter(store, head);
     }
 
     /**
      * Implements an iterator over the mappings in the B+ tree
      */
-    private static class Iter implements Iterator<Map.Entry<Long, Long>> {
+    private static class Iter implements Iterator<Entry> {
         /**
          * The containing store
          */
