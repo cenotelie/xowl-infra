@@ -425,11 +425,8 @@ class PersistedMap {
             else
                 splitInternal(accessFather, accessCurrent, current, count);
             return true;
-        } else if (!isInsert && count <= N) {
+        } else if (!isInsert && accessFather != null && count <= N) {
             // the current node is a candidate for merging
-            // cannot merge the root node
-            if (accessFather == null)
-                return false;
             // find the left and right neighbours for the current node
             int fatherCount = accessFather.seek(8 + 2).readChar();
             long neighbourLeft = FileStore.KEY_NULL;
@@ -695,6 +692,14 @@ class PersistedMap {
 
     /**
      * Tries to merge the left and right nodes
+     * +---------------+---------+---------+--------+---------+
+     * |  Left \ Right |  &lt;N  |   =N    |  =N+1  | &gt;N+1 |
+     * +-e-------------+---------+---------+--------+---------+
+     * | &lt;N         | Merge   |  Merge  | toLeft | toLeft  |
+     * | =N            | Merge   |  Merge  |    .   | toLeft  |
+     * | =N+1          | toRight |    .    |    .   |    .    |
+     * | &gt;N+1       | toRight | toRight |    .   |    .    |
+     * +---------------+---------+---------+------------------+
      *
      * @param father    The access for the father of both nodes
      * @param left      The left node
@@ -705,22 +710,28 @@ class PersistedMap {
     private boolean tryMergeInternals(IOAccess father, IOAccess left, IOAccess right, int indexLeft) {
         int countLeft = left.seek(8 + 2).readChar();
         int countRight = right.seek(8 + 2).readChar();
-        if (countLeft <= N) {
+        if (countLeft < N) {
             if (countRight <= N) {
                 // merge left and right in left
                 doMergeInternals(father, left, right, indexLeft, countLeft, countRight);
                 return true;
             } else {
-                // transfer keys from right to left
                 doTransferToLeftInternal(father, left, right, indexLeft, countLeft, countRight);
-                return false;
             }
-        } else if (countRight <= N) {
-            // transfer keys from left to right
+        } else if (countLeft == N) {
+            if (countRight <= N) {
+                doMergeInternals(father, left, right, indexLeft, countLeft, countRight);
+                return true;
+            } else if (countRight > N + 1) {
+                doTransferToLeftInternal(father, left, right, indexLeft, countLeft, countRight);
+            }
+        } else if (countLeft == N + 1) {
+            if (countRight < N) {
+                doTransferToRightInternal(father, left, right, indexLeft, countLeft, countRight);
+            }
+        } else {
             doTransferToRightInternal(father, left, right, indexLeft, countLeft, countRight);
-            return false;
         }
-        // both left and right have more than N keys, should not happen ...
         return false;
     }
 
@@ -837,6 +848,14 @@ class PersistedMap {
 
     /**
      * Tries to merge the left and right leaf nodes
+     * +---------------+---------+---------+--------+---------+
+     * |  Left \ Right |  &lt;N  |   =N    |  =N+1  | &gt;N+1 |
+     * +-e-------------+---------+---------+--------+---------+
+     * | &lt;N         | Merge   |  Merge  | toLeft | toLeft  |
+     * | =N            | Merge   |  Merge  |    .   | toLeft  |
+     * | =N+1          | toRight |    .    |    .   |    .    |
+     * | &gt;N+1       | toRight | toRight |    .   |    .    |
+     * +---------------+---------+---------+------------------+
      *
      * @param father         The access for the father of both nodes
      * @param left           The left node
@@ -848,22 +867,28 @@ class PersistedMap {
     private boolean tryMergeLeaves(IOAccess father, IOAccess left, IOAccess right, int indexLeft, long neighbourRight) {
         int countLeft = left.seek(8 + 2).readChar();
         int countRight = right.seek(8 + 2).readChar();
-        if (countLeft <= N) {
+        if (countLeft < N) {
             if (countRight <= N) {
                 // merge left and right in left
                 doMergeLeaves(father, left, right, indexLeft, countLeft, countRight);
                 return true;
             } else {
-                // transfer keys from right to left
                 doTransferToLeftLeaf(father, left, right, indexLeft, neighbourRight, countLeft, countRight);
-                return false;
             }
-        } else if (countRight <= N) {
-            // transfer keys from left to right
+        } else if (countLeft == N) {
+            if (countRight <= N) {
+                doMergeLeaves(father, left, right, indexLeft, countLeft, countRight);
+                return true;
+            } else if (countRight > N + 1) {
+                doTransferToLeftLeaf(father, left, right, indexLeft, neighbourRight, countLeft, countRight);
+            }
+        } else if (countLeft == N + 1) {
+            if (countRight < N) {
+                doTransferToRightLeaf(father, left, right, indexLeft, neighbourRight, countLeft, countRight);
+            }
+        } else {
             doTransferToRightLeaf(father, left, right, indexLeft, neighbourRight, countLeft, countRight);
-            return false;
         }
-        // both left and right have more than N keys, should not happen ...
         return false;
     }
 
