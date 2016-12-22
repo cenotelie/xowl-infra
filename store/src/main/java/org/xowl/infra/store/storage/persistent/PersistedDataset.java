@@ -703,13 +703,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         Collection<GraphNode> result = new ArrayList<>();
         try {
 
-            Iterator<Map.Entry<Long, Long>> iterator = mapIndexGraphIRI.entries();
+            Iterator<PersistedMap.Entry> iterator = mapIndexGraphIRI.entries();
             while (iterator.hasNext()) {
-                result.add(nodes.getIRINodeFor(iterator.next().getKey()));
+                result.add(nodes.getIRINodeFor(iterator.next().key));
             }
             iterator = mapIndexGraphBlank.entries();
             while (iterator.hasNext()) {
-                result.add(nodes.getBlankNodeFor(iterator.next().getKey()));
+                result.add(nodes.getBlankNodeFor(iterator.next().key));
             }
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
@@ -721,13 +721,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     public long count() {
         long result = 0;
         try {
-            Iterator<Map.Entry<Long, Long>> iterator = mapIndexGraphIRI.entries();
+            Iterator<PersistedMap.Entry> iterator = mapIndexGraphIRI.entries();
             while (iterator.hasNext()) {
-                result += count(mapIndexGraphIRI, iterator.next().getKey());
+                result += count(mapIndexGraphIRI, iterator.next().key);
             }
             iterator = mapIndexGraphBlank.entries();
             while (iterator.hasNext()) {
-                result += count(mapIndexGraphBlank, iterator.next().getKey());
+                result += count(mapIndexGraphBlank, iterator.next().key);
             }
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
@@ -917,10 +917,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      */
     private long countDefault(PersistedMap map, PersistedNode property, PersistedNode object) throws StorageException {
         long result = 0;
-        Iterator<Map.Entry<Long, Long>> iterator = map.entries();
+        Iterator<PersistedMap.Entry> iterator = map.entries();
         while (iterator.hasNext()) {
             long bucket;
-            try (IOAccess entry = store.accessW(iterator.next().getValue())) {
+            try (IOAccess entry = store.accessW(iterator.next().value)) {
                 bucket = entry.seek(8 + 4 + 8).readLong();
             }
             result += countOnProperty(bucket, null, property, object);
@@ -1603,10 +1603,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     private void removeAllDefault(PersistedMap map, PersistedNode property, PersistedNode object, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws StorageException {
-        Iterator<Map.Entry<Long, Long>> iterator = map.entries();
+        Iterator<PersistedMap.Entry> iterator = map.entries();
         while (iterator.hasNext()) {
             int size = bufferRemoved.size();
-            boolean isEmpty = removeAllOnSubject(iterator.next().getValue(), property, object, null, bufferDecremented, bufferRemoved);
+            boolean isEmpty = removeAllOnSubject(iterator.next().value, property, object, null, bufferDecremented, bufferRemoved);
             for (int i = size; i != bufferRemoved.size(); i++) {
                 MQuad quad = bufferRemoved.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
@@ -1884,27 +1884,27 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     @Override
     public void doClear(List<MQuad> buffer) {
         try {
-            Iterator<Map.Entry<Long, Long>> iterator = mapSubjectIRI.entries();
+            Iterator<PersistedMap.Entry> iterator = mapSubjectIRI.entries();
             while (iterator.hasNext())
-                clearOnSubject(iterator.next().getValue(), null, buffer);
+                clearOnSubject(iterator.next().value, null, buffer);
             mapSubjectIRI.clear();
             mapIndexGraphIRI.clear();
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
         }
         try {
-            Iterator<Map.Entry<Long, Long>> iterator = mapSubjectBlank.entries();
+            Iterator<PersistedMap.Entry> iterator = mapSubjectBlank.entries();
             while (iterator.hasNext())
-                clearOnSubject(iterator.next().getValue(), null, buffer);
+                clearOnSubject(iterator.next().value, null, buffer);
             mapSubjectBlank.clear();
             mapIndexGraphBlank.clear();
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
         }
         try {
-            Iterator<Map.Entry<Long, Long>> iterator = mapSubjectAnon.entries();
+            Iterator<PersistedMap.Entry> iterator = mapSubjectAnon.entries();
             while (iterator.hasNext())
-                clearOnSubject(iterator.next().getValue(), null, buffer);
+                clearOnSubject(iterator.next().value, null, buffer);
             mapSubjectAnon.clear();
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
@@ -2194,11 +2194,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     private void copyOnSubject(PersistedMap map, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) throws StorageException {
-        Iterator<Map.Entry<Long, Long>> iterator = map.entries();
+        Iterator<PersistedMap.Entry> iterator = map.entries();
         while (iterator.hasNext()) {
             int sizeOld = bufferOld.size();
             int sizeNew = bufferNew.size();
-            boolean isEmpty = copyOnSubject(iterator.next().getValue(), origin, target, bufferOld, bufferNew, overwrite);
+            boolean isEmpty = copyOnSubject(iterator.next().value, origin, target, bufferOld, bufferNew, overwrite);
             for (int i = sizeOld; i != bufferOld.size(); i++) {
                 MQuad quad = bufferOld.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
@@ -2492,11 +2492,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     private void moveOnSubject(PersistedMap map, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) throws StorageException {
-        Iterator<Map.Entry<Long, Long>> iterator = map.entries();
+        Iterator<PersistedMap.Entry> iterator = map.entries();
         while (iterator.hasNext()) {
             int sizeOld = bufferOld.size();
             int sizeNew = bufferNew.size();
-            boolean isEmpty = moveOnSubject(iterator.next().getValue(), origin, target, bufferOld, bufferNew);
+            boolean isEmpty = moveOnSubject(iterator.next().value, origin, target, bufferOld, bufferNew);
             for (int i = sizeOld; i != bufferOld.size(); i++) {
                 MQuad quad = bufferOld.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
