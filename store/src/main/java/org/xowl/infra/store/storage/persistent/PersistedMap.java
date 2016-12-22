@@ -567,9 +567,8 @@ class PersistedMap {
      * @param leftNode      The entry for the split node in the left
      * @param rightNode     The entry for the split node on the right
      * @param rightFirstKey The first key of the split node on the right
-     * @throws StorageException When an IO operation fails
      */
-    private void splitInsertInParent(IOAccess access, long leftNode, long rightNode, long rightFirstKey) throws StorageException {
+    private void splitInsertInParent(IOAccess access, long leftNode, long rightNode, long rightFirstKey) {
         char count = access.seek(8 + 2).readChar();
         // find the index where to insert
         int insertAt = count;
@@ -601,7 +600,6 @@ class PersistedMap {
         count++;
         access.seek(8 + 2).writeChar(count);
     }
-
 
     /**
      * Removes all entries from this map
