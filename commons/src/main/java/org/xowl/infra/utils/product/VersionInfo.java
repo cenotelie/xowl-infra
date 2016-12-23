@@ -63,6 +63,23 @@ public class VersionInfo implements Serializable {
     }
 
     /**
+     * Initializes this version info
+     *
+     * @param number         The version number
+     * @param scmTag         The SCM tag indicating the source version
+     * @param buildUser      The name of the user that performed the build for this version
+     * @param buildTag       The tag for the build that produced this version
+     * @param buildTimestamp The timestamp for the build that produced this version
+     */
+    public VersionInfo(String number, String scmTag, String buildUser, String buildTag, String buildTimestamp) {
+        this.number = number;
+        this.scmTag = scmTag;
+        this.buildUser = buildUser;
+        this.buildTag = buildTag;
+        this.buildTimestamp = buildTimestamp;
+    }
+
+    /**
      * Gets the version number
      *
      * @return The version number
