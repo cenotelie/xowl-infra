@@ -32,35 +32,53 @@ public class Product implements Serializable {
     /**
      * The unique identifier of this product
      */
-    private final String identifier;
+    protected String identifier;
     /**
      * The product's name
      */
-    private final String name;
+    protected String name;
+    /**
+     * The product's description
+     */
+    protected String description;
     /**
      * The version information
      */
-    private final VersionInfo version;
+    protected VersionInfo version;
     /**
      * The product's copyright notice
      */
-    private final String copyright;
+    protected String copyright;
+    /**
+     * The name of the icon for the product
+     */
+    protected String iconName;
+    /**
+     * The content of the icon (in Base64) for the product
+     */
+    protected String iconContent;
     /**
      * The product's vendor
      */
-    private final String vendor;
+    protected String vendor;
     /**
      * A link to the vendor's web site
      */
-    private final String vendorLink;
+    protected String vendorLink;
     /**
      * A link to the product's web site
      */
-    private final String link;
+    protected String link;
     /**
      * The license information
      */
-    private final License license;
+    protected License license;
+
+    /**
+     * Initializes an empty product description
+     */
+    protected Product() {
+    }
 
     /**
      * Initializes this version info
@@ -74,7 +92,10 @@ public class Product implements Serializable {
         Manifest manifest = ManifestUtils.getManifest(type);
         this.identifier = identifier;
         this.name = name;
+        this.description = manifest.getMainAttributes().getValue("Bundle-Description");
         this.version = new VersionInfo(manifest);
+        this.iconName = null;
+        this.iconContent = null;
         this.vendor = manifest.getMainAttributes().getValue("Bundle-Vendor");
         this.copyright = "Copyright (c) " + vendor;
         this.vendorLink = manifest.getMainAttributes().getValue("Bundle-DocURL");
@@ -96,7 +117,10 @@ public class Product implements Serializable {
         Manifest manifest = ManifestUtils.getManifest(type);
         this.identifier = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
         this.name = manifest.getMainAttributes().getValue("Bundle-Name");
+        this.description = manifest.getMainAttributes().getValue("Bundle-Description");
         this.version = new VersionInfo(manifest);
+        this.iconName = null;
+        this.iconContent = null;
         this.vendor = manifest.getMainAttributes().getValue("Bundle-Vendor");
         this.copyright = "Copyright (c) " + vendor;
         this.vendorLink = manifest.getMainAttributes().getValue("Bundle-DocURL");
@@ -187,24 +211,41 @@ public class Product implements Serializable {
 
     @Override
     public String serializedJSON() {
-        return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(Product.class.getCanonicalName()) +
-                "\", \"identifier\": \"" +
-                TextUtils.escapeStringJSON(identifier) +
-                "\", \"name\": \"" +
-                TextUtils.escapeStringJSON(name) +
-                "\", \"version\": " +
-                version.serializedJSON() +
-                ", \"copyright\": \"" +
-                (copyright != null ? TextUtils.escapeStringJSON(copyright) : "") +
-                "\", \"vendor\": \"" +
-                (vendor != null ? TextUtils.escapeStringJSON(vendor) : "") +
-                "\", \"vendorLink\": \"" +
-                (vendorLink != null ? TextUtils.escapeStringJSON(vendorLink) : "") +
-                "\", \"link\": \"" +
-                (link != null ? TextUtils.escapeStringJSON(link) : "") +
-                "\", \"license\": " +
-                (license != null ? license.serializedJSON() : "{}") +
-                "}";
+        StringBuilder builder = new StringBuilder("{");
+        serializedJSONBase(builder);
+        builder.append("}");
+        return builder.toString();
+    }
+
+    /**
+     * Serializes the base fields for the product
+     *
+     * @param builder The string builder to use
+     */
+    protected void serializedJSONBase(StringBuilder builder) {
+        builder.append("\"type\": \"");
+        builder.append(TextUtils.escapeStringJSON(Product.class.getCanonicalName()));
+        builder.append("\", \"identifier\": \"");
+        builder.append(TextUtils.escapeStringJSON(identifier));
+        builder.append("\", \"name\": \"");
+        builder.append(TextUtils.escapeStringJSON(name));
+        builder.append("\", \"description\": \"");
+        builder.append(TextUtils.escapeStringJSON(description));
+        builder.append("\", \"version\": ");
+        builder.append(version.serializedJSON());
+        builder.append(", \"copyright\": \"");
+        builder.append((copyright != null ? TextUtils.escapeStringJSON(copyright) : ""));
+        builder.append("\", \"iconName\": \"");
+        builder.append((iconName != null ? TextUtils.escapeStringJSON(iconName) : ""));
+        builder.append("\", \"iconContent\": \"");
+        builder.append((iconContent != null ? TextUtils.escapeStringJSON(iconContent) : ""));
+        builder.append("\", \"vendor\": \"");
+        builder.append((vendor != null ? TextUtils.escapeStringJSON(vendor) : ""));
+        builder.append("\", \"vendorLink\": \"");
+        builder.append((vendorLink != null ? TextUtils.escapeStringJSON(vendorLink) : ""));
+        builder.append("\", \"link\": \"");
+        builder.append((link != null ? TextUtils.escapeStringJSON(link) : ""));
+        builder.append("\", \"license\": ");
+        builder.append((license != null ? license.serializedJSON() : "{}"));
     }
 }
