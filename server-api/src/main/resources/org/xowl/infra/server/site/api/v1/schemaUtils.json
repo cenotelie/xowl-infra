@@ -225,6 +225,9 @@
         "name": {
           "type": "string"
         },
+        "description": {
+          "type": "string"
+        },
         "version": {
           "type": "object",
           "oneOf": [
@@ -234,6 +237,12 @@
           ]
         },
         "copyright": {
+          "type": "string"
+        },
+        "iconName": {
+          "type": "string"
+        },
+        "iconContent": {
           "type": "string"
         },
         "vendor": {
@@ -258,8 +267,11 @@
         "type",
         "identifier",
         "name",
+        "description",
         "version",
         "copyright",
+        "iconName",
+        "iconContent",
         "vendor",
         "vendorLink",
         "link",
