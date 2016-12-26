@@ -266,16 +266,16 @@ public class Files {
      * @return true if the operation succeeded, false otherwise
      */
     public static boolean deleteFolder(File folder) {
-        boolean success = false;
+        boolean success = true;
         File[] children = folder.listFiles();
         if (children == null)
             return false;
         for (int i = 0; i != children.length; i++) {
             if (children[i].isFile())
-                success |= children[i].delete();
+                success &= children[i].delete();
             else
-                success |= deleteFolder(children[i]);
+                success &= deleteFolder(children[i]);
         }
-        return success;
+        return success && folder.delete();
     }
 }
