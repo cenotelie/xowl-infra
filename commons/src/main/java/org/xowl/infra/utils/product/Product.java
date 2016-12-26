@@ -151,6 +151,15 @@ public class Product implements Serializable {
     }
 
     /**
+     * Gets the product's description
+     *
+     * @return The product's description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
      * Gets the version information
      *
      * @return The version information
@@ -166,6 +175,24 @@ public class Product implements Serializable {
      */
     public String getCopyright() {
         return copyright;
+    }
+
+    /**
+     * Gets the name of the icon for the product
+     *
+     * @return The name of the icon for the product
+     */
+    public String getIconName() {
+        return iconName;
+    }
+
+    /**
+     * Gets the content of the icon (in Base64) for the product
+     *
+     * @return The content of the icon (in Base64) for the product
+     */
+    public String getIconContent() {
+        return iconContent;
     }
 
     /**
