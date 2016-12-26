@@ -239,6 +239,9 @@ public class Product implements Serializable {
     @Override
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder("{");
+        builder.append("\"type\": \"");
+        builder.append(TextUtils.escapeStringJSON(Product.class.getCanonicalName()));
+        builder.append("\"");
         serializedJSONBase(builder);
         builder.append("}");
         return builder.toString();
@@ -250,9 +253,7 @@ public class Product implements Serializable {
      * @param builder The string builder to use
      */
     protected void serializedJSONBase(StringBuilder builder) {
-        builder.append("\"type\": \"");
-        builder.append(TextUtils.escapeStringJSON(Product.class.getCanonicalName()));
-        builder.append("\", \"identifier\": \"");
+        builder.append(", \"identifier\": \"");
         builder.append(TextUtils.escapeStringJSON(identifier));
         builder.append("\", \"name\": \"");
         builder.append(TextUtils.escapeStringJSON(name));
