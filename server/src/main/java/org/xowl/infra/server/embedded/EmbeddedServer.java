@@ -23,12 +23,12 @@ import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.*;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyResult;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetAddress;
 
 /**
  * Implements an embedded server with persisted databases
@@ -84,7 +84,7 @@ public class EmbeddedServer implements XOWLServer, Closeable {
 
     @Override
     public XSPReply login(String login, String password) {
-        return new XSPReplyResult<>(admin);
+        return controller.login(InetAddress.getLoopbackAddress(), login, password);
     }
 
     @Override
