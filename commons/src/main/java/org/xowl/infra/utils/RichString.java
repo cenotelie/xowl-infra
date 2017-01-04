@@ -25,6 +25,85 @@ package org.xowl.infra.utils;
  */
 public class RichString implements Serializable {
     /**
+     * The style for a font
+     */
+    public enum FontStyle {
+        normal, bold, italic
+    }
+
+    /**
+     * The size for a font
+     */
+    public enum FontSize {
+        smallest,
+        smaller,
+        small,
+        normal,
+        big,
+        bigger,
+        biggest
+    }
+
+    /**
+     * Implements a span in a rich string that has a visual style
+     */
+    public static class StyledSpan implements Serializable {
+        /**
+         * The value for this span
+         */
+        private final Object value;
+        /**
+         * The font style
+         */
+        private final FontStyle fontStyle;
+        /**
+         * The font size
+         */
+        private final FontSize fontSize;
+        /**
+         * The color code
+         */
+        private final int color;
+
+        /**
+         * Initializes this span
+         *
+         * @param value     The value for this span
+         * @param fontStyle The font style
+         * @param fontSize  The font size
+         * @param color     The color code
+         */
+        public StyledSpan(Object value, FontStyle fontStyle, FontSize fontSize, int color) {
+            this.value = value;
+            this.fontStyle = fontStyle;
+            this.fontSize = fontSize;
+            this.color = color;
+        }
+
+        @Override
+        public String serializedString() {
+            if (value instanceof Serializable)
+                return ((Serializable) value).serializedString();
+            return value.toString();
+        }
+
+        @Override
+        public String serializedJSON() {
+            return "{\"type\": \"" +
+                    TextUtils.escapeStringJSON(StyledSpan.class.getCanonicalName()) +
+                    "\", \"value\": " +
+                    (value instanceof Serializable ? (((Serializable) value).serializedJSON()) : ("\"" + TextUtils.escapeStringJSON(value.toString()) + "\"")) +
+                    ", \"fontStyle\": \"" +
+                    TextUtils.escapeStringJSON(fontStyle.toString()) +
+                    "\", \"fontSize\": \"" +
+                    TextUtils.escapeStringJSON(fontSize.toString()) +
+                    "\", \"color\": \"" +
+                    Integer.toString(color) +
+                    "\"}";
+        }
+    }
+
+    /**
      * The parts of this string
      */
     private final Object[] parts;
