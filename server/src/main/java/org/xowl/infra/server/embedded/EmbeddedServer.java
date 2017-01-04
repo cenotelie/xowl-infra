@@ -23,6 +23,7 @@ import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.*;
 import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.server.xsp.XSPReplySuccess;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -84,7 +85,10 @@ public class EmbeddedServer implements XOWLServer, Closeable {
 
     @Override
     public XSPReply login(String login, String password) {
-        return controller.login(InetAddress.getLoopbackAddress(), login, password);
+        XSPReply reply = controller.login(InetAddress.getLoopbackAddress(), login, password);
+        if (reply.isSuccess())
+            return XSPReplySuccess.instance();
+        return reply;
     }
 
     @Override

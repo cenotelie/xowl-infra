@@ -19,7 +19,10 @@ package org.xowl.infra.server.remote;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
-import org.xowl.infra.server.base.*;
+import org.xowl.infra.server.base.BaseDatabasePrivileges;
+import org.xowl.infra.server.base.BaseRule;
+import org.xowl.infra.server.base.BaseStoredProcedure;
+import org.xowl.infra.server.base.BaseUserPrivileges;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.Repository;
@@ -105,7 +108,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         );
         XSPReply reply = XSPReplyUtils.fromHttpResponse(response, this);
         if (reply.isSuccess()) {
-            currentUser = ((XSPReplyResult<XOWLUser>) reply).getData();
+            currentUser = new RemoteUser(this, login);
             currentLogin = login;
             currentPassword = password;
         } else {
@@ -1255,7 +1258,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         } else if (XOWLRule.class.getCanonicalName().equals(type)) {
             return new BaseRule(definition);
         } else if (XOWLUser.class.getCanonicalName().equals(type)) {
-            return new BaseUser(definition);
+            return new RemoteUser(this, definition);
         } else if (XOWLUserPrivileges.class.getCanonicalName().equals(type)) {
             return new BaseUserPrivileges(definition);
         }

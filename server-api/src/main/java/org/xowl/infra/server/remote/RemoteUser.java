@@ -26,7 +26,7 @@ import org.xowl.infra.server.xsp.XSPReply;
  *
  * @author Laurent Wouters
  */
-class RemoveUser extends BaseUser {
+class RemoteUser extends BaseUser {
     /**
      * The parent server
      */
@@ -38,7 +38,7 @@ class RemoveUser extends BaseUser {
      * @param server The parent server
      * @param name   The user's name
      */
-    public RemoveUser(RemoteServer server, String name) {
+    public RemoteUser(RemoteServer server, String name) {
         super(name);
         this.server = server;
     }
@@ -49,7 +49,7 @@ class RemoveUser extends BaseUser {
      * @param server The parent server
      * @param root   The user's definition
      */
-    public RemoveUser(RemoteServer server, ASTNode root) {
+    public RemoteUser(RemoteServer server, ASTNode root) {
         super(root);
         this.server = server;
     }

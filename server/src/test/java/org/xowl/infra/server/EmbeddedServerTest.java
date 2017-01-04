@@ -77,8 +77,6 @@ public class EmbeddedServerTest {
     public void testLogin() {
         XSPReply reply = server.login("admin", "admin");
         Assert.assertTrue("Expected a successful reply", reply.isSuccess());
-        XOWLUser user = ((XSPReplyResult<XOWLUser>) reply).getData();
-        Assert.assertTrue("Expected admin as logged-in user", user.getName().equals("admin"));
     }
 
     @Test
