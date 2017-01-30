@@ -275,7 +275,7 @@ public class XSPReplyUtils {
         if (XSPReplyResult.class.getCanonicalName().equals(kind))
             return new XSPReplyResult<>(getJSONObject(nodePayload, factory));
         if (XSPReplyResultCollection.class.getCanonicalName().equals(kind))
-            return new XSPReplyResultCollection<>((Collection<? extends Object>) getJSONObject(nodePayload, factory));
+            return new XSPReplyResultCollection<>((Collection<?>) getJSONObject(nodePayload, factory));
         if (XSPReplySuccess.class.getCanonicalName().equals(kind))
             return new XSPReplySuccess(message);
         if (XSPReplyUnauthenticated.class.getCanonicalName().equals(kind))
