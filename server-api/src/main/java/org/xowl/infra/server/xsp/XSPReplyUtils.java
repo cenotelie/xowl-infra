@@ -358,7 +358,7 @@ public class XSPReplyUtils {
                     break;
             }
         }
-        if (nodeType != null) {
+        if (nodeType != null && factory != null) {
             // we have a type
             String type = TextUtils.unescape(nodeType.getValue());
             type = type.substring(1, type.length() - 1);
