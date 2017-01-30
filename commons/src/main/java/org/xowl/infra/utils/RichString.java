@@ -92,7 +92,7 @@ public class RichString implements Serializable {
             return "{\"type\": \"" +
                     TextUtils.escapeStringJSON(StyledSpan.class.getCanonicalName()) +
                     "\", \"value\": " +
-                    (value instanceof Serializable ? (((Serializable) value).serializedJSON()) : ("\"" + TextUtils.escapeStringJSON(value.toString()) + "\"")) +
+                    TextUtils.serializeJSON(value) +
                     ", \"fontStyle\": \"" +
                     TextUtils.escapeStringJSON(fontStyle.toString()) +
                     "\", \"fontSize\": \"" +
@@ -138,13 +138,7 @@ public class RichString implements Serializable {
         for (int i = 0; i != parts.length; i++) {
             if (i != 0)
                 buffer.append(", ");
-            if (parts[i] instanceof Serializable)
-                buffer.append(((Serializable) parts[i]).serializedJSON());
-            else {
-                buffer.append("\"");
-                buffer.append(TextUtils.escapeStringJSON(parts[i].toString()));
-                buffer.append("\"");
-            }
+            TextUtils.serializeJSON(buffer, parts[0]);
         }
         buffer.append("]}");
         return buffer.toString();

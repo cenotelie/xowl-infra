@@ -25,6 +25,7 @@ import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.sparql.ResultUtils;
 import org.xowl.infra.utils.Serializable;
+import org.xowl.infra.utils.SerializedUnknown;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
@@ -33,7 +34,9 @@ import org.xowl.infra.utils.logging.BufferedLogger;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Utility APIs for the xOWL Server Protocol
@@ -364,13 +367,13 @@ public class XSPReplyUtils {
                 return result;
         }
         // fallback to mapping the properties
-        Map<String, Object> properties = new HashMap<>();
+        SerializedUnknown result = new SerializedUnknown();
         for (ASTNode memberNode : node.getChildren()) {
             String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
-            properties.put(memberName, getJSONObject(memberValue, factory));
+            result.addProperty(memberName, getJSONObject(memberValue, factory));
         }
-        return properties;
+        return result;
     }
 }
