@@ -152,6 +152,10 @@ public interface HttpConstants {
     String HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
 
     /**
+     * The MIME type for octet stream
+     */
+    String MIME_OCTET_STREAM = "binary/octet-stream";
+    /**
      * The MIME content type for plain text
      */
     String MIME_TEXT_PLAIN = "text/plain";
