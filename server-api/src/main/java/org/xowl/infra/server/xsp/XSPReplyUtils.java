@@ -112,13 +112,7 @@ public class XSPReplyUtils {
                 if (!first)
                     builder.append(", ");
                 first = false;
-                if (obj instanceof Serializable)
-                    builder.append(((Serializable) obj).serializedJSON());
-                else {
-                    builder.append("\"");
-                    builder.append(TextUtils.escapeStringJSON(obj.toString()));
-                    builder.append("\"");
-                }
+                TextUtils.serializeJSON(builder, obj);
             }
             builder.append("]");
             return new HttpResponse(HttpURLConnection.HTTP_OK, HttpConstants.MIME_JSON, builder.toString());
@@ -167,34 +161,31 @@ public class XSPReplyUtils {
         if (response.getCode() != HttpURLConnection.HTTP_OK)
             return new XSPReplyFailure(response.getBodyAsString() != null ? response.getBodyAsString() : "failure (HTTP " + response.getCode() + ")");
 
-        if (response.getContentType() != null && !response.getContentType().isEmpty()) {
+        String contentType = response.getContentType();
+        if (contentType != null && !contentType.isEmpty()) {
             // we've got a content type
-            if (response.getBodyAsString() != null && !response.getBodyAsString().isEmpty()) {
-                // we have content
-                if (HttpConstants.MIME_JSON.equals(response.getContentType())) {
-                    // pure JSON response
-                    BufferedLogger bufferedLogger = new BufferedLogger();
-                    ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, response.getBodyAsString());
-                    if (root == null)
-                        return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
-                    Object data = getJSONObject(root, factory);
-                    if (data instanceof Collection)
-                        return new XSPReplyResultCollection<>((Collection) data);
-                    return new XSPReplyResult<>(data);
-                }
-                if (HttpConstants.MIME_TEXT_PLAIN.equals(response.getContentType()))
-                    // plain text
-                    return new XSPReplyResult<>(response.getBodyAsString());
-                // assume SPARQL
-                Result sparqlResult = ResultUtils.parseResponse(response.getBodyAsString(), response.getContentType());
-                return new XSPReplyResult<>(sparqlResult);
-            } else {
-                // no content but content type is defined
-                if (HttpConstants.MIME_JSON.equals(response.getContentType()) || HttpConstants.MIME_TEXT_PLAIN.equals(response.getContentType()))
-                    return XSPReplySuccess.instance();
-                // assume empty SPARQL
-                Result sparqlResult = ResultUtils.parseResponse(null, response.getContentType());
-                return new XSPReplyResult<>(sparqlResult);
+            int index = contentType.indexOf(";");
+            if (index > 0)
+                contentType = contentType.substring(0, index).trim();
+            switch (contentType) {
+                case Repository.SYNTAX_NQUADS:
+                case Repository.SYNTAX_NTRIPLES:
+                case Repository.SYNTAX_TURTLE:
+                case Repository.SYNTAX_TRIG:
+                case Repository.SYNTAX_RDFXML:
+                case Repository.SYNTAX_JSON_LD:
+                case Result.SYNTAX_JSON:
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                    return fromHttpResponseSPARQL(response);
+                case HttpConstants.MIME_JSON:
+                    return fromHttpResponseJSON(response, factory);
+                case HttpConstants.MIME_OCTET_STREAM:
+                    return fromHttpResponseBinary(response);
+                default:
+                    // other text
+                    return fromHttpResponseOther(response);
             }
         } else {
             // no content type
@@ -206,6 +197,67 @@ public class XSPReplyUtils {
                 return XSPReplySuccess.instance();
             }
         }
+    }
+
+    /**
+     * Translates an HTTP response to an XSP reply when the content type is a SPARQL result
+     *
+     * @param response The response
+     * @return The XSP reply
+     */
+    private static XSPReply fromHttpResponseSPARQL(HttpResponse response) {
+        String content = response.getBodyAsString();
+        if (content != null && content.isEmpty())
+            content = null;
+        Result sparqlResult = ResultUtils.parseResponse(content, response.getContentType());
+        return new XSPReplyResult<>(sparqlResult);
+    }
+
+    /**
+     * Translates an HTTP response to an XSP reply when the content type is JSON
+     *
+     * @param response The response
+     * @param factory  The factory to use
+     * @return The XSP reply
+     */
+    private static XSPReply fromHttpResponseJSON(HttpResponse response, XOWLFactory factory) {
+        String content = response.getBodyAsString();
+        if (content == null || content.isEmpty())
+            return XSPReplySuccess.instance();
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, response.getBodyAsString());
+        if (root == null)
+            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+        Object data = getJSONObject(root, factory);
+        if (data instanceof Collection)
+            return new XSPReplyResultCollection<>((Collection) data);
+        return new XSPReplyResult<>(data);
+    }
+
+    /**
+     * Translates an HTTP response to an XSP reply when the content is a binary stream
+     *
+     * @param response The response
+     * @return The XSP reply
+     */
+    private static XSPReply fromHttpResponseBinary(HttpResponse response) {
+        byte[] content = response.getBodyAsBytes();
+        if (content == null || content.length == 0)
+            return XSPReplySuccess.instance();
+        return new XSPReplyResult<>(content);
+    }
+
+    /**
+     * Translates an HTTP response to an XSP reply for other content types
+     *
+     * @param response The response
+     * @return The XSP reply
+     */
+    private static XSPReply fromHttpResponseOther(HttpResponse response) {
+        String content = response.getBodyAsString();
+        if (content == null || content.isEmpty())
+            return XSPReplySuccess.instance();
+        return new XSPReplyResult<>(content);
     }
 
     /**

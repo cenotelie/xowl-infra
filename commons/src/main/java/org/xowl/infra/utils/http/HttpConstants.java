@@ -156,6 +156,26 @@ public interface HttpConstants {
      */
     String MIME_OCTET_STREAM = "binary/octet-stream";
     /**
+     * The MIME type for multipart mixed messages
+     */
+    String MIME_MULTIPART_MIXED = "multipart/mixed";
+    /**
+     * The MIME type for multipart messages where parts are alternatives
+     */
+    String MIME_MULTIPART_ALTERNATIVE = "multipart/alternative";
+    /**
+     * The MIME type for multipart messages with a digest part
+     */
+    String MIME_MULTIPART_DIGEST = "multipart/digest";
+    /**
+     * The MIME type for multipart message with parallel parts
+     */
+    String MIME_MULTIPART_PARALLEL = "multipart/parallel";
+    /**
+     * The boundary to be used for multipart HTTP requests and responses
+     */
+    String MULTIPART_BOUNDARY = "xowl_boundary";
+    /**
      * The MIME content type for plain text
      */
     String MIME_TEXT_PLAIN = "text/plain";
@@ -164,11 +184,11 @@ public interface HttpConstants {
      */
     String MIME_JSON = "application/json";
     /**
-     * MIME type for HTML resources
+     * The MIME type for HTML resources
      */
     String MIME_HTML = "text/html";
     /**
-     * MIME type for RAML resources
+     * The MIME type for RAML resources
      */
     String MIME_RAML = "application/raml+yaml";
 
