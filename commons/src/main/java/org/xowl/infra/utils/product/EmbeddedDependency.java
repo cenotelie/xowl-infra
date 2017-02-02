@@ -18,6 +18,7 @@
 package org.xowl.infra.utils.product;
 
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.config.Configuration;
@@ -33,7 +34,7 @@ import java.util.jar.Manifest;
  *
  * @author Laurent Wouters
  */
-public class EmbeddedDependency implements Serializable {
+public class EmbeddedDependency implements Identifiable, Serializable {
     /**
      * The dependency's identifier
      */
@@ -87,6 +88,16 @@ public class EmbeddedDependency implements Serializable {
         }
     }
 
+    @Override
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
     /**
      * Gets the type of embedded content
      *
@@ -94,24 +105,6 @@ public class EmbeddedDependency implements Serializable {
      */
     public String getContentType() {
         return contentType;
-    }
-
-    /**
-     * Gets the dependency's identifier
-     *
-     * @return The dependency's identifier
-     */
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    /**
-     * Gets the dependency's name
-     *
-     * @return The dependency's name
-     */
-    public String getName() {
-        return name;
     }
 
     /**
