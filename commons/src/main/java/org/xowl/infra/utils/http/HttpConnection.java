@@ -98,7 +98,7 @@ public class HttpConnection implements Closeable {
             this.value = content.substring(indexEqual, indexSemicolon < 0 ? content.length() : indexSemicolon).trim();
             this.properties = new ArrayList<>();
             if (indexSemicolon > 0) {
-                data = data.substring(indexSemicolon).trim();
+                data = data.substring(indexSemicolon + 1).trim();
                 while (!data.isEmpty()) {
                     indexSemicolon = data.indexOf(';');
                     String value = data.substring(0, indexSemicolon < 0 ? data.length() : indexSemicolon).trim();
