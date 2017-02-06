@@ -70,20 +70,28 @@ public class Base64 {
      * @return The decoded bytes
      */
     public static byte[] decodeBase64(String input) {
+        if (input == null)
+            return null;
+        if (input.isEmpty())
+            return new byte[0];
+
         char[] chars = input.toCharArray();
-        int index = input.indexOf('=');
-        int length = ((chars.length * 3) / 4) - (index > 0 ? chars.length - index : 0);
+        int padding = (chars[chars.length - 1] == '=' ? 1 : 0);
+        if (chars.length >= 2 && chars[chars.length - 2] == '=')
+            padding++;
+
+        int length = ((chars.length * 3) / 4) - padding;
         byte result[] = new byte[length];
         int b0, b1, b2, b3;
-        index = 0;
+        int index = 0;
         for (int i = 0; i < chars.length; i += 4) {
             b0 = BASE64_MAP[chars[i]];
             b1 = BASE64_MAP[chars[i + 1]];
             b2 = BASE64_MAP[chars[i + 2]];
             b3 = BASE64_MAP[chars[i + 3]];
-            result[index++] = (byte) ((b0 << 2) | (b1 >> 4));
+            result[index++] = (byte) ((b0 << 2) | (b1 >>> 4));
             if (b2 < 64) {
-                result[index++] = (byte) ((b1 << 4) | (b2 >> 2));
+                result[index++] = (byte) ((b1 << 4) | (b2 >>> 2));
                 if (b3 < 64) {
                     result[index++] = (byte) ((b2 << 6) | b3);
                 }
@@ -109,18 +117,22 @@ public class Base64 {
      * @return The encoded string
      */
     public static String encodeBase64(byte[] bytes) {
+        if (bytes == null)
+            return null;
+        if (bytes.length == 0)
+            return "";
         char[] chars = new char[bytes.length % 3 == 0 ? bytes.length / 3 * 4 : (bytes.length - bytes.length % 3 + 3) / 3 * 4];
         int target = 0;
         for (int i = 0; i < bytes.length; i += 3) {
-            int offset = (bytes[i] & 0xFC) >> 2;
+            int offset = (bytes[i] & 0xFC) >>> 2;
             chars[target++] = BASE64_CHARS[offset];
             offset = (bytes[i] & 0x03) << 4;
             if (i + 1 < bytes.length) {
-                offset |= (bytes[i + 1] & 0xF0) >> 4;
+                offset |= (bytes[i + 1] & 0xF0) >>> 4;
                 chars[target++] = BASE64_CHARS[offset];
                 offset = (bytes[i + 1] & 0x0F) << 2;
                 if (i + 2 < bytes.length) {
-                    offset |= (bytes[i + 2] & 0xC0) >> 6;
+                    offset |= (bytes[i + 2] & 0xC0) >>> 6;
                     chars[target++] = BASE64_CHARS[offset];
                     offset = bytes[i + 2] & 0x3F;
                     chars[target++] = BASE64_CHARS[offset];
