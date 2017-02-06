@@ -37,7 +37,7 @@ public class XSPReplyFailure implements XSPReply {
      */
     public synchronized static XSPReplyFailure instance() {
         if (INSTANCE == null)
-            return new XSPReplyFailure("FAILED");
+            INSTANCE = new XSPReplyFailure("FAILED");
         return INSTANCE;
     }
 

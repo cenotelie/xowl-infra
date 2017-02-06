@@ -37,7 +37,7 @@ public class XSPReplyUnauthenticated implements XSPReply {
      */
     public synchronized static XSPReplyUnauthenticated instance() {
         if (INSTANCE == null)
-            return new XSPReplyUnauthenticated();
+            INSTANCE = new XSPReplyUnauthenticated();
         return INSTANCE;
     }
 

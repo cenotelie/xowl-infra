@@ -37,7 +37,7 @@ public class XSPReplyNetworkError implements XSPReply {
      */
     public synchronized static XSPReplyNetworkError instance() {
         if (INSTANCE == null)
-            return new XSPReplyNetworkError("Connection failure");
+            INSTANCE = new XSPReplyNetworkError("Connection failure");
         return INSTANCE;
     }
 

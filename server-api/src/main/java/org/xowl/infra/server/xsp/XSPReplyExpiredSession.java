@@ -37,7 +37,7 @@ public class XSPReplyExpiredSession implements XSPReply {
      */
     public synchronized static XSPReplyExpiredSession instance() {
         if (INSTANCE == null)
-            return new XSPReplyExpiredSession();
+            INSTANCE = new XSPReplyExpiredSession();
         return INSTANCE;
     }
 

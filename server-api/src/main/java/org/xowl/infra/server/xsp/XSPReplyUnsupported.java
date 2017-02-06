@@ -37,7 +37,7 @@ public class XSPReplyUnsupported implements XSPReply {
      */
     public synchronized static XSPReplyUnsupported instance() {
         if (INSTANCE == null)
-            return new XSPReplyUnsupported();
+            INSTANCE = new XSPReplyUnsupported();
         return INSTANCE;
     }
 

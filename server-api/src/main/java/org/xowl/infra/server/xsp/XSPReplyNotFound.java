@@ -37,7 +37,7 @@ public class XSPReplyNotFound implements XSPReply {
      */
     public synchronized static XSPReplyNotFound instance() {
         if (INSTANCE == null)
-            return new XSPReplyNotFound();
+            INSTANCE = new XSPReplyNotFound();
         return INSTANCE;
     }
 

@@ -37,7 +37,7 @@ public class XSPReplySuccess implements XSPReply {
      */
     public synchronized static XSPReplySuccess instance() {
         if (INSTANCE == null)
-            return new XSPReplySuccess("OK");
+            INSTANCE = new XSPReplySuccess("OK");
         return INSTANCE;
     }
 

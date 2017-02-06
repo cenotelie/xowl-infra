@@ -37,7 +37,7 @@ public class XSPReplyUnauthorized implements XSPReply {
      */
     public synchronized static XSPReplyUnauthorized instance() {
         if (INSTANCE == null)
-            return new XSPReplyUnauthorized();
+            INSTANCE = new XSPReplyUnauthorized();
         return INSTANCE;
     }
 
