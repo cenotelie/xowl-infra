@@ -22,7 +22,10 @@ import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logging;
 
 import javax.net.ssl.*;
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -287,22 +290,13 @@ public class HttpConnection implements Closeable {
         }
 
         String responseContentType = connection.getContentType();
-        String responseBody = null;
+        byte[] responseBody = null;
         if (connection.getContentLengthLong() == -1 || connection.getContentLengthLong() > 0) {
             // if the content length is unknown or if there is content
             // for codes 4xx and 5xx, use the error stream
             // otherwise use the input stream
             try (InputStream is = ((code >= 400 && code < 600) ? connection.getErrorStream() : connection.getInputStream())) {
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-                StringBuilder builder = new StringBuilder();
-                char[] buffer = new char[1024];
-                int read = rd.read(buffer);
-                while (read > 0) {
-                    builder.append(buffer, 0, read);
-                    read = rd.read(buffer);
-                }
-                rd.close();
-                responseBody = builder.toString();
+                responseBody = Files.load(is);
             } catch (IOException exception) {
                 Logging.getDefault().error(exception);
             }
