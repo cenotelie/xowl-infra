@@ -264,16 +264,6 @@ public class Configuration {
     }
 
     /**
-     * Imports the configuration from the specified file
-     *
-     * @param file The file to import from
-     * @throws IOException when reading fails
-     */
-    public void load(String file) throws IOException {
-        load(file, org.xowl.infra.utils.Files.detectEncoding(file));
-    }
-
-    /**
      * Imports the configuration from the specified stream
      *
      * @param stream  The stream to read from

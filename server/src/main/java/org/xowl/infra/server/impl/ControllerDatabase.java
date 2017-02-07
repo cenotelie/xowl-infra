@@ -447,8 +447,8 @@ public class ControllerDatabase implements Closeable {
             return null;
         File folder = new File(location, REPO_RULES);
         File file = new File(folder, SHA1.hashSHA1(name));
-        try (FileInputStream stream = new FileInputStream(file)) {
-            String definition = Files.read(stream, Files.CHARSET);
+        try (Reader reader = Files.getReader(file)) {
+            String definition = Files.read(reader);
             return new BaseRule(name, definition, actives.contains(name));
         }
     }
@@ -470,8 +470,8 @@ public class ControllerDatabase implements Closeable {
         for (String name : names) {
             File folder = new File(location, REPO_RULES);
             File file = new File(folder, SHA1.hashSHA1(name));
-            try (FileInputStream stream = new FileInputStream(file)) {
-                String definition = Files.read(stream, Files.CHARSET);
+            try (Reader reader = Files.getReader(file)) {
+                String definition = Files.read(reader);
                 rules.add(new BaseRule(name, definition, actives.contains(name)));
             }
         }
@@ -685,8 +685,8 @@ public class ControllerDatabase implements Closeable {
         }
         BufferedLogger logger = new BufferedLogger();
         File file = new File(folder, SHA1.hashSHA1(name));
-        try (FileInputStream stream = new FileInputStream(file)) {
-            String definition = Files.read(stream, Files.CHARSET);
+        try (Reader reader = Files.getReader(file)) {
+            String definition = Files.read(reader);
             ASTNode root = JSONLDLoader.parseJSON(logger, definition);
             if (root == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read procedure " + name + ": " + logger.getErrorsAsString());

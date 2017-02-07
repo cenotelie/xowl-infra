@@ -50,10 +50,43 @@ public class Files {
      *
      * @param file A file
      * @return A writer for the file
-     * @throws IOException when writing fails
+     * @throws IOException When writing fails
      */
     public static Writer getWriter(String file) throws IOException {
         return new OutputStreamWriter(new FileOutputStream(file), CHARSET);
+    }
+
+    /**
+     * Gets a writer for the specified file
+     *
+     * @param file A file
+     * @return A writer for the file
+     * @throws IOException When writing fails
+     */
+    public static Writer getWriter(File file) throws IOException {
+        return new OutputStreamWriter(new FileOutputStream(file), CHARSET);
+    }
+
+    /**
+     * Gets a reader for the specified file
+     *
+     * @param file A file
+     * @return A reader for the file
+     * @throws IOException When reading failed
+     */
+    public static Reader getReader(String file) throws IOException {
+        return new InputStreamReader(new FileInputStream(file), CHARSET);
+    }
+
+    /**
+     * Gets a reader for the specified file
+     *
+     * @param file A file
+     * @return A reader for the file
+     * @throws IOException When reading failed
+     */
+    public static Reader getReader(File file) throws IOException {
+        return new InputStreamReader(new FileInputStream(file), CHARSET);
     }
 
     /**
