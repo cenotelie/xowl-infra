@@ -274,13 +274,24 @@ public class Configuration {
     /**
      * Imports the configuration from the specified file
      *
-     * @param file    The file to import from
-     * @param charset The charset to use
-     * @throws IOException when reading fails
+     * @param file The file to import from
+     * @throws IOException When reading fails
      */
-    public void load(String file, Charset charset) throws IOException {
-        try (FileInputStream stream = new FileInputStream(file)) {
-            load(stream, charset);
+    public void load(String file) throws IOException {
+        try (Reader reader = Files.getReader(file)) {
+            load(reader);
+        }
+    }
+
+    /**
+     * Imports the configuration from the specified file
+     *
+     * @param file The file to import from
+     * @throws IOException When reading fails
+     */
+    public void load(File file) throws IOException {
+        try (Reader reader = Files.getReader(file)) {
+            load(reader);
         }
     }
 
@@ -292,7 +303,17 @@ public class Configuration {
      * @throws IOException when reading fails
      */
     public void load(InputStream stream, Charset charset) throws IOException {
-        String content = org.xowl.infra.utils.Files.read(stream, charset);
+        load(new InputStreamReader(stream, charset));
+    }
+
+    /**
+     * Imports the configuration from the specified reader
+     *
+     * @param reader The reader
+     * @throws IOException When reading fails
+     */
+    public void load(Reader reader) throws IOException {
+        String content = Files.read(reader);
         String[] lines = content.split("(\r\n?)|(\r?\n)");
         Section current = global;
         for (String line : lines) {

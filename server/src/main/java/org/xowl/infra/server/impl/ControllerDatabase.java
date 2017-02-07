@@ -218,7 +218,7 @@ public class ControllerDatabase implements Closeable {
         Configuration configuration = new Configuration();
         File configFile = new File(location, REPO_CONF_NAME);
         if (configFile.exists()) {
-            configuration.load(configFile.getAbsolutePath(), Files.CHARSET);
+            configuration.load(configFile);
         }
         return configuration;
     }

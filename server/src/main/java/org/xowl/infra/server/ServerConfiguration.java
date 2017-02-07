@@ -76,7 +76,7 @@ public class ServerConfiguration {
         File file = new File(startupLocation, FILE_NAME);
         try {
             if (file.exists()) {
-                confFile.load(file.getAbsolutePath(), Files.CHARSET);
+                confFile.load(file);
             }
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
