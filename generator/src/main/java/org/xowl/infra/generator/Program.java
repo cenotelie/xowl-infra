@@ -21,6 +21,7 @@ import org.xowl.infra.generator.builder.Builder;
 import org.xowl.infra.generator.model.Model;
 import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RepositoryDirectSemantics;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.ConsoleLogger;
@@ -82,7 +83,7 @@ public class Program {
         }
         Configuration config = new Configuration();
         try {
-            config.load(args[0]);
+            config.load(args[0], Files.CHARSET);
         } catch (IOException ex) {
             logger.error("Failed to load configuration file: " + args[0]);
             return;
