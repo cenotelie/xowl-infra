@@ -411,7 +411,7 @@ public class ControllerDatabase implements Closeable {
             // save the configuration to disk
             synchronized (configuration) {
                 configuration.set(CONFIG_ENTAILMENT, regime.toString());
-                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+                configuration.save((new File(location, REPO_CONF_NAME)));
             }
         } finally {
             onThreadExit();
@@ -520,7 +520,7 @@ public class ControllerDatabase implements Closeable {
                 configuration.add(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, rule.getIRI());
                 if (activate)
                     configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, rule.getIRI());
-                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+                configuration.save((new File(location, REPO_CONF_NAME)));
             }
             if (activate) {
                 repository.getRDFRuleEngine().add(rule);
@@ -551,7 +551,7 @@ public class ControllerDatabase implements Closeable {
                     removeFromEngine = true;
                 }
                 configuration.remove(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, iri);
-                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+                configuration.save((new File(location, REPO_CONF_NAME)));
             }
             File folder = new File(location, REPO_RULES);
             File file = new File(folder, SHA1.hashSHA1(iri));
@@ -580,7 +580,7 @@ public class ControllerDatabase implements Closeable {
                 if (configuration.hasValue(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri))
                     throw new IllegalArgumentException("Rule is already active: " + iri);
                 configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
-                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+                configuration.save((new File(location, REPO_CONF_NAME)));
             }
             doActivateRule(iri);
         } finally {
@@ -625,7 +625,7 @@ public class ControllerDatabase implements Closeable {
                 if (!configuration.hasValue(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri))
                     throw new IllegalArgumentException("Rule is not active: " + iri);
                 configuration.remove(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
-                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+                configuration.save((new File(location, REPO_CONF_NAME)));
             }
             repository.getRDFRuleEngine().remove(iri);
         } finally {
@@ -732,7 +732,7 @@ public class ControllerDatabase implements Closeable {
             if (configuration.hasValue(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES, iri))
                 throw new IllegalArgumentException("Procedure already exists: " + iri);
             configuration.add(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES, iri);
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            configuration.save((new File(location, REPO_CONF_NAME)));
         }
 
         File folder = new File(location, REPO_PROCEDURES);
@@ -773,7 +773,7 @@ public class ControllerDatabase implements Closeable {
             if (!configuration.hasValue(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES, iri))
                 throw new IllegalArgumentException("Procedure does not exist: " + iri);
             configuration.remove(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES, iri);
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            configuration.save((new File(location, REPO_CONF_NAME)));
         }
 
         File folder = new File(location, REPO_PROCEDURES);

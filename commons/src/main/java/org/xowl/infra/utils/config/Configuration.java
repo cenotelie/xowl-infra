@@ -232,22 +232,43 @@ public class Configuration {
     /**
      * Exports this configuration to the specified file
      *
-     * @param file    The file to export to
-     * @param charset The charset ot use
-     * @throws IOException when writing fails
+     * @param file The file to export to
+     * @throws IOException When writing fails
      */
-    public void save(String file, Charset charset) throws IOException {
-        FileOutputStream stream = new FileOutputStream(file);
-        try (OutputStreamWriter writer = new OutputStreamWriter(stream, charset)) {
-            global.save(writer);
-            boolean before = !global.isEmpty();
-            for (Section section : sections.values()) {
-                if (before)
-                    writer.write(Files.LINE_SEPARATOR);
-                section.save(writer);
-                before = (before || !section.isEmpty());
-            }
+    public void save(String file) throws IOException {
+        try (Writer writer = Files.getWriter(file)) {
+            save(writer);
         }
+    }
+
+    /**
+     * Exports this configuration to the specified file
+     *
+     * @param file The file to export to
+     * @throws IOException When writing fails
+     */
+    public void save(File file) throws IOException {
+        try (Writer writer = Files.getWriter(file)) {
+            save(writer);
+        }
+    }
+
+    /**
+     * Exports this configuration to the specified writer
+     *
+     * @param writer The writer to use
+     * @throws IOException When writing fails
+     */
+    private void save(Writer writer) throws IOException {
+        global.save(writer);
+        boolean before = !global.isEmpty();
+        for (Section section : sections.values()) {
+            if (before)
+                writer.write(Files.LINE_SEPARATOR);
+            section.save(writer);
+            before = (before || !section.isEmpty());
+        }
+        writer.flush();
     }
 
     /**

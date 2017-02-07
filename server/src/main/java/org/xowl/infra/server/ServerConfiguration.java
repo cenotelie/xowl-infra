@@ -277,7 +277,7 @@ public class ServerConfiguration {
         confFile.add("security", "keyStore", location);
         confFile.add("security", "keyStorePassword", password);
         try {
-            confFile.save(new File(startupLocation, FILE_NAME).getAbsolutePath(), Files.CHARSET);
+            confFile.save(new File(startupLocation, FILE_NAME));
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
         }
