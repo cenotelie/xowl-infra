@@ -243,52 +243,53 @@ public class PackageModel {
     private void writeStandaloneFactory(File folder, String header) throws IOException {
         String factoryName = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1) + "Factory";
 
-        Writer writer = Files.getWriter(new File(folder, factoryName + ".java").getAbsolutePath());
-        String[] lines = header.split(Files.LINE_SEPARATOR);
-        writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
-        for (String line : lines) {
-            writer.append(" * ");
-            writer.append(line);
-            writer.append(Files.LINE_SEPARATOR);
-        }
-        writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
-        writer.append("package ").append(getFullName()).append(";").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
-        writer.append("import ").append(parent.getBasePackage()).append(".impl.*;").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
-        writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
-
-        writer.append("/**").append(Files.LINE_SEPARATOR);
-        writer.append(" * The default implementation for the concrete OWL class ").append(getName()).append(Files.LINE_SEPARATOR);
-        writer.append(" *").append(Files.LINE_SEPARATOR);
-        writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
-        writer.append(" */").append(Files.LINE_SEPARATOR);
-        writer.append("public class ").append(factoryName).append(" {").append(Files.LINE_SEPARATOR);
-
-        List<ClassModel> classes = new ArrayList<>(this.classes.values());
-        Collections.sort(classes, new Comparator<ClassModel>() {
-            @Override
-            public int compare(ClassModel c1, ClassModel c2) {
-                return c1.getName().compareTo(c2.getName());
+        try (Writer writer = Files.getWriter(new File(folder, factoryName + ".java").getAbsolutePath())) {
+            String[] lines = header.split(Files.LINE_SEPARATOR);
+            writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
+            for (String line : lines) {
+                writer.append(" * ");
+                writer.append(line);
+                writer.append(Files.LINE_SEPARATOR);
             }
-        });
-        for (ClassModel classModel : classes) {
-            if (classModel.isAbstract())
-                continue;
-            writer.append("    /**").append(Files.LINE_SEPARATOR);
-            writer.append("     * Creates a new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
-            writer.append("     *").append(Files.LINE_SEPARATOR);
-            writer.append("     * @return A new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
-            writer.append("     */").append(Files.LINE_SEPARATOR);
-            writer.append("    public static ").append(classModel.getName()).append(" new").append(classModel.getName()).append("() {").append(Files.LINE_SEPARATOR);
-            writer.append("        return new ").append(classModel.getJavaImplName()).append("();").append(Files.LINE_SEPARATOR);
-            writer.append("    }").append(Files.LINE_SEPARATOR);
+            writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
-        }
+            writer.append("package ").append(getFullName()).append(";").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+            writer.append("import ").append(parent.getBasePackage()).append(".impl.*;").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+            writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
 
-        writer.append("}").append(Files.LINE_SEPARATOR);
-        writer.close();
+            writer.append("/**").append(Files.LINE_SEPARATOR);
+            writer.append(" * The default implementation for the concrete OWL class ").append(getName()).append(Files.LINE_SEPARATOR);
+            writer.append(" *").append(Files.LINE_SEPARATOR);
+            writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
+            writer.append(" */").append(Files.LINE_SEPARATOR);
+            writer.append("public class ").append(factoryName).append(" {").append(Files.LINE_SEPARATOR);
+
+            List<ClassModel> classes = new ArrayList<>(this.classes.values());
+            Collections.sort(classes, new Comparator<ClassModel>() {
+                @Override
+                public int compare(ClassModel c1, ClassModel c2) {
+                    return c1.getName().compareTo(c2.getName());
+                }
+            });
+            for (ClassModel classModel : classes) {
+                if (classModel.isAbstract())
+                    continue;
+                writer.append("    /**").append(Files.LINE_SEPARATOR);
+                writer.append("     * Creates a new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
+                writer.append("     *").append(Files.LINE_SEPARATOR);
+                writer.append("     * @return A new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
+                writer.append("     */").append(Files.LINE_SEPARATOR);
+                writer.append("    public static ").append(classModel.getName()).append(" new").append(classModel.getName()).append("() {").append(Files.LINE_SEPARATOR);
+                writer.append("        return new ").append(classModel.getJavaImplName()).append("();").append(Files.LINE_SEPARATOR);
+                writer.append("    }").append(Files.LINE_SEPARATOR);
+                writer.append(Files.LINE_SEPARATOR);
+            }
+
+            writer.append("}").append(Files.LINE_SEPARATOR);
+            writer.flush();
+        }
     }
 }
