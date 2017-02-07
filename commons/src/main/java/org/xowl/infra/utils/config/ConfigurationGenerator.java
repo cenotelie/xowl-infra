@@ -84,35 +84,35 @@ public class ConfigurationGenerator {
             writer.append("WARNING: this file has been automatically generated" + Files.LINE_SEPARATOR);
             writer.append("*/" + Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
-            writer.append("package " + pack + ";" + Files.LINE_SEPARATOR);
+            writer.append("package ").append(pack).append(";").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
             writer.append("import org.xowl.infra.utils.config.Configuration;" + Files.LINE_SEPARATOR);
             writer.append("import java.util.ArrayList;" + Files.LINE_SEPARATOR);
             writer.append("import java.util.List;" + Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
-            writer.append("public class " + name + "{" + Files.LINE_SEPARATOR);
+            writer.append("public class ").append(name).append("{").append(Files.LINE_SEPARATOR);
             for (String property : properties) {
                 List<String> values = config.getAll(property);
                 if (values.size() == 1) {
-                    writer.append("    public String " + property.replace(".", "_") + ";" + Files.LINE_SEPARATOR);
+                    writer.append("    public String ").append(property.replace(".", "_")).append(";").append(Files.LINE_SEPARATOR);
                 } else {
-                    writer.append("    public List<String> " + property.replace(".", "_") + ";" + Files.LINE_SEPARATOR);
+                    writer.append("    public List<String> ").append(property.replace(".", "_")).append(";").append(Files.LINE_SEPARATOR);
                 }
             }
-            writer.append("    public " + name + "() {" + Files.LINE_SEPARATOR);
+            writer.append("    public ").append(name).append("() {").append(Files.LINE_SEPARATOR);
             for (String property : properties) {
                 List<String> values = config.getAll(property);
                 if (values.size() != 1)
-                    writer.append("        " + property.replace(".", "_") + " = new ArrayList<String>();" + Files.LINE_SEPARATOR);
+                    writer.append("        ").append(property.replace(".", "_")).append(" = new ArrayList<String>();").append(Files.LINE_SEPARATOR);
             }
             writer.append("    }" + Files.LINE_SEPARATOR);
-            writer.append("    public " + name + "(Configuration config) {" + Files.LINE_SEPARATOR);
+            writer.append("    public ").append(name).append("(Configuration config) {").append(Files.LINE_SEPARATOR);
             for (String property : properties) {
                 List<String> values = config.getAll(property);
                 if (values.size() == 1) {
-                    writer.append("        " + property.replace(".", "_") + " = config.get(\"" + property + "\");" + Files.LINE_SEPARATOR);
+                    writer.append("        ").append(property.replace(".", "_")).append(" = config.get(\"").append(property).append("\");").append(Files.LINE_SEPARATOR);
                 } else {
-                    writer.append("        " + property.replace(".", "_") + " = config.getAll(\"" + property + "\");" + Files.LINE_SEPARATOR);
+                    writer.append("        ").append(property.replace(".", "_")).append(" = config.getAll(\"").append(property).append("\");").append(Files.LINE_SEPARATOR);
                 }
             }
             writer.append("    }" + Files.LINE_SEPARATOR);
@@ -120,9 +120,9 @@ public class ConfigurationGenerator {
             for (String property : properties) {
                 List<String> values = config.getAll(property);
                 if (values.size() == 1) {
-                    writer.append("        config.add(null, \"" + property + "\", " + property.replace(".", "_") + ");" + Files.LINE_SEPARATOR);
+                    writer.append("        config.add(null, \"").append(property).append("\", ").append(property.replace(".", "_")).append(");").append(Files.LINE_SEPARATOR);
                 } else {
-                    writer.append("        for (String value : " + property.replace(".", "_") + ") config.add(null, \"" + property + "\", value);" + Files.LINE_SEPARATOR);
+                    writer.append("        for (String value : ").append(property.replace(".", "_")).append(") config.add(null, \"").append(property).append("\", value);").append(Files.LINE_SEPARATOR);
                 }
             }
             writer.append("    }" + Files.LINE_SEPARATOR);

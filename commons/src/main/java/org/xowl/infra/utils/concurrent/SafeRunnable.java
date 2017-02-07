@@ -21,7 +21,7 @@ import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
 /**
- * Implements a runnable that ensure that all its locks are released before finishing
+ * Implements a runnable with error handling
  *
  * @author Laurent Wouters
  */
