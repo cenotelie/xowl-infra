@@ -313,29 +313,156 @@ public class Configuration {
      * @throws IOException When reading fails
      */
     public void load(Reader reader) throws IOException {
-        String content = Files.read(reader);
-        String[] lines = content.split("(\r\n?)|(\r?\n)");
-        Section current = global;
-        for (String line : lines) {
-            if (line.startsWith("#") || line.startsWith(";"))
-                continue;
-            if (line.startsWith("[") && line.endsWith("]")) {
-                String name = line.substring(1, line.length() - 1);
-                current = new Section(name);
-                sections.put(name, current);
-            } else if (line.contains("=")) {
-                String[] parts = line.split("=");
-                if (parts.length == 2) {
-                    current.add(parts[0].trim(), TextUtils.unescape(parts[1].trim()));
-                } else if (parts.length > 2) {
-                    java.lang.StringBuilder buffer = new java.lang.StringBuilder(parts[1]);
-                    for (int i = 2; i != parts.length; i++) {
-                        buffer.append("=");
-                        buffer.append(parts[i]);
+        char[] buffer = new char[BUFFER_LENGTH];
+        int bufferNext = 0;
+        int state = STATE_INIT;
+        String currentSection = null;
+        String currentProperty = null;
+
+        int c = reader.read();
+        while (c > 0) {
+            switch (state) {
+                case STATE_INIT: {
+                    if (isLineEnding(c)) {
+                        state = STATE_INIT;
+                    } else if (isWhitespace(c)) {
+                        state = STATE_INIT;
+                    } else if (isCommentStart(c)) {
+                        state = STATE_COMMENT;
+                    } else if (c == '[') {
+                        bufferNext = 0;
+                        state = STATE_SECTION_TITLE_WITHIN;
+                    } else {
+                        buffer[0] = (char) c;
+                        bufferNext = 1;
+                        state = STATE_PROPERTY_NAME;
                     }
-                    current.add(parts[0].trim(), TextUtils.unescape(buffer.toString().trim()));
+                    break;
+                }
+                case STATE_COMMENT: {
+                    if (isLineEnding(c))
+                        state = STATE_INIT;
+                    break;
+                }
+                case STATE_SECTION_TITLE_WITHIN: {
+                    if (c == ']') {
+                        currentSection = new String(buffer, 0, bufferNext);
+                        currentSection = TextUtils.unescape(currentSection.trim());
+                        state = STATE_SECTION_TITLE_AFTER;
+                    } else {
+                        if (bufferNext == buffer.length)
+                            buffer = Arrays.copyOf(buffer, buffer.length + BUFFER_LENGTH);
+                        buffer[bufferNext] = (char) c;
+                        bufferNext++;
+                        state = STATE_SECTION_TITLE_WITHIN;
+                    }
+                    break;
+                }
+                case STATE_SECTION_TITLE_AFTER: {
+                    if (isLineEnding(c)) {
+                        state = STATE_INIT;
+                    } else if (isWhitespace(c)) {
+                        state = STATE_SECTION_TITLE_AFTER;
+                    } else if (isCommentStart(c)) {
+                        state = STATE_COMMENT;
+                    }
+                    // any content after the section title on the same line is dropped
+                    break;
+                }
+                case STATE_PROPERTY_NAME: {
+                    if (isLineEnding(c)) {
+                        // drop this content
+                        state = STATE_INIT;
+                    } else if (c == '=') {
+                        currentProperty = new String(buffer, 0, bufferNext);
+                        currentProperty = TextUtils.unescape(currentProperty.trim());
+                        bufferNext = 0;
+                        state = STATE_PROPERTY_VALUE;
+                    } else {
+                        if (bufferNext == buffer.length)
+                            buffer = Arrays.copyOf(buffer, buffer.length + BUFFER_LENGTH);
+                        buffer[bufferNext] = (char) c;
+                        bufferNext++;
+                        state = STATE_PROPERTY_NAME;
+                    }
+                    break;
+                }
+                case STATE_PROPERTY_VALUE: {
+                    if (isLineEnding(c)) {
+                        String value = new String(buffer, 0, bufferNext);
+                        value = TextUtils.unescape(value.trim());
+                        add(currentSection, currentProperty, value);
+                        state = STATE_INIT;
+                    } else {
+                        if (bufferNext == buffer.length)
+                            buffer = Arrays.copyOf(buffer, buffer.length + BUFFER_LENGTH);
+                        buffer[bufferNext] = (char) c;
+                        bufferNext++;
+                        state = STATE_PROPERTY_VALUE;
+                    }
+                    break;
                 }
             }
+            c = reader.read();
         }
     }
+
+    /**
+     * Gets whether the specified character starts a comment in a configuration file
+     *
+     * @param c The character
+     * @return Whether the specified character starts a comment in a configuration file
+     */
+    private static boolean isCommentStart(int c) {
+        return c == '#' || c == ';';
+    }
+
+    /**
+     * Gets whether the specified character is a line-ending character
+     *
+     * @param c The character
+     * @return Whether the specified character is a line-ending character
+     */
+    private static boolean isLineEnding(int c) {
+        return c == '\n' || c == '\r' || c == 0x2028 || c == 0x2029;
+    }
+
+    /**
+     * Gets whether the character is a spacing character
+     *
+     * @param c The character
+     * @return Whether the character is a spacing character
+     */
+    private static boolean isWhitespace(int c) {
+        return c == 0x0020 || c == 0x0009 || c == 0x000B || c == 0x000C;
+    }
+
+    /**
+     * The initial length of the buffer for loading a configuration
+     */
+    private static final int BUFFER_LENGTH = 1024;
+    /**
+     * The initial state of the loader state machine
+     */
+    private static final int STATE_INIT = 0x00;
+    /**
+     * The state when within a comment
+     */
+    private static final int STATE_COMMENT = 0x01;
+    /**
+     * The state when within the title of a section
+     */
+    private static final int STATE_SECTION_TITLE_WITHIN = 0x10;
+    /**
+     * The state when after the title of a section (still on the same line)
+     */
+    private static final int STATE_SECTION_TITLE_AFTER = 0x11;
+    /**
+     * The state when reading a property name
+     */
+    private static final int STATE_PROPERTY_NAME = 0x20;
+    /**
+     * The state when reading a property value
+     */
+    private static final int STATE_PROPERTY_VALUE = 0x21;
 }
