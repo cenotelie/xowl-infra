@@ -405,6 +405,12 @@ public class Configuration {
             }
             c = reader.read();
         }
+        if (state == STATE_PROPERTY_VALUE) {
+            // was reading a value when the stream ended
+            String value = new String(buffer, 0, bufferNext);
+            value = TextUtils.unescape(value.trim());
+            add(currentSection, currentProperty, value);
+        }
     }
 
     /**
