@@ -54,73 +54,73 @@ public interface ApiV1 {
     /**
      * API error - Failed to parse the content of the request.
      */
-    ApiError ERROR_CONTENT_PARSING_FAILED = new ApiError(1,
+    ApiError ERROR_CONTENT_PARSING_FAILED = new ApiError(0x0001,
             "Failed to parse the content of the request.",
             ERROR_HELP_PREFIX + "0x0001.html");
     /**
      * API error - The serialization of data failed on the client side.
      */
-    ApiError ERROR_SERIALIZATION_FAILED = new ApiError(2,
+    ApiError ERROR_SERIALIZATION_FAILED = new ApiError(0x0002,
             "The serialization of data failed on the client side.",
             ERROR_HELP_PREFIX + "0x0002.html");
     /**
      * API error - This user already exists.
      */
-    ApiError ERROR_USER_ALREADY_EXIST = new ApiError(3,
+    ApiError ERROR_USER_ALREADY_EXIST = new ApiError(0x0003,
             "This user already exists.",
             ERROR_HELP_PREFIX + "0x0003.html");
     /**
      * API error - User name does not meet requirements
      */
-    ApiError ERROR_USER_NAME_REQUIREMENT_FAILED = new ApiError(4,
+    ApiError ERROR_USER_NAME_REQUIREMENT_FAILED = new ApiError(0x0004,
             "User name does not meet requirements: [_a-zA-Z0-9]+",
             ERROR_HELP_PREFIX + "0x0004.html");
     /**
      * API error - Password does not meet length requirements
      */
-    ApiError ERROR_USER_PASSWORD_REQUIREMENT_FAILED = new ApiError(5,
+    ApiError ERROR_USER_PASSWORD_REQUIREMENT_FAILED = new ApiError(0x0005,
             "Password does not meet length requirements.",
             ERROR_HELP_PREFIX + "0x0005.html");
     /**
      * API error - The database already exists
      */
-    ApiError ERROR_DB_ALREADY_EXIST = new ApiError(6,
+    ApiError ERROR_DB_ALREADY_EXIST = new ApiError(0x0006,
             "This database already exists.",
             ERROR_HELP_PREFIX + "0x0006.html");
     /**
      * API error - Database name does not match requirements
      */
-    ApiError ERROR_DB_NAME_REQUIREMENT_FAILED = new ApiError(7,
+    ApiError ERROR_DB_NAME_REQUIREMENT_FAILED = new ApiError(0x0007,
             "Database name does not match requirements: [_a-zA-Z0-9]+",
             ERROR_HELP_PREFIX + "0x0007.html");
     /**
      * API error - The rule is not active
      */
-    ApiError ERROR_RULE_NOT_ACTIVE = new ApiError(8,
+    ApiError ERROR_RULE_NOT_ACTIVE = new ApiError(0x0008,
             "The rule is not active.",
             ERROR_HELP_PREFIX + "0x0008.html");
     /**
      * API error - The specification of default graphs is not supported
      */
-    ApiError ERROR_DEFAULT_GRAPH_NOT_SUPPORTED = new ApiError(9,
+    ApiError ERROR_DEFAULT_GRAPH_NOT_SUPPORTED = new ApiError(0x0009,
             "The specification of default graphs is not supported.",
             ERROR_HELP_PREFIX + "0x0009.html");
     /**
      * API error - The specification of named graphs is not supported.
      */
-    ApiError ERROR_NAMED_GRAPH_NOT_SUPPORTED = new ApiError(0xA,
+    ApiError ERROR_NAMED_GRAPH_NOT_SUPPORTED = new ApiError(0x000A,
             "The specification of named graphs is not supported.",
             ERROR_HELP_PREFIX + "0x000A.html");
     /**
      * API error - The requested privilege is already granted
      */
-    ApiError ERROR_PRIVILEGE_ALREADY_GRANTED = new ApiError(0xB,
+    ApiError ERROR_PRIVILEGE_ALREADY_GRANTED = new ApiError(0x000B,
             "The requested privilege is already granted.",
             ERROR_HELP_PREFIX + "0x000B.html");
     /**
      * API error - The privilege requested to be revoked was not previously granted
      */
-    ApiError ERROR_PRIVILEGE_NOT_GRANTED = new ApiError(0xC,
+    ApiError ERROR_PRIVILEGE_NOT_GRANTED = new ApiError(0x000C,
             "The privilege requested to be revoked was not previously granted.",
             ERROR_HELP_PREFIX + "0x000C.html");
 
