@@ -138,7 +138,7 @@ public class RichString implements Serializable {
         for (int i = 0; i != parts.length; i++) {
             if (i != 0)
                 buffer.append(", ");
-            TextUtils.serializeJSON(buffer, parts[0]);
+            TextUtils.serializeJSON(buffer, parts[i]);
         }
         buffer.append("]}");
         return buffer.toString();
