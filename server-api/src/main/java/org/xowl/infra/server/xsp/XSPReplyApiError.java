@@ -96,11 +96,9 @@ public class XSPReplyApiError implements XSPReply {
                 TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
                 TextUtils.escapeStringJSON(XSPReplyApiError.class.getSimpleName()) +
-                "\", \"isSuccess\": false" +
-                ", \"message\": \"" +
+                "\", \"isSuccess\": false, \"message\": \"" +
                 TextUtils.escapeStringJSON(message != null ? message : "") +
-                "\"" +
-                ", \"payload\": " + error.serializedJSON() + "}";
+                "\", \"payload\": " + error.serializedJSON() + "}";
     }
 
     /**

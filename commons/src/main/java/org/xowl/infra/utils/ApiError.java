@@ -98,7 +98,7 @@ public class ApiError implements Serializable {
      * Serializes this error with a supplementary message
      *
      * @param supplementary The supplementary message, if any
-     * @return The serailized error
+     * @return The serialized error
      */
     public String serializedJSON(String supplementary) {
         return "{\"type\": \"" +
