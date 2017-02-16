@@ -509,4 +509,49 @@ public class URIUtils {
         }
         return builder.toString();
     }
+
+    /**
+     * Gets the sanitized single value of a parameter
+     *
+     * @param values The current values
+     * @return The single value, or null if there is none
+     */
+    public static String getSingleParameter(String[] values) {
+        if (values == null)
+            return null;
+        if (values.length == 0)
+            return null;
+        String value = values[0].trim();
+        if (value.isEmpty())
+            return null;
+        return value;
+    }
+
+    /**
+     * Gets the sanitized multi values of a parameter
+     *
+     * @param values The current values
+     * @return The values
+     */
+    public static String[] getMultiParameters(String[] values) {
+        if (values == null)
+            return new String[0];
+        if (values.length == 0)
+            return values;
+        int count = 0;
+        for (int i = 0; i != values.length; i++) {
+            values[i] = values[i].trim();
+            if (!values[i].isEmpty())
+                count++;
+        }
+        if (count == values.length)
+            return values;
+        String[] result = new String[count];
+        int index = 0;
+        for (int i = 0; i != values.length; i++) {
+            if (!values[i].isEmpty())
+                result[index++] = values[i];
+        }
+        return result;
+    }
 }

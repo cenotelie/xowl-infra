@@ -148,14 +148,14 @@ class Utils {
             String value = null;
             if (param.length > 0) {
                 try {
-                    key = URLDecoder.decode(param[0], Files.CHARSET.name());
+                    key = URLDecoder.decode(param[0], Files.CHARSET.name()).trim();
                 } catch (UnsupportedEncodingException exception) {
                     Logging.getDefault().error(exception);
                 }
             }
             if (param.length > 1) {
                 try {
-                    value = URLDecoder.decode(param[1], Files.CHARSET.name());
+                    value = URLDecoder.decode(param[1], Files.CHARSET.name()).trim();
                 } catch (UnsupportedEncodingException exception) {
                     Logging.getDefault().error(exception);
                 }
