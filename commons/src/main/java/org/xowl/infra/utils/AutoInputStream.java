@@ -113,6 +113,7 @@ public class AutoInputStream extends InputStream {
     private Charset doSetup(Charset charset, int[] prefix) {
         this.charset = charset;
         this.prefix = prefix;
+        this.index = 0;
         return charset;
     }
 
