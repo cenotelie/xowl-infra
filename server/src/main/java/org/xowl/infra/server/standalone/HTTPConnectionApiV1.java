@@ -28,7 +28,7 @@ import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.loaders.JSONLDLoader;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
@@ -753,7 +753,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      * @return The response code
      */
     private int response(int code, String message) {
-        byte[] buffer = message != null ? message.getBytes(Files.CHARSET) : new byte[0];
+        byte[] buffer = message != null ? message.getBytes(IOUtils.CHARSET) : new byte[0];
         Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
             if (buffer.length > 0 && !httpExchange.getResponseHeaders().containsKey(HttpConstants.HEADER_CONTENT_TYPE))

@@ -18,7 +18,7 @@
 package org.xowl.infra.server;
 
 import org.xowl.infra.server.standalone.Program;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.Logging;
 
@@ -68,7 +68,7 @@ public class ServerConfiguration {
         confFile = new Configuration();
         InputStream stream = Program.class.getResourceAsStream(FILE_DEFAULT);
         try {
-            confDefault.load(stream, Files.CHARSET);
+            confDefault.load(stream, IOUtils.CHARSET);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
         }

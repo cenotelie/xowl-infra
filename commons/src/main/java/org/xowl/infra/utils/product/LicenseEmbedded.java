@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.product;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.logging.Logging;
 
@@ -69,7 +69,7 @@ public class LicenseEmbedded implements License {
     public synchronized String getFullText() {
         if (fullText == null) {
             try (InputStream stream = type.getResourceAsStream(resource)) {
-                fullText = Files.read(stream, Files.CHARSET);
+                fullText = IOUtils.read(stream, IOUtils.CHARSET);
             } catch (IOException exception) {
                 Logging.getDefault().error(exception);
             }

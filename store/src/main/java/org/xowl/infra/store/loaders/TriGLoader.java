@@ -22,7 +22,7 @@ import org.xowl.hime.redist.parsers.BaseLRParser;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
 
@@ -46,7 +46,7 @@ public class TriGLoader extends BaseTurtleLoader {
 
     @Override
     protected BaseLRParser getParser(Reader reader) throws IOException {
-        String content = Files.read(reader);
+        String content = IOUtils.read(reader);
         TriGLexer lexer = new TriGLexer(content);
         return new TriGParser(lexer);
     }

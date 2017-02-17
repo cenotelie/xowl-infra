@@ -21,7 +21,7 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logging;
 import org.xowl.infra.utils.metrics.Metric;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
@@ -127,7 +127,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      */
     public PersistedNodes(File directory, boolean isReadonly) throws StorageException {
         store = new FileStore(directory, FILE_NAME, isReadonly);
-        charset = Files.CHARSET;
+        charset = IOUtils.CHARSET;
         PersistedLong tempNextBlank;
         PersistedMap tempStringMap;
         PersistedMap tempLiteralsMap;

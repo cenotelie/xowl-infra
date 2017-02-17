@@ -19,7 +19,7 @@ package org.xowl.infra.utils.http;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 
 /**
  * Additional tests for URIUtils
@@ -47,7 +47,7 @@ public class URIUtilsTest {
      */
     private static void testEncodeDecode(int specialChar) {
         String string = new String(Character.toChars(specialChar));
-        byte[] bytes = string.getBytes(Files.UTF8);
+        byte[] bytes = string.getBytes(IOUtils.UTF8);
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i != bytes.length; i++) {
             builder.append("%");

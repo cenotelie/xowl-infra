@@ -23,11 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Utility methods for handling files
+ * Utility API for IO management
  *
  * @author Laurent Wouters
  */
-public class Files {
+public class IOUtils {
     /**
      * The line separator for all xOWL IO operations
      */

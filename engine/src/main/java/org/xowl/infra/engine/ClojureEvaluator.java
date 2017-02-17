@@ -26,7 +26,7 @@ import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.EvaluatorContext;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -76,18 +76,18 @@ public class ClojureEvaluator implements Evaluator {
         builder.append("(ns ");
         builder.append(CLJ_NAMESPACE_ROOT);
         builder.append(")");
-        builder.append(Files.LINE_SEPARATOR);
+        builder.append(IOUtils.LINE_SEPARATOR);
         builder.append("(declare & ");
         for (ClojureFunction function : OUTSTANDING_DEFINITIONS) {
             builder.append(function.getName());
             builder.append(" ");
         }
         builder.append(")");
-        builder.append(Files.LINE_SEPARATOR);
+        builder.append(IOUtils.LINE_SEPARATOR);
         builder.append("[ ");
         for (ClojureFunction function : OUTSTANDING_DEFINITIONS) {
             builder.append(function.getContent());
-            builder.append(Files.LINE_SEPARATOR);
+            builder.append(IOUtils.LINE_SEPARATOR);
         }
         builder.append(" ]");
         Reader reader = new StringReader(builder.toString());

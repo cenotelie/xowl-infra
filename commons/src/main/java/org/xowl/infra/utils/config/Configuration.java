@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.config;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 
 import java.io.*;
@@ -236,7 +236,7 @@ public class Configuration {
      * @throws IOException When writing fails
      */
     public void save(String file) throws IOException {
-        try (Writer writer = Files.getWriter(file)) {
+        try (Writer writer = IOUtils.getWriter(file)) {
             save(writer);
         }
     }
@@ -248,7 +248,7 @@ public class Configuration {
      * @throws IOException When writing fails
      */
     public void save(File file) throws IOException {
-        try (Writer writer = Files.getWriter(file)) {
+        try (Writer writer = IOUtils.getWriter(file)) {
             save(writer);
         }
     }
@@ -264,7 +264,7 @@ public class Configuration {
         boolean before = !global.isEmpty();
         for (Section section : sections.values()) {
             if (before)
-                writer.write(Files.LINE_SEPARATOR);
+                writer.write(IOUtils.LINE_SEPARATOR);
             section.save(writer);
             before = (before || !section.isEmpty());
         }
@@ -278,7 +278,7 @@ public class Configuration {
      * @throws IOException When reading fails
      */
     public void load(String file) throws IOException {
-        try (Reader reader = Files.getReader(file)) {
+        try (Reader reader = IOUtils.getReader(file)) {
             load(reader);
         }
     }
@@ -290,7 +290,7 @@ public class Configuration {
      * @throws IOException When reading fails
      */
     public void load(File file) throws IOException {
-        try (Reader reader = Files.getReader(file)) {
+        try (Reader reader = IOUtils.getReader(file)) {
             load(reader);
         }
     }

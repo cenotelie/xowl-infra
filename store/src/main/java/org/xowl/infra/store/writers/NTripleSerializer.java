@@ -18,7 +18,7 @@ package org.xowl.infra.store.writers;
 
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -52,6 +52,6 @@ public class NTripleSerializer extends NXSerializer {
         writer.write(" ");
         serialize(quad.getObject());
         writer.write(" .");
-        writer.write(Files.LINE_SEPARATOR);
+        writer.write(IOUtils.LINE_SEPARATOR);
     }
 }

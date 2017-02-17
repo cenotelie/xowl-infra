@@ -17,7 +17,7 @@
 
 package org.xowl.infra.generator.model;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
@@ -309,15 +309,15 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneFields(Writer writer) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * The backing data for the property ").append(name).append(Files.LINE_SEPARATOR);
-        writer.append("     * This implements the storage for original OWL property ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * The backing data for the property ").append(name).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * This implements the storage for original OWL property ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
         if (isVector())
-            writer.append("    private List<").append(getJavaRangeVector(parentClass)).append("> __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
+            writer.append("    private List<").append(getJavaRangeVector(parentClass)).append("> __impl").append(name).append(";").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    private ").append(getJavaRangeScalar(parentClass)).append(" __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    private ").append(getJavaRangeScalar(parentClass)).append(" __impl").append(name).append(";").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -329,11 +329,11 @@ public class PropertyImplementation extends PropertyData {
     public void writeStandaloneConstructor(Writer writer) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
-        writer.append("        // initialize property ").append(iri).append(Files.LINE_SEPARATOR);
+        writer.append("        // initialize property ").append(iri).append(IOUtils.LINE_SEPARATOR);
         if (isVector())
-            writer.append("        this.__impl").append(name).append(" = new ArrayList<>();").append(Files.LINE_SEPARATOR);
+            writer.append("        this.__impl").append(name).append(" = new ArrayList<>();").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("        this.__impl").append(name).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
+            writer.append("        this.__impl").append(name).append(" = ").append(getDefaultValue()).append(";").append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -345,14 +345,14 @@ public class PropertyImplementation extends PropertyData {
      */
     private void writeStandaloneDatatypeDoSet(Writer writer, PropertyImplementation implementation) throws IOException {
         if (!implementation.isVector()) {
-            writer.append("        __impl").append(implementation.getJavaName()).append(" = elem;").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(" = elem;").append(IOUtils.LINE_SEPARATOR);
         } else if (implementation.getDefaultValue().equals("null")) {
-            writer.append("        __impl").append(implementation.getJavaName()).append(".clear();").append(Files.LINE_SEPARATOR);
-            writer.append("        if (elem != null)").append(Files.LINE_SEPARATOR);
-            writer.append("            __impl").append(implementation.getJavaName()).append(".add(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(".clear();").append(IOUtils.LINE_SEPARATOR);
+            writer.append("        if (elem != null)").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            __impl").append(implementation.getJavaName()).append(".add(elem);").append(IOUtils.LINE_SEPARATOR);
         } else {
-            writer.append("        __impl").append(implementation.getJavaName()).append(".clear();").append(Files.LINE_SEPARATOR);
-            writer.append("        __impl").append(implementation.getJavaName()).append(".add(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(".clear();").append(IOUtils.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(".add(elem);").append(IOUtils.LINE_SEPARATOR);
         }
     }
 
@@ -366,21 +366,21 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneDatatypeScalarInterfaceOnScalarImpl(Writer writer, PropertyInterface inter) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(";").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoSet(writer, impl);
         writeStandaloneDatatypeDoSet(writer, this);
         for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoSet(writer, impl);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -393,23 +393,23 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneDatatypeScalarInterfaceOnPrimitiveVectorImpl(Writer writer, PropertyInterface inter) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
-        writer.append("            return ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(".get(0);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return ").append(getDefaultValue()).append(";").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(".get(0);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoSet(writer, impl);
         writeStandaloneDatatypeDoSet(writer, this);
         for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoSet(writer, impl);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -422,23 +422,23 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneDatatypeScalarInterfaceOnObjectVectorImpl(Writer writer, PropertyInterface inter) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
-        writer.append("            return ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(".get(0);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return ").append(getDefaultValue()).append(";").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(".get(0);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoSet(writer, impl);
         writeStandaloneDatatypeDoSet(writer, this);
         for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoSet(writer, impl);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -451,12 +451,12 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneDatatypeCheckAdd(Writer writer, PropertyImplementation implementation) throws IOException {
         if (implementation.isVector()) {
             if (implementation.cardMax != Integer.MAX_VALUE) {
-                writer.append("        if (__impl").append(implementation.getJavaName()).append(".size() >= ").append(Integer.toString(implementation.cardMax)).append(")").append(Files.LINE_SEPARATOR);
-                writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(implementation.cardMax)).append("\");").append(Files.LINE_SEPARATOR);
+                writer.append("        if (__impl").append(implementation.getJavaName()).append(".size() >= ").append(Integer.toString(implementation.cardMax)).append(")").append(IOUtils.LINE_SEPARATOR);
+                writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(implementation.cardMax)).append("\");").append(IOUtils.LINE_SEPARATOR);
             }
         } else if (implementation.getDefaultValue().equals("null")) {
-            writer.append("        if (__impl").append(implementation.getJavaName()).append(" != null)").append(Files.LINE_SEPARATOR);
-            writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
+            writer.append("        if (__impl").append(implementation.getJavaName()).append(" != null)").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(IOUtils.LINE_SEPARATOR);
         }
     }
 
@@ -469,9 +469,9 @@ public class PropertyImplementation extends PropertyData {
      */
     private void writeStandaloneDatatypeDoAdd(Writer writer, PropertyImplementation implementation) throws IOException {
         if (implementation.isVector()) {
-            writer.append("        __impl").append(implementation.getJavaName()).append(".add(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(".add(elem);").append(IOUtils.LINE_SEPARATOR);
         } else {
-            writer.append("        __impl").append(implementation.getJavaName()).append(" = elem;").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(" = elem;").append(IOUtils.LINE_SEPARATOR);
         }
     }
 
@@ -486,19 +486,19 @@ public class PropertyImplementation extends PropertyData {
         if (implementation.isVector()) {
             if (implementation.getJavaRangeScalar(parentClass).equals("int"))
                 // special case for int due to confusion between remove(int) and remove(Object)
-                writer.append("        success &= __impl").append(implementation.getJavaName()).append(".remove((Integer) elem);").append(Files.LINE_SEPARATOR);
+                writer.append("        success &= __impl").append(implementation.getJavaName()).append(".remove((Integer) elem);").append(IOUtils.LINE_SEPARATOR);
             else
-                writer.append("        success &= __impl").append(implementation.getJavaName()).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+                writer.append("        success &= __impl").append(implementation.getJavaName()).append(".remove(elem);").append(IOUtils.LINE_SEPARATOR);
         } else if (implementation.getDefaultValue().equals("null")) {
-            writer.append("        if (Objects.equals(__impl").append(implementation.getJavaName()).append(", elem))").append(Files.LINE_SEPARATOR);
-            writer.append("            __impl").append(implementation.getJavaName()).append(" = null;").append(Files.LINE_SEPARATOR);
-            writer.append("        else").append(Files.LINE_SEPARATOR);
-            writer.append("            success = false;").append(Files.LINE_SEPARATOR);
+            writer.append("        if (Objects.equals(__impl").append(implementation.getJavaName()).append(", elem))").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            __impl").append(implementation.getJavaName()).append(" = null;").append(IOUtils.LINE_SEPARATOR);
+            writer.append("        else").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            success = false;").append(IOUtils.LINE_SEPARATOR);
         } else {
-            writer.append("        if (__impl").append(implementation.getJavaName()).append(" == elem)").append(Files.LINE_SEPARATOR);
-            writer.append("            __impl").append(implementation.getJavaName()).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-            writer.append("        else").append(Files.LINE_SEPARATOR);
-            writer.append("            success = false;").append(Files.LINE_SEPARATOR);
+            writer.append("        if (__impl").append(implementation.getJavaName()).append(" == elem)").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            __impl").append(implementation.getJavaName()).append(" = ").append(getDefaultValue()).append(";").append(IOUtils.LINE_SEPARATOR);
+            writer.append("        else").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            success = false;").append(IOUtils.LINE_SEPARATOR);
         }
     }
 
@@ -513,17 +513,17 @@ public class PropertyImplementation extends PropertyData {
         if (implementation.isVector()) {
             if (implementation.getJavaRangeScalar(parentClass).equals("int"))
                 // special case for int due to confusion between remove(int) and remove(Object)
-                writer.append("        return __impl").append(implementation.getJavaName()).append(".remove((Integer) elem);").append(Files.LINE_SEPARATOR);
+                writer.append("        return __impl").append(implementation.getJavaName()).append(".remove((Integer) elem);").append(IOUtils.LINE_SEPARATOR);
             else
-                writer.append("        return __impl").append(implementation.getJavaName()).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+                writer.append("        return __impl").append(implementation.getJavaName()).append(".remove(elem);").append(IOUtils.LINE_SEPARATOR);
         } else if (implementation.getDefaultValue().equals("null")) {
-            writer.append("        if (!Objects.equals(__impl").append(implementation.getJavaName()).append(", elem))").append(Files.LINE_SEPARATOR);
-            writer.append("            return false;").append(Files.LINE_SEPARATOR);
-            writer.append("        __impl").append(implementation.getJavaName()).append(" = null;").append(Files.LINE_SEPARATOR);
+            writer.append("        if (!Objects.equals(__impl").append(implementation.getJavaName()).append(", elem))").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            return false;").append(IOUtils.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(" = null;").append(IOUtils.LINE_SEPARATOR);
         } else {
-            writer.append("        if (__impl").append(implementation.getJavaName()).append(" != elem)").append(Files.LINE_SEPARATOR);
-            writer.append("            return false;").append(Files.LINE_SEPARATOR);
-            writer.append("        __impl").append(implementation.getJavaName()).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
+            writer.append("        if (__impl").append(implementation.getJavaName()).append(" != elem)").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            return false;").append(IOUtils.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(" = ").append(getDefaultValue()).append(";").append(IOUtils.LINE_SEPARATOR);
         }
     }
 
@@ -537,17 +537,17 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneDatatypeVectorInterfaceOnPrimitiveScalarImpl(Writer writer, PropertyInterface inter) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         if (getDefaultValue().equals("null")) {
-            writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
+            writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
         }
         for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeCheckAdd(writer, impl);
@@ -559,29 +559,29 @@ public class PropertyImplementation extends PropertyData {
         writeStandaloneDatatypeDoAdd(writer, this);
         for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoAdd(writer, impl);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         if (getDefaultValue().equals("null")) {
-            writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
+            writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
         }
         if (!implAncestors.isEmpty() || !implDescendants.isEmpty()) {
-            writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
+            writer.append("        boolean success = true;").append(IOUtils.LINE_SEPARATOR);
             for (PropertyImplementation impl : implAncestors)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writeStandaloneDatatypeDoRemoveCombine(writer, this);
             for (PropertyImplementation impl : implDescendants)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
-            writer.append("        return success;").append(Files.LINE_SEPARATOR);
+            writer.append("        return success;").append(IOUtils.LINE_SEPARATOR);
         } else {
             writeStandaloneDatatypeDoRemoveSolo(writer, this);
         }
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -594,16 +594,16 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneDatatypeVectorInterfaceOnObjectScalarImpl(Writer writer, PropertyInterface inter) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            return Collections.emptyList();").append(Files.LINE_SEPARATOR);
-        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return Collections.emptyList();").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeCheckAdd(writer, impl);
         writeStandaloneDatatypeCheckAdd(writer, this);
@@ -614,29 +614,29 @@ public class PropertyImplementation extends PropertyData {
         writeStandaloneDatatypeDoAdd(writer, this);
         for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoAdd(writer, impl);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         if (getDefaultValue().equals("null")) {
-            writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
+            writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
         }
         if (!implAncestors.isEmpty() || !implDescendants.isEmpty()) {
-            writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
+            writer.append("        boolean success = true;").append(IOUtils.LINE_SEPARATOR);
             for (PropertyImplementation impl : implAncestors)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writeStandaloneDatatypeDoRemoveCombine(writer, this);
             for (PropertyImplementation impl : implDescendants)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
-            writer.append("        return success;").append(Files.LINE_SEPARATOR);
+            writer.append("        return success;").append(IOUtils.LINE_SEPARATOR);
         } else {
             writeStandaloneDatatypeDoRemoveSolo(writer, this);
         }
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -649,14 +649,14 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneDatatypeVectorInterfaceOnVectorImpl(Writer writer, PropertyInterface inter) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        return Collections.unmodifiableCollection(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return Collections.unmodifiableCollection(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeCheckAdd(writer, impl);
         writeStandaloneDatatypeCheckAdd(writer, this);
@@ -667,29 +667,29 @@ public class PropertyImplementation extends PropertyData {
         writeStandaloneDatatypeDoAdd(writer, this);
         for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoAdd(writer, impl);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         if (getDefaultValue().equals("null")) {
-            writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
+            writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
         }
         if (!implAncestors.isEmpty() || !implDescendants.isEmpty()) {
-            writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
+            writer.append("        boolean success = true;").append(IOUtils.LINE_SEPARATOR);
             for (PropertyImplementation impl : implAncestors)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writeStandaloneDatatypeDoRemoveCombine(writer, this);
             for (PropertyImplementation impl : implDescendants)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
-            writer.append("        return success;").append(Files.LINE_SEPARATOR);
+            writer.append("        return success;").append(IOUtils.LINE_SEPARATOR);
         } else {
             writeStandaloneDatatypeDoRemoveSolo(writer, this);
         }
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -714,145 +714,145 @@ public class PropertyImplementation extends PropertyData {
             }
         }
 
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Adds a value to the property ").append(name).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    protected void doSimpleAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Adds a value to the property ").append(name).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to add (must not be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    protected void doSimpleAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         if (isVector()) {
-            writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(name).append(".add(elem);").append(IOUtils.LINE_SEPARATOR);
         } else {
-            writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(name).append(" = elem;").append(IOUtils.LINE_SEPARATOR);
         }
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Removes a value from the property ").append(name).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    protected void doSimpleRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Removes a value from the property ").append(name).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to remove (must not be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    protected void doSimpleRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         if (isVector()) {
-            writer.append("        __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(name).append(".remove(elem);").append(IOUtils.LINE_SEPARATOR);
         } else {
-            writer.append("        __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(name).append(" = null;").append(IOUtils.LINE_SEPARATOR);
         }
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Adds a value to the property ").append(name).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Adds a value to the property ").append(name).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
         if (implInverse != null)
-            writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    private void doPropertyAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        doSimpleAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to add (must not be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    private void doPropertyAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doSimpleAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
         if (implInverse != null) {
             for (int i = 0; i != inverseDomains.size(); i++) {
                 if (i == 0) {
-                    writer.append("        if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(Files.LINE_SEPARATOR);
+                    writer.append("        if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(IOUtils.LINE_SEPARATOR);
                 } else {
-                    writer.append("        else if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(Files.LINE_SEPARATOR);
+                    writer.append("        else if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(IOUtils.LINE_SEPARATOR);
                 }
-                writer.append("            ((").append(inverseDomains.get(i)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
+                writer.append("            ((").append(inverseDomains.get(i)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this);").append(IOUtils.LINE_SEPARATOR);
             }
         }
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Removes a value from the property ").append(name).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Removes a value from the property ").append(name).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
         if (implInverse != null)
-            writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    private void doPropertyRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        doSimpleRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to remove (must not be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    private void doPropertyRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doSimpleRemove").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
         if (implInverse != null) {
             for (int i = 0; i != inverseDomains.size(); i++) {
                 if (i == 0) {
-                    writer.append("        if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(Files.LINE_SEPARATOR);
+                    writer.append("        if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(IOUtils.LINE_SEPARATOR);
                 } else {
-                    writer.append("        else if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(Files.LINE_SEPARATOR);
+                    writer.append("        else if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(IOUtils.LINE_SEPARATOR);
                 }
-                writer.append("            ((").append(inverseDomains.get(i)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
+                writer.append("            ((").append(inverseDomains.get(i)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this);").append(IOUtils.LINE_SEPARATOR);
             }
         }
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Tries to add a value to the property ").append(name).append(" and its super properties (if any)").append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    private void doGraphAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Tries to add a value to the property ").append(name).append(" and its super properties (if any)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to add (must not be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    private void doGraphAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation ancestor : implAncestors) {
-            writer.append("        doPropertyAdd").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        doPropertyAdd").append(ancestor.getJavaName()).append("(elem);").append(IOUtils.LINE_SEPARATOR);
         }
-        writer.append("        doPropertyAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("        doPropertyAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Tries to remove a value from the property ").append(name).append(" and its super properties (if any)").append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    private void doGraphRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Tries to remove a value from the property ").append(name).append(" and its super properties (if any)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to remove (must not be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    private void doGraphRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation ancestor : implAncestors) {
-            writer.append("        doPropertyRemove").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        doPropertyRemove").append(ancestor.getJavaName()).append("(elem);").append(IOUtils.LINE_SEPARATOR);
         }
-        writer.append("        doPropertyRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("        doPropertyRemove").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Dispatches the request for the addition of a value to the property ").append(name).append(Files.LINE_SEPARATOR);
-        writer.append("     * This method tries to delegate to a sub property, if any.").append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    private void doDispatchAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Dispatches the request for the addition of a value to the property ").append(name).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * This method tries to delegate to a sub property, if any.").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to add (must not be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    private void doDispatchAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation descendant : implDescendants) {
-            writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar(parentClass)).append(") {").append(Files.LINE_SEPARATOR);
-            writer.append("            doGraphAdd").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-            writer.append("            return;").append(Files.LINE_SEPARATOR);
-            writer.append("        }").append(Files.LINE_SEPARATOR);
+            writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar(parentClass)).append(") {").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            doGraphAdd").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            return;").append(IOUtils.LINE_SEPARATOR);
+            writer.append("        }").append(IOUtils.LINE_SEPARATOR);
         }
-        writer.append("        doGraphAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("        doGraphAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Dispatches the request for the removal of a value from the property ").append(name).append(Files.LINE_SEPARATOR);
-        writer.append("     * This method tries to delegate to a sub property, if any.").append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    private void doDispatchRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Dispatches the request for the removal of a value from the property ").append(name).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * This method tries to delegate to a sub property, if any.").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to remove (must not be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    private void doDispatchRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
         for (PropertyImplementation descendant : implDescendants) {
-            writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar(parentClass)).append(") {").append(Files.LINE_SEPARATOR);
-            writer.append("            doGraphRemove").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-            writer.append("            return;").append(Files.LINE_SEPARATOR);
-            writer.append("        }").append(Files.LINE_SEPARATOR);
+            writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar(parentClass)).append(") {").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            doGraphRemove").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+            writer.append("            return;").append(IOUtils.LINE_SEPARATOR);
+            writer.append("        }").append(IOUtils.LINE_SEPARATOR);
         }
-        writer.append("        doGraphRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("        doGraphRemove").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -865,29 +865,29 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneObjectScalarInterfaceOnScalarImplSameType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
         if (isInTypeRestrictChain)
-            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(Files.LINE_SEPARATOR);
+            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(";").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" == elem)").append(Files.LINE_SEPARATOR);
-        writer.append("            return;").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("        } else if (__impl").append(name).append(" == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        } else {").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        }").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" == elem)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        } else if (__impl").append(name).append(" == null) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        } else {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        }").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -901,31 +901,31 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneObjectScalarInterfaceOnScalarImplSubType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
         if (isInTypeRestrictChain)
-            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(Files.LINE_SEPARATOR);
+            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(";").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" == elem)").append(Files.LINE_SEPARATOR);
-        writer.append("            return;").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("        } else if (__impl").append(name).append(" == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        } else {").append(Files.LINE_SEPARATOR);
-        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        }").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" == elem)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        } else if (__impl").append(name).append(" == null) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        } else {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        }").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -939,31 +939,31 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneObjectScalarInterfaceOnVectorImplSameType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
         if (isInTypeRestrictChain)
-            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(Files.LINE_SEPARATOR);
+            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
-        writer.append("            return ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(".get(0);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return ").append(getDefaultValue()).append(";").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(".get(0);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            if (__impl").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
-        writer.append("                return;").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(Files.LINE_SEPARATOR);
-        writer.append("        } else if (__impl").append(name).append(".isEmpty()) {").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        } else {").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        }").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            if (__impl").append(name).append(".isEmpty())").append(IOUtils.LINE_SEPARATOR);
+        writer.append("                return;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        } else if (__impl").append(name).append(".isEmpty()) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        } else {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        }").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -977,35 +977,35 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneObjectScalarInterfaceOnVectorImplSubType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
         if (isInTypeRestrictChain)
-            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(Files.LINE_SEPARATOR);
+            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
-        writer.append("            return ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(".get(0);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    public ").append(inter.getJavaRangeScalar(parentClass)).append(" get").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return ").append(getDefaultValue()).append(";").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(".get(0);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            if (__impl").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
-        writer.append("                return;").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(Files.LINE_SEPARATOR);
-        writer.append("        } else if (__impl").append(name).append(".isEmpty()) {").append(Files.LINE_SEPARATOR);
-        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        } else {").append(Files.LINE_SEPARATOR);
-        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        }").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            if (__impl").append(name).append(".isEmpty())").append(IOUtils.LINE_SEPARATOR);
+        writer.append("                return;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        } else if (__impl").append(name).append(".isEmpty()) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        } else {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        }").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -1019,36 +1019,36 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneObjectVectorInterfaceOnVectorImplSameType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
         if (isInTypeRestrictChain)
-            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(Files.LINE_SEPARATOR);
+            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        return Collections.unmodifiableCollection(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return Collections.unmodifiableCollection(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(".contains(elem))").append(Files.LINE_SEPARATOR);
-        writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(".contains(elem))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return false;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doDispatchAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!__impl").append(name).append(".contains(elem))").append(Files.LINE_SEPARATOR);
-        writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        doDispatchRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (!__impl").append(name).append(".contains(elem))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return false;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doDispatchRemove").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -1062,40 +1062,40 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneObjectVectorInterfaceOnVectorImplSubType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
         if (isInTypeRestrictChain)
-            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(Files.LINE_SEPARATOR);
+            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        return (Collection) Collections.unmodifiableCollection(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return (Collection) Collections.unmodifiableCollection(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(".contains((").append(getJavaRangeScalar(parentClass)).append(") elem))").append(Files.LINE_SEPARATOR);
-        writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(".contains((").append(getJavaRangeScalar(parentClass)).append(") elem))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return false;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!__impl").append(name).append(".contains((").append(getJavaRangeScalar(parentClass)).append(") elem))").append(Files.LINE_SEPARATOR);
-        writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        doDispatchRemove").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (!__impl").append(name).append(".contains((").append(getJavaRangeScalar(parentClass)).append(") elem))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return false;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doDispatchRemove").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -1109,38 +1109,38 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneObjectVectorInterfaceOnScalarImplSameType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
         if (isInTypeRestrictChain)
-            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(Files.LINE_SEPARATOR);
+            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            return Collections.emptyList();").append(Files.LINE_SEPARATOR);
-        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return Collections.emptyList();").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" != null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
-        writer.append("        doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" != null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doDispatchAdd").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" != elem)").append(Files.LINE_SEPARATOR);
-        writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        doDispatchRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" != elem)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return false;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doDispatchRemove").append(name).append("(elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -1154,41 +1154,41 @@ public class PropertyImplementation extends PropertyData {
     private void writeStandaloneObjectVectorInterfaceOnScalarImplSubType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         String name = getJavaName();
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
         if (isInTypeRestrictChain)
-            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(Files.LINE_SEPARATOR);
+            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(inter.getJavaRangeScalar(parentClass)).append(" type) {").append(IOUtils.LINE_SEPARATOR);
         else
-            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            return Collections.emptyList();").append(Files.LINE_SEPARATOR);
-        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+            writer.append("    public Collection<").append(inter.getJavaRangeVector(parentClass)).append("> getAll").append(name).append("() {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return Collections.emptyList();").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" != null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
-        writer.append("        doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" != null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doDispatchAdd").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
-        writer.append("    @Override").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" != elem)").append(Files.LINE_SEPARATOR);
-        writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        doDispatchRemove").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    @Override").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (elem == null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar(parentClass)).append("))").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar(parentClass)).append("\");").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" != elem)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("            return false;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        doDispatchRemove").append(name).append("((").append(getJavaRangeScalar(parentClass)).append(") elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append("        return true;").append(IOUtils.LINE_SEPARATOR);
+        writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
     }
 }

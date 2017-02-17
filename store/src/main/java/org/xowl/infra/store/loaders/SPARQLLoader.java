@@ -27,7 +27,7 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.*;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.URIUtils;
@@ -147,7 +147,7 @@ public class SPARQLLoader {
     private ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
         try {
-            String content = Files.read(reader);
+            String content = IOUtils.read(reader);
             SPARQLLexer lexer = new SPARQLLexer(content);
             SPARQLParser parser = new SPARQLParser(lexer);
             parser.setModeRecoverErrors(false);

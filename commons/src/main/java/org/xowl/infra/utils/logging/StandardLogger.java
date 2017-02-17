@@ -31,6 +31,7 @@ public class StandardLogger implements Logger {
 
     /**
      * Initializes this logger
+     *
      * @param inner The backend logger to use
      */
     public StandardLogger(java.util.logging.Logger inner) {
@@ -59,7 +60,7 @@ public class StandardLogger implements Logger {
 
     private void log(Level level, Object message) {
         if (message instanceof Throwable) {
-            inner.log(level, message.toString(), (Throwable)message);
+            inner.log(level, message.toString(), (Throwable) message);
         } else {
             inner.log(level, message.toString());
         }

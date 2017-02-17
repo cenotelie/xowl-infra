@@ -24,7 +24,7 @@ import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.URIUtils;
@@ -218,7 +218,7 @@ public abstract class JSONLDLoader implements Loader {
     public ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
         try {
-            String content = Files.read(reader);
+            String content = IOUtils.read(reader);
             JSONLDLexer lexer = new JSONLDLexer(content);
             JSONLDParser parser = new JSONLDParser(lexer);
             parser.setModeRecoverErrors(false);

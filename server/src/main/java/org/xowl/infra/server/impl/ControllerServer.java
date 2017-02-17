@@ -28,7 +28,7 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.utils.Base64;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -489,7 +489,7 @@ public class ControllerServer implements Closeable {
             } catch (IOException exception) {
                 logger.error(exception);
             }
-            if (!Files.deleteFolder(folder)) {
+            if (!IOUtils.deleteFolder(folder)) {
                 logger.error("Failed to delete " + folder.getAbsolutePath());
             }
             database.dbController.proxy.delete();
@@ -1216,7 +1216,7 @@ public class ControllerServer implements Closeable {
     private String buildTokenFor(String login) {
         long timestamp = System.currentTimeMillis();
         long validUntil = timestamp + securityTokenTTL * 1000;
-        byte[] text = login.getBytes(Files.CHARSET);
+        byte[] text = login.getBytes(IOUtils.CHARSET);
         byte[] tokenData = Arrays.copyOf(text, text.length + 8);
         tokenData[text.length] = (byte) ((validUntil & 0xFF00000000000000L) >>> 56);
         tokenData[text.length + 1] = (byte) ((validUntil & 0x00FF000000000000L) >>> 48);
@@ -1288,7 +1288,7 @@ public class ControllerServer implements Closeable {
         if (System.currentTimeMillis() > validUntil)
             // the token expired
             return XSPReplyExpiredSession.instance();
-        return new XSPReplyResult<>(new String(tokenBytes, 0, tokenBytes.length - 32 - 8, Files.CHARSET));
+        return new XSPReplyResult<>(new String(tokenBytes, 0, tokenBytes.length - 32 - 8, IOUtils.CHARSET));
     }
 
     /**

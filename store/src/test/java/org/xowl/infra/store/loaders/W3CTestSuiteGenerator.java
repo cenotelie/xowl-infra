@@ -22,7 +22,7 @@ import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
@@ -76,7 +76,7 @@ public class W3CTestSuiteGenerator {
         SinkLogger logger = new SinkLogger();
 
         InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);
-        Reader reader = reader = new InputStreamReader(stream, Files.CHARSET);
+        Reader reader = reader = new InputStreamReader(stream, IOUtils.CHARSET);
         Loader loader = new TurtleLoader(store);
         RDFLoaderResult input = loader.loadRDF(logger, reader, BASE_LOCATION, BASE_LOCATION);
         try {

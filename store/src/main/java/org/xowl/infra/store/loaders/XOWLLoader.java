@@ -20,7 +20,7 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.hime.redist.parsers.InitializationException;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class XOWLLoader implements Loader {
     public ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
         try {
-            String content = Files.read(reader);
+            String content = IOUtils.read(reader);
             XOWLLexer lexer = new XOWLLexer(content);
             XOWLParser parser = new XOWLParser(lexer);
             parser.setModeRecoverErrors(false);

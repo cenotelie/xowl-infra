@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.logging;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,7 +131,7 @@ public class BufferedLogger implements Logger {
         StringBuilder builder = new StringBuilder();
         for (Object error : getErrorMessages()) {
             builder.append(error.toString());
-            builder.append(Files.LINE_SEPARATOR);
+            builder.append(IOUtils.LINE_SEPARATOR);
         }
         return builder.toString();
     }

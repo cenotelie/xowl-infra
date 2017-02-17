@@ -25,7 +25,7 @@ import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.SinkLogger;
 
@@ -122,7 +122,7 @@ public abstract class W3CTestSuite {
                 return reader;
             // expect a local test resource
             InputStream stream = W3CTestSuite.class.getResourceAsStream(resource);
-            return new InputStreamReader(stream, Files.CHARSET);
+            return new InputStreamReader(stream, IOUtils.CHARSET);
         } catch (IOException exception) {
             Assert.fail(exception.getMessage());
             return null;

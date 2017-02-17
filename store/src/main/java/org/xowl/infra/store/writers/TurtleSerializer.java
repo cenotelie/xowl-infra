@@ -21,7 +21,7 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
@@ -75,7 +75,7 @@ public class TurtleSerializer extends StructuredSerializer {
      */
     protected void serialize() throws IOException, UnsupportedNodeType {
         serializeNamespaces();
-        writer.write(Files.LINE_SEPARATOR);
+        writer.write(IOUtils.LINE_SEPARATOR);
 
         for (Map.Entry<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> entry : content.entrySet()) {
             serializeGraph(entry.getKey(), entry.getValue());
@@ -94,7 +94,7 @@ public class TurtleSerializer extends StructuredSerializer {
             writer.write(": <");
             writer.write(TextUtils.escapeAbsoluteURIW3C(entry.getKey()));
             writer.write("> .");
-            writer.write(Files.LINE_SEPARATOR);
+            writer.write(IOUtils.LINE_SEPARATOR);
         }
     }
 
@@ -123,7 +123,7 @@ public class TurtleSerializer extends StructuredSerializer {
             writer.write(" ");
             serializeProperties(entry.getValue());
             writer.write(" .");
-            writer.write(Files.LINE_SEPARATOR);
+            writer.write(IOUtils.LINE_SEPARATOR);
         }
     }
 

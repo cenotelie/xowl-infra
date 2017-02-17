@@ -27,7 +27,7 @@ import org.xowl.infra.store.rdf.RDFQueryEngine;
 import org.xowl.infra.store.rdf.RDFRuleEngine;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.writers.*;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.*;
@@ -753,18 +753,18 @@ public abstract class Repository {
         if (resource.startsWith(SCHEME_HTTP)) {
             URL url = new URL(resource);
             URLConnection connection = url.openConnection();
-            return new InputStreamReader(connection.getInputStream(), Files.CHARSET);
+            return new InputStreamReader(connection.getInputStream(), IOUtils.CHARSET);
         } else if (resource.startsWith(SCHEME_RESOURCE)) {
             InputStream stream = Repository.class.getResourceAsStream(resource.substring(SCHEME_RESOURCE.length()));
-            return new InputStreamReader(stream, Files.CHARSET);
+            return new InputStreamReader(stream, IOUtils.CHARSET);
         } else if (resource.startsWith(SCHEME_JAR)) {
             String parts[] = resource.substring(SCHEME_JAR.length()).split("!");
             JarFile jar = new JarFile(parts[0]);
             InputStream stream = jar.getInputStream(jar.getEntry(parts[1]));
-            return new InputStreamReader(stream, Files.CHARSET);
+            return new InputStreamReader(stream, IOUtils.CHARSET);
         } else if (resource.startsWith(SCHEME_FILE)) {
             FileInputStream stream = new FileInputStream(resource.substring(SCHEME_FILE.length()));
-            return new InputStreamReader(stream, Files.CHARSET);
+            return new InputStreamReader(stream, IOUtils.CHARSET);
         }
         throw new IOException("Cannot read from resource " + resource);
     }
@@ -780,7 +780,7 @@ public abstract class Repository {
         if (resource.startsWith(SCHEME_HTTP)) {
             URL url = new URL(resource);
             URLConnection connection = url.openConnection();
-            return new OutputStreamWriter(connection.getOutputStream(), Files.CHARSET);
+            return new OutputStreamWriter(connection.getOutputStream(), IOUtils.CHARSET);
         } else if (resource.startsWith(SCHEME_RESOURCE)) {
             // cannot write to resources
             return null;
@@ -789,7 +789,7 @@ public abstract class Repository {
             return null;
         } else if (resource.startsWith(SCHEME_FILE)) {
             FileOutputStream stream = new FileOutputStream(resource.substring(SCHEME_FILE.length()));
-            return new OutputStreamWriter(stream, Files.CHARSET);
+            return new OutputStreamWriter(stream, IOUtils.CHARSET);
         }
         throw new IOException("Cannot write to resource " + resource);
     }

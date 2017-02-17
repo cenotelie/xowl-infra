@@ -16,7 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.generator.builder;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,7 +60,7 @@ class JarNodeFile implements JarNode {
         stream.putNextEntry(fileEntry);
         byte[] bytes;
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
-            bytes = Files.load(fileInputStream);
+            bytes = IOUtils.load(fileInputStream);
         }
         stream.write(bytes, 0, bytes.length);
     }

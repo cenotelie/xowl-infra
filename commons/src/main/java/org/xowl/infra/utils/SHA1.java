@@ -40,7 +40,7 @@ public class SHA1 {
      * @return The SHA1 hash as a string
      */
     public static String hashSHA1(String input) {
-        return hashSHA1(input.getBytes(Files.CHARSET));
+        return hashSHA1(input.getBytes(IOUtils.CHARSET));
     }
 
     /**

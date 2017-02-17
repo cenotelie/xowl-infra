@@ -1645,7 +1645,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("WebOnt_imports_011.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_class_nothing_type() {
         testPositiveEntailment("rdfbased_sem_class_nothing_type.premise.rdf", "rdfbased_sem_class_nothing_type.conclusion.rdf");
     }
@@ -1670,7 +1671,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testInconsistency("WebOnt_maxCardinality_001.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_class_thing_type() {
         testPositiveEntailment("rdfbased_sem_class_thing_type.premise.rdf", "rdfbased_sem_class_thing_type.conclusion.rdf");
     }
@@ -1975,7 +1977,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_eqdis_eqprop_trans.premise.rdf");
     }
 
-    @Ignore(IGNORE_WONT_FIX) @Test
+    @Ignore(IGNORE_WONT_FIX)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_eqdis_sameas_rflxv() {
         testPositiveEntailment("rdfbased_sem_eqdis_sameas_rflxv.premise.rdf", "rdfbased_sem_eqdis_sameas_rflxv.conclusion.rdf");
     }
@@ -2065,7 +2068,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testInconsistency("rdfbased_sem_npa_ind_fw.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_backwardcompatiblewith_type_annot() {
         testPositiveEntailment("rdfbased_sem_prop_backwardcompatiblewith_type_annot.premise.rdf", "rdfbased_sem_prop_backwardcompatiblewith_type_annot.conclusion.rdf");
     }
@@ -2075,7 +2079,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_prop_backwardcompatiblewith_type_annot.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_comment_type() {
         testPositiveEntailment("rdfbased_sem_prop_comment_type.premise.rdf", "rdfbased_sem_prop_comment_type.conclusion.rdf");
     }
@@ -2085,7 +2090,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_prop_comment_type.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_deprecated_type() {
         testPositiveEntailment("rdfbased_sem_prop_deprecated_type.premise.rdf", "rdfbased_sem_prop_deprecated_type.conclusion.rdf");
     }
@@ -2095,7 +2101,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_prop_deprecated_type.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_incompatiblewith_type_annot() {
         testPositiveEntailment("rdfbased_sem_prop_incompatiblewith_type_annot.premise.rdf", "rdfbased_sem_prop_incompatiblewith_type_annot.conclusion.rdf");
     }
@@ -2105,7 +2112,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_prop_incompatiblewith_type_annot.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_isdefinedby_type() {
         testPositiveEntailment("rdfbased_sem_prop_isdefinedby_type.premise.rdf", "rdfbased_sem_prop_isdefinedby_type.conclusion.rdf");
     }
@@ -2115,7 +2123,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_prop_isdefinedby_type.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_label_type() {
         testPositiveEntailment("rdfbased_sem_prop_label_type.premise.rdf", "rdfbased_sem_prop_label_type.conclusion.rdf");
     }
@@ -2125,7 +2134,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_prop_label_type.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_priorversion_type_annot() {
         testPositiveEntailment("rdfbased_sem_prop_priorversion_type_annot.premise.rdf", "rdfbased_sem_prop_priorversion_type_annot.conclusion.rdf");
     }
@@ -2135,7 +2145,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_prop_priorversion_type_annot.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_seealso_type() {
         testPositiveEntailment("rdfbased_sem_prop_seealso_type.premise.rdf", "rdfbased_sem_prop_seealso_type.conclusion.rdf");
     }
@@ -2145,7 +2156,8 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_prop_seealso_type.premise.rdf");
     }
 
-    @Ignore(IGNORE_EXTERNALLY_LOADED) @Test
+    @Ignore(IGNORE_EXTERNALLY_LOADED)
+    @Test
     public void testPositiveEntailment_rdfbased_sem_prop_versioninfo_type() {
         testPositiveEntailment("rdfbased_sem_prop_versioninfo_type.premise.rdf", "rdfbased_sem_prop_versioninfo_type.conclusion.rdf");
     }

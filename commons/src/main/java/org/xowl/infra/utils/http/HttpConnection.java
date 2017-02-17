@@ -18,7 +18,7 @@
 package org.xowl.infra.utils.http;
 
 import org.xowl.infra.utils.Base64;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logging;
 
 import javax.net.ssl.*;
@@ -187,7 +187,7 @@ public class HttpConnection implements Closeable {
      * @return The response, or null if the request failed before reaching the server
      */
     public HttpResponse request(String uriComplement, String method, String body, String contentType, String accept) {
-        return request(uriComplement, method, body.getBytes(Files.CHARSET), contentType, false, accept);
+        return request(uriComplement, method, body.getBytes(IOUtils.CHARSET), contentType, false, accept);
     }
 
     /**
@@ -296,7 +296,7 @@ public class HttpConnection implements Closeable {
             // for codes 4xx and 5xx, use the error stream
             // otherwise use the input stream
             try (InputStream is = ((code >= 400 && code < 600) ? connection.getErrorStream() : connection.getInputStream())) {
-                responseBody = Files.load(is);
+                responseBody = IOUtils.load(is);
             } catch (IOException exception) {
                 Logging.getDefault().error(exception);
             }

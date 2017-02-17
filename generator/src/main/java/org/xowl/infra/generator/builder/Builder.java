@@ -17,7 +17,7 @@
 
 package org.xowl.infra.generator.builder;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import javax.tools.*;
@@ -105,7 +105,7 @@ public class Builder {
             deleteDirectory(folderBuild);
         if (!folderBuild.mkdirs())
             throw new IOException("Failed to create directory " + folderBuild.getAbsolutePath());
-        OutputStreamWriter writer = new OutputStreamWriter(System.out, Files.CHARSET);
+        OutputStreamWriter writer = new OutputStreamWriter(System.out, IOUtils.CHARSET);
         JavaCompiler.CompilationTask task = ToolProvider.getSystemJavaCompiler().getTask(
                 writer,
                 fileManager,

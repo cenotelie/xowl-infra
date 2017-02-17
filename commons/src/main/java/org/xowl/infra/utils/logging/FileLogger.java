@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.logging;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -75,18 +75,18 @@ public class FileLogger implements Logger {
     private synchronized void log(Object message, String level) {
         String date = DateFormat.getDateTimeInstance().format(new Date());
         try (FileOutputStream stream = new FileOutputStream(logFile, true)) {
-            OutputStreamWriter writer = new OutputStreamWriter(stream, Files.CHARSET);
+            OutputStreamWriter writer = new OutputStreamWriter(stream, IOUtils.CHARSET);
             if (message instanceof Throwable) {
                 Throwable ex = (Throwable) message;
                 writer.write(date + " [" + level + "] " + ex.getClass().getName() + (ex.getMessage() != null ? " " + ex.getMessage() : ""));
-                writer.write(Files.LINE_SEPARATOR);
+                writer.write(IOUtils.LINE_SEPARATOR);
                 for (StackTraceElement element : ex.getStackTrace()) {
                     writer.write(date + " [" + level + "] \t" + element.toString());
-                    writer.write(Files.LINE_SEPARATOR);
+                    writer.write(IOUtils.LINE_SEPARATOR);
                 }
             } else {
                 writer.write(date + " [" + level + "] " + message.toString());
-                writer.write(Files.LINE_SEPARATOR);
+                writer.write(IOUtils.LINE_SEPARATOR);
             }
             writer.flush();
         } catch (IOException exception) {

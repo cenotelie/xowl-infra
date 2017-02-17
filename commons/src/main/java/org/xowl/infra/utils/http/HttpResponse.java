@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.http;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
@@ -78,7 +78,7 @@ public class HttpResponse {
         if (bodyBytes != null)
             return bodyBytes;
         if (bodyString != null) {
-            bodyBytes = bodyString.getBytes(Files.CHARSET);
+            bodyBytes = bodyString.getBytes(IOUtils.CHARSET);
             return bodyBytes;
         }
         return null;
@@ -93,7 +93,7 @@ public class HttpResponse {
         if (bodyString != null)
             return bodyString;
         if (bodyBytes != null) {
-            bodyString = new String(bodyBytes, Files.CHARSET);
+            bodyString = new String(bodyBytes, IOUtils.CHARSET);
             return bodyString;
         }
         return null;

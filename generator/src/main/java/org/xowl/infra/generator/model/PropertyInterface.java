@@ -17,7 +17,7 @@
 
 package org.xowl.infra.generator.model;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -92,13 +92,13 @@ public class PropertyInterface extends PropertyData {
      */
     public void writeJavadocAdd(Writer writer, String property) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Adds an element to the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element to add").append(Files.LINE_SEPARATOR);
-        writer.append("     * @return Whether the operation resulted in a new element (false if the element was already there)").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Adds an element to the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element to add").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @return Whether the operation resulted in a new element (false if the element was already there)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -110,13 +110,13 @@ public class PropertyInterface extends PropertyData {
      */
     public void writeJavadocRemove(Writer writer, String property) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Removes an element from the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The element to remove").append(Files.LINE_SEPARATOR);
-        writer.append("     * @return Whether the operation resulted in the element being removed").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Removes an element from the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The element to remove").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @return Whether the operation resulted in the element being removed").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -128,12 +128,12 @@ public class PropertyInterface extends PropertyData {
      */
     public void writeJavadocGetAll(Writer writer, String property) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @return The elements for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Gets all the elements for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @return The elements for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -145,14 +145,14 @@ public class PropertyInterface extends PropertyData {
      */
     public void writeJavadocGetAllTyped(Writer writer, String property) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param type An element of the type expected in result (may be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     *             This parameter is used to disambiguate among overloads.").append(Files.LINE_SEPARATOR);
-        writer.append("     * @return The elements for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Gets all the elements for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param type An element of the type expected in result (may be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *             This parameter is used to disambiguate among overloads.").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @return The elements for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -164,12 +164,12 @@ public class PropertyInterface extends PropertyData {
      */
     public void writeJavadocSet(Writer writer, String property) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Sets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param elem The value to set").append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Sets the value for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param elem The value to set").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -181,12 +181,12 @@ public class PropertyInterface extends PropertyData {
      */
     public void writeJavadocGet(Writer writer, String property) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @return The value for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Gets the value for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @return The value for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -198,14 +198,14 @@ public class PropertyInterface extends PropertyData {
      */
     public void writeJavadocGetTyped(Writer writer, String property) throws IOException {
         String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
-        writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
-        writer.append("     *").append(Files.LINE_SEPARATOR);
-        writer.append("     * @param type An element of the type expected in result (may be null)").append(Files.LINE_SEPARATOR);
-        writer.append("     *             This parameter is used to disambiguate among overloads.").append(Files.LINE_SEPARATOR);
-        writer.append("     * @return The value for the property ").append(property).append(Files.LINE_SEPARATOR);
-        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Gets the value for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @param type An element of the type expected in result (may be null)").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     *             This parameter is used to disambiguate among overloads.").append(IOUtils.LINE_SEPARATOR);
+        writer.append("     * @return The value for the property ").append(property).append(IOUtils.LINE_SEPARATOR);
+        writer.append("     */").append(IOUtils.LINE_SEPARATOR);
     }
 
     /**
@@ -218,21 +218,21 @@ public class PropertyInterface extends PropertyData {
         String name = getJavaName();
 
         writeJavadocAdd(writer, name);
-        writer.append("    boolean add").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    boolean add").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
         writeJavadocRemove(writer, name);
-        writer.append("    boolean remove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    boolean remove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
         if (!model.isObjectProperty() || !inTypeRestrictionChain) {
             writeJavadocGetAll(writer, name);
-            writer.append("    Collection<").append(getJavaRangeVector(parentClass)).append("> getAll").append(name).append("();").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
+            writer.append("    Collection<").append(getJavaRangeVector(parentClass)).append("> getAll").append(name).append("();").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
         } else {
             writeJavadocGetAllTyped(writer, name);
-            writer.append("    Collection<").append(getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(getJavaRangeScalar(parentClass)).append(" type);").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
+            writer.append("    Collection<").append(getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(getJavaRangeScalar(parentClass)).append(" type);").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
         }
     }
 
@@ -246,17 +246,17 @@ public class PropertyInterface extends PropertyData {
         String name = getJavaName();
 
         writeJavadocSet(writer, name);
-        writer.append("    void set").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
-        writer.append(Files.LINE_SEPARATOR);
+        writer.append("    void set").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(IOUtils.LINE_SEPARATOR);
+        writer.append(IOUtils.LINE_SEPARATOR);
 
         if (!model.isObjectProperty() || !inTypeRestrictionChain) {
             writeJavadocGet(writer, name);
-            writer.append("    ").append(getJavaRangeScalar(parentClass)).append(" get").append(name).append("();").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
+            writer.append("    ").append(getJavaRangeScalar(parentClass)).append(" get").append(name).append("();").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
         } else {
             writeJavadocGetTyped(writer, name);
-            writer.append("    ").append(getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(getJavaRangeScalar(parentClass)).append(" type);").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
+            writer.append("    ").append(getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(getJavaRangeScalar(parentClass)).append(" type);").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
         }
     }
 }

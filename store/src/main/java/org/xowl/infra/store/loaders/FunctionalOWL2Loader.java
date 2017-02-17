@@ -20,7 +20,7 @@ package org.xowl.infra.store.loaders;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class FunctionalOWL2Loader implements Loader {
     public ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
         try {
-            String content = Files.read(reader);
+            String content = IOUtils.read(reader);
             FunctionalOWL2Lexer lexer = new FunctionalOWL2Lexer(content);
             FunctionalOWL2Parser parser = new FunctionalOWL2Parser(lexer);
             parser.setModeRecoverErrors(false);

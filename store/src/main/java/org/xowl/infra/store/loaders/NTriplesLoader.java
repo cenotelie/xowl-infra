@@ -24,7 +24,7 @@ import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
@@ -62,7 +62,7 @@ public class NTriplesLoader implements Loader {
     public ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
         try {
-            String content = Files.read(reader);
+            String content = IOUtils.read(reader);
             NTriplesLexer lexer = new NTriplesLexer(content);
             NTriplesParser parser = new NTriplesParser(lexer);
             parser.setModeRecoverErrors(false);

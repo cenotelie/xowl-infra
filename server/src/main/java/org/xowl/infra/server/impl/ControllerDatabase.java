@@ -39,7 +39,7 @@ import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.SHA1;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.BufferedLogger;
@@ -447,8 +447,8 @@ public class ControllerDatabase implements Closeable {
             return null;
         File folder = new File(location, REPO_RULES);
         File file = new File(folder, SHA1.hashSHA1(name));
-        try (Reader reader = Files.getReader(file)) {
-            String definition = Files.read(reader);
+        try (Reader reader = IOUtils.getReader(file)) {
+            String definition = IOUtils.read(reader);
             return new BaseRule(name, definition, actives.contains(name));
         }
     }
@@ -470,8 +470,8 @@ public class ControllerDatabase implements Closeable {
         for (String name : names) {
             File folder = new File(location, REPO_RULES);
             File file = new File(folder, SHA1.hashSHA1(name));
-            try (Reader reader = Files.getReader(file)) {
-                String definition = Files.read(reader);
+            try (Reader reader = IOUtils.getReader(file)) {
+                String definition = IOUtils.read(reader);
                 rules.add(new BaseRule(name, definition, actives.contains(name)));
             }
         }
@@ -510,7 +510,7 @@ public class ControllerDatabase implements Closeable {
             String name = SHA1.hashSHA1(rule.getIRI());
             File file = new File(folder, name);
             try (FileOutputStream stream = new FileOutputStream(file)) {
-                stream.write(content.getBytes(Files.CHARSET));
+                stream.write(content.getBytes(IOUtils.CHARSET));
                 stream.flush();
             }
 
@@ -600,7 +600,7 @@ public class ControllerDatabase implements Closeable {
         BufferedLogger logger = new BufferedLogger();
         try (FileInputStream stream = new FileInputStream(file)) {
             RDFTLoader loader = new RDFTLoader(repository.getStore());
-            RDFLoaderResult result = loader.loadRDF(logger, new InputStreamReader(stream, Files.CHARSET), RULES_RESOURCE, null);
+            RDFLoaderResult result = loader.loadRDF(logger, new InputStreamReader(stream, IOUtils.CHARSET), RULES_RESOURCE, null);
             if (result == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read rule " + iri + ": " + logger.getErrorsAsString());
             RDFRule rule = result.getRules().get(0);
@@ -685,8 +685,8 @@ public class ControllerDatabase implements Closeable {
         }
         BufferedLogger logger = new BufferedLogger();
         File file = new File(folder, SHA1.hashSHA1(name));
-        try (Reader reader = Files.getReader(file)) {
-            String definition = Files.read(reader);
+        try (Reader reader = IOUtils.getReader(file)) {
+            String definition = IOUtils.read(reader);
             ASTNode root = JSONLDLoader.parseJSON(logger, definition);
             if (root == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read procedure " + name + ": " + logger.getErrorsAsString());
@@ -751,7 +751,7 @@ public class ControllerDatabase implements Closeable {
         String name = SHA1.hashSHA1(iri);
         File file = new File(folder, name);
         try (FileOutputStream stream = new FileOutputStream(file)) {
-            stream.write(procedure.serializedJSON().getBytes(Files.CHARSET));
+            stream.write(procedure.serializedJSON().getBytes(IOUtils.CHARSET));
             stream.flush();
         }
 

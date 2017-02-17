@@ -30,6 +30,7 @@ import java.util.Iterator;
 public class BaseDatasetTest {
     /**
      * Tests the getMultiplicity functionality on a store
+     *
      * @param store The store to test
      */
     protected void testMultiplicityEmpty(BaseStore store) {
@@ -49,6 +50,7 @@ public class BaseDatasetTest {
 
     /**
      * Tests the getMultiplicity functionality on a store
+     *
      * @param store The store to test
      */
     protected void testMultiplicitySingle(BaseStore store) throws UnsupportedNodeType {
@@ -65,6 +67,7 @@ public class BaseDatasetTest {
 
     /**
      * Tests the getMultiplicity functionality on a store
+     *
      * @param store The store to test
      */
     protected void testMultiplicityMore(BaseStore store) throws UnsupportedNodeType {
@@ -83,6 +86,7 @@ public class BaseDatasetTest {
 
     /**
      * Tests the getMultiplicity functionality on a store
+     *
      * @param store The store to test
      */
     protected void testMultiplicityOther(BaseStore store) throws UnsupportedNodeType {
@@ -105,6 +109,7 @@ public class BaseDatasetTest {
 
     /**
      * Tests the getAll functionality on a store
+     *
      * @param store The store to test
      */
     protected void testGetAllEmpty(BaseStore store) {
@@ -114,6 +119,7 @@ public class BaseDatasetTest {
 
     /**
      * Tests the getAll functionality on a store
+     *
      * @param store The store to test
      */
     protected void testGetAllSingle(BaseStore store) throws UnsupportedNodeType {

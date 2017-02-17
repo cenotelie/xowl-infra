@@ -25,7 +25,7 @@ import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.GraphPattern;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
@@ -62,7 +62,7 @@ public class RDFTLoader implements Loader {
     public ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
         try {
-            String content = Files.read(reader);
+            String content = IOUtils.read(reader);
             RDFTLexer lexer = new RDFTLexer(content);
             RDFTParser parser = new RDFTParser(lexer);
             parser.setModeRecoverErrors(false);

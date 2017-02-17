@@ -20,7 +20,7 @@ package org.xowl.infra.store.sparql;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
@@ -135,7 +135,7 @@ public class ResultSolutions implements Result {
             writer.write(variables.get(i).getName());
         }
         for (RDFPatternSolution solution : solutions) {
-            writer.write(Files.LINE_SEPARATOR);
+            writer.write(IOUtils.LINE_SEPARATOR);
             for (int i = 0; i != variables.size(); i++) {
                 if (i != 0)
                     writer.write(",");
@@ -177,7 +177,7 @@ public class ResultSolutions implements Result {
             writer.write(variables.get(i).getName());
         }
         for (RDFPatternSolution solution : solutions) {
-            writer.write(Files.LINE_SEPARATOR);
+            writer.write(IOUtils.LINE_SEPARATOR);
             for (int i = 0; i != variables.size(); i++) {
                 if (i != 0)
                     writer.write('\t');

@@ -60,7 +60,7 @@ public class Base64 {
      * @return The decoded string
      */
     public static String decodeBase64AsString(String input) {
-        return new String(decodeBase64(input), Files.CHARSET);
+        return new String(decodeBase64(input), IOUtils.CHARSET);
     }
 
     /**
@@ -107,7 +107,7 @@ public class Base64 {
      * @return The encoded string
      */
     public static String encodeBase64(String input) {
-        return encodeBase64(input.getBytes(Files.CHARSET));
+        return encodeBase64(input.getBytes(IOUtils.CHARSET));
     }
 
     /**

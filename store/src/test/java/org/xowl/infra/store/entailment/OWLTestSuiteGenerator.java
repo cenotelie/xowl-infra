@@ -19,7 +19,7 @@ package org.xowl.infra.store.entailment;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
@@ -83,11 +83,11 @@ public class OWLTestSuiteGenerator {
                 break;
         }
         try {
-            Writer writer = Files.getWriter("src/test/resources/entailment/" + name + ".premise." + syntax);
+            Writer writer = IOUtils.getWriter("src/test/resources/entailment/" + name + ".premise." + syntax);
             writer.write(premise);
             writer.close();
             if (conclusion != null) {
-                writer = Files.getWriter("src/test/resources/entailment/" + name + ".conclusion." + syntax);
+                writer = IOUtils.getWriter("src/test/resources/entailment/" + name + ".conclusion." + syntax);
                 writer.write(conclusion);
                 writer.close();
             }

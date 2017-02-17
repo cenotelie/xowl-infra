@@ -19,7 +19,7 @@ package org.xowl.infra.generator.model;
 
 import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.*;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
@@ -589,28 +589,28 @@ public class ClassModel {
     public void writeInterface(File folder, String header) throws IOException {
         String classIRI = owlClass.getInterpretationOf() != null ? owlClass.getInterpretationOf().getHasIRI().getHasValue() : null;
 
-        try (Writer writer = Files.getWriter(new File(folder, name + ".java").getAbsolutePath())) {
-            String[] lines = header.split(Files.LINE_SEPARATOR);
-            writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
+        try (Writer writer = IOUtils.getWriter(new File(folder, name + ".java").getAbsolutePath())) {
+            String[] lines = header.split(IOUtils.LINE_SEPARATOR);
+            writer.append("/*******************************************************************************").append(IOUtils.LINE_SEPARATOR);
             for (String line : lines) {
                 writer.append(" * ");
                 writer.append(line);
-                writer.append(Files.LINE_SEPARATOR);
+                writer.append(IOUtils.LINE_SEPARATOR);
             }
-            writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
-            writer.append("package ").append(parent.getFullName()).append(";").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
-            writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
+            writer.append(" ******************************************************************************/").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
+            writer.append("package ").append(parent.getFullName()).append(";").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
+            writer.append("import java.util.*;").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
 
-            writer.append("/**").append(Files.LINE_SEPARATOR);
-            writer.append(" * Represents the base interface for ").append(name).append(Files.LINE_SEPARATOR);
+            writer.append("/**").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" * Represents the base interface for ").append(name).append(IOUtils.LINE_SEPARATOR);
             if (classIRI != null)
-                writer.append(" * Original OWL class is ").append(classIRI).append(Files.LINE_SEPARATOR);
-            writer.append(" *").append(Files.LINE_SEPARATOR);
-            writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
-            writer.append(" */").append(Files.LINE_SEPARATOR);
+                writer.append(" * Original OWL class is ").append(classIRI).append(IOUtils.LINE_SEPARATOR);
+            writer.append(" *").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" * @author xOWL code generator").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" */").append(IOUtils.LINE_SEPARATOR);
             writer.append("public interface ").append(name);
 
             boolean first = true;
@@ -622,12 +622,12 @@ public class ClassModel {
                 writer.append(parent.getJavaName(this));
                 first = false;
             }
-            writer.append(" {").append(Files.LINE_SEPARATOR);
+            writer.append(" {").append(IOUtils.LINE_SEPARATOR);
 
             for (PropertyInterface inter : getPropertyInterfaces())
                 inter.writeInterface(writer);
 
-            writer.append("}").append(Files.LINE_SEPARATOR);
+            writer.append("}").append(IOUtils.LINE_SEPARATOR);
             writer.flush();
         }
     }
@@ -657,33 +657,33 @@ public class ClassModel {
             }
         });
 
-        try (Writer writer = Files.getWriter(new File(folder, nameImpl + ".java").getAbsolutePath())) {
-            String[] lines = header.split(Files.LINE_SEPARATOR);
-            writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
+        try (Writer writer = IOUtils.getWriter(new File(folder, nameImpl + ".java").getAbsolutePath())) {
+            String[] lines = header.split(IOUtils.LINE_SEPARATOR);
+            writer.append("/*******************************************************************************").append(IOUtils.LINE_SEPARATOR);
             for (String line : lines) {
                 writer.append(" * ");
                 writer.append(line);
-                writer.append(Files.LINE_SEPARATOR);
+                writer.append(IOUtils.LINE_SEPARATOR);
             }
-            writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
-            writer.append("package ").append(parent.getModel().getBasePackage()).append(".impl;").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
-            writer.append("import ").append(parent.getFullName()).append(".*;").append(Files.LINE_SEPARATOR);
+            writer.append(" ******************************************************************************/").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
+            writer.append("package ").append(parent.getModel().getBasePackage()).append(".impl;").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
+            writer.append("import ").append(parent.getFullName()).append(".*;").append(IOUtils.LINE_SEPARATOR);
             for (ClassModel importedClass : explicitImports)
-                writer.append("import ").append(parent.getFullName()).append(".").append(importedClass.name).append(";").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
-            writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
+                writer.append("import ").append(parent.getFullName()).append(".").append(importedClass.name).append(";").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
+            writer.append("import java.util.*;").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
 
-            writer.append("/**").append(Files.LINE_SEPARATOR);
-            writer.append(" * The default implementation for ").append(name).append(Files.LINE_SEPARATOR);
+            writer.append("/**").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" * The default implementation for ").append(name).append(IOUtils.LINE_SEPARATOR);
             if (classIRI != null)
-                writer.append(" * Original OWL class is ").append(classIRI).append(Files.LINE_SEPARATOR);
-            writer.append(" *").append(Files.LINE_SEPARATOR);
-            writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
-            writer.append(" */").append(Files.LINE_SEPARATOR);
-            writer.append("public class ").append(nameImpl).append(" implements ").append(name).append(" {").append(Files.LINE_SEPARATOR);
+                writer.append(" * Original OWL class is ").append(classIRI).append(IOUtils.LINE_SEPARATOR);
+            writer.append(" *").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" * @author xOWL code generator").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" */").append(IOUtils.LINE_SEPARATOR);
+            writer.append("public class ").append(nameImpl).append(" implements ").append(name).append(" {").append(IOUtils.LINE_SEPARATOR);
 
             List<PropertyImplementation> implementations = new ArrayList<>(getPropertyImplementations());
             Collections.sort(implementations, new Comparator<PropertyImplementation>() {
@@ -703,15 +703,15 @@ public class ClassModel {
             }
 
             // writes constructor
-            writer.append("    /**").append(Files.LINE_SEPARATOR);
-            writer.append("     * Constructor for the implementation of ").append(name).append(Files.LINE_SEPARATOR);
-            writer.append("     */").append(Files.LINE_SEPARATOR);
-            writer.append("    public ").append(nameImpl).append("() {").append(Files.LINE_SEPARATOR);
+            writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+            writer.append("     * Constructor for the implementation of ").append(name).append(IOUtils.LINE_SEPARATOR);
+            writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+            writer.append("    public ").append(nameImpl).append("() {").append(IOUtils.LINE_SEPARATOR);
             for (PropertyImplementation implementation : implementations) {
                 implementation.writeStandaloneConstructor(writer);
             }
-            writer.append("    }").append(Files.LINE_SEPARATOR);
-            writer.append("}").append(Files.LINE_SEPARATOR);
+            writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+            writer.append("}").append(IOUtils.LINE_SEPARATOR);
             writer.flush();
         }
     }

@@ -30,7 +30,7 @@ import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.writers.NQuadsSerializer;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.http.HttpConnection;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
@@ -1099,7 +1099,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         try {
             ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
             GZIPOutputStream compressor = new GZIPOutputStream(byteBuffer);
-            input = content.getBytes(Files.CHARSET);
+            input = content.getBytes(IOUtils.CHARSET);
             compressor.write(input, 0, input.length);
             compressor.finish();
             input = byteBuffer.toByteArray();

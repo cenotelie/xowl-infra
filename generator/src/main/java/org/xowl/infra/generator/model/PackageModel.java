@@ -22,7 +22,7 @@ import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.lang.runtime.Interpretation;
 import org.xowl.infra.lang.runtime.Property;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -243,29 +243,29 @@ public class PackageModel {
     private void writeStandaloneFactory(File folder, String header) throws IOException {
         String factoryName = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1) + "Factory";
 
-        try (Writer writer = Files.getWriter(new File(folder, factoryName + ".java").getAbsolutePath())) {
-            String[] lines = header.split(Files.LINE_SEPARATOR);
-            writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
+        try (Writer writer = IOUtils.getWriter(new File(folder, factoryName + ".java").getAbsolutePath())) {
+            String[] lines = header.split(IOUtils.LINE_SEPARATOR);
+            writer.append("/*******************************************************************************").append(IOUtils.LINE_SEPARATOR);
             for (String line : lines) {
                 writer.append(" * ");
                 writer.append(line);
-                writer.append(Files.LINE_SEPARATOR);
+                writer.append(IOUtils.LINE_SEPARATOR);
             }
-            writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
-            writer.append("package ").append(getFullName()).append(";").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
-            writer.append("import ").append(parent.getBasePackage()).append(".impl.*;").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
-            writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
-            writer.append(Files.LINE_SEPARATOR);
+            writer.append(" ******************************************************************************/").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
+            writer.append("package ").append(getFullName()).append(";").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
+            writer.append("import ").append(parent.getBasePackage()).append(".impl.*;").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
+            writer.append("import java.util.*;").append(IOUtils.LINE_SEPARATOR);
+            writer.append(IOUtils.LINE_SEPARATOR);
 
-            writer.append("/**").append(Files.LINE_SEPARATOR);
-            writer.append(" * The default implementation for the concrete OWL class ").append(getName()).append(Files.LINE_SEPARATOR);
-            writer.append(" *").append(Files.LINE_SEPARATOR);
-            writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
-            writer.append(" */").append(Files.LINE_SEPARATOR);
-            writer.append("public class ").append(factoryName).append(" {").append(Files.LINE_SEPARATOR);
+            writer.append("/**").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" * The default implementation for the concrete OWL class ").append(getName()).append(IOUtils.LINE_SEPARATOR);
+            writer.append(" *").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" * @author xOWL code generator").append(IOUtils.LINE_SEPARATOR);
+            writer.append(" */").append(IOUtils.LINE_SEPARATOR);
+            writer.append("public class ").append(factoryName).append(" {").append(IOUtils.LINE_SEPARATOR);
 
             List<ClassModel> classes = new ArrayList<>(this.classes.values());
             Collections.sort(classes, new Comparator<ClassModel>() {
@@ -277,18 +277,18 @@ public class PackageModel {
             for (ClassModel classModel : classes) {
                 if (classModel.isAbstract())
                     continue;
-                writer.append("    /**").append(Files.LINE_SEPARATOR);
-                writer.append("     * Creates a new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
-                writer.append("     *").append(Files.LINE_SEPARATOR);
-                writer.append("     * @return A new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
-                writer.append("     */").append(Files.LINE_SEPARATOR);
-                writer.append("    public static ").append(classModel.getName()).append(" new").append(classModel.getName()).append("() {").append(Files.LINE_SEPARATOR);
-                writer.append("        return new ").append(classModel.getJavaImplName()).append("();").append(Files.LINE_SEPARATOR);
-                writer.append("    }").append(Files.LINE_SEPARATOR);
-                writer.append(Files.LINE_SEPARATOR);
+                writer.append("    /**").append(IOUtils.LINE_SEPARATOR);
+                writer.append("     * Creates a new instance of ").append(classModel.getName()).append(IOUtils.LINE_SEPARATOR);
+                writer.append("     *").append(IOUtils.LINE_SEPARATOR);
+                writer.append("     * @return A new instance of ").append(classModel.getName()).append(IOUtils.LINE_SEPARATOR);
+                writer.append("     */").append(IOUtils.LINE_SEPARATOR);
+                writer.append("    public static ").append(classModel.getName()).append(" new").append(classModel.getName()).append("() {").append(IOUtils.LINE_SEPARATOR);
+                writer.append("        return new ").append(classModel.getJavaImplName()).append("();").append(IOUtils.LINE_SEPARATOR);
+                writer.append("    }").append(IOUtils.LINE_SEPARATOR);
+                writer.append(IOUtils.LINE_SEPARATOR);
             }
 
-            writer.append("}").append(Files.LINE_SEPARATOR);
+            writer.append("}").append(IOUtils.LINE_SEPARATOR);
             writer.flush();
         }
     }

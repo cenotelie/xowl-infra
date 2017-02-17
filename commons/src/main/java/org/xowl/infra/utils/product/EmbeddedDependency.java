@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.product;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
@@ -74,7 +74,7 @@ public class EmbeddedDependency implements Identifiable, Serializable {
     public EmbeddedDependency(Class<?> type, String identifier) throws IOException {
         try (InputStream stream = type.getResourceAsStream("/META-INF/dependencies/" + identifier)) {
             Configuration configuration = new Configuration();
-            configuration.load(stream, Files.CHARSET);
+            configuration.load(stream, IOUtils.CHARSET);
             this.identifier = identifier;
             this.contentType = configuration.get("type");
             this.name = configuration.get("name");

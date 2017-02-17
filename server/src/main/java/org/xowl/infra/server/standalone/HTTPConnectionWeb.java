@@ -18,7 +18,7 @@
 package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.Logging;
@@ -132,7 +132,7 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
             return;
         }
         try {
-            byte[] buffer = Files.load(input);
+            byte[] buffer = IOUtils.load(input);
             input.close();
             data = new Resource(buffer, getMime(resource));
         } catch (IOException exception) {
@@ -206,7 +206,7 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
      * @param message The response body message
      */
     private void response(int code, String message) {
-        byte[] buffer = message != null ? message.getBytes(Files.CHARSET) : new byte[0];
+        byte[] buffer = message != null ? message.getBytes(IOUtils.CHARSET) : new byte[0];
         Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
             httpExchange.sendResponseHeaders(code, buffer.length);

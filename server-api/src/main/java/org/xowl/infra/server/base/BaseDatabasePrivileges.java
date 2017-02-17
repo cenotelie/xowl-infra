@@ -21,7 +21,7 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLDatabasePrivileges;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.api.XOWLUser;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 
 import java.util.ArrayList;
@@ -164,7 +164,7 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
             if (users[i] == null)
                 break;
             if (i != 0)
-                builder.append(Files.LINE_SEPARATOR);
+                builder.append(IOUtils.LINE_SEPARATOR);
             boolean canAdmin = (privileges[i] & XOWLPrivilege.ADMIN) == XOWLPrivilege.ADMIN;
             boolean canWrite = (privileges[i] & XOWLPrivilege.WRITE) == XOWLPrivilege.WRITE;
             boolean canRead = (privileges[i] & XOWLPrivilege.READ) == XOWLPrivilege.READ;

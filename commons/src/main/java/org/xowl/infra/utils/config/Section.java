@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.config;
 
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
@@ -182,11 +182,11 @@ public class Section {
             writer.write("[");
             writer.write(name);
             writer.write("]");
-            writer.write(Files.LINE_SEPARATOR);
+            writer.write(IOUtils.LINE_SEPARATOR);
         }
         for (String option : keys) {
             for (String value : properties.get(option)) {
-                writer.write(option + " = " + TextUtils.escapeStringBaseDoubleQuote(value) + Files.LINE_SEPARATOR);
+                writer.write(option + " = " + TextUtils.escapeStringBaseDoubleQuote(value) + IOUtils.LINE_SEPARATOR);
             }
         }
     }
