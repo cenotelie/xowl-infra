@@ -90,6 +90,28 @@ public class IOUtils {
     }
 
     /**
+     * Gets a reader for the specified file, automatically detecting encoding based on BOM
+     *
+     * @param file A file
+     * @return A reader for the file
+     * @throws IOException When reading failed
+     */
+    public static Reader getAutoReader(String file) throws IOException {
+        return new AutoReader(new FileInputStream(file));
+    }
+
+    /**
+     * Gets a reader for the specified file, automatically detecting encoding based on BOM
+     *
+     * @param file A file
+     * @return A reader for the file
+     * @throws IOException When reading failed
+     */
+    public static Reader getAutoReader(File file) throws IOException {
+        return new InputStreamReader(new FileInputStream(file));
+    }
+
+    /**
      * Reads the complete content of the specified stream with the specified charset
      *
      * @param stream  A stream
