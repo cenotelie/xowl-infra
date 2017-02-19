@@ -509,9 +509,9 @@ public class ControllerDatabase implements Closeable {
             RDFRule rule = result.getRules().get(0);
             String name = SHA1.hashSHA1(rule.getIRI());
             File file = new File(folder, name);
-            try (FileOutputStream stream = new FileOutputStream(file)) {
-                stream.write(content.getBytes(IOUtils.CHARSET));
-                stream.flush();
+            try (Writer writer = IOUtils.getWriter(file)) {
+                writer.write(content);
+                writer.flush();
             }
 
             synchronized (configuration) {
@@ -598,9 +598,9 @@ public class ControllerDatabase implements Closeable {
         File folder = new File(location, REPO_RULES);
         File file = new File(folder, SHA1.hashSHA1(iri));
         BufferedLogger logger = new BufferedLogger();
-        try (FileInputStream stream = new FileInputStream(file)) {
+        try (Reader reader = IOUtils.getReader(file)) {
             RDFTLoader loader = new RDFTLoader(repository.getStore());
-            RDFLoaderResult result = loader.loadRDF(logger, new InputStreamReader(stream, IOUtils.CHARSET), RULES_RESOURCE, null);
+            RDFLoaderResult result = loader.loadRDF(logger, reader, RULES_RESOURCE, null);
             if (result == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read rule " + iri + ": " + logger.getErrorsAsString());
             RDFRule rule = result.getRules().get(0);
@@ -750,9 +750,9 @@ public class ControllerDatabase implements Closeable {
 
         String name = SHA1.hashSHA1(iri);
         File file = new File(folder, name);
-        try (FileOutputStream stream = new FileOutputStream(file)) {
-            stream.write(procedure.serializedJSON().getBytes(IOUtils.CHARSET));
-            stream.flush();
+        try (Writer writer = IOUtils.getWriter(file)) {
+            writer.write(procedure.serializedJSON());
+            writer.flush();
         }
 
         synchronized (procedures) {

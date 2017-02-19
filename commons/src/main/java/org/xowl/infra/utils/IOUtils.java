@@ -53,7 +53,7 @@ public class IOUtils {
      * @throws IOException When writing fails
      */
     public static Writer getWriter(String file) throws IOException {
-        return new OutputStreamWriter(new FileOutputStream(file), CHARSET);
+        return getWriter(file, false);
     }
 
     /**
@@ -64,7 +64,31 @@ public class IOUtils {
      * @throws IOException When writing fails
      */
     public static Writer getWriter(File file) throws IOException {
-        return new OutputStreamWriter(new FileOutputStream(file), CHARSET);
+        return getWriter(file, false);
+    }
+
+    /**
+     * Gets a writer for the specified file
+     *
+     * @param file   A file
+     * @param append Whether to append to the file (do not overwrite)
+     * @return A writer for the file
+     * @throws IOException When writing fails
+     */
+    public static Writer getWriter(String file, boolean append) throws IOException {
+        return new OutputStreamWriter(new FileOutputStream(file, append), CHARSET);
+    }
+
+    /**
+     * Gets a writer for the specified file
+     *
+     * @param file   A file
+     * @param append Whether to append to the file (do not overwrite)
+     * @return A writer for the file
+     * @throws IOException When writing fails
+     */
+    public static Writer getWriter(File file, boolean append) throws IOException {
+        return new OutputStreamWriter(new FileOutputStream(file, append), CHARSET);
     }
 
     /**

@@ -763,8 +763,7 @@ public abstract class Repository {
             InputStream stream = jar.getInputStream(jar.getEntry(parts[1]));
             return new InputStreamReader(stream, IOUtils.CHARSET);
         } else if (resource.startsWith(SCHEME_FILE)) {
-            FileInputStream stream = new FileInputStream(resource.substring(SCHEME_FILE.length()));
-            return new InputStreamReader(stream, IOUtils.CHARSET);
+            return IOUtils.getReader(resource.substring(SCHEME_FILE.length()));
         }
         throw new IOException("Cannot read from resource " + resource);
     }
@@ -788,8 +787,7 @@ public abstract class Repository {
             // cannot write to jar
             return null;
         } else if (resource.startsWith(SCHEME_FILE)) {
-            FileOutputStream stream = new FileOutputStream(resource.substring(SCHEME_FILE.length()));
-            return new OutputStreamWriter(stream, IOUtils.CHARSET);
+            return IOUtils.getWriter(resource.substring(SCHEME_FILE.length()));
         }
         throw new IOException("Cannot write to resource " + resource);
     }
