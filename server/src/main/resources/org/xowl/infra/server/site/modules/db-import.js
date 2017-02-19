@@ -86,5 +86,5 @@ function onImport() {
 			progressBar.style.width = "100%";
 		}, dbName, selectedMIME, reader.result);
 	}
-	reader.readAsBinaryString(file);
+	reader.readAsArrayBuffer(file);
 }
