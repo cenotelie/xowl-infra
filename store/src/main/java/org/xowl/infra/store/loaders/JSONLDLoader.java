@@ -154,13 +154,24 @@ public abstract class JSONLDLoader implements Loader {
      * @return The AST root node, or null of the parsing failed
      */
     public static ASTNode parseJSON(Logger logger, String content) {
+        return parseJSON(logger, new StringReader(content));
+    }
+
+    /**
+     * Parses the JSON content
+     *
+     * @param logger The logger to use
+     * @param reader The reader with the content to parse
+     * @return The AST root node, or null of the parsing failed
+     */
+    public static ASTNode parseJSON(Logger logger, Reader reader) {
         JSONLDLoader loader = new JSONLDLoader(null) {
             @Override
             protected Reader getReaderFor(Logger logger, String iri) {
                 return null;
             }
         };
-        ParseResult result = loader.parse(logger, new StringReader(content));
+        ParseResult result = loader.parse(logger, reader);
         if (result == null)
             return null;
         if (!result.getErrors().isEmpty()) {

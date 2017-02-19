@@ -686,8 +686,7 @@ public class ControllerDatabase implements Closeable {
         BufferedLogger logger = new BufferedLogger();
         File file = new File(folder, SHA1.hashSHA1(name));
         try (Reader reader = IOUtils.getReader(file)) {
-            String definition = IOUtils.read(reader);
-            ASTNode root = JSONLDLoader.parseJSON(logger, definition);
+            ASTNode root = JSONLDLoader.parseJSON(logger, reader);
             if (root == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read procedure " + name + ": " + logger.getErrorsAsString());
             BaseStoredProcedure procedure = new BaseStoredProcedure(root, repository.getStore(), logger);
