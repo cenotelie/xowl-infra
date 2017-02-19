@@ -60,7 +60,10 @@ public class XSPReplyException implements XSPReply {
 
     @Override
     public String getMessage() {
-        return throwable != null ? throwable.getMessage() : MESSAGE;
+        if (throwable == null)
+            return MESSAGE;
+        String message = throwable.getMessage();
+        return message != null ? message : MESSAGE;
     }
 
     @Override
