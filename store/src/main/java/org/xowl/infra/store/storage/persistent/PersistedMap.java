@@ -748,10 +748,10 @@ class PersistedMap {
     private void doMergeInternals(IOAccess father, IOAccess left, IOAccess right, int indexLeft, int countLeft, int countRight) {
         left.seek(8 + 2).writeChar((char) (countLeft + countRight + 1));
         // use the key for the left node in the father as the key for the remainder on the left
-        long leftKey = father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).readLong();
-        left.seek(HEAD_SIZE + countLeft * CHILD_SIZE).writeLong(leftKey);
+        long leftKey = father.seek(NODE_HEADER + indexLeft * CHILD_SIZE).readLong();
+        left.seek(NODE_HEADER + countLeft * CHILD_SIZE).writeLong(leftKey);
         left.skip(8);
-        right.seek(HEAD_SIZE);
+        right.seek(NODE_HEADER);
         for (int i = 0; i != countRight + 1; i++) {
             left.writeLong(right.readLong());
             left.writeLong(right.readLong());
@@ -775,30 +775,30 @@ class PersistedMap {
         left.seek(8 + 2).writeChar((char) (countLeft + transferred));
         right.seek(8 + 2).writeChar((char) (countRight - transferred));
         // use the key for the left node in the father as the key for the remainder on the left
-        long leftKey = father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).readLong();
-        left.seek(HEAD_SIZE + countLeft * CHILD_SIZE).writeLong(leftKey);
+        long leftKey = father.seek(NODE_HEADER + indexLeft * CHILD_SIZE).readLong();
+        left.seek(NODE_HEADER + countLeft * CHILD_SIZE).writeLong(leftKey);
         left.skip(8);
-        right.seek(HEAD_SIZE);
+        right.seek(NODE_HEADER);
         for (int i = 0; i != transferred - 1; i++) {
             left.writeLong(right.readLong());
             left.writeLong(right.readLong());
         }
         // write key for the new remainder
-        left.seek(HEAD_SIZE + (countLeft + transferred) * CHILD_SIZE).writeLong(0);
+        left.seek(NODE_HEADER + (countLeft + transferred) * CHILD_SIZE).writeLong(0);
         // repack the right node
         long firstKey = 0;
         for (int i = transferred; i != countRight + 1; i++) {
-            right.seek(HEAD_SIZE + i * CHILD_SIZE);
+            right.seek(NODE_HEADER + i * CHILD_SIZE);
             long key = right.readLong();
             long value = right.readLong();
             if (i == transferred)
                 firstKey = key;
-            right.seek(HEAD_SIZE + (i - transferred) * CHILD_SIZE);
+            right.seek(NODE_HEADER + (i - transferred) * CHILD_SIZE);
             right.writeLong(key);
             right.writeLong(value);
         }
         // update the father
-        father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
+        father.seek(NODE_HEADER + indexLeft * CHILD_SIZE).writeLong(firstKey);
     }
 
     /**
@@ -817,19 +817,19 @@ class PersistedMap {
         right.seek(8 + 2).writeChar((char) (countRight + transferred));
         // move the current data in the right node
         for (int i = countRight; i != -1; i--) {
-            right.seek(HEAD_SIZE + i * CHILD_SIZE);
+            right.seek(NODE_HEADER + i * CHILD_SIZE);
             long key = right.readLong();
             long value = right.readLong();
-            right.seek(HEAD_SIZE + (i + transferred) * CHILD_SIZE);
+            right.seek(NODE_HEADER + (i + transferred) * CHILD_SIZE);
             right.writeLong(key);
             right.writeLong(value);
         }
         // use the key for the left node in the father as the key for the remainder on the left
-        long leftKey = father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).readLong();
-        left.seek(HEAD_SIZE + countLeft * CHILD_SIZE).writeLong(leftKey);
+        long leftKey = father.seek(NODE_HEADER + indexLeft * CHILD_SIZE).readLong();
+        left.seek(NODE_HEADER + countLeft * CHILD_SIZE).writeLong(leftKey);
         // transfer
-        left.seek(HEAD_SIZE + (countLeft - transferred + 1) * CHILD_SIZE);
-        right.seek(HEAD_SIZE);
+        left.seek(NODE_HEADER + (countLeft - transferred + 1) * CHILD_SIZE);
+        right.seek(NODE_HEADER);
         long firstKey = 0;
         for (int i = 0; i != transferred; i++) {
             long key = left.readLong();
@@ -839,9 +839,9 @@ class PersistedMap {
             right.writeLong(left.readLong());
         }
         // write key for the new remainder
-        left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE).writeLong(0);
+        left.seek(NODE_HEADER + (countLeft - transferred) * CHILD_SIZE).writeLong(0);
         // update the father
-        father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
+        father.seek(NODE_HEADER + indexLeft * CHILD_SIZE).writeLong(firstKey);
     }
 
     /**
@@ -902,8 +902,8 @@ class PersistedMap {
      */
     private void doMergeLeaves(IOAccess father, IOAccess left, IOAccess right, int indexLeft, int countLeft, int countRight) {
         left.seek(8 + 2).writeChar((char) (countLeft + countRight));
-        left.seek(HEAD_SIZE + countLeft * CHILD_SIZE);
-        right.seek(HEAD_SIZE);
+        left.seek(NODE_HEADER + countLeft * CHILD_SIZE);
+        right.seek(NODE_HEADER);
         for (int i = 0; i != countRight + 1; i++) {
             left.writeLong(right.readLong());
             left.writeLong(right.readLong());
@@ -927,8 +927,8 @@ class PersistedMap {
         int transferred = countRight - N;
         left.seek(8 + 2).writeChar((char) (countLeft + transferred));
         right.seek(8 + 2).writeChar((char) (countRight - transferred));
-        left.seek(HEAD_SIZE + countLeft * CHILD_SIZE);
-        right.seek(HEAD_SIZE);
+        left.seek(NODE_HEADER + countLeft * CHILD_SIZE);
+        right.seek(NODE_HEADER);
         for (int i = 0; i != transferred; i++) {
             left.writeLong(right.readLong());
             left.writeLong(right.readLong());
@@ -938,17 +938,17 @@ class PersistedMap {
         // repack the right node
         long firstKey = 0;
         for (int i = transferred; i != countRight + 1; i++) {
-            right.seek(HEAD_SIZE + i * CHILD_SIZE);
+            right.seek(NODE_HEADER + i * CHILD_SIZE);
             long key = right.readLong();
             long value = right.readLong();
             if (i == transferred)
                 firstKey = key;
-            right.seek(HEAD_SIZE + (i - transferred) * CHILD_SIZE);
+            right.seek(NODE_HEADER + (i - transferred) * CHILD_SIZE);
             right.writeLong(key);
             right.writeLong(value);
         }
         // update the father
-        father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
+        father.seek(NODE_HEADER + indexLeft * CHILD_SIZE).writeLong(firstKey);
     }
 
     /**
@@ -968,16 +968,16 @@ class PersistedMap {
         right.seek(8 + 2).writeChar((char) (countRight + transferred));
         // move the current data in the right node
         for (int i = countRight; i != -1; i--) {
-            right.seek(HEAD_SIZE + i * CHILD_SIZE);
+            right.seek(NODE_HEADER + i * CHILD_SIZE);
             long key = right.readLong();
             long value = right.readLong();
-            right.seek(HEAD_SIZE + (i + transferred) * CHILD_SIZE);
+            right.seek(NODE_HEADER + (i + transferred) * CHILD_SIZE);
             right.writeLong(key);
             right.writeLong(value);
         }
         // transfer
-        left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE);
-        right.seek(HEAD_SIZE);
+        left.seek(NODE_HEADER + (countLeft - transferred) * CHILD_SIZE);
+        right.seek(NODE_HEADER);
         long firstKey = 0;
         for (int i = 0; i != transferred; i++) {
             long key = left.readLong();
@@ -986,10 +986,10 @@ class PersistedMap {
             right.writeLong(key);
             right.writeLong(left.readLong());
         }
-        left.seek(HEAD_SIZE + (countLeft - transferred) * CHILD_SIZE);
+        left.seek(NODE_HEADER + (countLeft - transferred) * CHILD_SIZE);
         left.writeLong(0);
         left.writeLong(neighbourRight);
-        father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(firstKey);
+        father.seek(NODE_HEADER + indexLeft * CHILD_SIZE).writeLong(firstKey);
     }
 
     /**
@@ -1003,13 +1003,13 @@ class PersistedMap {
         // the father node loses a key
         father.seek(8 + 2).writeChar((char) (countFather - 1));
         // shift the keys and pointers
-        long keyRight = father.seek(HEAD_SIZE + (indexLeft + 1) * CHILD_SIZE).readLong();
-        father.seek(HEAD_SIZE + indexLeft * CHILD_SIZE).writeLong(keyRight);
+        long keyRight = father.seek(NODE_HEADER + (indexLeft + 1) * CHILD_SIZE).readLong();
+        father.seek(NODE_HEADER + indexLeft * CHILD_SIZE).writeLong(keyRight);
         for (int i = indexLeft + 2; i < countFather + 2; i++) {
-            father.seek(HEAD_SIZE + i * CHILD_SIZE);
+            father.seek(NODE_HEADER + i * CHILD_SIZE);
             long key = father.readLong();
             long value = father.readLong();
-            father.seek(HEAD_SIZE + (i - 1) * CHILD_SIZE);
+            father.seek(NODE_HEADER + (i - 1) * CHILD_SIZE);
             father.writeLong(key);
             father.writeLong(value);
         }
@@ -1205,7 +1205,7 @@ class PersistedMap {
                         loadLeafNode(accessCurrent);
                         break;
                     } else {
-                        long next = accessCurrent.seek(HEAD_SIZE + 8).readLong();
+                        long next = accessCurrent.seek(NODE_HEADER + 8).readLong();
                         // free the father if any, rotate the accesses and access the next node
                         if (accessFather != null)
                             accessFather.close();
