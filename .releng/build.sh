@@ -9,7 +9,6 @@ VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -f "$ROO
 HASH=$(hg -R "$ROOT" --debug id -i)
 TIME=$(date +'%d/%m/%Y %T')
 echo "Building artifacts for version $VERSION ($HASH)"
-mvn clean install -f "$ROOT/pom.xml" -Dgpg.skip=true
 
 # Extract the core products
 cp "$ROOT/server/target/xowl-server-$VERSION-jar-with-dependencies.jar" "$RELENG/xowl-server.jar"
