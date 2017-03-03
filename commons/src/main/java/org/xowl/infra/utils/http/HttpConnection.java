@@ -19,6 +19,7 @@ package org.xowl.infra.utils.http;
 
 import org.xowl.infra.utils.Base64;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logging;
 
 import javax.net.ssl.*;
@@ -214,6 +215,26 @@ public class HttpConnection implements Closeable {
      * @return The response, or null if the request failed before reaching the server
      */
     public HttpResponse request(String uriComplement, String method, byte[] body, String contentType, boolean compressed, String accept) {
+        Collection<Couple<String, String>> headers = new ArrayList<>(3);
+        if (accept != null)
+            headers.add(new Couple<>("Accept", accept));
+        if (body != null && contentType != null)
+            headers.add(new Couple<>("Content-Type", contentType));
+        if (body != null && compressed)
+            headers.add(new Couple<>("Content-Encoding", "gzip"));
+        return request(uriComplement, method, body, headers);
+    }
+
+    /**
+     * Sends an HTTP request to the endpoint, completed with an URI complement
+     *
+     * @param uriComplement The URI complement to append to the original endpoint URI, if any
+     * @param method        The HTTP method to use, if any
+     * @param body          The request body, if any
+     * @param headers       The headers for the request
+     * @return The response, or null if the request failed before reaching the server
+     */
+    public HttpResponse request(String uriComplement, String method, byte[] body, Collection<Couple<String, String>> headers) {
         URL url;
         try {
             url = new URL((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
@@ -240,8 +261,9 @@ public class HttpConnection implements Closeable {
             Logging.getDefault().error(exception);
             return null;
         }
-        if (accept != null)
-            connection.setRequestProperty("Accept", accept);
+
+        for (Couple<String, String> header : headers)
+            connection.setRequestProperty(header.x, header.y);
         if (authToken != null)
             connection.setRequestProperty("Authorization", "Basic " + authToken);
         if (!cookies.isEmpty()) {
@@ -259,11 +281,8 @@ public class HttpConnection implements Closeable {
         }
         connection.setUseCaches(false);
         connection.setDoOutput(true);
+
         if (body != null) {
-            if (contentType != null)
-                connection.setRequestProperty("Content-Type", contentType);
-            if (compressed)
-                connection.setRequestProperty("Content-Encoding", "gzip");
             try (OutputStream stream = connection.getOutputStream()) {
                 stream.write(body);
             } catch (IOException exception) {
