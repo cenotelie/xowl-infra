@@ -217,11 +217,11 @@ public class HttpConnection implements Closeable {
     public HttpResponse request(String uriComplement, String method, byte[] body, String contentType, boolean compressed, String accept) {
         Collection<Couple<String, String>> headers = new ArrayList<>(3);
         if (accept != null)
-            headers.add(new Couple<>("Accept", accept));
+            headers.add(new Couple<>(HttpConstants.HEADER_ACCEPT, accept));
         if (body != null && contentType != null)
-            headers.add(new Couple<>("Content-Type", contentType));
+            headers.add(new Couple<>(HttpConstants.HEADER_CONTENT_TYPE, contentType));
         if (body != null && compressed)
-            headers.add(new Couple<>("Content-Encoding", "gzip"));
+            headers.add(new Couple<>(HttpConstants.HEADER_CONTENT_ENCODING, "gzip"));
         return request(uriComplement, method, body, headers);
     }
 
@@ -256,7 +256,7 @@ public class HttpConnection implements Closeable {
             ((HttpsURLConnection) connection).setSSLSocketFactory(sslContext.getSocketFactory());
         }
         try {
-            connection.setRequestMethod(method == null || method.isEmpty() ? "GET" : method);
+            connection.setRequestMethod(method == null || method.isEmpty() ? HttpConstants.METHOD_GET : method);
         } catch (ProtocolException exception) {
             Logging.getDefault().error(exception);
             return null;
@@ -300,14 +300,6 @@ public class HttpConnection implements Closeable {
             return null;
         }
 
-        List<String> values = connection.getHeaderFields().get(HttpConstants.HEADER_SET_COOKIE);
-        if (values != null) {
-            for (String value : values) {
-                Cookie cookie = new Cookie(value);
-                cookies.put(cookie.name, cookie);
-            }
-        }
-
         String responseContentType = connection.getContentType();
         byte[] responseBody = null;
         if (connection.getContentLengthLong() == -1 || connection.getContentLengthLong() > 0) {
@@ -321,6 +313,22 @@ public class HttpConnection implements Closeable {
             }
         }
         connection.disconnect();
-        return new HttpResponse(code, responseContentType, responseBody);
+
+        HttpResponse response = new HttpResponse(code, responseContentType, responseBody);
+        for (Map.Entry<String, List<String>> header : connection.getHeaderFields().entrySet()) {
+            if (header.getValue() == null)
+                continue;
+            if (HttpConstants.HEADER_SET_COOKIE.equalsIgnoreCase(header.getKey())) {
+                for (String value : header.getValue()) {
+                    Cookie cookie = new Cookie(value);
+                    cookies.put(cookie.name, cookie);
+                }
+            } else {
+                for (String value : header.getValue()) {
+                    response.addHeader(header.getKey(), value);
+                }
+            }
+        }
+        return response;
     }
 }
