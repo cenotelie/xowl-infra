@@ -1250,7 +1250,7 @@ class PersistedMap {
                 try (IOAccess access = store.accessR(currentNeighbour)) {
                     loadLeafNode(access);
                 } catch (StorageException exception) {
-                    Logging.getDefault().error(exception);
+                    Logging.get().error(exception);
                 }
             }
             return result;
@@ -1263,7 +1263,7 @@ class PersistedMap {
                 // this may fail if the map was modified
                 tryRemove(result.key, result.value);
             } catch (StorageException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
         }
     }

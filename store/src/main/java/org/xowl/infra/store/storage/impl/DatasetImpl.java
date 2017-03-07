@@ -93,7 +93,7 @@ public abstract class DatasetImpl implements Dataset {
         try {
             return getAll(null, null, null, null);
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -113,7 +113,7 @@ public abstract class DatasetImpl implements Dataset {
         try {
             return count(null, null, null, null);
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return 0;
         }
     }

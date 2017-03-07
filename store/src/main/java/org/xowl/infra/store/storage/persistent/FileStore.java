@@ -161,7 +161,7 @@ class FileStore implements AutoCloseable {
             try {
                 files.get(i).flush();
             } catch (StorageException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
                 success = false;
             }
         }
@@ -174,7 +174,7 @@ class FileStore implements AutoCloseable {
             try {
                 files.get(i).close();
             } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
         }
     }
@@ -193,11 +193,11 @@ class FileStore implements AutoCloseable {
             try {
                 files.get(i).close();
             } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
             File target = new File(directory, getNameFor(name, i));
             if (!target.delete()) {
-                Logging.getDefault().error("Failed to delete file " + target.getAbsolutePath());
+                Logging.get().error("Failed to delete file " + target.getAbsolutePath());
             }
         }
         files.clear();
@@ -206,7 +206,7 @@ class FileStore implements AutoCloseable {
             FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false, false);
             files.add(first);
         } catch (StorageException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
 
         state.set(STATE_READY);

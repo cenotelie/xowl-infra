@@ -272,7 +272,7 @@ public class ResultUtils {
      */
     private static Result parseResponseQuads(String content, Loader loader) {
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(Logging.getDefault(), bufferedLogger);
+        DispatchLogger dispatchLogger = new DispatchLogger(Logging.get(), bufferedLogger);
         RDFLoaderResult loaderResult = loader.loadRDF(dispatchLogger, new StringReader(content), null, IRIs.GRAPH_DEFAULT);
         if (loaderResult == null) {
             dispatchLogger.error("Failed to parse and load the quads");

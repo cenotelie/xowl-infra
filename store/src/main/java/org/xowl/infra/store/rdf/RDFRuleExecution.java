@@ -148,7 +148,7 @@ public abstract class RDFRuleExecution implements Serializable {
             writer.append("}}");
             return writer.toString();
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return null;
         }
     }

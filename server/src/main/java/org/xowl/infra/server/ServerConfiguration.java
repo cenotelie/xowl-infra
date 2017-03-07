@@ -70,7 +70,7 @@ public class ServerConfiguration {
         try {
             confDefault.load(stream, IOUtils.CHARSET);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         startupLocation = startupDirectory != null ? new File(startupDirectory) : new File(System.getProperty("user.dir"));
         File file = new File(startupLocation, FILE_NAME);
@@ -79,12 +79,12 @@ public class ServerConfiguration {
                 confFile.load(file);
             }
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         root = new File(startupLocation, getValue(null, "repository"));
         if (!root.exists()) {
             if (!root.mkdirs()) {
-                Logging.getDefault().error("Failed to create the repository folder for the databases");
+                Logging.get().error("Failed to create the repository folder for the databases");
             }
         }
     }
@@ -279,7 +279,7 @@ public class ServerConfiguration {
         try {
             confFile.save(new File(startupLocation, FILE_NAME));
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
     }
 }

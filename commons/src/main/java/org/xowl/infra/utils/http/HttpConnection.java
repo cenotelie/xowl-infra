@@ -158,7 +158,7 @@ public class HttpConnection implements Closeable {
             sc = SSLContext.getInstance("TLSv1.2");
             sc.init(null, new TrustManager[]{TRUST_MANAGER_ACCEPT_ALL}, new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         this.sslContext = sc;
         this.hostnameVerifier = HOSTNAME_VERIFIER_ACCEPT_ALL;
@@ -239,7 +239,7 @@ public class HttpConnection implements Closeable {
         try {
             url = new URL((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
         } catch (MalformedURLException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return null;
         }
 
@@ -247,7 +247,7 @@ public class HttpConnection implements Closeable {
         try {
             connection = (HttpURLConnection) url.openConnection();
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return null;
         }
         if (connection instanceof HttpsURLConnection) {
@@ -258,7 +258,7 @@ public class HttpConnection implements Closeable {
         try {
             connection.setRequestMethod(method == null || method.isEmpty() ? HttpConstants.METHOD_GET : method);
         } catch (ProtocolException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return null;
         }
 
@@ -286,7 +286,7 @@ public class HttpConnection implements Closeable {
             try (OutputStream stream = connection.getOutputStream()) {
                 stream.write(body);
             } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
                 return null;
             }
         }
@@ -295,7 +295,7 @@ public class HttpConnection implements Closeable {
         try {
             code = connection.getResponseCode();
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             connection.disconnect();
             return null;
         }
@@ -309,7 +309,7 @@ public class HttpConnection implements Closeable {
             try (InputStream is = ((code >= 400 && code < 600) ? connection.getErrorStream() : connection.getInputStream())) {
                 responseBody = IOUtils.load(is);
             } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
         }
         connection.disconnect();

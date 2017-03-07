@@ -115,7 +115,7 @@ public class RDFParser {
             while (iterator.hasNext())
                 quads.add(iterator.next());
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         execute(quads);
         return axioms;
@@ -457,7 +457,7 @@ public class RDFParser {
                 results.add(iterator.next().getObject());
             }
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         return results;
     }
@@ -475,7 +475,7 @@ public class RDFParser {
                 return null;
             return iterator.next();
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return null;
         }
     }

@@ -99,7 +99,7 @@ public class HTTPServer implements Closeable {
             }
             return new Couple<>(keyStore, password);
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return null;
         }
     }
@@ -124,13 +124,13 @@ public class HTTPServer implements Closeable {
      * @param controller    The current controller
      */
     public HTTPServer(ServerConfiguration configuration, final ControllerServer controller) {
-        Logging.getDefault().info("Initializing the HTTPS server ...");
+        Logging.get().info("Initializing the HTTPS server ...");
         this.configuration = configuration;
         SSLContext sslContext = null;
         Couple<KeyStore, String> ssl = getKeyStore(configuration);
         if (ssl != null) {
             try {
-                Logging.getDefault().info("Setting up SSL");
+                Logging.get().info("Setting up SSL");
                 KeyManagerFactory keyManager = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                 keyManager.init(ssl.x, ssl.y.toCharArray());
                 TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -138,7 +138,7 @@ public class HTTPServer implements Closeable {
                 sslContext = SSLContext.getInstance("TLSv1.2");
                 sslContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
         }
         InetSocketAddress address = new InetSocketAddress(
@@ -146,10 +146,10 @@ public class HTTPServer implements Closeable {
                 configuration.getHttpPort());
         HttpsServer temp = null;
         try {
-            Logging.getDefault().info("Creating the HTTPS server");
+            Logging.get().info("Creating the HTTPS server");
             temp = HttpsServer.create(address, configuration.getHttpBacklog());
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         if (temp != null && sslContext != null) {
             server = temp;
@@ -159,7 +159,7 @@ public class HTTPServer implements Closeable {
                     try {
                         ((new HTTPConnectionApiV1(controller, httpExchange))).run();
                     } catch (Exception exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                     }
                 }
             });
@@ -180,11 +180,11 @@ public class HTTPServer implements Closeable {
                         params.setProtocols(engine.getEnabledProtocols());
                         params.setSSLParameters(defaultSSLContext.getDefaultSSLParameters());
                     } catch (NoSuchAlgorithmException exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                     }
                 }
             });
-            Logging.getDefault().info("HTTPS server is ready");
+            Logging.get().info("HTTPS server is ready");
         } else {
             server = null;
         }

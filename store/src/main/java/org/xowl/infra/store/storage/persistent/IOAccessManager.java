@@ -567,7 +567,7 @@ class IOAccessManager {
         try {
             backend.onAccessTerminated(access, access.element);
         } catch (StorageException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         onAccess(listRemove(access.identifier));
     }

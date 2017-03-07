@@ -72,7 +72,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      * @param exchange   The HTTP exchange to treat
      */
     public HTTPConnectionApiV1(ControllerServer controller, HttpExchange exchange) {
-        super(Logging.getDefault());
+        super(Logging.get());
         this.controller = controller;
         this.httpExchange = exchange;
     }
@@ -149,7 +149,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         try {
             password = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         XSPReply reply = controller.login(httpExchange.getRemoteAddress().getAddress(), logins.get(0), password);
@@ -351,7 +351,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         try {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         return response(controller.upload(client, name, contentType, body));
@@ -400,7 +400,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         try {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         switch (method) {
@@ -442,7 +442,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     String body = Utils.getRequestBody(httpExchange);
                     return response(controller.setEntailmentRegime(client, name, body));
                 } catch (IOException exception) {
-                    Logging.getDefault().error(exception);
+                    Logging.get().error(exception);
                     return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                 }
             case HttpConstants.METHOD_DELETE:
@@ -514,7 +514,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                         String body = Utils.getRequestBody(httpExchange);
                         return response(controller.addRule(client, name, body, actives != null && !actives.isEmpty() && actives.get(0).equals("true")));
                     } catch (IOException exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                         return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                     }
                 }
@@ -584,10 +584,10 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     ASTNode root = JSONLDLoader.parseJSON(logger, body);
                     if (root == null)
                         return response(new XSPReplyApiError(ApiV1.ERROR_CONTENT_PARSING_FAILED, logger.getErrorsAsString()));
-                    BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, Logging.getDefault());
+                    BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, Logging.get());
                     return response(controller.addStoredProcedure(client, name, procedure.getName(), procedure.getDefinition(), procedure.getParameters()));
                 } catch (IOException exception) {
-                    Logging.getDefault().error(exception);
+                    Logging.get().error(exception);
                     return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                 }
             }
@@ -596,7 +596,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     String body = Utils.getRequestBody(httpExchange);
                     return response(controller.executeStoredProcedure(client, name, procedureId, body));
                 } catch (IOException exception) {
-                    Logging.getDefault().error(exception);
+                    Logging.get().error(exception);
                     return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                 }
             }
@@ -652,7 +652,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     String password = Utils.getRequestBody(httpExchange);
                     return response(controller.createUser(client, name, password));
                 } catch (IOException exception) {
-                    Logging.getDefault().error(exception);
+                    Logging.get().error(exception);
                     return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
                 }
             }
@@ -674,7 +674,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         try {
             password = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         return response(controller.updatePassword(client, name, password));
@@ -734,12 +734,12 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         try {
             httpExchange.sendResponseHeaders(code, 0);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         try (OutputStream stream = httpExchange.getResponseBody()) {
             stream.write(EMPTY_MESSAGE);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return code;
         }
         return code;
@@ -760,12 +760,12 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 httpExchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.MIME_TEXT_PLAIN);
             httpExchange.sendResponseHeaders(code, buffer.length);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         try (OutputStream stream = httpExchange.getResponseBody()) {
             stream.write(buffer);
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return code;
         }
         return code;

@@ -190,9 +190,9 @@ public class Program {
             repository.getIRIMapper().addRegexpMap(mapping.x, mapping.y);
         for (String input : inputs) {
             try {
-                repository.load(Logging.getDefault(), input);
+                repository.load(Logging.get(), input);
             } catch (Exception exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
         }
 

@@ -468,12 +468,12 @@ public class RDFRuleEngine implements ChangeListener {
             // invalidate the consequents of all executions of the rule
             Changeset changeset = data.original.produce(execution, outputStore, evaluator);
             if (changeset == null) {
-                Logging.getDefault().error("Failed to process changeset for rule " + data.original.getIRI());
+                Logging.get().error("Failed to process changeset for rule " + data.original.getIRI());
             } else {
                 try {
                     outputStore.insert(Changeset.reverse(changeset));
                 } catch (UnsupportedNodeType ex) {
-                    Logging.getDefault().error(ex);
+                    Logging.get().error(ex);
                 }
             }
         }
@@ -558,7 +558,7 @@ public class RDFRuleEngine implements ChangeListener {
             for (RDFRuleExecution execution : requests) {
                 Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
                 if (changeset == null) {
-                    Logging.getDefault().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
+                    Logging.get().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
                     continue;
                 }
                 io.addChangesetNegative(changeset);
@@ -569,7 +569,7 @@ public class RDFRuleEngine implements ChangeListener {
             for (RDFRuleExecution execution : requests) {
                 Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
                 if (changeset == null) {
-                    Logging.getDefault().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
+                    Logging.get().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
                     continue;
                 }
                 io.addChangeset(changeset);
@@ -580,7 +580,7 @@ public class RDFRuleEngine implements ChangeListener {
                 try {
                     outputStore.insert(Changeset.fromAddedRemoved(io.checkoutPositivesQuads(), io.checkoutNegativeQuads()));
                 } catch (UnsupportedNodeType ex) {
-                    Logging.getDefault().error(ex);
+                    Logging.get().error(ex);
                 }
             }
         }

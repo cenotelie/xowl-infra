@@ -138,7 +138,7 @@ public class OWLRuleEngine {
             positiveNormal.clear();
             positiveMeta.clear();
         } catch (TranslationException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         rdfRules.put(rule, rdfRule);
         owlRules.put(rdfRule, new Couple<>(translationContext, rule));

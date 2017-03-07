@@ -59,7 +59,7 @@ class Utils {
                         "xOWL Triple Store Server",
                         Program.class);
             } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
         }
         return PRODUCT;
@@ -80,7 +80,7 @@ class Utils {
             try {
                 DEPENDENCIES = Collections.unmodifiableCollection(EmbeddedDependency.getDependenciesFor(Program.class));
             } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
         }
         return DEPENDENCIES;
@@ -150,14 +150,14 @@ class Utils {
                 try {
                     key = URLDecoder.decode(param[0], IOUtils.CHARSET.name()).trim();
                 } catch (UnsupportedEncodingException exception) {
-                    Logging.getDefault().error(exception);
+                    Logging.get().error(exception);
                 }
             }
             if (param.length > 1) {
                 try {
                     value = URLDecoder.decode(param[1], IOUtils.CHARSET.name()).trim();
                 } catch (UnsupportedEncodingException exception) {
-                    Logging.getDefault().error(exception);
+                    Logging.get().error(exception);
                 }
             }
             if (key != null && !key.isEmpty() && value != null && !value.isEmpty()) {

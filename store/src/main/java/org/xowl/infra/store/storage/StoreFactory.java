@@ -135,7 +135,7 @@ public class StoreFactory {
                             location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
                         primary = new OnDiskStore(location, isReadonly);
                     } catch (IOException | StorageException exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                         return null;
                     }
                     break;

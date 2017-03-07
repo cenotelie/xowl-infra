@@ -244,7 +244,7 @@ public class RepositoryRDF extends Repository {
                 }
             }));
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -377,18 +377,18 @@ public class RepositoryRDF extends Repository {
         this.regime = regime;
         switch (this.regime) {
             case RDF:
-                load(Logging.getDefault(), IRIs.RDF);
+                load(Logging.get(), IRIs.RDF);
                 break;
             case RDFS:
-                load(Logging.getDefault(), IRIs.RDFS);
+                load(Logging.get(), IRIs.RDFS);
                 break;
             case OWL2_RDF:
             case OWL2_DIRECT:
-                load(Logging.getDefault(), IRIs.RDF);
-                load(Logging.getDefault(), IRIs.RDFS);
-                load(Logging.getDefault(), IRIs.OWL2);
-                load(Logging.getDefault(), IRIs.XOWL_RULES + "owl2");
-                load(Logging.getDefault(), IRIs.XOWL_RULES + "xowl");
+                load(Logging.get(), IRIs.RDF);
+                load(Logging.get(), IRIs.RDFS);
+                load(Logging.get(), IRIs.OWL2);
+                load(Logging.get(), IRIs.XOWL_RULES + "owl2");
+                load(Logging.get(), IRIs.XOWL_RULES + "xowl");
                 break;
         }
     }

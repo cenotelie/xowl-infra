@@ -46,7 +46,7 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
      * @param exchange The HTTP exchange to treat
      */
     public HTTPConnectionWeb(HttpExchange exchange) {
-        super(Logging.getDefault());
+        super(Logging.get());
         this.httpExchange = exchange;
     }
 

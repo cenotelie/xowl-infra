@@ -343,7 +343,7 @@ public abstract class DatatypeModel {
             Constructor constructor = datatypeClass.getConstructor(Datatype.class, String.class);
             datatypeModel = (DatatypeModel) constructor.newInstance(datatype, iri);
         } catch (Exception exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         return datatypeModel;
     }

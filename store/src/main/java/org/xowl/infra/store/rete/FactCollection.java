@@ -67,7 +67,7 @@ class FactCollection implements Collection<Quad> {
         try {
             return store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -79,7 +79,7 @@ class FactCollection implements Collection<Quad> {
         try {
             size = (int) store.count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         return size;
     }
@@ -122,7 +122,7 @@ class FactCollection implements Collection<Quad> {
             boolean result = iterator.hasNext();
             return result;
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return false;
         }
     }

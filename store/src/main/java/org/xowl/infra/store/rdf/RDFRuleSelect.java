@@ -223,7 +223,7 @@ public class RDFRuleSelect extends RDFRule {
         try {
             onSolutionsChanged(handler, antecedent.eval(state));
         } catch (EvalException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
     }
 
@@ -234,7 +234,7 @@ public class RDFRuleSelect extends RDFRule {
         try {
             onSolutionsChanged(handler, antecedent.eval(state));
         } catch (EvalException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
     }
 

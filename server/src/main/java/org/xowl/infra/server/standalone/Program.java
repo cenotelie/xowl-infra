@@ -130,14 +130,14 @@ public class Program {
      * @return Whether the operation succeeded
      */
     private boolean init() {
-        Logging.getDefault().info("Starting the server ...");
+        Logging.get().info("Starting the server ...");
         if (!configuration.getDatabasesFolder().exists()) {
-            Logging.getDefault().error("The repository location does not exist: " + configuration.getDatabasesFolder().getAbsolutePath());
+            Logging.get().error("The repository location does not exist: " + configuration.getDatabasesFolder().getAbsolutePath());
             System.exit(1);
             return false;
         }
         try {
-            controller = new ControllerServer(Logging.getDefault(), configuration) {
+            controller = new ControllerServer(Logging.get(), configuration) {
 
                 @Override
                 public void onRequestShutdown() {
@@ -154,7 +154,7 @@ public class Program {
                 }
             };
         } catch (Exception exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return false;
         }
         httpServer = new HTTPServer(configuration, controller);
@@ -168,16 +168,16 @@ public class Program {
     private synchronized void onClose() {
         if (controller == null)
             return;
-        Logging.getDefault().info("Shutting down this server ...");
+        Logging.get().info("Shutting down this server ...");
         try {
             httpServer.close();
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         try {
             controller.close();
         } catch (IOException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         httpServer = null;
         controller = null;

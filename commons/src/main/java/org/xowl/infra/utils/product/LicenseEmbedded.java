@@ -71,7 +71,7 @@ public class LicenseEmbedded implements License {
             try (InputStream stream = type.getResourceAsStream(resource)) {
                 fullText = IOUtils.read(stream, IOUtils.CHARSET);
             } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                Logging.get().error(exception);
             }
         }
         return fullText;

@@ -101,7 +101,7 @@ class OnDiskStore extends BaseStore {
             persistedDataset.close();
         } catch (Exception exception) {
             if (toThrow != null)
-                Logging.getDefault().error(toThrow);
+                Logging.get().error(toThrow);
             toThrow = exception;
         }
         if (toThrow != null)

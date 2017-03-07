@@ -63,7 +63,7 @@ public class SSLGenerator {
                             System.out.println(scan.nextLine());
                         }
                     } catch (IOException exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                     }
                 }
             }).start();
@@ -80,7 +80,7 @@ public class SSLGenerator {
             process.waitFor();
             return password;
         } catch (IOException | InterruptedException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return null;
         }
     }

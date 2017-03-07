@@ -93,7 +93,7 @@ class DiffDataset extends DatasetImpl {
                         long mp = diffPositives == null ? 0 : diffPositives.getMultiplicity(quad);
                         return (quad.modifyMultiplicity(mp - mn) <= 0) ? null : quad;
                     } catch (UnsupportedNodeType exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                         return quad;
                     }
                 }
@@ -108,7 +108,7 @@ class DiffDataset extends DatasetImpl {
                         long m = original.getMultiplicity(quad);
                         return (m > 0) ? null : quad;
                     } catch (UnsupportedNodeType exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                         return quad;
                     }
                 }
@@ -134,7 +134,7 @@ class DiffDataset extends DatasetImpl {
                     try {
                         original.add(quad);
                     } catch (UnsupportedNodeType exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                     }
                 }
             }
@@ -148,7 +148,7 @@ class DiffDataset extends DatasetImpl {
                     try {
                         original.remove(quad);
                     } catch (UnsupportedNodeType exception) {
-                        Logging.getDefault().error(exception);
+                        Logging.get().error(exception);
                     }
                 }
             }

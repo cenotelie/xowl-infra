@@ -78,7 +78,7 @@ public class ClosingQuadIterator implements Iterator<Quad> {
                 try {
                     content.push(store.getAll(null, blank, null, null));
                 } catch (UnsupportedNodeType exception) {
-                    Logging.getDefault().error(exception);
+                    Logging.get().error(exception);
                 }
                 explored.add(blank);
             }

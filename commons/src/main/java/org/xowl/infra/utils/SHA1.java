@@ -62,7 +62,7 @@ public class SHA1 {
             }
             return new String(chars);
         } catch (NoSuchAlgorithmException exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return "";
         }
     }

@@ -45,7 +45,7 @@ public abstract class SafeRunnable implements Runnable {
         try {
             doRun();
         } catch (Throwable error1) {
-            Logging.getDefault().error(error1);
+            Logging.get().error(error1);
             try {
                 onRunFailed(error1);
             } catch (Throwable error2) {

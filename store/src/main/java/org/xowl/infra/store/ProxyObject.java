@@ -365,7 +365,7 @@ public class ProxyObject {
                 }
             }));
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -395,7 +395,7 @@ public class ProxyObject {
                 }
             }
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         return result;
     }
@@ -425,7 +425,7 @@ public class ProxyObject {
                 }
             }
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         return result;
     }
@@ -454,7 +454,7 @@ public class ProxyObject {
                 }
             }
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         return result;
     }
@@ -515,7 +515,7 @@ public class ProxyObject {
             long count = repository.getStore().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
             return count > 1;
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return false;
         }
     }
@@ -572,7 +572,7 @@ public class ProxyObject {
                 return ((IRINode) rangeNode).getIRIValue();
             // range is defined, but is either a blank, or an anonymous node, return xsd:String
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         return Vocabulary.xsdString;
     }

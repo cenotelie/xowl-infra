@@ -99,7 +99,7 @@ public class ListIterator implements Iterator<Node> {
             Iterator<Quad> iterator = dataset.getAll(node, property, null);
             return iterator.hasNext() ? iterator.next().getObject() : null;
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
             return null;
         }
     }

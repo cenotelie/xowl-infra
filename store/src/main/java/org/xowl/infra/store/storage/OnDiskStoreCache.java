@@ -84,7 +84,7 @@ class OnDiskStoreCache extends DatasetImpl {
             while (iterator.hasNext())
                 dataset.add(iterator.next());
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         CachedDataset old = cachedSubjects.putIfAbsent(subject, dataset);
         return old != null ? old : dataset;
@@ -106,7 +106,7 @@ class OnDiskStoreCache extends DatasetImpl {
             while (iterator.hasNext())
                 dataset.add(iterator.next());
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
         CachedDataset old = cachedGraphs.putIfAbsent(graph, dataset);
         return old != null ? old : dataset;
@@ -195,7 +195,7 @@ class OnDiskStoreCache extends DatasetImpl {
                 invalidate(quad.getSubject());
             }
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
     }
 
@@ -212,7 +212,7 @@ class OnDiskStoreCache extends DatasetImpl {
                 invalidate(quad.getSubject());
             }
         } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
+            Logging.get().error(exception);
         }
     }
 
