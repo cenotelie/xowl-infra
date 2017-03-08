@@ -45,6 +45,11 @@ import java.util.*;
  */
 public class HttpConnection implements Closeable {
     /**
+     * The default user agent
+     */
+    public static final String USER_AGENT_DEFAULT = "xOWLHttpClient/1.0 (http://xowl.org/)";
+
+    /**
      * Represents a trust manager that accepts all certificates
      */
     private static final TrustManager TRUST_MANAGER_ACCEPT_ALL = new X509TrustManager() {
@@ -124,9 +129,17 @@ public class HttpConnection implements Closeable {
      */
     private final HostnameVerifier hostnameVerifier;
     /**
+     * The user agent to use
+     */
+    private final String userAgent;
+    /**
      * URI of the endpoint
      */
     private final String endpoint;
+    /**
+     * The host part for the Host header
+     */
+    private final String host;
     /**
      * The cookies for this connection
      */
@@ -162,7 +175,10 @@ public class HttpConnection implements Closeable {
         }
         this.sslContext = sc;
         this.hostnameVerifier = HOSTNAME_VERIFIER_ACCEPT_ALL;
+        this.userAgent = USER_AGENT_DEFAULT;
         this.endpoint = endpoint;
+        String[] components = URIUtils.parse(endpoint);
+        this.host = components[URIUtils.COMPONENT_AUTHORITY];
         this.cookies = new HashMap<>();
         if (login != null && password != null) {
             String buffer = (login + ":" + password);
@@ -216,12 +232,23 @@ public class HttpConnection implements Closeable {
      */
     public HttpResponse request(String uriComplement, String method, byte[] body, String contentType, boolean compressed, String accept) {
         Collection<Couple<String, String>> headers = new ArrayList<>(3);
+        if (host != null)
+            headers.add(new Couple<>(HttpConstants.HEADER_HOST, host));
+        else {
+            String[] components = URIUtils.parse((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
+            String host = components[URIUtils.COMPONENT_AUTHORITY];
+            if (host != null)
+                headers.add(new Couple<>(HttpConstants.HEADER_HOST, host));
+        }
+        headers.add(new Couple<>(HttpConstants.HEADER_USER_AGENT, userAgent));
         if (accept != null)
             headers.add(new Couple<>(HttpConstants.HEADER_ACCEPT, accept));
         if (body != null && contentType != null)
             headers.add(new Couple<>(HttpConstants.HEADER_CONTENT_TYPE, contentType));
         if (body != null && compressed)
             headers.add(new Couple<>(HttpConstants.HEADER_CONTENT_ENCODING, "gzip"));
+        if (body != null)
+            headers.add(new Couple<>(HttpConstants.HEADER_CONTENT_LENGTH, Integer.toString(body.length)));
         return request(uriComplement, method, body, headers);
     }
 

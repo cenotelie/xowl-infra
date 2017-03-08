@@ -34,19 +34,19 @@ public class URIUtils {
      */
     public static final int COMPONENT_SCHEME = 0;
     /**
-     * Identifier of the scheme component of an URI
+     * Identifier of the authority component of an URI
      */
     public static final int COMPONENT_AUTHORITY = 1;
     /**
-     * Identifier of the scheme component of an URI
+     * Identifier of the path component of an URI
      */
     public static final int COMPONENT_PATH = 2;
     /**
-     * Identifier of the scheme component of an URI
+     * Identifier of the query component of an URI
      */
     public static final int COMPONENT_QUERY = 3;
     /**
-     * Identifier of the scheme component of an URI
+     * Identifier of the fragment component of an URI
      */
     public static final int COMPONENT_FRAGMENT = 4;
 

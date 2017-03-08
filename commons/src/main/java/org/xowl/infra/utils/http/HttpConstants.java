@@ -67,6 +67,12 @@ public interface HttpConstants {
      */
     String HEADER_HOST = "Host";
     /**
+     * The HTTP User-Agent header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent">User-Agent header on MDN</a>
+     */
+    String HEADER_USER_AGENT = "User-Agent";
+    /**
      * The HTTP Content-Type header.
      *
      * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type">Content-Type header on MDN</a>
@@ -78,6 +84,12 @@ public interface HttpConstants {
      * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding">Content-Encoding header on MDN</a>
      */
     String HEADER_CONTENT_ENCODING = "Content-Encoding";
+    /**
+     * The HTTP Content-Length header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length">Content-Length header on MDN</a>
+     */
+    String HEADER_CONTENT_LENGTH = "Content-Length";
     /**
      * The HTTP Accept header.
      *
@@ -155,6 +167,10 @@ public interface HttpConstants {
      * The MIME type for octet stream
      */
     String MIME_OCTET_STREAM = "binary/octet-stream";
+    /**
+     * The MIME type for URL encoded content
+     */
+    String MIME_URLENCODED = "application/x-www-form-urlencoded";
     /**
      * The MIME type for multipart mixed messages
      */
