@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -47,7 +45,7 @@ public class HttpConnection implements Closeable {
     /**
      * The default user agent
      */
-    public static final String USER_AGENT_DEFAULT = "xOWLHttpClient/1.0 (http://xowl.org/)";
+    public static final String USER_AGENT_DEFAULT = "Mozilla/5.0 (X11; Linux x86_64) xOWL/1.0";
 
     /**
      * Represents a trust manager that accepts all certificates
@@ -231,25 +229,14 @@ public class HttpConnection implements Closeable {
      * @return The response, or null if the request failed before reaching the server
      */
     public HttpResponse request(String uriComplement, String method, byte[] body, String contentType, boolean compressed, String accept) {
-        Collection<Couple<String, String>> headers = new ArrayList<>(3);
-        if (host != null)
-            headers.add(new Couple<>(HttpConstants.HEADER_HOST, host));
-        else {
-            String[] components = URIUtils.parse((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
-            String host = components[URIUtils.COMPONENT_AUTHORITY];
-            if (host != null)
-                headers.add(new Couple<>(HttpConstants.HEADER_HOST, host));
+        String uri = (endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : "");
+        try {
+            HttpURLConnection connection = createConnection(uri, method, body, contentType, compressed, accept);
+            return doConnect(connection, body);
+        } catch (IOException exception) {
+            Logging.get().error(exception);
+            return null;
         }
-        headers.add(new Couple<>(HttpConstants.HEADER_USER_AGENT, userAgent));
-        if (accept != null)
-            headers.add(new Couple<>(HttpConstants.HEADER_ACCEPT, accept));
-        if (body != null && contentType != null)
-            headers.add(new Couple<>(HttpConstants.HEADER_CONTENT_TYPE, contentType));
-        if (body != null && compressed)
-            headers.add(new Couple<>(HttpConstants.HEADER_CONTENT_ENCODING, "gzip"));
-        if (body != null)
-            headers.add(new Couple<>(HttpConstants.HEADER_CONTENT_LENGTH, Integer.toString(body.length)));
-        return request(uriComplement, method, body, headers);
     }
 
     /**
@@ -258,41 +245,68 @@ public class HttpConnection implements Closeable {
      * @param uriComplement The URI complement to append to the original endpoint URI, if any
      * @param method        The HTTP method to use, if any
      * @param body          The request body, if any
-     * @param headers       The headers for the request
+     * @param contentType   The request body content type, if any
+     * @param compressed    Whether the body is compressed with gzip
+     * @param accept        The MIME type to accept for the response, if any
+     * @param headers       The additional HTTP headers if any
      * @return The response, or null if the request failed before reaching the server
      */
-    public HttpResponse request(String uriComplement, String method, byte[] body, Collection<Couple<String, String>> headers) {
-        URL url;
+    public HttpResponse request(String uriComplement, String method, byte[] body, String contentType, boolean compressed, String accept, Couple... headers) {
+        String uri = (endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : "");
         try {
-            url = new URL((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
-        } catch (MalformedURLException exception) {
-            Logging.get().error(exception);
-            return null;
-        }
-
-        HttpURLConnection connection;
-        try {
-            connection = (HttpURLConnection) url.openConnection();
+            HttpURLConnection connection = createConnection(uri, method, body, contentType, compressed, accept);
+            if (headers != null) {
+                for (int i = 0; i != headers.length; i++) {
+                    if (headers[i] != null) {
+                        connection.setRequestProperty(headers[i].x.toString(), headers[i].y.toString());
+                    }
+                }
+            }
+            return doConnect(connection, body);
         } catch (IOException exception) {
             Logging.get().error(exception);
             return null;
         }
+    }
+
+    /**
+     * Creates the connection
+     *
+     * @param uri         The target URI to connect to
+     * @param method      The HTTP method to use, if any
+     * @param body        The request body, if any
+     * @param contentType The request body content type, if any
+     * @param compressed  Whether the body is compressed with gzip
+     * @param accept      The MIME type to accept for the response, if any
+     * @return The created connection,or null if there was an error
+     * @throws IOException When the connection cannot be opened
+     */
+    private HttpURLConnection createConnection(String uri, String method, byte[] body, String contentType, boolean compressed, String accept) throws IOException {
+        URL url = new URL(uri);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         if (connection instanceof HttpsURLConnection) {
             // for SSL connections we should do this
             ((HttpsURLConnection) connection).setHostnameVerifier(hostnameVerifier);
             ((HttpsURLConnection) connection).setSSLSocketFactory(sslContext.getSocketFactory());
         }
-        try {
-            connection.setRequestMethod(method == null || method.isEmpty() ? HttpConstants.METHOD_GET : method);
-        } catch (ProtocolException exception) {
-            Logging.get().error(exception);
-            return null;
-        }
+        connection.setRequestMethod(method == null || method.isEmpty() ? HttpConstants.METHOD_GET : method);
 
-        for (Couple<String, String> header : headers)
-            connection.setRequestProperty(header.x, header.y);
+        // Host header
+        if (host != null)
+            connection.setRequestProperty(HttpConstants.HEADER_HOST, host);
+        else {
+            String[] components = URIUtils.parse(uri);
+            String host = components[URIUtils.COMPONENT_AUTHORITY];
+            if (host != null)
+                connection.setRequestProperty(HttpConstants.HEADER_HOST, host);
+        }
+        connection.setRequestProperty(HttpConstants.HEADER_USER_AGENT, userAgent);
+
+        // Authorization header
         if (authToken != null)
-            connection.setRequestProperty("Authorization", "Basic " + authToken);
+            connection.setRequestProperty(HttpConstants.HEADER_AUTHORIZATION, "Basic " + authToken);
+
+        // Cookie header
         if (!cookies.isEmpty()) {
             StringBuilder builder = new StringBuilder();
             boolean first = true;
@@ -306,9 +320,33 @@ public class HttpConnection implements Closeable {
             }
             connection.setRequestProperty(HttpConstants.HEADER_COOKIE, builder.toString());
         }
+
+        // Accept header
+        if (accept != null)
+            connection.setRequestProperty(HttpConstants.HEADER_ACCEPT, accept);
+
+        // Content-* headers
+        if (body != null) {
+            if (contentType != null)
+                connection.setRequestProperty(HttpConstants.HEADER_CONTENT_TYPE, contentType);
+            if (compressed)
+                connection.setRequestProperty(HttpConstants.HEADER_CONTENT_ENCODING, "gzip");
+            connection.setRequestProperty(HttpConstants.HEADER_CONTENT_LENGTH, Integer.toString(body.length));
+        }
+
         connection.setUseCaches(false);
         connection.setDoOutput(true);
+        return connection;
+    }
 
+    /**
+     * Makes the HTTP connection
+     *
+     * @param connection The connection
+     * @param body       The request body, if any
+     * @return The response, or null if the request failed before reaching the server
+     */
+    private HttpResponse doConnect(HttpURLConnection connection, byte[] body) {
         if (body != null) {
             try (OutputStream stream = connection.getOutputStream()) {
                 stream.write(body);

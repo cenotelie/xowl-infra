@@ -73,6 +73,12 @@ public interface HttpConstants {
      */
     String HEADER_USER_AGENT = "User-Agent";
     /**
+     * The HTTP Authorization header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization">Authorization header on MDN</a>
+     */
+    String HEADER_AUTHORIZATION = "Authorization";
+    /**
      * The HTTP Content-Type header.
      *
      * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type">Content-Type header on MDN</a>
