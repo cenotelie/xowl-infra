@@ -289,6 +289,7 @@ public class HttpConnection implements Closeable {
             ((HttpsURLConnection) connection).setHostnameVerifier(hostnameVerifier);
             ((HttpsURLConnection) connection).setSSLSocketFactory(sslContext.getSocketFactory());
         }
+        connection.setInstanceFollowRedirects(false);
         connection.setRequestMethod(method == null || method.isEmpty() ? HttpConstants.METHOD_GET : method);
 
         // Host header
