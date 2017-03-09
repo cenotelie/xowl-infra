@@ -46,7 +46,6 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
      * @param exchange The HTTP exchange to treat
      */
     public HTTPConnectionWeb(HttpExchange exchange) {
-        super(Logging.get());
         this.httpExchange = exchange;
     }
 
@@ -190,12 +189,12 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
         try {
             httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, data.content.length);
         } catch (IOException exception) {
-            logger.error(exception);
+            Logging.get().error(exception);
         }
         try (OutputStream output = httpExchange.getResponseBody()) {
             output.write(data.content);
         } catch (IOException exception) {
-            logger.error(exception);
+            Logging.get().error(exception);
         }
     }
 
@@ -211,12 +210,12 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
         try {
             httpExchange.sendResponseHeaders(code, buffer.length);
         } catch (IOException exception) {
-            logger.error(exception);
+            Logging.get().error(exception);
         }
         try (OutputStream stream = httpExchange.getResponseBody()) {
             stream.write(buffer);
         } catch (IOException exception) {
-            logger.error(exception);
+            Logging.get().error(exception);
         }
     }
 }

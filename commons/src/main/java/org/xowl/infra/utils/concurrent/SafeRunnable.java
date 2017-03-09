@@ -17,7 +17,6 @@
 
 package org.xowl.infra.utils.concurrent;
 
-import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
 /**
@@ -26,20 +25,6 @@ import org.xowl.infra.utils.logging.Logging;
  * @author Laurent Wouters
  */
 public abstract class SafeRunnable implements Runnable {
-    /**
-     * The logger for this runnable
-     */
-    protected final Logger logger;
-
-    /**
-     * Initializes this runnable
-     *
-     * @param logger The logger to use
-     */
-    public SafeRunnable(Logger logger) {
-        this.logger = logger;
-    }
-
     @Override
     public void run() {
         try {

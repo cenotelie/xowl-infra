@@ -72,7 +72,6 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      * @param exchange   The HTTP exchange to treat
      */
     public HTTPConnectionApiV1(ControllerServer controller, HttpExchange exchange) {
-        super(Logging.get());
         this.controller = controller;
         this.httpExchange = exchange;
     }
