@@ -41,11 +41,11 @@ class EmbeddedUser extends UserImpl {
 
     @Override
     public XSPReply updatePassword(String password) {
-        return serverController.updatePassword(this, name, password);
+        return serverController.updatePassword(this, identifier, password);
     }
 
     @Override
     public XSPReply getPrivileges() {
-        return serverController.getUserPrivileges(this, name);
+        return serverController.getUserPrivileges(this, identifier);
     }
 }

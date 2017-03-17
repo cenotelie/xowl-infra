@@ -123,7 +123,7 @@ public class EmbeddedServer implements XOWLServer, Closeable {
 
     @Override
     public XSPReply deleteUser(XOWLUser toDelete) {
-        return controller.deleteUser(admin, toDelete.getName());
+        return controller.deleteUser(admin, toDelete.getIdentifier());
     }
 
     @Override
@@ -133,7 +133,7 @@ public class EmbeddedServer implements XOWLServer, Closeable {
 
     @Override
     public XSPReply serverGrantAdmin(XOWLUser target) {
-        return controller.serverGrantAdmin(admin, target.getName());
+        return controller.serverGrantAdmin(admin, target.getIdentifier());
     }
 
     @Override
@@ -143,7 +143,7 @@ public class EmbeddedServer implements XOWLServer, Closeable {
 
     @Override
     public XSPReply serverRevokeAdmin(XOWLUser target) {
-        return controller.serverRevokeAdmin(admin, target.getName());
+        return controller.serverRevokeAdmin(admin, target.getIdentifier());
     }
 
     @Override
@@ -152,8 +152,8 @@ public class EmbeddedServer implements XOWLServer, Closeable {
     }
 
     @Override
-    public XSPReply getDatabase(String name) {
-        return controller.getDatabase(admin, name);
+    public XSPReply getDatabase(String identifier) {
+        return controller.getDatabase(admin, identifier);
     }
 
     @Override
@@ -162,13 +162,13 @@ public class EmbeddedServer implements XOWLServer, Closeable {
     }
 
     @Override
-    public XSPReply createDatabase(String name) {
-        return controller.createDatabase(admin, name);
+    public XSPReply createDatabase(String identifier) {
+        return controller.createDatabase(admin, identifier);
     }
 
     @Override
     public XSPReply dropDatabase(XOWLDatabase database) {
-        return controller.dropDatabase(admin, database.getName());
+        return controller.dropDatabase(admin, database.getIdentifier());
     }
 
     @Override

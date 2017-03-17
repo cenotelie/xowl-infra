@@ -21,6 +21,7 @@ import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
+import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 
 import java.util.Collection;
@@ -31,14 +32,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public interface XOWLDatabase extends Serializable {
-    /**
-     * Gets the name of this database
-     *
-     * @return The name of this database
-     */
-    String getName();
-
+public interface XOWLDatabase extends Identifiable, Serializable {
     /**
      * Gets the definition of the metrics for this database
      *
@@ -137,12 +131,12 @@ public interface XOWLDatabase extends Serializable {
     XSPReply getRules();
 
     /**
-     * Gets the rule for the specified name
+     * Gets the rule for the specified identifier
      *
-     * @param name The name (IRI) of a rule
+     * @param ruleId The identifier (IRI) of a rule
      * @return The protocol reply
      */
-    XSPReply getRule(String name);
+    XSPReply getRule(String ruleId);
 
     /**
      * Adds a new rule to this database
@@ -164,10 +158,10 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Removes a rule from this database
      *
-     * @param rule The rule to remove
+     * @param ruleId The identifier of the rule to remove
      * @return The protocol reply
      */
-    XSPReply removeRule(String rule);
+    XSPReply removeRule(String ruleId);
 
     /**
      * Activates an existing rule in this database
@@ -180,10 +174,10 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Activates an existing rule in this database
      *
-     * @param rule The rule to activate
+     * @param ruleId The identifier of the rule to activate
      * @return The protocol reply
      */
-    XSPReply activateRule(String rule);
+    XSPReply activateRule(String ruleId);
 
     /**
      * Deactivates an existing rule in this database
@@ -196,10 +190,10 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Deactivates an existing rule in this database
      *
-     * @param rule The rule to deactivate
+     * @param ruleId The identifier of the rule to deactivate
      * @return The protocol reply
      */
-    XSPReply deactivateRule(String rule);
+    XSPReply deactivateRule(String ruleId);
 
     /**
      * Gets the matching status of a rule in this database
@@ -212,10 +206,10 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Gets the matching status of a rule in this database
      *
-     * @param rule The rule to inquire
+     * @param ruleId The identifier of the rule to inquire
      * @return The protocol reply
      */
-    XSPReply getRuleStatus(String rule);
+    XSPReply getRuleStatus(String ruleId);
 
     /**
      * Gets the stored procedures for this database
@@ -227,7 +221,7 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Gets the stored procedure for the specified name (iri)
      *
-     * @param iri The name (iri) of a stored procedure
+     * @param iri The identifier (iri) of a stored procedure
      * @return The protocol reply
      */
     XSPReply getStoreProcedure(String iri);
@@ -235,7 +229,7 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Adds a stored procedure in the form of a SPARQL command
      *
-     * @param iri        The name (iri) for this procedure
+     * @param iri        The identifier (iri) for this procedure
      * @param sparql     The SPARQL command(s)
      * @param parameters The names of the parameters for this procedure
      * @return The protocol reply
@@ -253,10 +247,10 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Remove a stored procedure
      *
-     * @param procedure The procedure to remove
+     * @param procedureId The identifier procedure to remove
      * @return The protocol reply
      */
-    XSPReply removeStoredProcedure(String procedure);
+    XSPReply removeStoredProcedure(String procedureId);
 
     /**
      * Executes a stored procedure
@@ -270,11 +264,11 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Executes a stored procedure
      *
-     * @param procedure The procedure to execute
-     * @param context   The execution context to use
+     * @param procedureId The identifier of the procedure to execute
+     * @param context     The execution context to use
      * @return The protocol reply
      */
-    XSPReply executeStoredProcedure(String procedure, XOWLStoredProcedureContext context);
+    XSPReply executeStoredProcedure(String procedureId, XOWLStoredProcedureContext context);
 
     /**
      * Uploads some content to this database

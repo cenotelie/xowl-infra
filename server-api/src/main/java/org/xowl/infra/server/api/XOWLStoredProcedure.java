@@ -17,6 +17,7 @@
 
 package org.xowl.infra.server.api;
 
+import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 
 import java.util.Collection;
@@ -27,14 +28,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public interface XOWLStoredProcedure extends Serializable {
-    /**
-     * Gets the name (IRI) of this procedure
-     *
-     * @return The name of this procedure
-     */
-    String getName();
-
+public interface XOWLStoredProcedure extends Identifiable, Serializable {
     /**
      * Gets the definition of this procedure
      *

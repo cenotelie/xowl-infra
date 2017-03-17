@@ -56,11 +56,11 @@ class RemoteUser extends BaseUser {
 
     @Override
     public XSPReply updatePassword(String password) {
-        return server.userUpdatePassword(name, password);
+        return server.userUpdatePassword(identifier, password);
     }
 
     @Override
     public XSPReply getPrivileges() {
-        return server.userGetPrivileges(name);
+        return server.userGetPrivileges(identifier);
     }
 }

@@ -17,6 +17,7 @@
 
 package org.xowl.infra.server.api;
 
+import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 
 /**
@@ -24,14 +25,7 @@ import org.xowl.infra.utils.Serializable;
  *
  * @author Laurent Wouters
  */
-public interface XOWLRule extends Serializable {
-    /**
-     * Gets the name (IRI) of this rule
-     *
-     * @return The name of this rule
-     */
-    String getName();
-
+public interface XOWLRule extends Identifiable, Serializable {
     /**
      * Gets whether this rule is active
      *

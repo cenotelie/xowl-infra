@@ -133,7 +133,7 @@ public class BaseUserPrivileges implements XOWLUserPrivileges {
                 databases[i] = database;
                 privileges[i] = privilege;
                 return;
-            } else if (databases[i].getName().equals(database.getName())) {
+            } else if (databases[i].getIdentifier().equals(database.getIdentifier())) {
                 privileges[i] |= privilege;
                 return;
             }
@@ -161,7 +161,7 @@ public class BaseUserPrivileges implements XOWLUserPrivileges {
         for (int i = 0; i != databases.length; i++) {
             if (databases[i] == null)
                 return XOWLPrivilege.NONE;
-            else if (databases[i].getName().equals(database.getName()))
+            else if (databases[i].getIdentifier().equals(database.getIdentifier()))
                 return privileges[i];
         }
         return XOWLPrivilege.NONE;
@@ -183,7 +183,7 @@ public class BaseUserPrivileges implements XOWLUserPrivileges {
             boolean canAdmin = (privileges[i] & XOWLPrivilege.ADMIN) == XOWLPrivilege.ADMIN;
             boolean canWrite = (privileges[i] & XOWLPrivilege.WRITE) == XOWLPrivilege.WRITE;
             boolean canRead = (privileges[i] & XOWLPrivilege.READ) == XOWLPrivilege.READ;
-            builder.append(databases[i].getName());
+            builder.append(databases[i].getIdentifier());
             builder.append(":");
             if (canAdmin)
                 builder.append(" ADMIN");
@@ -211,7 +211,7 @@ public class BaseUserPrivileges implements XOWLUserPrivileges {
             boolean canWrite = (privileges[i] & XOWLPrivilege.WRITE) == XOWLPrivilege.WRITE;
             boolean canRead = (privileges[i] & XOWLPrivilege.READ) == XOWLPrivilege.READ;
             builder.append("{ \"database\": \"");
-            builder.append(databases[i].getName());
+            builder.append(databases[i].getIdentifier());
             builder.append("\", \"isAdmin\": ");
             builder.append(Boolean.toString(canAdmin));
             builder.append(", \"canWrite\": ");

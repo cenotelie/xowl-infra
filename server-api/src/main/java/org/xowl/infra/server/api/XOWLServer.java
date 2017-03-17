@@ -111,20 +111,20 @@ public interface XOWLServer extends Closeable {
     XSPReply getDatabases();
 
     /**
-     * Gets the database for the specified name
+     * Gets the database for the specified identifier
      *
-     * @param name The name of a database
+     * @param identifier The identifier of a database
      * @return The protocol reply
      */
-    XSPReply getDatabase(String name);
+    XSPReply getDatabase(String identifier);
 
     /**
      * Creates a new database
      *
-     * @param name The name of the database
+     * @param identifier The identifier of the database
      * @return The protocol reply
      */
-    XSPReply createDatabase(String name);
+    XSPReply createDatabase(String identifier);
 
     /**
      * Drops a database

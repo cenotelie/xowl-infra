@@ -126,7 +126,7 @@ public class ControllerServer implements Closeable {
                 new File(configuration.getDatabasesFolder(), configuration.getAdminDBName()),
                 configuration.getDefaultMaxThreads(),
                 configuration.getAdminDBName()));
-        this.databases.put(adminDB.getName(), adminDB);
+        this.databases.put(adminDB.getIdentifier(), adminDB);
         this.clients = new HashMap<>();
         this.users = new HashMap<>();
         if (isEmpty)
@@ -141,7 +141,7 @@ public class ControllerServer implements Closeable {
      */
     private void initializeAdminDB() {
         adminDB.dbController.proxy.setValue(Vocabulary.rdfType, adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
-        adminDB.dbController.proxy.setValue(Schema.ADMIN_NAME, adminDB.getName());
+        adminDB.dbController.proxy.setValue(Schema.ADMIN_NAME, adminDB.getIdentifier());
         adminDB.dbController.proxy.setValue(Schema.ADMIN_LOCATION, ".");
         UserImpl admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
         admin.userController.proxy.addValue(Schema.ADMIN_ADMINOF, adminDB.dbController.proxy);
@@ -165,8 +165,8 @@ public class ControllerServer implements Closeable {
                         configuration.getDefaultMaxThreads(),
                         poDB,
                         name));
-                databases.put(db.getName(), db);
-                logger.info("Loaded database " + poDB.getIRIString() + " as " + db.getName());
+                databases.put(db.getIdentifier(), db);
+                logger.info("Loaded database " + poDB.getIRIString() + " as " + db.getIdentifier());
             } catch (Exception exception) {
                 // do nothing, this exception is reported by the db logger
                 logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
@@ -1079,7 +1079,7 @@ public class ControllerServer implements Closeable {
     public XSPReply getUser(UserImpl client, String login) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        if (client.getName().equals(login))
+        if (client.getIdentifier().equals(login))
             return new XSPReplyResult<>(client);
         UserImpl user = doGetUser(login);
         if (user == null)
@@ -1148,7 +1148,7 @@ public class ControllerServer implements Closeable {
     public XSPReply updatePassword(UserImpl client, String target, String password) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        if (client.getName().equals(target) || checkIsServerAdmin(client))
+        if (client.getIdentifier().equals(target) || checkIsServerAdmin(client))
             return doResetPassword(target, password);
         return XSPReplyUnauthorized.instance();
     }
@@ -1184,7 +1184,7 @@ public class ControllerServer implements Closeable {
     public XSPReply getUserPrivileges(UserImpl client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        if (client.getName().equals(name) || checkIsServerAdmin(client)) {
+        if (client.getIdentifier().equals(name) || checkIsServerAdmin(client)) {
             UserImpl user = doGetUser(name);
             if (user == null)
                 return XSPReplyNotFound.instance();
@@ -1417,7 +1417,7 @@ public class ControllerServer implements Closeable {
                     return user;
             }
             UserImpl user = newUser(new ControllerUser(proxy));
-            users.put(user.getName(), user);
+            users.put(user.getIdentifier(), user);
             return user;
         }
     }

@@ -18,6 +18,7 @@
 package org.xowl.infra.server.api;
 
 import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 
 /**
@@ -25,14 +26,7 @@ import org.xowl.infra.utils.Serializable;
  *
  * @author Laurent Wouters
  */
-public interface XOWLUser extends Serializable {
-    /**
-     * Gets the name of this user
-     *
-     * @return The name of this user
-     */
-    String getName();
-
+public interface XOWLUser extends Identifiable, Serializable {
     /**
      * Updates the password of the user
      *

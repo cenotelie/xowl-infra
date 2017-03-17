@@ -123,7 +123,7 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
                 users[i] = user;
                 privileges[i] = privilege;
                 return;
-            } else if (users[i].getName().equals(user.getName())) {
+            } else if (users[i].getIdentifier().equals(user.getIdentifier())) {
                 privileges[i] |= privilege;
                 return;
             }
@@ -151,7 +151,7 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
         for (int i = 0; i != users.length; i++) {
             if (users[i] == null)
                 return XOWLPrivilege.NONE;
-            else if (users[i].getName().equals(user.getName()))
+            else if (users[i].getIdentifier().equals(user.getIdentifier()))
                 return privileges[i];
         }
         return XOWLPrivilege.NONE;
@@ -168,7 +168,7 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
             boolean canAdmin = (privileges[i] & XOWLPrivilege.ADMIN) == XOWLPrivilege.ADMIN;
             boolean canWrite = (privileges[i] & XOWLPrivilege.WRITE) == XOWLPrivilege.WRITE;
             boolean canRead = (privileges[i] & XOWLPrivilege.READ) == XOWLPrivilege.READ;
-            builder.append(users[i].getName());
+            builder.append(users[i].getIdentifier());
             builder.append(":");
             if (canAdmin)
                 builder.append(" ADMIN");
@@ -194,7 +194,7 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
             boolean canWrite = (privileges[i] & XOWLPrivilege.WRITE) == XOWLPrivilege.WRITE;
             boolean canRead = (privileges[i] & XOWLPrivilege.READ) == XOWLPrivilege.READ;
             builder.append("{ \"user\": \"");
-            builder.append(users[i].getName());
+            builder.append(users[i].getIdentifier());
             builder.append("\", \"isAdmin\": ");
             builder.append(Boolean.toString(canAdmin));
             builder.append(", \"canWrite\": ");

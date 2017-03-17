@@ -70,7 +70,7 @@ public class EmbeddedServerTest {
     public void testGetLoggedIn() {
         XOWLUser reply = server.getLoggedInUser();
         Assert.assertTrue("Expected a user to be logged in", reply != null);
-        Assert.assertTrue("Expected admin as logged-in user", reply.getName().equals("admin"));
+        Assert.assertTrue("Expected admin as logged-in user", reply.getIdentifier().equals("admin"));
     }
 
     @Test
@@ -102,7 +102,7 @@ public class EmbeddedServerTest {
         XSPReply reply = server.getUser("admin");
         Assert.assertTrue("Expected a successful reply", reply.isSuccess());
         XOWLUser user = ((XSPReplyResult<XOWLUser>) reply).getData();
-        Assert.assertTrue("Expected admin as user", user.getName().equals("admin"));
+        Assert.assertTrue("Expected admin as user", user.getIdentifier().equals("admin"));
     }
 
     @Test
@@ -110,7 +110,7 @@ public class EmbeddedServerTest {
         XSPReply reply = server.createUser("test", "test1234567890");
         Assert.assertTrue("Failed to create the user", reply.isSuccess());
         XOWLUser user = ((XSPReplyResult<XOWLUser>) reply).getData();
-        Assert.assertTrue("Expected admin as user", user.getName().equals("test"));
+        Assert.assertTrue("Expected admin as user", user.getIdentifier().equals("test"));
 
         reply = server.getUsers();
         Assert.assertTrue("Failed to get the users", reply.isSuccess());

@@ -28,9 +28,9 @@ import org.xowl.infra.utils.TextUtils;
  */
 public class BaseRule implements XOWLRule {
     /**
-     * The rule's name (IRI)
+     * The rule's identifier (IRI)
      */
-    private final String name;
+    private final String identifier;
     /**
      * The rule's definition
      */
@@ -43,12 +43,12 @@ public class BaseRule implements XOWLRule {
     /**
      * Initializes this rule
      *
-     * @param name       The rule's name (IRI)
+     * @param identifier The rule's name (IRI)
      * @param definition The rule's definition
      * @param isActive   Whether the rule is active
      */
-    public BaseRule(String name, String definition, boolean isActive) {
-        this.name = name;
+    public BaseRule(String identifier, String definition, boolean isActive) {
+        this.identifier = identifier;
         this.definition = definition;
         this.isActive = isActive;
     }
@@ -87,14 +87,19 @@ public class BaseRule implements XOWLRule {
                 }
             }
         }
-        this.name = vName;
+        this.identifier = vName;
         this.definition = vDef;
         this.isActive = vActive;
     }
 
     @Override
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    @Override
     public String getName() {
-        return name;
+        return identifier;
     }
 
     @Override
@@ -109,15 +114,17 @@ public class BaseRule implements XOWLRule {
 
     @Override
     public String serializedString() {
-        return name;
+        return identifier;
     }
 
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
                 TextUtils.escapeStringJSON(XOWLRule.class.getCanonicalName()) +
+                "\", \"identifier\": \"" +
+                TextUtils.escapeStringJSON(getIdentifier()) +
                 "\", \"name\": \"" +
-                TextUtils.escapeStringJSON(name) +
+                TextUtils.escapeStringJSON(getName()) +
                 "\", \"definition\": \"" +
                 TextUtils.escapeStringJSON(definition) +
                 "\", \"isActive\": " +

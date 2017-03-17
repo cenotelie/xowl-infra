@@ -38,9 +38,9 @@ import java.util.List;
  */
 public class BaseStoredProcedure implements XOWLStoredProcedure {
     /**
-     * The procedure's name (IRI)
+     * The procedure's identifier (IRI)
      */
-    private final String name;
+    private final String identifier;
     /**
      * The procedure's definition
      */
@@ -57,13 +57,13 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
     /**
      * Initializes this procedure
      *
-     * @param name       The procedure's name (IRI)
+     * @param identifier The procedure's identifier (IRI)
      * @param definition The procedure's definition
      * @param parameters The parameters for this procedure
      * @param sparql     The loaded SPARQL command
      */
-    public BaseStoredProcedure(String name, String definition, Collection<String> parameters, Command sparql) {
-        this.name = name;
+    public BaseStoredProcedure(String identifier, String definition, Collection<String> parameters, Command sparql) {
+        this.identifier = identifier;
         this.definition = definition;
         this.parameters = new ArrayList<>(parameters);
         this.sparql = sparql;
@@ -107,7 +107,7 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
                 }
             }
         }
-        this.name = vName;
+        this.identifier = vName;
         this.definition = vDef;
         Command vSPARQL = null;
         if (nodes != null) {
@@ -127,8 +127,13 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
     }
 
     @Override
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    @Override
     public String getName() {
-        return name;
+        return identifier;
     }
 
     @Override
@@ -143,7 +148,7 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
 
     @Override
     public String serializedString() {
-        return name;
+        return identifier;
     }
 
     @Override
@@ -151,8 +156,10 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
         StringBuilder buffer = new StringBuilder();
         buffer.append("{\"type\": \"");
         buffer.append(TextUtils.escapeStringJSON(XOWLStoredProcedure.class.getCanonicalName()));
+        buffer.append("\", \"identifier\": \"");
+        buffer.append(TextUtils.escapeStringJSON(getIdentifier()));
         buffer.append("\", \"name\": \"");
-        buffer.append(TextUtils.escapeStringJSON(name));
+        buffer.append(TextUtils.escapeStringJSON(getName()));
         buffer.append("\", \"definition\": \"");
         buffer.append(TextUtils.escapeStringJSON(definition));
         buffer.append("\", \"parameters\": [");

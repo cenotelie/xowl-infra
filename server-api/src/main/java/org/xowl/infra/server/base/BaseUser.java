@@ -32,15 +32,15 @@ public class BaseUser implements XOWLUser {
     /**
      * The user's name
      */
-    protected final String name;
+    protected final String identifier;
 
     /**
      * Initializes this user
      *
-     * @param name The user's name
+     * @param identifier The user's identifier
      */
-    public BaseUser(String name) {
-        this.name = name;
+    public BaseUser(String identifier) {
+        this.identifier = identifier;
     }
 
     /**
@@ -60,12 +60,17 @@ public class BaseUser implements XOWLUser {
                 value = value.substring(1, value.length() - 1);
             }
         }
-        this.name = value;
+        this.identifier = value;
+    }
+
+    @Override
+    public String getIdentifier() {
+        return identifier;
     }
 
     @Override
     public String getName() {
-        return name;
+        return identifier;
     }
 
     @Override
@@ -80,21 +85,27 @@ public class BaseUser implements XOWLUser {
 
     @Override
     public String serializedString() {
-        return getName();
+        return getIdentifier();
     }
 
     @Override
     public String serializedJSON() {
-        return "{\"type\": \"" + TextUtils.escapeStringJSON(XOWLUser.class.getCanonicalName()) + "\", \"name\": \"" + TextUtils.escapeStringJSON(getName()) + "\"}";
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(XOWLUser.class.getCanonicalName()) +
+                "\", \"identifier\": \"" +
+                TextUtils.escapeStringJSON(getIdentifier()) +
+                "\", \"name\": \"" +
+                TextUtils.escapeStringJSON(getName()) +
+                "\"}";
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return identifier.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof XOWLUser && name.equals(((XOWLUser) obj).getName());
+        return obj instanceof XOWLUser && identifier.equals(((XOWLUser) obj).getIdentifier());
     }
 }

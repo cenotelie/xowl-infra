@@ -106,27 +106,27 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply getPrivileges() {
-        return serverController.getDatabasePrivileges(getAdminUser(), name);
+        return serverController.getDatabasePrivileges(getAdminUser(), identifier);
     }
 
     @Override
     public XSPReply grant(XOWLUser user, int privilege) {
-        return grant(user.getName(), privilege);
+        return grant(user.getIdentifier(), privilege);
     }
 
     @Override
     public XSPReply grant(String user, int privilege) {
-        return serverController.grantDatabase(getAdminUser(), user, name, privilege);
+        return serverController.grantDatabase(getAdminUser(), user, identifier, privilege);
     }
 
     @Override
     public XSPReply revoke(XOWLUser user, int privilege) {
-        return revoke(user.getName(), privilege);
+        return revoke(user.getIdentifier(), privilege);
     }
 
     @Override
     public XSPReply revoke(String user, int privilege) {
-        return serverController.revokeDatabase(getAdminUser(), user, name, privilege);
+        return serverController.revokeDatabase(getAdminUser(), user, identifier, privilege);
     }
 
     @Override
@@ -141,9 +141,9 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
     }
 
     @Override
-    public XSPReply getRule(String name) {
+    public XSPReply getRule(String ruleId) {
         try {
-            XOWLRule rule = dbController.getRule(name);
+            XOWLRule rule = dbController.getRule(ruleId);
             if (rule == null)
                 return XSPReplyNotFound.instance();
             return new XSPReplyResult<>(rule);
@@ -166,13 +166,13 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply removeRule(XOWLRule rule) {
-        return removeRule(rule.getName());
+        return removeRule(rule.getIdentifier());
     }
 
     @Override
-    public XSPReply removeRule(String rule) {
+    public XSPReply removeRule(String ruleId) {
         try {
-            dbController.removeRule(rule);
+            dbController.removeRule(ruleId);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
@@ -182,13 +182,13 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply activateRule(XOWLRule rule) {
-        return activateRule(rule.getName());
+        return activateRule(rule.getIdentifier());
     }
 
     @Override
-    public XSPReply activateRule(String rule) {
+    public XSPReply activateRule(String ruleId) {
         try {
-            dbController.activateRule(rule);
+            dbController.activateRule(ruleId);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
@@ -198,13 +198,13 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply deactivateRule(XOWLRule rule) {
-        return deactivateRule(rule.getName());
+        return deactivateRule(rule.getIdentifier());
     }
 
     @Override
-    public XSPReply deactivateRule(String rule) {
+    public XSPReply deactivateRule(String ruleId) {
         try {
-            dbController.deactivateRule(rule);
+            dbController.deactivateRule(ruleId);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
@@ -214,13 +214,13 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply getRuleStatus(XOWLRule rule) {
-        return getRuleStatus(rule.getName());
+        return getRuleStatus(rule.getIdentifier());
     }
 
     @Override
-    public XSPReply getRuleStatus(String rule) {
+    public XSPReply getRuleStatus(String ruleId) {
         try {
-            RDFRuleStatus status = dbController.getRuleStatus(rule);
+            RDFRuleStatus status = dbController.getRuleStatus(ruleId);
             if (status == null)
                 return new XSPReplyApiError(ApiV1.ERROR_RULE_NOT_ACTIVE);
             return new XSPReplyResult<>(status);
@@ -267,13 +267,13 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
-        return removeStoredProcedure(procedure.getName());
+        return removeStoredProcedure(procedure.getIdentifier());
     }
 
     @Override
-    public XSPReply removeStoredProcedure(String procedure) {
+    public XSPReply removeStoredProcedure(String procedureId) {
         try {
-            dbController.removeStoredProcedure(procedure);
+            dbController.removeStoredProcedure(procedureId);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
@@ -283,13 +283,13 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
-        return executeStoredProcedure(procedure.getName(), context);
+        return executeStoredProcedure(procedure.getIdentifier(), context);
     }
 
     @Override
-    public XSPReply executeStoredProcedure(String procedure, XOWLStoredProcedureContext context) {
+    public XSPReply executeStoredProcedure(String procedureId, XOWLStoredProcedureContext context) {
         try {
-            Result result = dbController.executeStoredProcedure(procedure, context, false);
+            Result result = dbController.executeStoredProcedure(procedureId, context, false);
             return new XSPReplyResult<>(result);
         } catch (Exception exception) {
             logger.error(exception);

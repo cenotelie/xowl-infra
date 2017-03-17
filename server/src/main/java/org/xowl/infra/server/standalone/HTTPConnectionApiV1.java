@@ -219,7 +219,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         if (resource.equals("/me")) {
             if (!method.equals(HttpConstants.METHOD_GET))
                 return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-            return response(controller.getUser(client, client.getName()));
+            return response(controller.getUser(client, client.getIdentifier()));
         } else if (resource.equals("/me/logout")) {
             return handleRequestLogout(method);
         }
@@ -584,7 +584,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     if (root == null)
                         return response(new XSPReplyApiError(ApiV1.ERROR_CONTENT_PARSING_FAILED, logger.getErrorsAsString()));
                     BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, Logging.get());
-                    return response(controller.addStoredProcedure(client, name, procedure.getName(), procedure.getDefinition(), procedure.getParameters()));
+                    return response(controller.addStoredProcedure(client, name, procedure.getIdentifier(), procedure.getDefinition(), procedure.getParameters()));
                 } catch (IOException exception) {
                     Logging.get().error(exception);
                     return response(new XSPReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));

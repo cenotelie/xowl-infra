@@ -36,17 +36,17 @@ import java.util.List;
  */
 public class BaseDatabase implements XOWLDatabase {
     /**
-     * The database's name
+     * The database's identifier
      */
-    protected final String name;
+    protected final String identifier;
 
     /**
      * Initializes this database
      *
-     * @param name The database's name
+     * @param identifier The database's identifier
      */
-    public BaseDatabase(String name) {
-        this.name = name;
+    public BaseDatabase(String identifier) {
+        this.identifier = identifier;
     }
 
     /**
@@ -66,12 +66,17 @@ public class BaseDatabase implements XOWLDatabase {
                 value = value.substring(1, value.length() - 1);
             }
         }
-        this.name = value;
+        this.identifier = value;
+    }
+
+    @Override
+    public String getIdentifier() {
+        return identifier;
     }
 
     @Override
     public String getName() {
-        return name;
+        return identifier;
     }
 
     @Override
@@ -135,7 +140,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply getRule(String name) {
+    public XSPReply getRule(String ruleId) {
         return XSPReplyUnsupported.instance();
     }
 
@@ -150,7 +155,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply removeRule(String rule) {
+    public XSPReply removeRule(String ruleId) {
         return XSPReplyUnsupported.instance();
     }
 
@@ -160,7 +165,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply activateRule(String rule) {
+    public XSPReply activateRule(String ruleId) {
         return XSPReplyUnsupported.instance();
     }
 
@@ -170,7 +175,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply deactivateRule(String rule) {
+    public XSPReply deactivateRule(String ruleId) {
         return XSPReplyUnsupported.instance();
     }
 
@@ -180,7 +185,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply getRuleStatus(String rule) {
+    public XSPReply getRuleStatus(String ruleId) {
         return XSPReplyUnsupported.instance();
     }
 
@@ -205,7 +210,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply removeStoredProcedure(String procedure) {
+    public XSPReply removeStoredProcedure(String procedureId) {
         return XSPReplyUnsupported.instance();
     }
 
@@ -215,7 +220,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply executeStoredProcedure(String procedure, XOWLStoredProcedureContext context) {
+    public XSPReply executeStoredProcedure(String procedureId, XOWLStoredProcedureContext context) {
         return XSPReplyUnsupported.instance();
     }
 
@@ -231,21 +236,27 @@ public class BaseDatabase implements XOWLDatabase {
 
     @Override
     public String serializedString() {
-        return getName();
+        return getIdentifier();
     }
 
     @Override
     public String serializedJSON() {
-        return "{\"type\": \"" + TextUtils.escapeStringJSON(XOWLDatabase.class.getCanonicalName()) + "\", \"name\": \"" + TextUtils.escapeStringJSON(getName()) + "\"}";
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(XOWLDatabase.class.getCanonicalName()) +
+                "\", \"identifier\": \"" +
+                TextUtils.escapeStringJSON(getIdentifier()) +
+                "\", \"name\": \"" +
+                TextUtils.escapeStringJSON(getName()) +
+                "\"}";
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return identifier.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof XOWLDatabase && name.equals(((XOWLDatabase) obj).getName());
+        return obj instanceof XOWLDatabase && identifier.equals(((XOWLDatabase) obj).getIdentifier());
     }
 }

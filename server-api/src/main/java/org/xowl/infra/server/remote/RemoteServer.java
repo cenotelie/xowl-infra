@@ -186,7 +186,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
 
     @Override
     public XSPReply serverGrantAdmin(XOWLUser target) {
-        return serverGrantAdmin(target.getName());
+        return serverGrantAdmin(target.getIdentifier());
     }
 
     @Override
@@ -216,7 +216,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
 
     @Override
     public XSPReply serverRevokeAdmin(XOWLUser target) {
-        return serverRevokeAdmin(target.getName());
+        return serverRevokeAdmin(target.getIdentifier());
     }
 
     @Override
@@ -270,13 +270,13 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply getDatabase(String name) {
+    public XSPReply getDatabase(String identifier) {
         // not logged in
         if (currentUser == null)
             return XSPReplyNetworkError.instance();
         // supposed to be logged-in
         XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(name),
+                "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
         if (reply != XSPReplyExpiredSession.instance())
@@ -289,20 +289,20 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             return XSPReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(name),
+                "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
     }
 
 
     @Override
-    public XSPReply createDatabase(String name) {
+    public XSPReply createDatabase(String identifier) {
         // not logged in
         if (currentUser == null)
             return XSPReplyNetworkError.instance();
         // supposed to be logged-in
         XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(name),
+                "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), this);
         if (reply != XSPReplyExpiredSession.instance())
@@ -315,14 +315,14 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             return XSPReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(name),
+                "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply dropDatabase(XOWLDatabase database) {
-        return dropDatabase(database.getName());
+        return dropDatabase(database.getIdentifier());
     }
 
     @Override
@@ -1156,7 +1156,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
 
     @Override
     public XSPReply deleteUser(XOWLUser toDelete) {
-        return deleteUser(toDelete.getName());
+        return deleteUser(toDelete.getIdentifier());
     }
 
     @Override
