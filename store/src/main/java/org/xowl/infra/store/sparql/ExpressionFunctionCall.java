@@ -77,8 +77,11 @@ public class ExpressionFunctionCall implements Expression {
         if (!evaluator.isDefined(iri))
             throw new EvalException("Unknown function " + iri);
         Object[] parameters = new Object[arguments.size()];
-        for (int i = 0; i != arguments.size(); i++)
+        for (int i = 0; i != arguments.size(); i++) {
             parameters[i] = arguments.get(i).eval(context, bindings);
+            if (parameters[i] instanceof Node)
+                parameters[i] = RDFUtils.getNative((Node) parameters[i]);
+        }
         return RDFUtils.getRDF(context.getNodes(), evaluator.execute(iri, parameters));
     }
 
