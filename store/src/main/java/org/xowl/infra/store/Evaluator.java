@@ -32,4 +32,30 @@ public interface Evaluator {
      * @return The evaluated value
      */
     Object eval(DynamicExpression expression);
+
+    /**
+     * Evaluates the specified expression
+     *
+     * @param expression An expression
+     * @param parameters The parameters for the evaluation
+     * @return The evaluated value
+     */
+    Object eval(DynamicExpression expression, Object... parameters);
+
+    /**
+     * Gets whether a function identified by its IRI is defined
+     *
+     * @param function The IRI of a function
+     * @return Whether the function is defined
+     */
+    boolean isDefined(String function);
+
+    /**
+     * Executes a function
+     *
+     * @param function   The IRI of the function to execute
+     * @param parameters The parameters for the function
+     * @return The value returned by the execution
+     */
+    Object execute(String function, Object... parameters);
 }

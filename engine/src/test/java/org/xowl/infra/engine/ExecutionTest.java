@@ -41,7 +41,7 @@ public class ExecutionTest {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-        Object result = evaluator.execute(repository.getProxy("http://xowl.org/infra/engine/tests/Sample#hello"));
+        Object result = evaluator.execute("http://xowl.org/infra/engine/tests/Sample#hello");
         Assert.assertFalse("Failed to execute the function", logger.isOnError());
         Assert.assertEquals("Hello World", result);
     }
@@ -58,7 +58,7 @@ public class ExecutionTest {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-        Object result = evaluator.execute(repository.getProxy("http://xowl.org/infra/engine/tests/Sample#total"), 2);
+        Object result = evaluator.execute("http://xowl.org/infra/engine/tests/Sample#total", 2);
         Assert.assertFalse("Failed to execute the function", logger.isOnError());
         Assert.assertEquals(6l, result);
     }

@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
@@ -65,9 +67,19 @@ public class ExpressionFunctionCall implements Expression {
     @Override
     public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
         ExpressionFunction function = ExpressionFunctions.get(iri);
-        if (function == null)
+        if (function != null) {
+            // this is a builtin function
+            return function.eval(context, bindings, arguments);
+        }
+        Evaluator evaluator = context.getEvaluator();
+        if (evaluator == null)
             throw new EvalException("Unknown function " + iri);
-        return function.eval(context, bindings, arguments);
+        if (!evaluator.isDefined(iri))
+            throw new EvalException("Unknown function " + iri);
+        Object[] parameters = new Object[arguments.size()];
+        for (int i = 0; i != arguments.size(); i++)
+            parameters[i] = arguments.get(i).eval(context, bindings);
+        return RDFUtils.getRDF(context.getNodes(), evaluator.execute(iri, parameters));
     }
 
     @Override

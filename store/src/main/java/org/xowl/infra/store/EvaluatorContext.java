@@ -75,12 +75,18 @@ public class EvaluatorContext {
     }
 
     /**
-     * Gets the head lexical bindings
+     * Gets the binding for the specified name
      *
-     * @return The head lexical bindings
+     * @param name The name
+     * @return The associated value, or null if it does not exist
      */
-    public Map<String, Object> peek() {
-        return contexts.peek();
+    public Object getBinding(String name) {
+        for (int i = contexts.size() - 1; i != -1; i--) {
+            Object result = contexts.get(i).get(name);
+            if (result != null)
+                return result;
+        }
+        return null;
     }
 
     /**

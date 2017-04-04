@@ -24,9 +24,13 @@ import clojure.lang.IFn;
  *
  * @author Laurent Wouters
  */
-class ClojureFunction {
+public class ClojureFunction {
     /**
-     * The function's name
+     * The function's global IRI
+     */
+    private final String iri;
+    /**
+     * The function's short name
      */
     private final String name;
     /**
@@ -39,9 +43,18 @@ class ClojureFunction {
     private IFn clojure;
 
     /**
-     * Gets the function's name
+     * Gets the function's global IRI
      *
-     * @return The function's name
+     * @return The function's global IRI
+     */
+    public String getIRI() {
+        return iri;
+    }
+
+    /**
+     * Gets the function's short name
+     *
+     * @return The function's short name
      */
     public String getName() {
         return name;
@@ -78,10 +91,12 @@ class ClojureFunction {
     /**
      * Initializes this function
      *
-     * @param name    The function's name
+     * @param iri     The function's global IRI
+     * @param name    The function's short name
      * @param content The function's content definition as a string
      */
-    public ClojureFunction(String name, String content) {
+    public ClojureFunction(String iri, String name, String content) {
+        this.iri = iri;
         this.name = name;
         this.content = content;
     }

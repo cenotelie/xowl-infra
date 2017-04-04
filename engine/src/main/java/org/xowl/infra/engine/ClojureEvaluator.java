@@ -21,17 +21,15 @@ import clojure.lang.Compiler;
 import clojure.lang.*;
 import org.xowl.infra.lang.actions.DynamicExpression;
 import org.xowl.infra.lang.actions.OpaqueExpression;
+import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.EvaluatorContext;
-import org.xowl.infra.store.ProxyObject;
-import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.IOUtils;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the Clojure evaluator for xOWL ontologies
@@ -40,121 +38,62 @@ import java.util.*;
  */
 public class ClojureEvaluator implements Evaluator {
     /**
-     * The root namespace for the Clojure symbols
-     */
-    private static final String CLJ_NAMESPACE_ROOT_NAME = "org.xowl.infra.engine.clojure";
-    /**
-     * The root namespace for the Clojure symbols
-     */
-    private static final Namespace CLJ_NAMESPACE_ROOT = Namespace.findOrCreate(Symbol.intern(CLJ_NAMESPACE_ROOT_NAME));
-    /**
-     * The Clojure function definitions that are not yet compiled
-     */
-    private static final List<ClojureFunction> OUTSTANDING_DEFINITIONS = new ArrayList<>();
-
-    /**
-     * Registers a function definition
-     *
-     * @param name       The function's name
-     * @param definition The function's content definition as a string
-     * @return The managing object for the function
-     */
-    protected static ClojureFunction register(String name, String definition) {
-        ClojureFunction result = new ClojureFunction(name, definition);
-        OUTSTANDING_DEFINITIONS.add(result);
-        return result;
-    }
-
-    /**
-     * Compiles the outstanding function definitions
-     */
-    protected static void compileOutstandings() {
-        if (OUTSTANDING_DEFINITIONS.isEmpty())
-            return;
-        //Var ns = RT.CURRENT_NS; // forces the initialization of the runtime before any call to the compiler
-        StringBuilder builder = new StringBuilder();
-        builder.append("(ns ");
-        builder.append(CLJ_NAMESPACE_ROOT);
-        builder.append(")");
-        builder.append(IOUtils.LINE_SEPARATOR);
-        builder.append("(declare & ");
-        for (ClojureFunction function : OUTSTANDING_DEFINITIONS) {
-            builder.append(function.getName());
-            builder.append(" ");
-        }
-        builder.append(")");
-        builder.append(IOUtils.LINE_SEPARATOR);
-        builder.append("[ ");
-        for (ClojureFunction function : OUTSTANDING_DEFINITIONS) {
-            builder.append(function.getContent());
-            builder.append(IOUtils.LINE_SEPARATOR);
-        }
-        builder.append(" ]");
-        Reader reader = new StringReader(builder.toString());
-        Iterator iterator = ((Iterable) Compiler.load(reader)).iterator();
-        try {
-            reader.close();
-        } catch (IOException ex) {
-            // do nothing
-        }
-        for (ClojureFunction function : OUTSTANDING_DEFINITIONS) {
-            IFn definition = (IFn) iterator.next();
-            Var.intern(CLJ_NAMESPACE_ROOT, Symbol.intern(function.getName()), definition);
-            function.setClojure(definition);
-        }
-        OUTSTANDING_DEFINITIONS.clear();
-    }
-
-    /**
      * Initializes this evaluator
      */
     public ClojureEvaluator() {
     }
 
-    /**
-     * Executes a function
-     *
-     * @param function   The function
-     * @param parameters The parameters
-     * @return The returned value
-     */
-    public Object execute(ProxyObject function, Object... parameters) {
-        compileOutstandings();
-        // retrieve the Clojure expression
-        OpaqueExpression expression = (OpaqueExpression) function.getDataValue(Vocabulary.xowlDefinedAs);
-        ClojureFunction inner = (ClojureFunction) expression.getValue();
-        if (parameters == null || parameters.length == 0)
-            return inner.getClojure().invoke();
-        switch (parameters.length) {
-            case 1:
-                return inner.getClojure().invoke(parameters[0]);
-            case 2:
-                return inner.getClojure().invoke(parameters[0], parameters[1]);
-            case 3:
-                return inner.getClojure().invoke(parameters[0], parameters[1], parameters[2]);
-            case 4:
-                return inner.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3]);
-            case 5:
-                return inner.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]);
-            case 6:
-                return inner.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5]);
-            case 7:
-                return inner.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6]);
-            case 8:
-                return inner.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
-            case 9:
-                return inner.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9]);
-            case 10:
-                return inner.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9], parameters[10]);
+    @Override
+    public Object eval(DynamicExpression expression) {
+        if (expression instanceof QueryVariable) {
+            EvaluatorContext context = EvaluatorContext.get();
+            return context.getBinding(((QueryVariable) expression).getName());
+        } else if (expression instanceof OpaqueExpression) {
+            Object value = ((OpaqueExpression) expression).getValue();
+            if (value instanceof ClojureFunction)
+                return execute((ClojureFunction) value);
+            return evaluateExpression(value);
         }
-        return inner.getClojure().invoke(parameters);
+        return null;
     }
 
     @Override
-    public Object eval(DynamicExpression expression) {
-        compileOutstandings();
+    public Object eval(DynamicExpression expression, Object... parameters) {
+        if (expression instanceof QueryVariable) {
+            EvaluatorContext context = EvaluatorContext.get();
+            return context.getBinding(((QueryVariable) expression).getName());
+        } else if (expression instanceof OpaqueExpression) {
+            Object value = ((OpaqueExpression) expression).getValue();
+            if (value instanceof ClojureFunction)
+                return execute((ClojureFunction) value, parameters);
+            return evaluateExpression(value);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isDefined(String function) {
+        return ClojureManager.getFunction(function) != null;
+    }
+
+    @Override
+    public Object execute(String function, Object... parameters) {
+        ClojureFunction cljFunction = ClojureManager.getFunction(function);
+        if (cljFunction == null)
+            return null;
+        return execute(cljFunction, parameters);
+    }
+
+    /**
+     * Evaluates a Clojure expression
+     *
+     * @param cljExp The expression to evaluate
+     * @return The evaluated value
+     */
+    private Object evaluateExpression(Object cljExp) {
+        ClojureManager.compileOutstandings();
         Namespace old = (Namespace) RT.CURRENT_NS.deref();
-        RT.CURRENT_NS.bindRoot(CLJ_NAMESPACE_ROOT);
+        RT.CURRENT_NS.bindRoot(ClojureManager.NAMESPACE_ROOT);
 
         List content = new ArrayList();
         for (Map.Entry<String, Object> binding : EvaluatorContext.get().getBindings().entrySet()) {
@@ -164,11 +103,46 @@ public class ClojureEvaluator implements Evaluator {
             content.add(binding.getValue());
         }
         PersistentVector content1 = PersistentVector.create(content.toArray());
-        Object cljExp = ((OpaqueExpression) expression).getValue();
         IPersistentList top = PersistentList.create(Arrays.asList(Symbol.create("clojure.core", "let"), content1, cljExp));
         Object result = Compiler.eval(top);
 
         RT.CURRENT_NS.bindRoot(old);
         return result;
+    }
+
+    /**
+     * Executes a function
+     *
+     * @param function   The function
+     * @param parameters The parameters
+     * @return The returned value
+     */
+    private Object execute(ClojureFunction function, Object... parameters) {
+        ClojureManager.compileOutstandings();
+        if (parameters == null || parameters.length == 0)
+            return function.getClojure().invoke();
+        switch (parameters.length) {
+            case 1:
+                return function.getClojure().invoke(parameters[0]);
+            case 2:
+                return function.getClojure().invoke(parameters[0], parameters[1]);
+            case 3:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2]);
+            case 4:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3]);
+            case 5:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]);
+            case 6:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5]);
+            case 7:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6]);
+            case 8:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
+            case 9:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9]);
+            case 10:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9], parameters[10]);
+        }
+        return function.getClojure().invoke(parameters);
     }
 }
