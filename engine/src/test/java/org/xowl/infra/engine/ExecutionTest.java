@@ -21,7 +21,19 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.loaders.SPARQLLoader;
+import org.xowl.infra.store.rdf.LiteralNode;
+import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.sparql.Command;
+import org.xowl.infra.store.sparql.Result;
+import org.xowl.infra.store.sparql.ResultSolutions;
+import org.xowl.infra.store.sparql.Solutions;
+import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.SinkLogger;
+
+import java.io.StringReader;
+import java.util.Collections;
 
 /**
  * Testing the execution of xOWL ontologies with Clojure
@@ -76,5 +88,36 @@ public class ExecutionTest {
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
         repository.getOWLRuleEngine().flush();
+    }
+
+    @Test
+    public void testExecutionFromSPARQL() {
+        SinkLogger logger = new SinkLogger();
+        ClojureEvaluator evaluator = new ClojureEvaluator();
+        RepositoryRDF repository = new RepositoryRDF(evaluator);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests/Sample", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
+        try {
+            repository.load(logger, "http://xowl.org/infra/engine/tests/Sample");
+        } catch (Exception exception) {
+            logger.error(exception);
+        }
+        Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
+
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        SPARQLLoader loader = new SPARQLLoader(repository.getStore(), Collections.<String>emptyList(), Collections.<String>emptyList());
+        Command command = loader.load(bufferedLogger, new StringReader("PREFIX : <http://xowl.org/infra/engine/tests/Sample#> " +
+                "SELECT (:total (?x) AS ?v) " +
+                "WHERE { GRAPH ?g { :peter :age ?x } }"));
+        if (command == null) {
+            // ill-formed request
+            Assert.fail(bufferedLogger.getErrorsAsString());
+        }
+        Result result = command.execute(repository);
+        Solutions solutions = ((ResultSolutions) result).getSolutions();
+        Assert.assertEquals(1, solutions.size());
+        RDFPatternSolution solution = solutions.iterator().next();
+        Node value = solution.get("v");
+        Assert.assertTrue(value != null && value instanceof LiteralNode);
+        Assert.assertEquals(29, Integer.parseInt(((LiteralNode) value).getLexicalValue()));
     }
 }
