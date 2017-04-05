@@ -47,6 +47,12 @@ public class EvaluatorContext {
             context = new EvaluatorContext(evaluator);
             THREAD_CONTEXT.set(context);
         }
+        if (evaluator == null)
+            return context;
+        if (context.getEvaluator() != evaluator) {
+            context = new EvaluatorContext(evaluator);
+            THREAD_CONTEXT.set(context);
+        }
         return context;
     }
 

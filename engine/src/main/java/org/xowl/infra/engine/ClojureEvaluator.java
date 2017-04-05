@@ -132,6 +132,7 @@ public class ClojureEvaluator implements Evaluator {
      * @return The returned value
      */
     private Object execute(ClojureFunction function, Object... parameters) {
+        EvaluatorContext.get(this);
         ClojureManager.compileOutstandings();
         if (parameters == null || parameters.length == 0)
             return function.getClojure().invoke();
