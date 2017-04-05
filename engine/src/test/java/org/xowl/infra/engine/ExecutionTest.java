@@ -19,6 +19,7 @@ package org.xowl.infra.engine;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.loaders.SPARQLLoader;
@@ -29,10 +30,13 @@ import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultSolutions;
 import org.xowl.infra.store.sparql.Solutions;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.SinkLogger;
 
-import java.io.StringReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Collections;
 
 /**
@@ -42,58 +46,80 @@ import java.util.Collections;
  */
 public class ExecutionTest {
     @Test
-    public void testExecutionHello() {
+    public void testSimpleExecution() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests/Sample", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testSimpleExecution.xowl");
         try {
-            repository.load(logger, "http://xowl.org/infra/engine/tests/Sample");
+            repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests/Sample#hello");
+        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests#sayHello");
         Assert.assertFalse("Failed to execute the function", logger.isOnError());
         Assert.assertEquals("Hello World", result);
     }
 
     @Test
-    public void testExecutionInnerCall() {
+    public void testCallClojure() throws IOException {
+        try (InputStream stream = ExecutionTest.class.getResourceAsStream("/org/xowl/infra/engine/testCallClojure.clj")) {
+            ClojureManager.loadClojure(stream);
+        }
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests/Sample", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testCallClojure.xowl");
         try {
-            repository.load(logger, "http://xowl.org/infra/engine/tests/Sample");
+            repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests/Sample#total", 2);
+        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests#sayHello");
         Assert.assertFalse("Failed to execute the function", logger.isOnError());
-        Assert.assertEquals(6l, result);
+        Assert.assertEquals("Hello World", result);
     }
 
     @Test
-    public void testExecutionInnerRule() {
+    public void testCallOtherXOWL() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests/Sample", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testCallOtherXOWL.xowl");
         try {
-            repository.load(logger, "http://xowl.org/infra/engine/tests/Sample");
+            repository.load(logger, "http://xowl.org/infra/engine/tests");
+        } catch (Exception exception) {
+            logger.error(exception);
+        }
+        Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
+        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests#sayHello");
+        Assert.assertFalse("Failed to execute the function", logger.isOnError());
+        Assert.assertEquals("Hello World", result);
+    }
+
+    @Test
+    public void testDynExpInRuleConsequent() {
+        SinkLogger logger = new SinkLogger();
+        RepositoryRDF repository = new RepositoryRDF();
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testDynExpInRuleConsequent.xowl");
+        try {
+            repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
         repository.getOWLRuleEngine().flush();
+        ProxyObject peter = repository.getProxy("http://xowl.org/infra/engine/tests#peter");
+        Object result = peter.getDataValue("http://xowl.org/infra/engine/tests#result");
+        Assert.assertEquals(27L, result);
     }
 
     @Test
-    public void testExecutionFromSPARQL() {
+    public void testCallInSPARQL() throws IOException {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests/Sample", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testCallInSPARQL.xowl");
         try {
-            repository.load(logger, "http://xowl.org/infra/engine/tests/Sample");
+            repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
             logger.error(exception);
         }
@@ -101,9 +127,10 @@ public class ExecutionTest {
 
         BufferedLogger bufferedLogger = new BufferedLogger();
         SPARQLLoader loader = new SPARQLLoader(repository.getStore(), Collections.<String>emptyList(), Collections.<String>emptyList());
-        Command command = loader.load(bufferedLogger, new StringReader("PREFIX : <http://xowl.org/infra/engine/tests/Sample#> " +
-                "SELECT (:total (?x) AS ?v) " +
-                "WHERE { GRAPH ?g { :peter :age ?x } }"));
+        Command command;
+        try (InputStream stream = ExecutionTest.class.getResourceAsStream("/org/xowl/infra/engine/testCallInSPARQL.rq")) {
+            command = loader.load(bufferedLogger, new InputStreamReader(stream, IOUtils.CHARSET));
+        }
         if (command == null) {
             // ill-formed request
             Assert.fail(bufferedLogger.getErrorsAsString());

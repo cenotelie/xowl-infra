@@ -1,0 +1,4 @@
+PREFIX : <http://xowl.org/infra/engine/tests#>
+
+SELECT (:total (?x) AS ?v)
+WHERE { GRAPH ?g { :peter :age ?x } }

@@ -41,6 +41,9 @@ public class EvaluatorContext {
     public static EvaluatorContext get(Evaluator evaluator) {
         EvaluatorContext context = THREAD_CONTEXT.get();
         if (context == null) {
+            if (evaluator == null)
+                // cannot resolve the context
+                return null;
             context = new EvaluatorContext(evaluator);
             THREAD_CONTEXT.set(context);
         }

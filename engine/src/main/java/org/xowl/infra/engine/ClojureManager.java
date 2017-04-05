@@ -269,10 +269,20 @@ public class ClojureManager {
      */
     private static void loadBindings() {
         try (InputStream stream = ClojureManager.class.getResourceAsStream(BINDINGS_RESOURCE)) {
-            Compiler.load(new InputStreamReader(stream, IOUtils.CHARSET));
-            BINDINGS_LOADED = true;
+            loadClojure(stream);
         } catch (IOException exception) {
             Logging.get().error(exception);
         }
+    }
+
+    /**
+     * Loads Clojure code from the specified stream
+     *
+     * @param stream The input stream to load from
+     * @throws IOException When the input cannot be read
+     */
+    static void loadClojure(InputStream stream) throws IOException {
+        Compiler.load(new InputStreamReader(stream, IOUtils.CHARSET));
+        BINDINGS_LOADED = true;
     }
 }
