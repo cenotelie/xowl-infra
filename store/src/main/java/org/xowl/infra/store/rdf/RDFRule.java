@@ -251,7 +251,7 @@ public abstract class RDFRule {
         Node result = execution.getSpecial(dynamicNode);
         if (result != null)
             return result;
-        EvaluatorContext context = EvaluatorContext.get();
+        EvaluatorContext context = EvaluatorContext.get(evaluator);
         context.push(execution.getEvaluatorBindings());
         result = RDFUtils.getRDF(nodes, evaluator.eval(dynamicNode.getDynamicExpression()));
         execution.bindSpecial(dynamicNode, result);

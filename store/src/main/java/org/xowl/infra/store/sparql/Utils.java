@@ -95,7 +95,7 @@ class Utils {
         Map<String, Object> bindings = new HashMap<>();
         for (Couple<VariableNode, Node> binding : solution)
             bindings.put(binding.x.getName(), RDFUtils.getNative(binding.y));
-        EvaluatorContext evaluatorContext = EvaluatorContext.get();
+        EvaluatorContext evaluatorContext = EvaluatorContext.get(context.getEvaluator());
         evaluatorContext.push(bindings);
         Object result = context.getEvaluator().eval(expression);
         evaluatorContext.pop();

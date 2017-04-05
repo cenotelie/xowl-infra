@@ -35,17 +35,22 @@ public class EvaluatorContext {
     /**
      * Gets the evaluator context for the current thread
      *
+     * @param evaluator The current evaluator
      * @return The evaluator context for the current thread
      */
-    public static EvaluatorContext get() {
+    public static EvaluatorContext get(Evaluator evaluator) {
         EvaluatorContext context = THREAD_CONTEXT.get();
         if (context == null) {
-            context = new EvaluatorContext();
+            context = new EvaluatorContext(evaluator);
             THREAD_CONTEXT.set(context);
         }
         return context;
     }
 
+    /**
+     * The associated evaluator
+     */
+    private final Evaluator evaluator;
     /**
      * The stack of lexical bindings
      */
@@ -54,8 +59,27 @@ public class EvaluatorContext {
     /**
      * Initializes this context
      */
-    public EvaluatorContext() {
+    public EvaluatorContext(Evaluator evaluator) {
+        this.evaluator = evaluator;
         this.contexts = new Stack<>();
+    }
+
+    /**
+     * Gets the evaluator associated to this context
+     *
+     * @return The evaluator associated to this context
+     */
+    public Evaluator getEvaluator() {
+        return evaluator;
+    }
+
+    /**
+     * Gets the repository associated to this context
+     *
+     * @return The repository associated to this context
+     */
+    public Repository getRepository() {
+        return evaluator.getRepository();
     }
 
     /**

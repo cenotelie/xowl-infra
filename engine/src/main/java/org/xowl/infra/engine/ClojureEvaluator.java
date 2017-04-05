@@ -60,7 +60,7 @@ public class ClojureEvaluator implements Evaluator {
     @Override
     public Object eval(DynamicExpression expression) {
         if (expression instanceof QueryVariable) {
-            EvaluatorContext context = EvaluatorContext.get();
+            EvaluatorContext context = EvaluatorContext.get(this);
             return context.getBinding(((QueryVariable) expression).getName());
         } else if (expression instanceof OpaqueExpression) {
             Object value = ((OpaqueExpression) expression).getValue();
@@ -74,7 +74,7 @@ public class ClojureEvaluator implements Evaluator {
     @Override
     public Object eval(DynamicExpression expression, Object... parameters) {
         if (expression instanceof QueryVariable) {
-            EvaluatorContext context = EvaluatorContext.get();
+            EvaluatorContext context = EvaluatorContext.get(this);
             return context.getBinding(((QueryVariable) expression).getName());
         } else if (expression instanceof OpaqueExpression) {
             Object value = ((OpaqueExpression) expression).getValue();
@@ -110,7 +110,7 @@ public class ClojureEvaluator implements Evaluator {
         RT.CURRENT_NS.bindRoot(ClojureManager.NAMESPACE_ROOT);
 
         List content = new ArrayList();
-        for (Map.Entry<String, Object> binding : EvaluatorContext.get().getBindings().entrySet()) {
+        for (Map.Entry<String, Object> binding : EvaluatorContext.get(this).getBindings().entrySet()) {
             if (binding.getValue() instanceof IRI)
                 continue;
             content.add(Symbol.create(binding.getKey()));
