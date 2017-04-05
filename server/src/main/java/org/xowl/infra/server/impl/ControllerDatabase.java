@@ -234,7 +234,7 @@ public class ControllerDatabase implements Closeable {
         BaseStore store = Objects.equals(configuration.get(CONFIG_STORAGE), CONFIG_STORAGE_MEMORY) ?
                 StoreFactory.create().inMemory().withReasoning().make() :
                 StoreFactory.create().onDisk(location).withReasoning().make();
-        return new RepositoryRDF(store, IRIMapper.getDefault(), Repository.getDefaultEvaluator());
+        return new RepositoryRDF(store, IRIMapper.getDefault());
     }
 
     /**

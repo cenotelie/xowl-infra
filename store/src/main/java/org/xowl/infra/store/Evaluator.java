@@ -26,6 +26,13 @@ import org.xowl.infra.lang.actions.DynamicExpression;
  */
 public interface Evaluator {
     /**
+     * Gets the parent repository
+     *
+     * @return The parent repository
+     */
+    Repository getRepository();
+
+    /**
      * Evaluates the specified expression
      *
      * @param expression An expression

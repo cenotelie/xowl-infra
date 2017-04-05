@@ -25,6 +25,7 @@ import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.EvaluatorContext;
+import org.xowl.infra.store.Repository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,9 +39,22 @@ import java.util.Map;
  */
 public class ClojureEvaluator implements Evaluator {
     /**
-     * Initializes this evaluator
+     * The parent repository
      */
-    public ClojureEvaluator() {
+    private final Repository repository;
+
+    /**
+     * Initializes this evaluator
+     *
+     * @param repository The parent repository
+     */
+    public ClojureEvaluator(Repository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public Repository getRepository() {
+        return repository;
     }
 
     @Override

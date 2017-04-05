@@ -96,7 +96,7 @@ public class RepositoryRDF extends Repository {
      * Initializes this repository
      */
     public RepositoryRDF() {
-        this(getDefaultStore(), IRIMapper.getDefault(), getDefaultEvaluator());
+        this(getDefaultStore(), IRIMapper.getDefault());
     }
 
     /**
@@ -105,7 +105,7 @@ public class RepositoryRDF extends Repository {
      * @param store The store to use as backend
      */
     public RepositoryRDF(BaseStore store) {
-        this(store, IRIMapper.getDefault(), getDefaultEvaluator());
+        this(store, IRIMapper.getDefault());
     }
 
     /**
@@ -114,16 +114,7 @@ public class RepositoryRDF extends Repository {
      * @param mapper The IRI mapper to use
      */
     public RepositoryRDF(IRIMapper mapper) {
-        this(getDefaultStore(), mapper, getDefaultEvaluator());
-    }
-
-    /**
-     * Initializes this repository
-     *
-     * @param evaluator The evaluator to use
-     */
-    public RepositoryRDF(Evaluator evaluator) {
-        this(getDefaultStore(), IRIMapper.getDefault(), evaluator);
+        this(getDefaultStore(), mapper);
     }
 
     /**
@@ -133,38 +124,7 @@ public class RepositoryRDF extends Repository {
      * @param mapper The IRI mapper to use
      */
     public RepositoryRDF(BaseStore store, IRIMapper mapper) {
-        this(store, mapper, getDefaultEvaluator());
-    }
-
-    /**
-     * Initializes this repository
-     *
-     * @param store     The store to use as backend
-     * @param evaluator The evaluator to use
-     */
-    public RepositoryRDF(BaseStore store, Evaluator evaluator) {
-        this(store, IRIMapper.getDefault(), evaluator);
-    }
-
-    /**
-     * Initializes this repository
-     *
-     * @param mapper    The IRI mapper to use
-     * @param evaluator The evaluator to use
-     */
-    public RepositoryRDF(IRIMapper mapper, Evaluator evaluator) {
-        this(getDefaultStore(), mapper, evaluator);
-    }
-
-    /**
-     * Initializes this repository
-     *
-     * @param store     The store to use as backend
-     * @param mapper    The IRI mapper to use
-     * @param evaluator The evaluator to use
-     */
-    public RepositoryRDF(BaseStore store, IRIMapper mapper, Evaluator evaluator) {
-        super(mapper, evaluator);
+        super(mapper);
         this.backend = store;
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();

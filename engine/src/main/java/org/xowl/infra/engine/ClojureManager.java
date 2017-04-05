@@ -24,10 +24,9 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.store.loaders.XOWLLexer;
 import org.xowl.infra.store.loaders.XOWLParser;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.logging.Logging;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -39,11 +38,19 @@ public class ClojureManager {
     /**
      * The root namespace for the Clojure symbols
      */
-    private static final String NAMESPACE_ROOT_NAME = "org.xowl.infra.engine.clojure";
+    private static final String NAMESPACE_ROOT_NAME = ClojureManager.class.getPackage().getName();
     /**
      * The root namespace for the Clojure symbols
      */
     public static final Namespace NAMESPACE_ROOT = Namespace.findOrCreate(Symbol.intern(NAMESPACE_ROOT_NAME));
+    /**
+     * The resource for the Clojure bindings
+     */
+    private static final String BINDINGS_RESOURCE = "/org/xowl/infra/engine/bindings.clj";
+    /**
+     * Whether the bindings are loaded
+     */
+    private static boolean BINDINGS_LOADED = false;
     /**
      * The map of the known Clojure functions
      */
@@ -220,6 +227,8 @@ public class ClojureManager {
      */
     public static void compileOutstandings() {
         synchronized (FUNCTIONS_TO_COMPILE) {
+            if (!BINDINGS_LOADED)
+                loadBindings();
             if (FUNCTIONS_TO_COMPILE.isEmpty())
                 return;
             //Var ns = RT.CURRENT_NS; // forces the initialization of the runtime before any call to the compiler
@@ -252,6 +261,18 @@ public class ClojureManager {
                 // do nothing
             }
             FUNCTIONS_TO_COMPILE.clear();
+        }
+    }
+
+    /**
+     * Loads the Clojure bindings
+     */
+    private static void loadBindings() {
+        try (InputStream stream = ClojureManager.class.getResourceAsStream(BINDINGS_RESOURCE)) {
+            Compiler.load(new InputStreamReader(stream, IOUtils.CHARSET));
+            BINDINGS_LOADED = true;
+        } catch (IOException exception) {
+            Logging.get().error(exception);
         }
     }
 }

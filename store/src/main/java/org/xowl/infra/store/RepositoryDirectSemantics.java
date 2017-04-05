@@ -94,11 +94,10 @@ public class RepositoryDirectSemantics extends Repository {
     /**
      * Initializes this repository
      *
-     * @param mapper    The IRI mapper to use
-     * @param evaluator The evaluator to use
+     * @param mapper The IRI mapper to use
      */
-    public RepositoryDirectSemantics(IRIMapper mapper, Evaluator evaluator) {
-        super(mapper, evaluator);
+    public RepositoryDirectSemantics(IRIMapper mapper) {
+        super(mapper);
         this.nodeManager = new CachedNodes();
         this.mapEntities = new HashMap<>();
         this.classUnions = new ArrayList<>();

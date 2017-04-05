@@ -184,18 +184,19 @@ public abstract class Repository {
     }
 
     /**
-     * The loader of evaluator services
+     * The loader of evaluator providers
      */
-    private static ServiceLoader<Evaluator> SERVICE_EVALUATOR = ServiceLoader.load(Evaluator.class);
+    private static ServiceLoader<EvaluatorProvider> SERVICE_EVALUATOR_PROVIDER = ServiceLoader.load(EvaluatorProvider.class);
 
     /**
-     * Gets the default evaluator
+     * Gets an evaluator
      *
-     * @return The default evaluator
+     * @param repository The parent repository for the evaluator
+     * @return An evaluator
      */
-    public static Evaluator getDefaultEvaluator() {
-        Iterator<Evaluator> services = SERVICE_EVALUATOR.iterator();
-        return services.hasNext() ? services.next() : null;
+    private static Evaluator getDefaultEvaluator(Repository repository) {
+        Iterator<EvaluatorProvider> services = SERVICE_EVALUATOR_PROVIDER.iterator();
+        return services.hasNext() ? services.next().newEvaluator(repository) : null;
     }
 
 
@@ -246,14 +247,13 @@ public abstract class Repository {
     /**
      * Initializes this repository
      *
-     * @param mapper    The IRI mapper to use
-     * @param evaluator The evaluator to use
+     * @param mapper The IRI mapper to use
      */
-    public Repository(IRIMapper mapper, Evaluator evaluator) {
+    public Repository(IRIMapper mapper) {
         this.mapper = mapper;
         this.resources = new HashMap<>();
         this.ontologies = new HashMap<>();
-        this.evaluator = evaluator;
+        this.evaluator = getDefaultEvaluator(this);
         this.regime = EntailmentRegime.none;
     }
 
