@@ -19,7 +19,11 @@
   (:import (org.xowl.infra.engine ClojureAPI)
            (org.xowl.infra.store RDFUtils)
            (org.xowl.infra.store.rdf RDFPatternSolution Node)
-           (org.xowl.infra.store.sparql Result ResultSolutions)))
+           (org.xowl.infra.store.sparql Result ResultSolutions)
+           (org.xowl.infra.lang.owl2 IRI)))
+
+(defn iriToStr [^IRI entity]
+  (.getHasValue entity))
 
 (defn native [^Node node]
   (RDFUtils/getNative node))
@@ -36,3 +40,15 @@
       nil
       (valueOf (.next (.iterator solutions)) variable)
       )))
+
+(defn getObjectValue [^IRI entity ^String property]
+  (ClojureAPI/getObjectValue entity property))
+
+(defn getObjectValues [^IRI entity ^String property]
+  (ClojureAPI/getObjectValues entity property))
+
+(defn getDataValue [^IRI entity ^String property]
+  (ClojureAPI/getDataValue entity property))
+
+(defn getDataValues [^IRI entity ^String property]
+  (ClojureAPI/getDataValues entity property))

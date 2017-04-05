@@ -17,23 +17,34 @@
 
 package org.xowl.infra.engine;
 
+import org.xowl.infra.lang.owl2.IRI;
+import org.xowl.infra.lang.owl2.Owl2Factory;
 import org.xowl.infra.store.EvaluatorContext;
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.loaders.SPARQLLoader;
+import org.xowl.infra.store.rdf.IRINode;
+import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.logging.BufferedLogger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Provides a convenient API for accessing data from Clojure
  *
  * @author Laurent Wouters
  */
-class ClojureAPI {
+public class ClojureAPI {
     /**
      * Executes a SPARQL query against the current repository
      *
@@ -56,5 +67,141 @@ class ClojureAPI {
         if (!logger.getErrorMessages().isEmpty())
             return new ResultFailure(logger.getErrorsAsString());
         return command.execute(((RepositoryRDF) context.getRepository()));
+    }
+
+    /**
+     * Gets the object value associated by a property to an entity
+     *
+     * @param entity   The entity
+     * @param property The property
+     * @return The first associated object value
+     */
+    public static IRI getObjectValue(IRI entity, String property) {
+        EvaluatorContext context = EvaluatorContext.get(null);
+        if (context == null)
+            return null;
+        if (!(context.getRepository() instanceof RepositoryRDF))
+            return null;
+
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getRepository();
+        IRINode nodeSubject = repositoryRDF.getStore().getIRINode(entity.getHasValue());
+        IRINode nodeProperty = repositoryRDF.getStore().getIRINode(property);
+        try {
+            Iterator<Quad> iterator = repositoryRDF.getStore().getAll(nodeSubject, nodeProperty, null);
+            if (!iterator.hasNext())
+                return null;
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                if (quad.getObject().getNodeType() == Node.TYPE_IRI) {
+                    IRI iri = Owl2Factory.newIRI();
+                    iri.setHasValue(((IRINode) quad.getObject()).getIRIValue());
+                    return iri;
+                }
+            }
+            return null;
+        } catch (UnsupportedNodeType exception) {
+            Logging.get().error(exception);
+            return null;
+        }
+    }
+
+    /**
+     * Gets the object values associated by a property to an entity
+     *
+     * @param entity   The entity
+     * @param property The property
+     * @return The associated object values
+     */
+    public static Collection<IRI> getObjectValues(IRI entity, String property) {
+        Collection<IRI> result = new ArrayList<>();
+        EvaluatorContext context = EvaluatorContext.get(null);
+        if (context == null)
+            return result;
+        if (!(context.getRepository() instanceof RepositoryRDF))
+            return result;
+
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getRepository();
+        IRINode nodeSubject = repositoryRDF.getStore().getIRINode(entity.getHasValue());
+        IRINode nodeProperty = repositoryRDF.getStore().getIRINode(property);
+        try {
+            Iterator<Quad> iterator = repositoryRDF.getStore().getAll(nodeSubject, nodeProperty, null);
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                if (quad.getObject().getNodeType() == Node.TYPE_IRI) {
+                    IRI iri = Owl2Factory.newIRI();
+                    iri.setHasValue(((IRINode) quad.getObject()).getIRIValue());
+                    result.add(iri);
+                }
+            }
+        } catch (UnsupportedNodeType exception) {
+            Logging.get().error(exception);
+        }
+        return result;
+    }
+
+    /**
+     * Gets the data value associated by a property to an entity
+     *
+     * @param entity   The entity
+     * @param property The property
+     * @return The first associated data value
+     */
+    public static Object getDataValue(IRI entity, String property) {
+        EvaluatorContext context = EvaluatorContext.get(null);
+        if (context == null)
+            return null;
+        if (!(context.getRepository() instanceof RepositoryRDF))
+            return null;
+
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getRepository();
+        IRINode nodeSubject = repositoryRDF.getStore().getIRINode(entity.getHasValue());
+        IRINode nodeProperty = repositoryRDF.getStore().getIRINode(property);
+        try {
+            Iterator<Quad> iterator = repositoryRDF.getStore().getAll(nodeSubject, nodeProperty, null);
+            if (!iterator.hasNext())
+                return null;
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                if (quad.getObject().getNodeType() == Node.TYPE_LITERAL) {
+                    return RDFUtils.getNative(quad.getObject());
+                }
+            }
+            return null;
+        } catch (UnsupportedNodeType exception) {
+            Logging.get().error(exception);
+            return null;
+        }
+    }
+
+    /**
+     * Gets the data values associated by a property to an entity
+     *
+     * @param entity   The entity
+     * @param property The property
+     * @return The associated data values
+     */
+    public static Collection<Object> getDataValues(IRI entity, String property) {
+        Collection<Object> result = new ArrayList<>();
+        EvaluatorContext context = EvaluatorContext.get(null);
+        if (context == null)
+            return result;
+        if (!(context.getRepository() instanceof RepositoryRDF))
+            return result;
+
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getRepository();
+        IRINode nodeSubject = repositoryRDF.getStore().getIRINode(entity.getHasValue());
+        IRINode nodeProperty = repositoryRDF.getStore().getIRINode(property);
+        try {
+            Iterator<Quad> iterator = repositoryRDF.getStore().getAll(nodeSubject, nodeProperty, null);
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                if (quad.getObject().getNodeType() == Node.TYPE_LITERAL) {
+                    result.add(RDFUtils.getNative(quad.getObject()));
+                }
+            }
+        } catch (UnsupportedNodeType exception) {
+            Logging.get().error(exception);
+        }
+        return result;
     }
 }

@@ -1,0 +1,47 @@
+Prefix(xsd: = <http://www.w3.org/2001/XMLSchema#>)
+Prefix( : = <http://xowl.org/infra/engine/tests#>)
+
+Ontology( <http://xowl.org/infra/engine/tests>
+    Declaration(Class(:State))
+    Declaration(Class(:Transition))
+    FunctionalObjectProperty(:from)
+    ObjectPropertyDomain(:from :Transition)
+    ObjectPropertyRange(:from :State)
+    FunctionalObjectProperty(:to)
+    ObjectPropertyDomain(:to :Transition)
+    ObjectPropertyRange(:to :State)
+    FunctionalObjectProperty(:symbol)
+    ObjectPropertyDomain(:symbol :Transition)
+
+    FunctionDefinition(:nextState (fn [state symbol]
+        (firstValueOf
+            (sparql (str
+                "PREFIX : <http://xowl.org/infra/engine/tests#> "
+                "SELECT ?s WHERE { GRAPH ?g { ?t :from <"
+                (iriToStr state)
+                "> . ?t :symbol <"
+                (iriToStr symbol)
+                "> . ?t :to ?s } }"))
+            "s")))
+
+    FunctionDefinition(:simulate (fn [init input]
+        (if (nil? init)
+            nil
+            (if (empty? input)
+                init
+                (simulate
+                    (nextState init (first input))
+                    (next input))))))
+
+    ClassAssertion(:State :s0)
+    ClassAssertion(:State :s1)
+    ClassAssertion(:State :s2)
+    ClassAssertion(:Transition :t01)
+    ClassAssertion(:Transition :t12)
+    ObjectPropertyAssertion(:from :t01 :s0)
+    ObjectPropertyAssertion(:to :t01 :s1)
+    ObjectPropertyAssertion(:symbol :t01 :a)
+    ObjectPropertyAssertion(:from :t12 :s1)
+    ObjectPropertyAssertion(:to :t12 :s2)
+    ObjectPropertyAssertion(:symbol :t12 :b)
+)

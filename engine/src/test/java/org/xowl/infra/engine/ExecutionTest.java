@@ -19,6 +19,9 @@ package org.xowl.infra.engine;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.xowl.infra.lang.owl2.IRI;
+import org.xowl.infra.lang.owl2.Owl2Factory;
+import org.xowl.infra.store.EvaluatorContext;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
@@ -142,5 +145,41 @@ public class ExecutionTest {
         Node value = solution.get("v");
         Assert.assertTrue(value != null && value instanceof LiteralNode);
         Assert.assertEquals(29, Integer.parseInt(((LiteralNode) value).getLexicalValue()));
+    }
+
+    @Test
+    public void testStateMachine() throws IOException {
+        SinkLogger logger = new SinkLogger();
+        RepositoryRDF repository = new RepositoryRDF();
+        EvaluatorContext.get(repository.getEvaluator());
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testStateMachine.xowl");
+        try {
+            repository.load(logger, "http://xowl.org/infra/engine/tests");
+        } catch (Exception exception) {
+            logger.error(exception);
+        }
+        Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
+
+        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests#simulate",
+                getIRI("http://xowl.org/infra/engine/tests#s0"),
+                new IRI[]{
+                        getIRI("http://xowl.org/infra/engine/tests#a"),
+                        getIRI("http://xowl.org/infra/engine/tests#b")
+                });
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result instanceof IRI);
+        Assert.assertEquals("http://xowl.org/infra/engine/tests#s2", ((IRI) result).getHasValue());
+    }
+
+    /**
+     * Gets the IRI object for the specified entity
+     *
+     * @param entity The entity
+     * @return The IRI
+     */
+    private IRI getIRI(String entity) {
+        IRI iri = Owl2Factory.newIRI();
+        iri.setHasValue(entity);
+        return iri;
     }
 }
