@@ -17,6 +17,7 @@
 
 package org.xowl.infra.engine;
 
+import clojure.java.api.Clojure;
 import clojure.lang.Compiler;
 import clojure.lang.*;
 import org.xowl.hime.redist.ASTNode;
@@ -106,7 +107,7 @@ public class ClojureEvaluator implements Evaluator {
     public Object loadExpression(ASTNode definition) {
         StringBuilder builder = new StringBuilder();
         serializeClojure(builder, definition);
-        return new ClojureExpression(builder.toString());
+        return new ClojureExpression(Clojure.read(builder.toString()));
     }
 
     /**
@@ -260,7 +261,7 @@ public class ClojureEvaluator implements Evaluator {
                     PersistentVector.create(bindings.toArray()),
                     // require bindings
                     PersistentList.create(Arrays.asList(
-                            Symbol.create("clojure.core", "load-string"),
+                            Symbol.create("clojure.core", "eval"),
                             expression.getDefinition()
                     ))
             ));
