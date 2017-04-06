@@ -17,7 +17,6 @@
 
 package org.xowl.infra.engine;
 
-import clojure.java.api.Clojure;
 import clojure.lang.Compiler;
 import clojure.lang.*;
 import org.xowl.hime.redist.ASTNode;
@@ -32,7 +31,9 @@ import org.xowl.infra.store.loaders.XOWLLexer;
 import org.xowl.infra.store.loaders.XOWLParser;
 import org.xowl.infra.utils.IOUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -52,7 +53,7 @@ public class ClojureEvaluator implements Evaluator {
      * @return The next Clojure namespace
      */
     private synchronized static String getNextNamespace() {
-        String result = ClojureEvaluator.class.getCanonicalName() + ".Repository" + Integer.toHexString(REPOSITORY_COUNT);
+        String result = ClojureEvaluator.class.getPackage().getName() + ".clojure.Repository" + Integer.toHexString(REPOSITORY_COUNT);
         REPOSITORY_COUNT++;
         return result;
     }
@@ -105,7 +106,7 @@ public class ClojureEvaluator implements Evaluator {
     public Object loadExpression(ASTNode definition) {
         StringBuilder builder = new StringBuilder();
         serializeClojure(builder, definition);
-        return Clojure.read(builder.toString());
+        return new ClojureExpression(builder.toString());
     }
 
     /**
@@ -183,21 +184,11 @@ public class ClojureEvaluator implements Evaluator {
                     Var.intern(cljNamespaceRoot, Symbol.intern(function.getName()), definition);
                     function.setClojure(definition);
                 }
-            } catch (IOException ex) {
+            } catch (IOException exception) {
                 // do nothing
             }
             cljToBuild.clear();
         }
-    }
-
-    /**
-     * Loads Clojure code from the specified stream
-     *
-     * @param stream The input stream to load from
-     * @throws IOException When the input cannot be read
-     */
-    void loadClojure(InputStream stream) throws IOException {
-        Compiler.load(new InputStreamReader(stream, IOUtils.CHARSET));
     }
 
     @Override
@@ -214,7 +205,8 @@ public class ClojureEvaluator implements Evaluator {
             Object value = ((OpaqueExpression) expression).getValue();
             if (value instanceof ClojureFunction)
                 return execute((ClojureFunction) value);
-            return evaluateExpression(value);
+            if (value instanceof ClojureExpression)
+                return evaluateExpression((ClojureExpression) value);
         }
         return null;
     }
@@ -228,7 +220,8 @@ public class ClojureEvaluator implements Evaluator {
             Object value = ((OpaqueExpression) expression).getValue();
             if (value instanceof ClojureFunction)
                 return execute((ClojureFunction) value, parameters);
-            return evaluateExpression(value);
+            if (value instanceof ClojureExpression)
+                return evaluateExpression((ClojureExpression) value);
         }
         return null;
     }
@@ -249,26 +242,32 @@ public class ClojureEvaluator implements Evaluator {
     /**
      * Evaluates a Clojure expression
      *
-     * @param cljExp The expression to evaluate
+     * @param expression The expression to evaluate
      * @return The evaluated value
      */
-    private Object evaluateExpression(Object cljExp) {
+    private Object evaluateExpression(ClojureExpression expression) {
         compileOutstandings();
         synchronized (RT.CURRENT_NS) {
-            Namespace old = (Namespace) RT.CURRENT_NS.deref();
-            RT.CURRENT_NS.bindRoot(cljNamespaceRoot);
-            List content = new ArrayList();
+            List bindings = new ArrayList();
             for (Map.Entry<String, Object> binding : EvaluatorContext.get(this).getBindings().entrySet()) {
                 if (binding.getValue() instanceof IRI)
                     continue;
-                content.add(Symbol.create(binding.getKey()));
-                content.add(binding.getValue());
+                bindings.add(Symbol.create(binding.getKey()));
+                bindings.add(binding.getValue());
             }
-            PersistentVector content1 = PersistentVector.create(content.toArray());
-            IPersistentList top = PersistentList.create(Arrays.asList(Symbol.create("clojure.core", "let"), content1, cljExp));
-            Object result = Compiler.eval(top);
-            RT.CURRENT_NS.bindRoot(old);
-            return result;
+            IPersistentList top = PersistentList.create(Arrays.asList(
+                    Symbol.create("clojure.core", "let"),
+                    PersistentVector.create(bindings.toArray()),
+                    // require bindings
+                    PersistentList.create(Arrays.asList(
+                            Symbol.create("clojure.core", "eval"),
+                            PersistentList.create(Arrays.asList(
+                                    Symbol.create("clojure.core", "read-string"),
+                                    expression.getDefinition()
+                            ))
+                    ))
+            ));
+            return Compiler.eval(top);
         }
     }
 
