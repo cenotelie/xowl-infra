@@ -14,13 +14,13 @@ Ontology( <http://xowl.org/infra/engine/tests>
     ObjectPropertyDomain(:symbol :Transition)
 
     FunctionDefinition(:nextState (fn [state symbol]
-        (firstValueOf
-            (sparql (str
+        (xowl/firstValueOf
+            (xowl/sparql (str
                 "PREFIX : <http://xowl.org/infra/engine/tests#> "
                 "SELECT ?s WHERE { GRAPH ?g { ?t :from <"
-                (iriToStr state)
+                (xowl/iriToStr state)
                 "> . ?t :symbol <"
-                (iriToStr symbol)
+                (xowl/iriToStr symbol)
                 "> . ?t :to ?s } }"))
             "s")))
 

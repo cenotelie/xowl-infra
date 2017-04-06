@@ -64,25 +64,6 @@ public class ExecutionTest {
     }
 
     @Test
-    public void testCallClojure() throws IOException {
-        try (InputStream stream = ExecutionTest.class.getResourceAsStream("/org/xowl/infra/engine/testCallClojure.clj")) {
-            ClojureManager.loadClojure(stream);
-        }
-        SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testCallClojure.xowl");
-        try {
-            repository.load(logger, "http://xowl.org/infra/engine/tests");
-        } catch (Exception exception) {
-            logger.error(exception);
-        }
-        Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests#sayHello");
-        Assert.assertFalse("Failed to execute the function", logger.isOnError());
-        Assert.assertEquals("Hello World", result);
-    }
-
-    @Test
     public void testCallOtherXOWL() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();

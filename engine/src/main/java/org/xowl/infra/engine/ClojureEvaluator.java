@@ -161,7 +161,7 @@ public class ClojureEvaluator implements Evaluator {
             StringBuilder builder = new StringBuilder();
             builder.append("(ns ");
             builder.append(cljNamespace);
-            builder.append(")");
+            builder.append(" (:require [org.xowl.infra.engine.ClojureBindings :as xowl]))");
             builder.append(IOUtils.LINE_SEPARATOR);
             builder.append("(declare & ");
             for (ClojureFunction function : cljToBuild) {
