@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -17,29 +17,19 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.store.Evaluator;
 
-import java.lang.ref.WeakReference;
-
 /**
- * Default implementation of the deserialization of xOWL ontologies
+ * Represents a provider of deserializer for xOWL ontologies
  *
  * @author Laurent Wouters
  */
-class DefaultXOWLDeserializer extends XOWLDeserializer {
+public interface XOWLDeserializerProvider {
     /**
-     * Initializes this de-serializer
+     * Gets a new deserializer
      *
-     * @param evaluator The evaluator to use
+     * @param evaluator The current evaluator
+     * @return The deserializer
      */
-    public DefaultXOWLDeserializer(Evaluator evaluator) {
-        super(evaluator);
-    }
-
-    @Override
-    protected Object loadForm(ASTNode node) {
-        // do not block the garbage collection of the AST
-        return new WeakReference<Object>(node);
-    }
+    XOWLDeserializer newDeserializer(Evaluator evaluator);
 }

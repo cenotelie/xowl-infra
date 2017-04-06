@@ -15,7 +15,7 @@
 ; If not, see <http://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ns org.xowl.infra.engine
+(ns org.xowl.infra.engine.ClojureBindings
   (:import (org.xowl.infra.engine ClojureAPI)
            (org.xowl.infra.store RDFUtils)
            (org.xowl.infra.store.rdf RDFPatternSolution Node)

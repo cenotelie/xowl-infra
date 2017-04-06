@@ -56,11 +56,11 @@ public class FunctionalOWL2Deserializer {
     protected OWLLoaderResult cache;
 
     /**
-     * De-serailizes the specified document identified by the specified resource URI
+     * De-serializes the specified document identified by the specified resource URI
      *
      * @param resourceURI The URI of the resource to deserialize
      * @param document    The AST of the document to deserialize
-     * @return The deserailized data
+     * @return The de-serialized data
      */
     public OWLLoaderResult deserialize(String resourceURI, ASTNode document) {
         this.resource = resourceURI;

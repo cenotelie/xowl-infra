@@ -23,6 +23,7 @@ import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.infra.lang.owl2.IRI;
+import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.loaders.XOWLDeserializer;
 
 /**
@@ -31,9 +32,18 @@ import org.xowl.infra.store.loaders.XOWLDeserializer;
  * @author Laurent Wouters
  */
 public class ClojureXOWLDeserializer extends XOWLDeserializer {
+    /**
+     * Initializes this de-serializer
+     *
+     * @param evaluator The evaluator to use
+     */
+    public ClojureXOWLDeserializer(Evaluator evaluator) {
+        super(evaluator);
+    }
+
     @Override
     protected Object loadForm(ASTNode node) {
-        return ClojureManager.loadExpression(node);
+        return ((ClojureEvaluator) evaluator).loadExpression(node);
     }
 
     /**
@@ -45,7 +55,7 @@ public class ClojureXOWLDeserializer extends XOWLDeserializer {
     protected Axiom loadAxiomFunctionDefinition(ASTNode node) {
         FunctionExpression functionExpression = loadExpFunction(node.getChildren().get(1));
         String iri = (functionExpression instanceof IRI) ? (((IRI) functionExpression).getHasValue()) : null;
-        ClojureFunction definition = ClojureManager.loadFunction(iri, node.getChildren().get(2));
+        ClojureFunction definition = ((ClojureEvaluator) evaluator).loadFunction(iri, node.getChildren().get(2));
         FunctionDefinitionAxiom axiom = ActionsFactory.newFunctionDefinitionAxiom();
         loadAxiomBase(node, axiom);
         axiom.setFunction(functionExpression);

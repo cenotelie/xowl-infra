@@ -20,6 +20,7 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.hime.redist.parsers.InitializationException;
+import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -37,7 +38,21 @@ public class XOWLLoader implements Loader {
     /**
      * The loader of XOWL deserialization services
      */
-    private static ServiceLoader<XOWLDeserializer> SERIVCE_DESERIALIZER = ServiceLoader.load(XOWLDeserializer.class);
+    private static ServiceLoader<XOWLDeserializerProvider> SERVICE_PROVIDER = ServiceLoader.load(XOWLDeserializerProvider.class);
+
+    /**
+     * The current evaluator
+     */
+    private final Evaluator evaluator;
+
+    /**
+     * The current evaluator
+     *
+     * @param evaluator The current evaluator
+     */
+    public XOWLLoader(Evaluator evaluator) {
+        this.evaluator = evaluator;
+    }
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
@@ -48,11 +63,8 @@ public class XOWLLoader implements Loader {
             XOWLParser parser = new XOWLParser(lexer);
             parser.setModeRecoverErrors(false);
             result = parser.parse();
-        } catch (IOException ex) {
-            logger.error(ex);
-            return null;
-        } catch (InitializationException ex) {
-            logger.error(ex);
+        } catch (IOException | InitializationException exception) {
+            logger.error(exception);
             return null;
         }
         for (ParseError error : result.getErrors()) {
@@ -74,8 +86,8 @@ public class XOWLLoader implements Loader {
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
             return null;
-        Iterator<XOWLDeserializer> services = SERIVCE_DESERIALIZER.iterator();
-        XOWLDeserializer deserializer = services.hasNext() ? services.next() : new DefaultXOWLDeserializer();
+        Iterator<XOWLDeserializerProvider> services = SERVICE_PROVIDER.iterator();
+        XOWLDeserializer deserializer = services.hasNext() ? services.next().newDeserializer(evaluator) : new DefaultXOWLDeserializer(evaluator);
         return deserializer.deserialize(uri, result.getRoot());
     }
 }

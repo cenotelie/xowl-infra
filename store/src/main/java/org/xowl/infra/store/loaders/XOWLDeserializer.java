@@ -28,6 +28,7 @@ import org.xowl.infra.lang.owl2.LiteralExpression;
 import org.xowl.infra.lang.rules.Assertion;
 import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.lang.rules.RulesFactory;
+import org.xowl.infra.store.Evaluator;
 
 /**
  * Implements the deserialization of xOWL ontologies
@@ -36,9 +37,22 @@ import org.xowl.infra.lang.rules.RulesFactory;
  */
 public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
     /**
+     * The evaluator when de-serializing
+     */
+    protected final Evaluator evaluator;
+    /**
      * The current lexical context
      */
     protected LexicalContext context;
+
+    /**
+     * Initializes this de-serializer
+     *
+     * @param evaluator The evaluator to use
+     */
+    public XOWLDeserializer(Evaluator evaluator) {
+        this.evaluator = evaluator;
+    }
 
     @Override
     protected void loadElement(ASTNode node) {
