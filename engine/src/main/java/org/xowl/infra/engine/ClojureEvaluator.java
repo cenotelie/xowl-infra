@@ -260,11 +260,8 @@ public class ClojureEvaluator implements Evaluator {
                     PersistentVector.create(bindings.toArray()),
                     // require bindings
                     PersistentList.create(Arrays.asList(
-                            Symbol.create("clojure.core", "eval"),
-                            PersistentList.create(Arrays.asList(
-                                    Symbol.create("clojure.core", "read-string"),
-                                    expression.getDefinition()
-                            ))
+                            Symbol.create("clojure.core", "load-string"),
+                            expression.getDefinition()
                     ))
             ));
             return Compiler.eval(top);
