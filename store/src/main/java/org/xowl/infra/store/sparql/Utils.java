@@ -17,8 +17,8 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.lang.actions.DynamicExpression;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -90,7 +90,7 @@ class Utils {
      * @param expression The expression to evaluate
      * @return The evaluated native value
      */
-    public static Object evaluateNative(EvalContext context, RDFPatternSolution solution, DynamicExpression expression) {
+    public static Object evaluateNative(EvalContext context, RDFPatternSolution solution, EvaluableExpression expression) {
         Map<String, Object> bindings = new HashMap<>();
         for (Couple<VariableNode, Node> binding : solution)
             bindings.put(binding.x.getName(), RDFUtils.getNative(binding.y));
@@ -127,7 +127,7 @@ class Utils {
             return value;
         }
         if (result.getNodeType() == Node.TYPE_DYNAMIC && context.getEvaluator() != null) {
-            Object value = evaluateNative(context, solution, ((DynamicNode) result).getDynamicExpression());
+            Object value = evaluateNative(context, solution, ((DynamicNode) result).getEvaluable());
             return RDFUtils.getRDF(context.getNodes(), value);
         }
         return result;

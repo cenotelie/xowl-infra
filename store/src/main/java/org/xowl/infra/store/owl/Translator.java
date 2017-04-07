@@ -17,31 +17,18 @@
 
 package org.xowl.infra.store.owl;
 
-import org.xowl.infra.lang.actions.*;
+import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
+import org.xowl.infra.lang.actions.FunctionExpression;
+import org.xowl.infra.lang.actions.OpaqueExpression;
+import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.*;
-import org.xowl.infra.lang.owl2.DataAllValuesFrom;
-import org.xowl.infra.lang.owl2.DataExactCardinality;
-import org.xowl.infra.lang.owl2.DataHasValue;
-import org.xowl.infra.lang.owl2.DataMaxCardinality;
-import org.xowl.infra.lang.owl2.DataMinCardinality;
-import org.xowl.infra.lang.owl2.DataPropertyAssertion;
-import org.xowl.infra.lang.owl2.DataSomeValuesFrom;
-import org.xowl.infra.lang.owl2.DatatypeRestriction;
-import org.xowl.infra.lang.owl2.Literal;
-import org.xowl.infra.lang.owl2.ObjectAllValuesFrom;
-import org.xowl.infra.lang.owl2.ObjectExactCardinality;
-import org.xowl.infra.lang.owl2.ObjectHasSelf;
-import org.xowl.infra.lang.owl2.ObjectHasValue;
-import org.xowl.infra.lang.owl2.ObjectMaxCardinality;
-import org.xowl.infra.lang.owl2.ObjectMinCardinality;
-import org.xowl.infra.lang.owl2.ObjectPropertyAssertion;
-import org.xowl.infra.lang.owl2.ObjectSomeValuesFrom;
 import org.xowl.infra.lang.runtime.Class;
-import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Function;
+import org.xowl.infra.lang.runtime.ObjectProperty;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.rdf.Property;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
@@ -115,19 +102,6 @@ public class Translator {
         for (Axiom axiom : input)
             translateAxiom(axiom);
         return quads;
-    }
-
-    /**
-     * Gets a dynamic node for the specified dynamic expression of the specified expected type
-     *
-     * @param expression A dynamic expression
-     * @param type       The expected type of the expression
-     * @return The representing dynamic node
-     */
-    protected DynamicNode getDynamicNode(DynamicExpression expression, java.lang.Class type) {
-        DynamicNode node = new DynamicNode(expression);
-        node.addType(type);
-        return node;
     }
 
     /**
@@ -882,11 +856,20 @@ public class Translator {
      */
     protected void translateAxiomFunctionDefinition(FunctionDefinitionAxiom axiom) throws TranslationException {
         SubjectNode function = translateFunctionExpression(axiom.getFunction());
-        OpaqueExpression value = ActionsFactory.newOpaqueExpression();
-        value.setValue(axiom.getDefinition());
-        Quad quad = getTriple(function, Vocabulary.xowlDefinedAs, new DynamicNode(value));
+        SubjectNode definition = translateOpaqueExpression(axiom.getDefinition());
+        Quad quad = getTriple(function, Vocabulary.xowlDefinedAs, definition);
         quads.add(quad);
         translateAxiomAnnotations(axiom, quad);
+    }
+
+    /**
+     * Gets a dynamic node for the specified opaque expression
+     *
+     * @param expression An opaque expression
+     * @return The representing dynamic node
+     */
+    protected SubjectNode translateOpaqueExpression(OpaqueExpression expression) {
+        return new DynamicNode((EvaluableExpression) expression.getValue());
     }
 
     /**
@@ -899,8 +882,8 @@ public class Translator {
     protected SubjectNode translateClassExpression(ClassExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
             return context.resolve((QueryVariable) expression, Class.class);
-        if (expression instanceof DynamicExpression)
-            return getDynamicNode((DynamicExpression) expression, Class.class);
+        if (expression instanceof OpaqueExpression)
+            return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
             return translateClassIRI((IRI) expression);
         if (expression instanceof ObjectUnionOf)
@@ -1301,8 +1284,8 @@ public class Translator {
     protected SubjectNode translateObjectPropertyExpression(ObjectPropertyExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
             return context.resolve((QueryVariable) expression, ObjectProperty.class);
-        if (expression instanceof DynamicExpression)
-            return getDynamicNode((DynamicExpression) expression, ObjectProperty.class);
+        if (expression instanceof OpaqueExpression)
+            return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
             return translateObjectPropertyIRI((IRI) expression);
         if (expression instanceof ObjectInverseOf)
@@ -1344,8 +1327,8 @@ public class Translator {
     protected SubjectNode translateDataPropertyExpression(DataPropertyExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
             return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.DataProperty.class);
-        if (expression instanceof DynamicExpression)
-            return getDynamicNode((DynamicExpression) expression, DataProperty.class);
+        if (expression instanceof OpaqueExpression)
+            return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI) return translateDataPropertyIRI((IRI) expression);
         return null;
     }
@@ -1370,8 +1353,8 @@ public class Translator {
     protected SubjectNode translateDatarange(Datarange expression) throws TranslationException {
         if (expression instanceof QueryVariable)
             return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Datatype.class);
-        if (expression instanceof DynamicExpression)
-            return getDynamicNode((DynamicExpression) expression, Datatype.class);
+        if (expression instanceof OpaqueExpression)
+            return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
             return translateDatatypeIRI((IRI) expression);
         if (expression instanceof DataComplementOf)
@@ -1512,8 +1495,8 @@ public class Translator {
     protected SubjectNode translateIndividualExpression(IndividualExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
             return context.resolve((org.xowl.infra.lang.actions.QueryVariable) expression, org.xowl.infra.lang.runtime.Individual.class);
-        if (expression instanceof DynamicExpression)
-            return getDynamicNode((DynamicExpression) expression, Individual.class);
+        if (expression instanceof OpaqueExpression)
+            return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
             return translateNamedIndividualIRI((IRI) expression);
         if (expression instanceof AnonymousIndividual)
@@ -1550,8 +1533,8 @@ public class Translator {
     protected Node translateLiteralExpression(LiteralExpression expression) {
         if (expression instanceof QueryVariable)
             return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Literal.class);
-        if (expression instanceof DynamicExpression)
-            return getDynamicNode((DynamicExpression) expression, Literal.class);
+        if (expression instanceof OpaqueExpression)
+            return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof Literal)
             return translateLiteral((Literal) expression);
         return null;
@@ -1577,8 +1560,8 @@ public class Translator {
     protected SubjectNode translateFunctionExpression(FunctionExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
             return context.resolve((QueryVariable) expression, Function.class);
-        if (expression instanceof DynamicExpression)
-            return getDynamicNode((DynamicExpression) expression, Function.class);
+        if (expression instanceof OpaqueExpression)
+            return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
             return translateFunctionIRI((IRI) expression);
 

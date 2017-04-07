@@ -17,11 +17,7 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.lang.actions.DynamicExpression;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.xowl.infra.store.execution.EvaluableExpression;
 
 /**
  * Represents a node associated to a dynamic xOWL expression in a RDF store
@@ -30,22 +26,17 @@ import java.util.List;
  */
 public class DynamicNode implements SubjectNode, Property, GraphNode {
     /**
-     * The associated dynamic expression
+     * The represented evaluable expression
      */
-    private final DynamicExpression dynExpression;
-    /**
-     * The possible types for the expression
-     */
-    private final List<Class> types;
+    private final EvaluableExpression evaluable;
 
     /**
      * Initializes this node
      *
-     * @param exp The dynamic expression represented by this node
+     * @param evaluable The represented evaluable expression
      */
-    public DynamicNode(DynamicExpression exp) {
-        dynExpression = exp;
-        types = new ArrayList<>();
+    public DynamicNode(EvaluableExpression evaluable) {
+        this.evaluable = evaluable;
     }
 
     /**
@@ -53,27 +44,8 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
      *
      * @return The dynamic expression associated to this node
      */
-    public DynamicExpression getDynamicExpression() {
-        return dynExpression;
-    }
-
-    /**
-     * Gets the possible types for the expression represented by this node
-     *
-     * @return The possible types for the expression represented by this node
-     */
-    public Collection<Class> getTypes() {
-        return types;
-    }
-
-    /**
-     * Adds a possible type for the dynamic expression represented by this node
-     *
-     * @param type A new possible type for the expression
-     */
-    public void addType(Class type) {
-        if (!types.contains(type))
-            types.add(type);
+    public EvaluableExpression getEvaluable() {
+        return evaluable;
     }
 
     @Override
@@ -84,7 +56,7 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 23 * hash + (this.dynExpression != null ? this.dynExpression.hashCode() : 0);
+        hash = 23 * hash + (this.evaluable != null ? this.evaluable.hashCode() : 0);
         return hash;
     }
 
@@ -93,11 +65,11 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
         if (!(obj instanceof DynamicNode))
             return false;
         DynamicNode o = (DynamicNode) obj;
-        return (o.dynExpression == this.dynExpression);
+        return (o.evaluable == this.evaluable);
     }
 
     @Override
     public String toString() {
-        return "<dyn>";
+        return "<" + evaluable.serializedString() + ">";
     }
 }

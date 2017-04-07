@@ -69,7 +69,9 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
         FunctionDefinitionAxiom axiom = ActionsFactory.newFunctionDefinitionAxiom();
         loadAxiomBase(node, axiom);
         axiom.setFunction(loadExpFunction(node.getChildren().get(1)));
-        axiom.setDefinition(loadForm(node.getChildren().get(2)));
+        OpaqueExpression opaqueExpression = ActionsFactory.newOpaqueExpression();
+        opaqueExpression.setValue(loadForm(node.getChildren().get(2)));
+        axiom.setDefinition(opaqueExpression);
         return axiom;
     }
 

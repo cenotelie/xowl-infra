@@ -20,11 +20,9 @@ package org.xowl.infra.engine;
 import clojure.lang.Compiler;
 import clojure.lang.*;
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.lang.actions.DynamicExpression;
-import org.xowl.infra.lang.actions.OpaqueExpression;
-import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutableFunction;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.loaders.XOWLDeserializer;
@@ -109,34 +107,10 @@ public class ClojureExecutionManager implements ExecutionManager {
     }
 
     @Override
-    public Object eval(Map<String, Object> bindings, DynamicExpression expression) {
-        if (expression instanceof QueryVariable) {
-            return eval(bindings, ((QueryVariable) expression));
-        } else if (expression instanceof OpaqueExpression) {
-            Object value = ((OpaqueExpression) expression).getValue();
-            if (value instanceof ClojureFunction)
-                return execute((ClojureFunction) value);
-            if (value instanceof ClojureExpression)
-                return eval(bindings, (ClojureExpression) value);
-        }
+    public Object eval(Map<String, Object> bindings, EvaluableExpression expression) {
+        if (expression instanceof ClojureExpression)
+            return eval(bindings, (ClojureExpression) expression);
         return null;
-    }
-
-    /**
-     * Evaluates a query variable
-     *
-     * @param bindings The new contextual bindings
-     * @param variable The variable to evaluate
-     * @return The evaluated value
-     */
-    private Object eval(Map<String, Object> bindings, QueryVariable variable) {
-        Object result = bindings.get(variable.getName());
-        if (result != null)
-            return result;
-        ClojureExecutionContext context = ClojureExecutionContext.get(this);
-        if (context == null)
-            return null;
-        return context.getBinding(variable.getName());
     }
 
     /**

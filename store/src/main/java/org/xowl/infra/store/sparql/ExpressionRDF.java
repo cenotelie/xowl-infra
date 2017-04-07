@@ -62,7 +62,7 @@ public class ExpressionRDF implements Expression {
             result = bindings.get((VariableNode) result);
         }
         if (result != null && result.getNodeType() == Node.TYPE_DYNAMIC && context.getEvaluator() != null) {
-            return Utils.evaluateNative(context, bindings, ((DynamicNode) result).getDynamicExpression());
+            return Utils.evaluateNative(context, bindings, ((DynamicNode) result).getEvaluable());
         }
         return result;
     }

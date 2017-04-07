@@ -449,7 +449,7 @@ public class ProxyObject {
                         result.add(decode((LiteralNode) node));
                         break;
                     case Node.TYPE_DYNAMIC:
-                        result.add(((DynamicNode) node).getDynamicExpression());
+                        result.add(((DynamicNode) node).getEvaluable());
                         break;
                 }
             }

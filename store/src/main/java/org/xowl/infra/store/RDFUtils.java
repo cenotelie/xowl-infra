@@ -18,9 +18,10 @@
 package org.xowl.infra.store;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.lang.actions.DynamicExpression;
+import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.lang.runtime.Entity;
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.TextUtils;
@@ -112,7 +113,7 @@ public class RDFUtils {
                 return ((AnonymousNode) node).getIndividual();
             }
             case Node.TYPE_DYNAMIC: {
-                return ((DynamicNode) node).getDynamicExpression();
+                return ((DynamicNode) node).getEvaluable();
             }
         }
         throw new IllegalArgumentException("RDF node " + node.getClass().getName() + " cannot be mapped to an OWL element");
@@ -140,8 +141,10 @@ public class RDFUtils {
         } else if (element instanceof org.xowl.infra.lang.runtime.Literal) {
             org.xowl.infra.lang.runtime.Literal literal = (org.xowl.infra.lang.runtime.Literal) element;
             return store.getLiteralNode(literal.getLexicalValue(), literal.getMemberOf().getInterpretationOf().getHasIRI().getHasValue(), literal.getLangTag());
-        } else if (element instanceof DynamicExpression) {
-            return new DynamicNode((DynamicExpression) element);
+        } else if (element instanceof QueryVariable) {
+            return new VariableNode(((QueryVariable) element).getName());
+        } else if (element instanceof EvaluableExpression) {
+            return new DynamicNode((EvaluableExpression) element);
         } else {
             Couple<String, String> data = Datatypes.toLiteral(element);
             return store.getLiteralNode(data.x, data.y, null);

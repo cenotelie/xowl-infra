@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.execution;
 
-import org.xowl.infra.lang.actions.DynamicExpression;
-
 import java.util.Map;
 
 /**
@@ -31,10 +29,10 @@ public interface Evaluator {
      * Evaluates the specified expression
      *
      * @param bindings   The new contextual bindings
-     * @param expression An expression
+     * @param expression An evaluable expression
      * @return The evaluated value
      */
-    Object eval(Map<String, Object> bindings, DynamicExpression expression);
+    Object eval(Map<String, Object> bindings, EvaluableExpression expression);
 
     /**
      * Tries to retrieve a xOWL function
