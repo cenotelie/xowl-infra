@@ -17,8 +17,8 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.RDFPattern;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.RDFQuery;
@@ -48,7 +48,7 @@ public class EvalContextRepository implements EvalContext {
 
     @Override
     public Evaluator getEvaluator() {
-        return repository.getEvaluator();
+        return repository.getExecutionManager();
     }
 
     @Override

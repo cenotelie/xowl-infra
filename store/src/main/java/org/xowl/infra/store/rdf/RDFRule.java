@@ -17,9 +17,8 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.Evaluator;
-import org.xowl.infra.store.EvaluatorContext;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.ArrayList;
@@ -251,11 +250,8 @@ public abstract class RDFRule {
         Node result = execution.getSpecial(dynamicNode);
         if (result != null)
             return result;
-        EvaluatorContext context = EvaluatorContext.get(evaluator);
-        context.push(execution.getEvaluatorBindings());
-        result = RDFUtils.getRDF(nodes, evaluator.eval(dynamicNode.getDynamicExpression()));
+        result = RDFUtils.getRDF(nodes, evaluator.eval(execution.getEvaluatorBindings(), dynamicNode.getDynamicExpression()));
         execution.bindSpecial(dynamicNode, result);
-        context.pop();
         return result;
     }
 

@@ -17,8 +17,8 @@
 package org.xowl.infra.store.owl;
 
 import org.xowl.infra.lang.owl2.Axiom;
-import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 

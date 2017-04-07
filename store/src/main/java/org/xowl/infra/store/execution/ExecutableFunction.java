@@ -15,21 +15,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.loaders;
+package org.xowl.infra.store.execution;
 
-import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.utils.Identifiable;
+import org.xowl.infra.utils.Serializable;
 
 /**
- * Represents a provider of deserializer for xOWL ontologies
+ * Represents an executable xOWL function
  *
  * @author Laurent Wouters
  */
-public interface XOWLDeserializerProvider {
-    /**
-     * Gets a new deserializer
-     *
-     * @param evaluator The current evaluator
-     * @return The deserializer
-     */
-    XOWLDeserializer newDeserializer(Evaluator evaluator);
+public interface ExecutableFunction extends Identifiable, Serializable {
 }

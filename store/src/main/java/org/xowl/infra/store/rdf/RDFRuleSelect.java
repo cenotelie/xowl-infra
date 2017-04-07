@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.sparql.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.logging.Logging;

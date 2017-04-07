@@ -18,7 +18,6 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.lang.actions.DynamicExpression;
-import org.xowl.infra.store.EvaluatorContext;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.collections.Couple;
@@ -95,11 +94,7 @@ class Utils {
         Map<String, Object> bindings = new HashMap<>();
         for (Couple<VariableNode, Node> binding : solution)
             bindings.put(binding.x.getName(), RDFUtils.getNative(binding.y));
-        EvaluatorContext evaluatorContext = EvaluatorContext.get(context.getEvaluator());
-        evaluatorContext.push(bindings);
-        Object result = context.getEvaluator().eval(expression);
-        evaluatorContext.pop();
-        return result;
+        return context.getEvaluator().eval(bindings, expression);
     }
 
     /**

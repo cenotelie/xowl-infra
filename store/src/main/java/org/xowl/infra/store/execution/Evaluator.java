@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,9 +15,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store;
+package org.xowl.infra.store.execution;
 
 import org.xowl.infra.lang.actions.DynamicExpression;
+
+import java.util.Map;
 
 /**
  * Represents an evaluator of xOWL dynamic expressions
@@ -26,43 +28,28 @@ import org.xowl.infra.lang.actions.DynamicExpression;
  */
 public interface Evaluator {
     /**
-     * Gets the parent repository
-     *
-     * @return The parent repository
-     */
-    Repository getRepository();
-
-    /**
      * Evaluates the specified expression
      *
+     * @param bindings   The new contextual bindings
      * @param expression An expression
      * @return The evaluated value
      */
-    Object eval(DynamicExpression expression);
+    Object eval(Map<String, Object> bindings, DynamicExpression expression);
 
     /**
-     * Evaluates the specified expression
+     * Tries to retrieve a xOWL function
      *
-     * @param expression An expression
-     * @param parameters The parameters for the evaluation
-     * @return The evaluated value
+     * @param functionIRI The identifier (IRI) of a function
+     * @return The function's definition, if it is defined, false otherwise
      */
-    Object eval(DynamicExpression expression, Object... parameters);
+    ExecutableFunction getFunction(String functionIRI);
 
     /**
-     * Gets whether a function identified by its IRI is defined
+     * Executes a xOWL function
      *
-     * @param function The IRI of a function
-     * @return Whether the function is defined
+     * @param functionIRI The identifier (IRI) of a function
+     * @param parameters  The parameters
+     * @return The function's result
      */
-    boolean isDefined(String function);
-
-    /**
-     * Executes a function
-     *
-     * @param function   The IRI of the function to execute
-     * @param parameters The parameters for the function
-     * @return The value returned by the execution
-     */
-    Object execute(String function, Object... parameters);
+    Object execute(String functionIRI, Object... parameters);
 }

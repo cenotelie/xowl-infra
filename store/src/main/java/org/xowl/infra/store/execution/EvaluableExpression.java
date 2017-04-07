@@ -15,19 +15,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store;
+package org.xowl.infra.store.execution;
+
+import org.xowl.infra.utils.Serializable;
 
 /**
- * Represents a service that provides evaluators of xOWL dynamic expressions
+ * Represents an evaluable xOWL expression
  *
  * @author Laurent Wouters
  */
-public interface EvaluatorProvider {
-    /**
-     * Gets a new evaluator
-     *
-     * @param repository The parent repository for this evaluator
-     * @return A new evaluator
-     */
-    Evaluator newEvaluator(Repository repository);
+public interface EvaluableExpression extends Serializable {
 }

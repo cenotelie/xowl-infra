@@ -308,7 +308,7 @@ public class RepositoryRDF extends Repository {
     @Override
     public synchronized OWLQueryEngine getOWLQueryEngine() {
         if (queryEngine == null)
-            queryEngine = new OWLQueryEngine(backend, evaluator);
+            queryEngine = new OWLQueryEngine(backend, executionManager);
         return queryEngine;
     }
 
@@ -320,7 +320,7 @@ public class RepositoryRDF extends Repository {
     @Override
     public synchronized OWLRuleEngine getOWLRuleEngine() {
         if (ruleEngine == null)
-            ruleEngine = new OWLRuleEngine(backend, backend, evaluator);
+            ruleEngine = new OWLRuleEngine(backend, backend, executionManager);
         return ruleEngine;
     }
 

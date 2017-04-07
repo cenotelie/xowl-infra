@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,37 +15,21 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.sparql;
+package org.xowl.infra.store.execution;
 
-import org.xowl.infra.store.execution.Evaluator;
-import org.xowl.infra.store.rdf.RDFPattern;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.Repository;
 
 /**
- * The evaluation context of a SPARQL query
+ * Represents a service that provides implementations of execution managers
  *
  * @author Laurent Wouters
  */
-public interface EvalContext {
+public interface ExecutionManagerProvider {
     /**
-     * Gets the evaluator
+     * Gets an execution manager
      *
-     * @return The evaluator
+     * @param repository The repository to be associated to the manager
+     * @return The execution manager
      */
-    Evaluator getEvaluator();
-
-    /**
-     * Gets the node manager
-     *
-     * @return The node manager
-     */
-    NodeManager getNodes();
-
-    /**
-     * Gets the solutions for a pattern of RDF quads
-     *
-     * @param pattern The RDF pattern to match
-     * @return The solutions
-     */
-    Solutions getSolutions(RDFPattern pattern);
+    ExecutionManager newManager(Repository repository);
 }

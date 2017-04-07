@@ -20,6 +20,8 @@ package org.xowl.infra.store;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.owl2.Owl2Factory;
+import org.xowl.infra.store.execution.ExecutionManager;
+import org.xowl.infra.store.execution.ExecutionManagerProvider;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.owl.OWLQueryEngine;
 import org.xowl.infra.store.owl.OWLRuleEngine;
@@ -184,19 +186,19 @@ public abstract class Repository {
     }
 
     /**
-     * The loader of evaluator providers
+     * The loader for providers of execution managers
      */
-    private static ServiceLoader<EvaluatorProvider> SERVICE_EVALUATOR_PROVIDER = ServiceLoader.load(EvaluatorProvider.class);
+    private static ServiceLoader<ExecutionManagerProvider> EXECUTION_MANAGER_PROVIDER = ServiceLoader.load(ExecutionManagerProvider.class);
 
     /**
-     * Gets an evaluator
+     * Gets an execution manager
      *
-     * @param repository The parent repository for the evaluator
-     * @return An evaluator
+     * @param repository The parent repository for the execution manager
+     * @return An execution manager
      */
-    private static Evaluator getDefaultEvaluator(Repository repository) {
-        Iterator<EvaluatorProvider> services = SERVICE_EVALUATOR_PROVIDER.iterator();
-        return services.hasNext() ? services.next().newEvaluator(repository) : null;
+    private static ExecutionManager getExecutionManager(Repository repository) {
+        Iterator<ExecutionManagerProvider> services = EXECUTION_MANAGER_PROVIDER.iterator();
+        return services.hasNext() ? services.next().newManager(repository) : null;
     }
 
 
@@ -229,7 +231,7 @@ public abstract class Repository {
     /**
      * The evaluator to use
      */
-    protected final Evaluator evaluator;
+    protected final ExecutionManager executionManager;
     /**
      * The entailment regime
      */
@@ -253,17 +255,17 @@ public abstract class Repository {
         this.mapper = mapper;
         this.resources = new HashMap<>();
         this.ontologies = new HashMap<>();
-        this.evaluator = getDefaultEvaluator(this);
+        this.executionManager = getExecutionManager(this);
         this.regime = EntailmentRegime.none;
     }
 
     /**
-     * Gets the evaluator used by this repository
+     * Gets the execution manager used by this repository
      *
-     * @return The evaluator used by this repository
+     * @return The execution manager used by this repository
      */
-    public Evaluator getEvaluator() {
-        return evaluator;
+    public ExecutionManager getExecutionManager() {
+        return executionManager;
     }
 
     /**
@@ -492,7 +494,7 @@ public abstract class Repository {
             case SYNTAX_OWLXML:
                 return loadInputOWL(logger, reader, resourceIRI, metadata, new OWLXMLLoader());
             case SYNTAX_XOWL:
-                return loadInputOWL(logger, reader, resourceIRI, metadata, new XOWLLoader(evaluator));
+                return loadInputOWL(logger, reader, resourceIRI, metadata, new XOWLLoader(executionManager));
             default:
                 throw new IllegalArgumentException("Unsupported syntax: " + syntax);
         }

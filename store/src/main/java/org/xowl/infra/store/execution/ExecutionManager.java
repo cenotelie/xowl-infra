@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,31 +15,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.loaders;
+package org.xowl.infra.store.execution;
 
-import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.store.Evaluator;
-
-import java.lang.ref.WeakReference;
+import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.loaders.XOWLDeserializer;
 
 /**
- * Default implementation of the deserialization of xOWL ontologies
+ * Manages the execution of xOWL ontologies for a repository
+ * Provides the implementation for execution extensions
  *
  * @author Laurent Wouters
  */
-class DefaultXOWLDeserializer extends XOWLDeserializer {
+public interface ExecutionManager extends Evaluator {
     /**
-     * Initializes this de-serializer
+     * Gets the deserializer of xOWL ontologies
      *
-     * @param evaluator The evaluator to use
+     * @return The deserializer of xOWL ontologies
      */
-    public DefaultXOWLDeserializer(Evaluator evaluator) {
-        super(evaluator);
-    }
+    XOWLDeserializer getDeserializer();
 
-    @Override
-    protected Object loadForm(ASTNode node) {
-        // do not block the garbage collection of the AST
-        return new WeakReference<Object>(node);
-    }
+    /**
+     * Gets the parent repository
+     *
+     * @return The parent repository
+     */
+    Repository getRepository();
 }

@@ -14,20 +14,19 @@
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+
 package org.xowl.infra.store.loaders;
 
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.hime.redist.parsers.InitializationException;
-import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Iterator;
-import java.util.ServiceLoader;
 
 /**
  * Loader of xOWL ontologies serialized
@@ -36,22 +35,17 @@ import java.util.ServiceLoader;
  */
 public class XOWLLoader implements Loader {
     /**
-     * The loader of XOWL deserialization services
+     * The current execution manager
      */
-    private static ServiceLoader<XOWLDeserializerProvider> SERVICE_PROVIDER = ServiceLoader.load(XOWLDeserializerProvider.class);
+    private final ExecutionManager executionManager;
 
     /**
-     * The current evaluator
-     */
-    private final Evaluator evaluator;
-
-    /**
-     * The current evaluator
+     * Initializes this loader
      *
-     * @param evaluator The current evaluator
+     * @param executionManager The current execution manager
      */
-    public XOWLLoader(Evaluator evaluator) {
-        this.evaluator = evaluator;
+    public XOWLLoader(ExecutionManager executionManager) {
+        this.executionManager = executionManager;
     }
 
     @Override
@@ -86,8 +80,6 @@ public class XOWLLoader implements Loader {
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
             return null;
-        Iterator<XOWLDeserializerProvider> services = SERVICE_PROVIDER.iterator();
-        XOWLDeserializer deserializer = services.hasNext() ? services.next().newDeserializer(evaluator) : new DefaultXOWLDeserializer(evaluator);
-        return deserializer.deserialize(uri, result.getRoot());
+        return executionManager.getDeserializer().deserialize(uri, result.getRoot());
     }
 }
