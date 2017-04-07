@@ -166,7 +166,7 @@ public class ClojureExecutionManager implements ExecutionManager {
                     // require bindings
                     PersistentList.create(Arrays.asList(
                             Symbol.create("clojure.core", "eval"),
-                            expression.getSource()
+                            expression.getClojure()
                     ))
             ));
             return Compiler.eval(top);

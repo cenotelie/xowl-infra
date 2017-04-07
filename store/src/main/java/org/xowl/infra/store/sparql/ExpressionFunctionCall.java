@@ -74,7 +74,7 @@ public class ExpressionFunctionCall implements Expression {
         Evaluator evaluator = context.getEvaluator();
         if (evaluator == null)
             throw new EvalException("Unknown function " + iri);
-        if (evaluator.getFunction(iri) != null)
+        if (evaluator.getFunction(iri) == null)
             throw new EvalException("Unknown function " + iri);
         Object[] parameters = new Object[arguments.size()];
         for (int i = 0; i != arguments.size(); i++) {
