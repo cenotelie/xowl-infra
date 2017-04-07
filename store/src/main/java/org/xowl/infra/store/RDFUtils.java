@@ -144,7 +144,7 @@ public class RDFUtils {
         } else if (element instanceof QueryVariable) {
             return new VariableNode(((QueryVariable) element).getName());
         } else if (element instanceof EvaluableExpression) {
-            return new DynamicNode((EvaluableExpression) element);
+            return store.getDynamicNode((EvaluableExpression) element);
         } else {
             Couple<String, String> data = Datatypes.toLiteral(element);
             return store.getLiteralNode(data.x, data.y, null);

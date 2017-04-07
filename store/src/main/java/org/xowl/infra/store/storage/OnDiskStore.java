@@ -19,7 +19,7 @@ package org.xowl.infra.store.storage;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
-import org.xowl.infra.store.execution.EvaluableFactory;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
@@ -85,8 +85,11 @@ class OnDiskStore extends BaseStore {
     }
 
     @Override
-    public void setEvaluableFactory(EvaluableFactory evaluableFactory) {
-        persistedNodes.setEvaluableFactory(evaluableFactory);
+    public void setExecutionManager(ExecutionManager executionManager) {
+        persistedNodes.setExecutionManager(executionManager);
+        persistedDataset.setExecutionManager(executionManager);
+        cacheNodes.setExecutionManager(executionManager);
+        cacheDataset.setExecutionManager(executionManager);
     }
 
     @Override

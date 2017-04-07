@@ -18,7 +18,7 @@
 package org.xowl.infra.store.storage.impl;
 
 import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.execution.EvaluableFactory;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.Node;
@@ -43,10 +43,10 @@ public abstract class NodeManagerImpl implements NodeManager {
     }
 
     /**
-     * Sets the evaluable factory for this node manager
+     * Sets the execution manager to use
      *
-     * @param evaluableFactory The evaluable factory
+     * @param executionManager The execution manager to use
      */
-    public void setEvaluableFactory(EvaluableFactory evaluableFactory) {
+    public void setExecutionManager(ExecutionManager executionManager) {
     }
 }

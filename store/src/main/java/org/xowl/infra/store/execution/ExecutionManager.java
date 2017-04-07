@@ -26,7 +26,7 @@ import org.xowl.infra.store.loaders.XOWLDeserializer;
  *
  * @author Laurent Wouters
  */
-public interface ExecutionManager extends Evaluator, EvaluableFactory {
+public interface ExecutionManager extends Evaluator {
     /**
      * Gets the parent repository
      *
@@ -40,4 +40,12 @@ public interface ExecutionManager extends Evaluator, EvaluableFactory {
      * @return The deserializer of xOWL ontologies
      */
     XOWLDeserializer getDeserializer();
+
+    /**
+     * Loads an evaluable expression from the specified source
+     *
+     * @param source The source of an evaluable expression
+     * @return The expression
+     */
+    EvaluableExpression loadExpression(String source);
 }

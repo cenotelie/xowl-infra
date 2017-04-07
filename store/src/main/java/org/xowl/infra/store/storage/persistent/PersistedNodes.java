@@ -19,7 +19,7 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
-import org.xowl.infra.store.execution.EvaluableFactory;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
@@ -84,9 +84,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     private static final int ENTRY_LITERAL_SIZE = 8 + 8 + 8 + 8 + 8;
 
     /**
-     * The factory for evaluables
+     * The execution manager to use
      */
-    private EvaluableFactory evaluableFactory;
+    private ExecutionManager executionManager;
     /**
      * The backing store for the nodes' data
      */
@@ -638,7 +638,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @return The expression
      */
     EvaluableExpression getEvaluableExpression(String source) {
-        return evaluableFactory.loadExpression(source);
+        return executionManager.loadExpression(source);
     }
 
     /**
@@ -651,8 +651,8 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     }
 
     @Override
-    public void setEvaluableFactory(EvaluableFactory evaluableFactory) {
-        this.evaluableFactory = evaluableFactory;
+    public void setExecutionManager(ExecutionManager executionManager) {
+        this.executionManager = executionManager;
     }
 
     @Override

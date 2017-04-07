@@ -869,7 +869,7 @@ public class Translator {
      * @return The representing dynamic node
      */
     protected SubjectNode translateOpaqueExpression(OpaqueExpression expression) {
-        return new DynamicNode((EvaluableExpression) expression.getValue());
+        return nodeManager.getDynamicNode((EvaluableExpression) expression.getValue());
     }
 
     /**

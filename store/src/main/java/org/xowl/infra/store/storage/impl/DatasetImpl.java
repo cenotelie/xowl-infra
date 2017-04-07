@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage.impl;
 
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -71,6 +72,14 @@ public abstract class DatasetImpl implements Dataset {
      */
     public DatasetImpl() {
         listeners = new ArrayList<>();
+    }
+
+    /**
+     * Sets the execution manager to use
+     *
+     * @param executionManager The execution manager to use
+     */
+    public void setExecutionManager(ExecutionManager executionManager) {
     }
 
     @Override

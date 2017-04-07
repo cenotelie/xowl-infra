@@ -19,6 +19,7 @@ package org.xowl.infra.store.storage;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedDataset;
 import org.xowl.infra.store.storage.cache.CachedNodes;
@@ -48,6 +49,11 @@ class InMemoryStore extends BaseStore {
     public InMemoryStore() {
         nodes = new CachedNodes();
         dataset = new CachedDataset();
+    }
+
+    public void setExecutionManager(ExecutionManager executionManager) {
+        nodes.setExecutionManager(executionManager);
+        dataset.setExecutionManager(executionManager);
     }
 
     @Override

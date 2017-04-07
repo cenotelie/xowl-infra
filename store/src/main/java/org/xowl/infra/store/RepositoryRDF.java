@@ -126,7 +126,7 @@ public class RepositoryRDF extends Repository {
     public RepositoryRDF(BaseStore store, IRIMapper mapper) {
         super(mapper);
         this.backend = store;
-        this.backend.setEvaluableFactory(executionManager);
+        this.backend.setExecutionManager(executionManager);
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
     }
