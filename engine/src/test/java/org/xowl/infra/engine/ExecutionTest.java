@@ -58,7 +58,7 @@ public class ExecutionTest {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests#sayHello");
+        Object result = repository.getExecutionManager().execute("http://xowl.org/infra/engine/tests#sayHello");
         Assert.assertFalse("Failed to execute the function", logger.isOnError());
         Assert.assertEquals("Hello World", result);
     }
@@ -74,7 +74,7 @@ public class ExecutionTest {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests#sayHello");
+        Object result = repository.getExecutionManager().execute("http://xowl.org/infra/engine/tests#sayHello");
         Assert.assertFalse("Failed to execute the function", logger.isOnError());
         Assert.assertEquals("Hello World", result);
     }
@@ -139,7 +139,7 @@ public class ExecutionTest {
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
 
-        Object result = repository.getEvaluator().execute("http://xowl.org/infra/engine/tests#simulate",
+        Object result = repository.getExecutionManager().execute("http://xowl.org/infra/engine/tests#simulate",
                 getIRI("http://xowl.org/infra/engine/tests#s0"),
                 new IRI[]{
                         getIRI("http://xowl.org/infra/engine/tests#a"),
