@@ -86,7 +86,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     /**
      * The factory for evaluables
      */
-    private final EvaluableFactory evaluableFactory;
+    private EvaluableFactory evaluableFactory;
     /**
      * The backing store for the nodes' data
      */
@@ -648,6 +648,11 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      */
     public boolean flush() {
         return store.flush();
+    }
+
+    @Override
+    public void setEvaluableFactory(EvaluableFactory evaluableFactory) {
+        this.evaluableFactory = evaluableFactory;
     }
 
     @Override

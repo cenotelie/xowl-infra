@@ -19,6 +19,7 @@ package org.xowl.infra.store.storage;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.EvaluableFactory;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
@@ -81,6 +82,11 @@ class OnDiskStore extends BaseStore {
         snapshot.addPart(persistedNodes.getMetric(), persistedNodes.getMetricSnapshot(timestamp));
         snapshot.addPart(persistedDataset.getMetric(), persistedDataset.getMetricSnapshot(timestamp));
         return snapshot;
+    }
+
+    @Override
+    public void setEvaluableFactory(EvaluableFactory evaluableFactory) {
+        persistedNodes.setEvaluableFactory(evaluableFactory);
     }
 
     @Override

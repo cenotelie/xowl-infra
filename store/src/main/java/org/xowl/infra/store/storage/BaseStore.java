@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.storage;
 
+import org.xowl.infra.store.execution.EvaluableFactory;
 import org.xowl.infra.utils.metrics.Metric;
 import org.xowl.infra.utils.metrics.MetricComposite;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
@@ -59,6 +60,14 @@ public abstract class BaseStore implements Dataset, NodeManager, AutoCloseable {
      */
     public MetricSnapshot getMetricSnapshot(long timestamp) {
         return new MetricSnapshotComposite(timestamp);
+    }
+
+    /**
+     * Sets the evaluable factory for this node manager
+     *
+     * @param evaluableFactory The evaluable factory
+     */
+    public void setEvaluableFactory(EvaluableFactory evaluableFactory) {
     }
 
     /**

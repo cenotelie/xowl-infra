@@ -21,6 +21,7 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.EvaluableFactory;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.metrics.Metric;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
@@ -77,6 +78,12 @@ class BaseReasonableStore extends BaseStore {
     @Override
     public MetricSnapshot getMetricSnapshot(long timestamp) {
         return groundStore.getMetricSnapshot(timestamp);
+    }
+
+    @Override
+    public void setEvaluableFactory(EvaluableFactory evaluableFactory) {
+        groundStore.setEvaluableFactory(evaluableFactory);
+        volatileStore.setEvaluableFactory(evaluableFactory);
     }
 
     @Override

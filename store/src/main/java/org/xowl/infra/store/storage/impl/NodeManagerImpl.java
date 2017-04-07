@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage.impl;
 
 import org.xowl.infra.store.IRIs;
+import org.xowl.infra.store.execution.EvaluableFactory;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.Node;
@@ -39,5 +40,13 @@ public abstract class NodeManagerImpl implements NodeManager {
         } else {
             return getIRINode(IRIs.GRAPH_DEFAULT + "#" + UUID.randomUUID().toString());
         }
+    }
+
+    /**
+     * Sets the evaluable factory for this node manager
+     *
+     * @param evaluableFactory The evaluable factory
+     */
+    public void setEvaluableFactory(EvaluableFactory evaluableFactory) {
     }
 }
