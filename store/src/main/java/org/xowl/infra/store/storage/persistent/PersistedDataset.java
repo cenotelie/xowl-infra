@@ -2886,6 +2886,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 return nodes.getAnonNodeFor(key);
             case Node.TYPE_LITERAL:
                 return nodes.getLiteralNodeFor(key);
+            case Node.TYPE_DYNAMIC:
+                return nodes.getDynamicNodeFor(key);
         }
         // cannot happen, avoids being nullable
         return nodes.getBlankNodeFor(-1);

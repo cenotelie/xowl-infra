@@ -26,7 +26,7 @@ import org.xowl.infra.store.loaders.XOWLDeserializer;
  *
  * @author Laurent Wouters
  */
-public interface ExecutionManager extends Evaluator {
+public interface ExecutionManager extends Evaluator, EvaluableFactory {
     /**
      * Gets the parent repository
      *

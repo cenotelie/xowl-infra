@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
@@ -247,5 +248,10 @@ class OnDiskStore extends BaseStore {
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
         return cacheNodes.getAnonNode(individual);
+    }
+
+    @Override
+    public DynamicNode getDynamicNode(EvaluableExpression evaluable) {
+        return cacheNodes.getDynamicNode(evaluable);
     }
 }

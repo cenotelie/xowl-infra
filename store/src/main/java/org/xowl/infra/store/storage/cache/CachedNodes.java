@@ -18,10 +18,8 @@
 package org.xowl.infra.store.storage.cache;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
-import org.xowl.infra.store.rdf.AnonymousNode;
-import org.xowl.infra.store.rdf.BlankNode;
-import org.xowl.infra.store.rdf.IRINode;
-import org.xowl.infra.store.rdf.LiteralNode;
+import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
 
 import java.lang.ref.WeakReference;
@@ -133,5 +131,10 @@ public class CachedNodes extends NodeManagerImpl {
                     return result;
             }
         }
+    }
+
+    @Override
+    public DynamicNode getDynamicNode(EvaluableExpression evaluable) {
+        return new CachedDynamicNode(evaluable);
     }
 }

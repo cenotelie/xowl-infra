@@ -18,6 +18,8 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.EvaluableFactory;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
@@ -82,6 +84,10 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     private static final int ENTRY_LITERAL_SIZE = 8 + 8 + 8 + 8 + 8;
 
     /**
+     * The factory for evaluables
+     */
+    private final EvaluableFactory evaluableFactory;
+    /**
      * The backing store for the nodes' data
      */
     private final FileStore store;
@@ -117,6 +123,10 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * Cache of instantiated Literal nodes
      */
     private final PersistedNodeCache<PersistedLiteralNode> cacheNodeLiterals;
+    /**
+     * Cache of instantiated dynamic nodes
+     */
+    private final PersistedNodeCache<PersistedDynamicNode> cacheNodeDynamics;
 
     /**
      * Initializes this store of nodes
@@ -147,6 +157,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         cacheNodeBlanks = new PersistedNodeCache<>();
         cacheNodeAnons = new PersistedNodeCache<>();
         cacheNodeLiterals = new PersistedNodeCache<>();
+        cacheNodeDynamics = new PersistedNodeCache<>();
     }
 
     /**
@@ -527,8 +538,12 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 if (create)
                     return (PersistedLiteralNode) getLiteralNode(literal.getLexicalValue(), literal.getDatatype(), literal.getLangTag());
                 return (PersistedLiteralNode) getExistingLiteralNode(literal.getLexicalValue(), literal.getDatatype(), literal.getLangTag());
+            case Node.TYPE_DYNAMIC:
+                if (create)
+                    return (PersistedDynamicNode) getDynamicNode(((DynamicNode) node).getEvaluable());
+                return (PersistedDynamicNode) getExistingDynamicNode(((DynamicNode) node).getEvaluable());
         }
-        throw new UnsupportedNodeType(node, "Persistable nodes are IRI, Blank, Anonymous and Literal");
+        throw new UnsupportedNodeType(node, "Persistable nodes are IRI, Blank, Anonymous, Literal and Dynamic");
     }
 
     /**
@@ -598,6 +613,25 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         }
         return result;
     }
+
+    /**
+     * Gets the dynamic node for the specified key
+     *
+     * @param key The dynamic node for the specified key
+     * @return The dynamic node for the specified key
+     */
+    public PersistedDynamicNode getDynamicNodeFor(long key) {
+        if (key == FileStore.KEY_NULL)
+            return null;
+        PersistedDynamicNode result = cacheNodeDynamics.get(key);
+        if (result == null) {
+            result = new PersistedDynamicNode(this, key);
+            cacheNodeDynamics.cache(result);
+        }
+        return result;
+    }
+
+    EvaluableExpression getExpression(Eva)
 
     /**
      * Flushes any outstanding changes to the backing files
@@ -670,6 +704,25 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     public AnonymousNode getExistingAnonNode(AnonymousIndividual individual) {
         try {
             return getAnonNodeFor(getKeyForString(individual.getNodeID(), false));
+        } catch (StorageException exception) {
+            Logging.get().error(exception);
+            return null;
+        }
+    }
+
+    @Override
+    public DynamicNode getDynamicNode(EvaluableExpression evaluable) {
+        try {
+            return getDynamicNodeFor(getKeyForString(evaluable.getSource(), true));
+        } catch (StorageException exception) {
+            Logging.get().error(exception);
+            return null;
+        }
+    }
+
+    public DynamicNode getExistingDynamicNode(EvaluableExpression evaluable) {
+        try {
+            return getDynamicNodeFor(getKeyForString(evaluable.getSource(), false));
         } catch (StorageException exception) {
             Logging.get().error(exception);
             return null;

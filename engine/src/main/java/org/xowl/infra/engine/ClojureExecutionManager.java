@@ -62,10 +62,6 @@ public class ClojureExecutionManager implements ExecutionManager {
      */
     private final Repository repository;
     /**
-     * The deserializer of xOWL ontologies
-     */
-    private final ClojureXOWLDeserializer deserializer;
-    /**
      * The root namespace for the Clojure symbols
      */
     private final String cljNamespace;
@@ -93,7 +89,6 @@ public class ClojureExecutionManager implements ExecutionManager {
      */
     public ClojureExecutionManager(Repository repository) {
         this.repository = repository;
-        this.deserializer = new ClojureXOWLDeserializer(this);
         this.cljNamespace = getNextNamespace();
         this.cljNamespaceRoot = Namespace.findOrCreate(Symbol.intern(cljNamespace));
         this.cljFunctions = new HashMap<>();
@@ -201,7 +196,12 @@ public class ClojureExecutionManager implements ExecutionManager {
 
     @Override
     public XOWLDeserializer getDeserializer() {
-        return deserializer;
+        return new ClojureXOWLDeserializer(this);
+    }
+
+    @Override
+    public EvaluableExpression loadExpression(String source) {
+        return new ClojureExpression(source);
     }
 
     /**

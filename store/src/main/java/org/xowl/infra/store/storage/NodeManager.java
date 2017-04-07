@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.rdf.*;
 
 /**
@@ -76,4 +77,12 @@ public interface NodeManager {
      * @return The associated anonymous node
      */
     AnonymousNode getAnonNode(AnonymousIndividual individual);
+
+    /**
+     * Gets the dynamic node for the specified evaluable expression
+     *
+     * @param evaluable An evaluable expression
+     * @return The associated dynamic node
+     */
+    DynamicNode getDynamicNode(EvaluableExpression evaluable);
 }

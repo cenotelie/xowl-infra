@@ -18,15 +18,16 @@
 package org.xowl.infra.store.execution;
 
 /**
- * Represents an evaluable xOWL expression
+ * Represents a factory of evaluable expressions
  *
  * @author Laurent Wouters
  */
-public interface EvaluableExpression {
+public interface EvaluableFactory {
     /**
-     * Gets the expression's source
+     * Loads an evaluable expression from the specified source
      *
-     * @return The expression's source
+     * @param source The source of an evaluable expression
+     * @return The expression
      */
-    String getSource();
+    EvaluableExpression loadExpression(String source);
 }

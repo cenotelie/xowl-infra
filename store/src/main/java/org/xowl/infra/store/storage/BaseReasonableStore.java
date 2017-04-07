@@ -20,6 +20,7 @@ package org.xowl.infra.store.storage;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.metrics.Metric;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
@@ -377,5 +378,10 @@ class BaseReasonableStore extends BaseStore {
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
         return groundStore.getAnonNode(individual);
+    }
+
+    @Override
+    public DynamicNode getDynamicNode(EvaluableExpression evaluable) {
+        return groundStore.getDynamicNode(evaluable);
     }
 }

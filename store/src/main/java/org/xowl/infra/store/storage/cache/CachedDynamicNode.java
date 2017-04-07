@@ -15,18 +15,33 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.execution;
+package org.xowl.infra.store.storage.cache;
+
+import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.rdf.DynamicNode;
 
 /**
- * Represents an evaluable xOWL expression
+ * Cached implementation of a dynamic node
  *
  * @author Laurent Wouters
  */
-public interface EvaluableExpression {
+class CachedDynamicNode extends DynamicNode {
     /**
-     * Gets the expression's source
-     *
-     * @return The expression's source
+     * The represented evaluable expression
      */
-    String getSource();
+    private final EvaluableExpression evaluable;
+
+    /**
+     * Initializes this node
+     *
+     * @param evaluable The represented evaluable expression
+     */
+    public CachedDynamicNode(EvaluableExpression evaluable) {
+        this.evaluable = evaluable;
+    }
+
+    @Override
+    public EvaluableExpression getEvaluable() {
+        return evaluable;
+    }
 }
