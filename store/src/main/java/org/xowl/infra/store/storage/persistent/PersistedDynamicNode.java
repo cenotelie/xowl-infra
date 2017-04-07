@@ -19,7 +19,6 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.rdf.DynamicNode;
-import org.xowl.infra.store.rdf.LiteralNode;
 
 import java.util.Objects;
 
@@ -57,11 +56,20 @@ public class PersistedDynamicNode extends DynamicNode implements PersistedNode {
      * Caches the content of the literal
      */
     private void doCache() {
+        String source = null;
         try {
-            String source = backend.retrieveString(key);
+            source = backend.retrieveString(key);
         } catch (StorageException exception) {
-            cache = ;
+            // do nothing
         }
+        cache = backend.getEvaluableExpression(source);
+    }
+
+    @Override
+    public EvaluableExpression getEvaluable() {
+        if (cache == null)
+            doCache();
+        return cache;
     }
 
     @Override

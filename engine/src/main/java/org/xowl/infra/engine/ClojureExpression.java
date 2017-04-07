@@ -18,6 +18,7 @@
 package org.xowl.infra.engine;
 
 import clojure.java.api.Clojure;
+import clojure.lang.Symbol;
 import org.xowl.infra.store.execution.EvaluableExpression;
 
 /**
@@ -55,7 +56,7 @@ class ClojureExpression implements EvaluableExpression {
      * @param source The expression's source definition
      */
     public ClojureExpression(String source) {
-        this.source = source;
-        this.clojure = Clojure.read(source);
+        this.source = source != null ? source : "";
+        this.clojure = source != null ? Clojure.read(source) : Symbol.create("clojure.core", "nil");
     }
 }

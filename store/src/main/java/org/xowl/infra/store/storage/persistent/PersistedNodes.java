@@ -631,7 +631,15 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         return result;
     }
 
-    EvaluableExpression getExpression(Eva)
+    /**
+     * Loads an evaluable expression from the specified source
+     *
+     * @param source The source of an evaluable expression
+     * @return The expression
+     */
+    EvaluableExpression getEvaluableExpression(String source) {
+        return evaluableFactory.loadExpression(source);
+    }
 
     /**
      * Flushes any outstanding changes to the backing files
