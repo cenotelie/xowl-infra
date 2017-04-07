@@ -295,10 +295,10 @@ public class Owl2AnonymousIndividualImpl implements AnonymousIndividual {
      */
     private void doPropertyAddDifferentFrom(org.xowl.infra.lang.runtime.Individual elem) {
         doSimpleAddDifferentFrom(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddDifferentFrom(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleAddDifferentFrom(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddDifferentFrom(this);
     }
 
     /**
@@ -310,10 +310,10 @@ public class Owl2AnonymousIndividualImpl implements AnonymousIndividual {
      */
     private void doPropertyRemoveDifferentFrom(org.xowl.infra.lang.runtime.Individual elem) {
         doSimpleRemoveDifferentFrom(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
     }
 
     /**
@@ -434,10 +434,10 @@ public class Owl2AnonymousIndividualImpl implements AnonymousIndividual {
      */
     private void doPropertyAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
         doSimpleAddSameAs(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddSameAs(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleAddSameAs(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddSameAs(this);
     }
 
     /**
@@ -449,10 +449,10 @@ public class Owl2AnonymousIndividualImpl implements AnonymousIndividual {
      */
     private void doPropertyRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
         doSimpleRemoveSameAs(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveSameAs(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveSameAs(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveSameAs(this);
     }
 
     /**

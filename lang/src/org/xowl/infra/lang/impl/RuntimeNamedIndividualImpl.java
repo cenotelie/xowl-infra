@@ -296,10 +296,10 @@ public class RuntimeNamedIndividualImpl implements NamedIndividual {
      */
     private void doPropertyAddDifferentFrom(Individual elem) {
         doSimpleAddDifferentFrom(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddDifferentFrom(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleAddDifferentFrom(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddDifferentFrom(this);
     }
 
     /**
@@ -311,10 +311,10 @@ public class RuntimeNamedIndividualImpl implements NamedIndividual {
      */
     private void doPropertyRemoveDifferentFrom(Individual elem) {
         doSimpleRemoveDifferentFrom(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
     }
 
     /**
@@ -532,10 +532,10 @@ public class RuntimeNamedIndividualImpl implements NamedIndividual {
      */
     private void doPropertyAddSameAs(Individual elem) {
         doSimpleAddSameAs(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddSameAs(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleAddSameAs(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddSameAs(this);
     }
 
     /**
@@ -547,10 +547,10 @@ public class RuntimeNamedIndividualImpl implements NamedIndividual {
      */
     private void doPropertyRemoveSameAs(Individual elem) {
         doSimpleRemoveSameAs(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveSameAs(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveSameAs(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveSameAs(this);
     }
 
     /**

@@ -33,7 +33,7 @@ public class RuntimeFunctionImpl implements Function {
      * The backing data for the property DefinedAs
      * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#definedAs
      */
-    private java.lang.Object __implDefinedAs;
+    private org.xowl.infra.lang.actions.OpaqueExpression __implDefinedAs;
 
     /**
      * Adds a value to the property DefinedAs
@@ -41,7 +41,7 @@ public class RuntimeFunctionImpl implements Function {
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDefinedAs(java.lang.Object elem) {
+    protected void doSimpleAddDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         __implDefinedAs = elem;
     }
 
@@ -51,7 +51,7 @@ public class RuntimeFunctionImpl implements Function {
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDefinedAs(java.lang.Object elem) {
+    protected void doSimpleRemoveDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         __implDefinedAs = null;
     }
 
@@ -61,7 +61,7 @@ public class RuntimeFunctionImpl implements Function {
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDefinedAs(java.lang.Object elem) {
+    private void doPropertyAddDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         doSimpleAddDefinedAs(elem);
     }
 
@@ -71,7 +71,7 @@ public class RuntimeFunctionImpl implements Function {
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDefinedAs(java.lang.Object elem) {
+    private void doPropertyRemoveDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         doSimpleRemoveDefinedAs(elem);
     }
 
@@ -81,7 +81,7 @@ public class RuntimeFunctionImpl implements Function {
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDefinedAs(java.lang.Object elem) {
+    private void doGraphAddDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         doPropertyAddDefinedAs(elem);
     }
 
@@ -91,7 +91,7 @@ public class RuntimeFunctionImpl implements Function {
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDefinedAs(java.lang.Object elem) {
+    private void doGraphRemoveDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         doPropertyRemoveDefinedAs(elem);
     }
 
@@ -102,7 +102,7 @@ public class RuntimeFunctionImpl implements Function {
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDefinedAs(java.lang.Object elem) {
+    private void doDispatchAddDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         doGraphAddDefinedAs(elem);
     }
 
@@ -113,17 +113,17 @@ public class RuntimeFunctionImpl implements Function {
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDefinedAs(java.lang.Object elem) {
+    private void doDispatchRemoveDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         doGraphRemoveDefinedAs(elem);
     }
 
     @Override
-    public java.lang.Object getDefinedAs() {
+    public org.xowl.infra.lang.actions.OpaqueExpression getDefinedAs() {
         return __implDefinedAs;
     }
 
     @Override
-    public void setDefinedAs(java.lang.Object elem) {
+    public void setDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem) {
         if (__implDefinedAs == elem)
             return;
         if (elem == null) {

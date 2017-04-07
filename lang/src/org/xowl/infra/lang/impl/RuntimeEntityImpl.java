@@ -284,20 +284,20 @@ public class RuntimeEntityImpl implements Entity {
      */
     private void doPropertyAddInterpretedAs(Interpretation elem) {
         doSimpleAddInterpretedAs(elem);
-        if (elem instanceof RuntimeClassImpl)
-            ((RuntimeClassImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeAnnotationPropertyImpl)
+        if (elem instanceof RuntimeAnnotationPropertyImpl)
             ((RuntimeAnnotationPropertyImpl) elem).doSimpleAddInterpretationOf(this);
         else if (elem instanceof RuntimeFunctionImpl)
             ((RuntimeFunctionImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeClassImpl)
+            ((RuntimeClassImpl) elem).doSimpleAddInterpretationOf(this);
         else if (elem instanceof RuntimeDatatypeImpl)
             ((RuntimeDatatypeImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeObjectPropertyImpl)
-            ((RuntimeObjectPropertyImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleAddInterpretationOf(this);
         else if (elem instanceof RuntimeDataPropertyImpl)
             ((RuntimeDataPropertyImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeObjectPropertyImpl)
+            ((RuntimeObjectPropertyImpl) elem).doSimpleAddInterpretationOf(this);
     }
 
     /**
@@ -309,20 +309,20 @@ public class RuntimeEntityImpl implements Entity {
      */
     private void doPropertyRemoveInterpretedAs(Interpretation elem) {
         doSimpleRemoveInterpretedAs(elem);
-        if (elem instanceof RuntimeClassImpl)
-            ((RuntimeClassImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeAnnotationPropertyImpl)
+        if (elem instanceof RuntimeAnnotationPropertyImpl)
             ((RuntimeAnnotationPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
         else if (elem instanceof RuntimeFunctionImpl)
             ((RuntimeFunctionImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeClassImpl)
+            ((RuntimeClassImpl) elem).doSimpleRemoveInterpretationOf(this);
         else if (elem instanceof RuntimeDatatypeImpl)
             ((RuntimeDatatypeImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeObjectPropertyImpl)
-            ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveInterpretationOf(this);
         else if (elem instanceof RuntimeDataPropertyImpl)
             ((RuntimeDataPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeObjectPropertyImpl)
+            ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
     }
 
     /**

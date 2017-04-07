@@ -32,7 +32,7 @@ public interface Function extends Interpretation {
      *
      * @param elem The value to set
      */
-    void setDefinedAs(java.lang.Object elem);
+    void setDefinedAs(org.xowl.infra.lang.actions.OpaqueExpression elem);
 
     /**
      * Gets the value for the property DefinedAs
@@ -40,6 +40,6 @@ public interface Function extends Interpretation {
      *
      * @return The value for the property DefinedAs
      */
-    java.lang.Object getDefinedAs();
+    org.xowl.infra.lang.actions.OpaqueExpression getDefinedAs();
 
 }

@@ -25,5 +25,5 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface NAryDataPropertyRestriction extends ClassRestriction, DomainOfDataPropertySeq, DomainOfDatarange {
+public interface NAryDataPropertyRestriction extends ClassRestriction, DomainOfDatarange, DomainOfDataPropertySeq {
 }

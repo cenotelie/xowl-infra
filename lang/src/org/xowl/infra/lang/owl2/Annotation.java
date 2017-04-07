@@ -25,5 +25,5 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface Annotation extends DomainOfAnnotValue, DomainOfAnnotations, DomainOfAnnotProperty {
+public interface Annotation extends DomainOfAnnotValue, DomainOfAnnotProperty, DomainOfAnnotations {
 }

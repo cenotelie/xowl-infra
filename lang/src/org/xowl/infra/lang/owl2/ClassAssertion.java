@@ -25,5 +25,5 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface ClassAssertion extends IndividualAxiom, DomainOfClasse, DomainOfIndividual {
+public interface ClassAssertion extends IndividualAxiom, DomainOfIndividual, DomainOfClasse {
 }

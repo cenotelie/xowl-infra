@@ -867,10 +867,10 @@ public class RuntimeClassImpl implements Class {
      */
     private void doPropertyAddClassifies(Individual elem) {
         doSimpleAddClassifies(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddClassifiedBy(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleAddClassifiedBy(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddClassifiedBy(this);
     }
 
     /**
@@ -882,10 +882,10 @@ public class RuntimeClassImpl implements Class {
      */
     private void doPropertyRemoveClassifies(Individual elem) {
         doSimpleRemoveClassifies(elem);
-        if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveClassifiedBy(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
+        if (elem instanceof RuntimeNamedIndividualImpl)
             ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveClassifiedBy(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveClassifiedBy(this);
     }
 
     /**
@@ -990,10 +990,10 @@ public class RuntimeClassImpl implements Class {
      */
     private void doPropertyAddDomainOf(Property elem) {
         doSimpleAddDomainOf(elem);
-        if (elem instanceof RuntimeObjectPropertyImpl)
-            ((RuntimeObjectPropertyImpl) elem).doSimpleAddDomain(this);
-        else if (elem instanceof RuntimeDataPropertyImpl)
+        if (elem instanceof RuntimeDataPropertyImpl)
             ((RuntimeDataPropertyImpl) elem).doSimpleAddDomain(this);
+        else if (elem instanceof RuntimeObjectPropertyImpl)
+            ((RuntimeObjectPropertyImpl) elem).doSimpleAddDomain(this);
     }
 
     /**
@@ -1005,10 +1005,10 @@ public class RuntimeClassImpl implements Class {
      */
     private void doPropertyRemoveDomainOf(Property elem) {
         doSimpleRemoveDomainOf(elem);
-        if (elem instanceof RuntimeObjectPropertyImpl)
-            ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveDomain(this);
-        else if (elem instanceof RuntimeDataPropertyImpl)
+        if (elem instanceof RuntimeDataPropertyImpl)
             ((RuntimeDataPropertyImpl) elem).doSimpleRemoveDomain(this);
+        else if (elem instanceof RuntimeObjectPropertyImpl)
+            ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveDomain(this);
     }
 
     /**

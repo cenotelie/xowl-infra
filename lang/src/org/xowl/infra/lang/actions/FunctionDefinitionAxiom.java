@@ -32,7 +32,7 @@ public interface FunctionDefinitionAxiom extends org.xowl.infra.lang.owl2.Axiom 
      *
      * @param elem The value to set
      */
-    void setDefinition(java.lang.Object elem);
+    void setDefinition(OpaqueExpression elem);
 
     /**
      * Gets the value for the property Definition
@@ -40,7 +40,7 @@ public interface FunctionDefinitionAxiom extends org.xowl.infra.lang.owl2.Axiom 
      *
      * @return The value for the property Definition
      */
-    java.lang.Object getDefinition();
+    OpaqueExpression getDefinition();
 
     /**
      * Sets the value for the property Function

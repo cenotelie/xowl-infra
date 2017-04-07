@@ -145,7 +145,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      * The backing data for the property Definition
      * This implements the storage for original OWL property http://xowl.org/infra/lang/actions#definition
      */
-    private java.lang.Object __implDefinition;
+    private OpaqueExpression __implDefinition;
 
     /**
      * Adds a value to the property Definition
@@ -153,7 +153,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDefinition(java.lang.Object elem) {
+    protected void doSimpleAddDefinition(OpaqueExpression elem) {
         __implDefinition = elem;
     }
 
@@ -163,7 +163,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDefinition(java.lang.Object elem) {
+    protected void doSimpleRemoveDefinition(OpaqueExpression elem) {
         __implDefinition = null;
     }
 
@@ -173,7 +173,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDefinition(java.lang.Object elem) {
+    private void doPropertyAddDefinition(OpaqueExpression elem) {
         doSimpleAddDefinition(elem);
     }
 
@@ -183,7 +183,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDefinition(java.lang.Object elem) {
+    private void doPropertyRemoveDefinition(OpaqueExpression elem) {
         doSimpleRemoveDefinition(elem);
     }
 
@@ -193,7 +193,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDefinition(java.lang.Object elem) {
+    private void doGraphAddDefinition(OpaqueExpression elem) {
         doPropertyAddDefinition(elem);
     }
 
@@ -203,7 +203,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDefinition(java.lang.Object elem) {
+    private void doGraphRemoveDefinition(OpaqueExpression elem) {
         doPropertyRemoveDefinition(elem);
     }
 
@@ -214,7 +214,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDefinition(java.lang.Object elem) {
+    private void doDispatchAddDefinition(OpaqueExpression elem) {
         doGraphAddDefinition(elem);
     }
 
@@ -225,17 +225,17 @@ public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxi
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDefinition(java.lang.Object elem) {
+    private void doDispatchRemoveDefinition(OpaqueExpression elem) {
         doGraphRemoveDefinition(elem);
     }
 
     @Override
-    public java.lang.Object getDefinition() {
+    public OpaqueExpression getDefinition() {
         return __implDefinition;
     }
 
     @Override
-    public void setDefinition(java.lang.Object elem) {
+    public void setDefinition(OpaqueExpression elem) {
         if (__implDefinition == elem)
             return;
         if (elem == null) {
