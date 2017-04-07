@@ -28,16 +28,16 @@ import org.xowl.infra.store.loaders.XOWLDeserializer;
  */
 public interface ExecutionManager extends Evaluator {
     /**
-     * Gets the deserializer of xOWL ontologies
-     *
-     * @return The deserializer of xOWL ontologies
-     */
-    XOWLDeserializer getDeserializer();
-
-    /**
      * Gets the parent repository
      *
      * @return The parent repository
      */
     Repository getRepository();
+
+    /**
+     * Gets the deserializer of xOWL ontologies
+     *
+     * @return The deserializer of xOWL ontologies
+     */
+    XOWLDeserializer getDeserializer();
 }

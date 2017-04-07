@@ -17,32 +17,64 @@
 
 package org.xowl.infra.engine;
 
+import clojure.java.api.Clojure;
+import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.utils.TextUtils;
+
 /**
  * Represents a Clojure expression to be evaluated
  *
  * @author Laurent Wouters
  */
-public class ClojureExpression {
+class ClojureExpression implements EvaluableExpression {
+    /**
+     * The expression's source definition
+     */
+    private final String source;
     /**
      * The expression's compiled definition
      */
-    private Object definition;
+    private final Object clojure;
+
+    /**
+     * Gets the expression's source definition
+     *
+     * @return The expression's source definition
+     */
+    public String getSource() {
+        return source;
+    }
 
     /**
      * Gets the expression's compiled definition
      *
      * @return The expression's compiled definition
      */
-    public Object getDefinition() {
-        return definition;
+    public Object getClojure() {
+        return clojure;
     }
 
     /**
-     * Initializes this function
+     * Initializes this expression
      *
-     * @param definition The expression's compiled definition
+     * @param source The expression's source definition
      */
-    public ClojureExpression(Object definition) {
-        this.definition = definition;
+    public ClojureExpression(String source) {
+        this.source = source;
+        this.clojure = Clojure.read(source);
+    }
+
+    @Override
+    public String serializedString() {
+        return source;
+    }
+
+    @Override
+    public String serializedJSON() {
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(EvaluableExpression.class.getCanonicalName()) +
+                "\", \"source\": \"" +
+                TextUtils.escapeStringJSON(source) +
+                "\"}";
     }
 }

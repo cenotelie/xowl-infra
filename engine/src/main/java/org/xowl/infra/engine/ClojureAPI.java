@@ -19,7 +19,6 @@ package org.xowl.infra.engine;
 
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Owl2Factory;
-import org.xowl.infra.store.EvaluatorContext;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.loaders.SPARQLLoader;
@@ -52,13 +51,13 @@ public class ClojureAPI {
      * @return The result
      */
     public static Result sparql(String query) {
-        EvaluatorContext context = EvaluatorContext.get(null);
+        ClojureExecutionContext context = ClojureExecutionContext.get(null);
         if (context == null)
             return new ResultFailure("No current evaluation context");
-        if (!(context.getRepository() instanceof RepositoryRDF))
+        if (!(context.getExecutionManager().getRepository() instanceof RepositoryRDF))
             return new ResultFailure("The current repository is not a RDF repository");
-
-        NodeManager nodeManager = ((RepositoryRDF) context.getRepository()).getStore();
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getExecutionManager().getRepository();
+        NodeManager nodeManager = repositoryRDF.getStore();
         BufferedLogger logger = new BufferedLogger();
         SPARQLLoader loader = new SPARQLLoader(nodeManager);
         Command command = loader.load(logger, new StringReader(query));
@@ -66,7 +65,7 @@ public class ClojureAPI {
             return new ResultFailure(logger.getErrorsAsString());
         if (!logger.getErrorMessages().isEmpty())
             return new ResultFailure(logger.getErrorsAsString());
-        return command.execute(((RepositoryRDF) context.getRepository()));
+        return command.execute(repositoryRDF);
     }
 
     /**
@@ -77,13 +76,13 @@ public class ClojureAPI {
      * @return The first associated object value
      */
     public static IRI getObjectValue(IRI entity, String property) {
-        EvaluatorContext context = EvaluatorContext.get(null);
+        ClojureExecutionContext context = ClojureExecutionContext.get(null);
         if (context == null)
             return null;
-        if (!(context.getRepository() instanceof RepositoryRDF))
+        if (!(context.getExecutionManager().getRepository() instanceof RepositoryRDF))
             return null;
 
-        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getRepository();
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getExecutionManager().getRepository();
         IRINode nodeSubject = repositoryRDF.getStore().getIRINode(entity.getHasValue());
         IRINode nodeProperty = repositoryRDF.getStore().getIRINode(property);
         try {
@@ -114,13 +113,13 @@ public class ClojureAPI {
      */
     public static Collection<IRI> getObjectValues(IRI entity, String property) {
         Collection<IRI> result = new ArrayList<>();
-        EvaluatorContext context = EvaluatorContext.get(null);
+        ClojureExecutionContext context = ClojureExecutionContext.get(null);
         if (context == null)
             return result;
-        if (!(context.getRepository() instanceof RepositoryRDF))
+        if (!(context.getExecutionManager().getRepository() instanceof RepositoryRDF))
             return result;
 
-        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getRepository();
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getExecutionManager().getRepository();
         IRINode nodeSubject = repositoryRDF.getStore().getIRINode(entity.getHasValue());
         IRINode nodeProperty = repositoryRDF.getStore().getIRINode(property);
         try {
@@ -147,13 +146,13 @@ public class ClojureAPI {
      * @return The first associated data value
      */
     public static Object getDataValue(IRI entity, String property) {
-        EvaluatorContext context = EvaluatorContext.get(null);
+        ClojureExecutionContext context = ClojureExecutionContext.get(null);
         if (context == null)
             return null;
-        if (!(context.getRepository() instanceof RepositoryRDF))
+        if (!(context.getExecutionManager().getRepository() instanceof RepositoryRDF))
             return null;
 
-        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getRepository();
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getExecutionManager().getRepository();
         IRINode nodeSubject = repositoryRDF.getStore().getIRINode(entity.getHasValue());
         IRINode nodeProperty = repositoryRDF.getStore().getIRINode(property);
         try {
@@ -182,13 +181,13 @@ public class ClojureAPI {
      */
     public static Collection<Object> getDataValues(IRI entity, String property) {
         Collection<Object> result = new ArrayList<>();
-        EvaluatorContext context = EvaluatorContext.get(null);
+        ClojureExecutionContext context = ClojureExecutionContext.get(null);
         if (context == null)
             return result;
-        if (!(context.getRepository() instanceof RepositoryRDF))
+        if (!(context.getExecutionManager().getRepository() instanceof RepositoryRDF))
             return result;
 
-        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getRepository();
+        RepositoryRDF repositoryRDF = (RepositoryRDF) context.getExecutionManager().getRepository();
         IRINode nodeSubject = repositoryRDF.getStore().getIRINode(entity.getHasValue());
         IRINode nodeProperty = repositoryRDF.getStore().getIRINode(property);
         try {

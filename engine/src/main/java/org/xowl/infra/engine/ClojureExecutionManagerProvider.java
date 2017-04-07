@@ -17,18 +17,18 @@
 
 package org.xowl.infra.engine;
 
-import org.xowl.infra.store.Evaluator;
-import org.xowl.infra.store.EvaluatorProvider;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.execution.ExecutionManager;
+import org.xowl.infra.store.execution.ExecutionManagerProvider;
 
 /**
- * Implements a provider of evaluators for xOWL dynamic expressions expressed in Clojure
+ * Implements a provider of Clojure execution managers
  *
  * @author Laurent Wouters
  */
-public class ClojureEvaluatorProvider implements EvaluatorProvider {
+public class ClojureExecutionManagerProvider implements ExecutionManagerProvider {
     @Override
-    public Evaluator newEvaluator(Repository repository) {
-        return new ClojureEvaluator(repository);
+    public ExecutionManager newManager(Repository repository) {
+        return new ClojureExecutionManager(repository);
     }
 }

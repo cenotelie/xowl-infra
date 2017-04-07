@@ -18,13 +18,15 @@
 package org.xowl.infra.engine;
 
 import clojure.lang.IFn;
+import org.xowl.infra.store.execution.ExecutableFunction;
+import org.xowl.infra.utils.TextUtils;
 
 /**
  * Represents the definition of a Clojure function
  *
  * @author Laurent Wouters
  */
-public class ClojureFunction {
+class ClojureFunction implements ExecutableFunction {
     /**
      * The function's global IRI
      */
@@ -36,18 +38,14 @@ public class ClojureFunction {
     /**
      * The function's content definition as a string
      */
-    private String content;
+    private final String source;
     /**
      * The function's compiled definition
      */
     private IFn clojure;
 
-    /**
-     * Gets the function's global IRI
-     *
-     * @return The function's global IRI
-     */
-    public String getIRI() {
+    @Override
+    public String getIdentifier() {
         return iri;
     }
 
@@ -61,12 +59,12 @@ public class ClojureFunction {
     }
 
     /**
-     * Gets the function's content definition as a string
+     * Gets the function's source definition as a string
      *
-     * @return The function's content definition as a string
+     * @return The function's source definition as a string
      */
-    public String getContent() {
-        return content;
+    public String getSource() {
+        return source;
     }
 
     /**
@@ -85,19 +83,36 @@ public class ClojureFunction {
      */
     public void setClojure(IFn clojure) {
         this.clojure = clojure;
-        this.content = null;
     }
 
     /**
      * Initializes this function
      *
-     * @param iri     The function's global IRI
-     * @param name    The function's short name
-     * @param content The function's content definition as a string
+     * @param iri    The function's global IRI
+     * @param name   The function's short name
+     * @param source The function's content definition as a string
      */
-    public ClojureFunction(String iri, String name, String content) {
+    public ClojureFunction(String iri, String name, String source) {
         this.iri = iri;
         this.name = name;
-        this.content = content;
+        this.source = source;
+    }
+
+    @Override
+    public String serializedString() {
+        return source;
+    }
+
+    @Override
+    public String serializedJSON() {
+        return "{\"type\": \"" +
+                TextUtils.escapeStringJSON(ExecutableFunction.class.getCanonicalName()) +
+                "\", \"identifier\": \"" +
+                TextUtils.escapeStringJSON(iri) +
+                "\", \"name\": \"" +
+                TextUtils.escapeStringJSON(name) +
+                "\", \"source\": \"" +
+                TextUtils.escapeStringJSON(source) +
+                "\"}";
     }
 }

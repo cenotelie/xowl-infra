@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -17,7 +17,6 @@
 
 package org.xowl.infra.engine;
 
-import clojure.java.api.Clojure;
 import clojure.lang.Compiler;
 import clojure.lang.*;
 import org.xowl.hime.redist.ASTNode;
@@ -25,9 +24,10 @@ import org.xowl.infra.lang.actions.DynamicExpression;
 import org.xowl.infra.lang.actions.OpaqueExpression;
 import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.IRI;
-import org.xowl.infra.store.Evaluator;
-import org.xowl.infra.store.EvaluatorContext;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.execution.ExecutableFunction;
+import org.xowl.infra.store.execution.ExecutionManager;
+import org.xowl.infra.store.loaders.XOWLDeserializer;
 import org.xowl.infra.store.loaders.XOWLLexer;
 import org.xowl.infra.store.loaders.XOWLParser;
 import org.xowl.infra.utils.IOUtils;
@@ -38,11 +38,11 @@ import java.io.StringReader;
 import java.util.*;
 
 /**
- * Represents the Clojure evaluator for xOWL ontologies
+ * Manages the execution of xOWL ontologies expressed using Clojure
  *
  * @author Laurent Wouters
  */
-public class ClojureEvaluator implements Evaluator {
+public class ClojureExecutionManager implements ExecutionManager {
     /**
      * The number of repositories
      */
@@ -54,7 +54,7 @@ public class ClojureEvaluator implements Evaluator {
      * @return The next Clojure namespace
      */
     private synchronized static String getNextNamespace() {
-        String result = ClojureEvaluator.class.getPackage().getName() + ".clojure.Repository" + Integer.toHexString(REPOSITORY_COUNT);
+        String result = ClojureExecutionManager.class.getPackage().getName() + ".clojure.Repository" + Integer.toHexString(REPOSITORY_COUNT);
         REPOSITORY_COUNT++;
         return result;
     }
@@ -63,6 +63,10 @@ public class ClojureEvaluator implements Evaluator {
      * The parent repository
      */
     private final Repository repository;
+    /**
+     * The deserializer of xOWL ontologies
+     */
+    private final ClojureXOWLDeserializer deserializer;
     /**
      * The root namespace for the Clojure symbols
      */
@@ -85,17 +89,145 @@ public class ClojureEvaluator implements Evaluator {
     private int counter;
 
     /**
-     * Initializes this evaluator
+     * Initializes this manager
      *
      * @param repository The parent repository
      */
-    public ClojureEvaluator(Repository repository) {
+    public ClojureExecutionManager(Repository repository) {
         this.repository = repository;
+        this.deserializer = new ClojureXOWLDeserializer(this);
         this.cljNamespace = getNextNamespace();
         this.cljNamespaceRoot = Namespace.findOrCreate(Symbol.intern(cljNamespace));
         this.cljFunctions = new HashMap<>();
         this.cljToBuild = new ArrayList<>();
         this.counter = 0;
+    }
+
+    @Override
+    public Repository getRepository() {
+        return repository;
+    }
+
+    @Override
+    public Object eval(Map<String, Object> bindings, DynamicExpression expression) {
+        if (expression instanceof QueryVariable) {
+            return eval(bindings, ((QueryVariable) expression));
+        } else if (expression instanceof OpaqueExpression) {
+            Object value = ((OpaqueExpression) expression).getValue();
+            if (value instanceof ClojureFunction)
+                return execute((ClojureFunction) value);
+            if (value instanceof ClojureExpression)
+                return eval(bindings, (ClojureExpression) value);
+        }
+        return null;
+    }
+
+    /**
+     * Evaluates a query variable
+     *
+     * @param bindings The new contextual bindings
+     * @param variable The variable to evaluate
+     * @return The evaluated value
+     */
+    private Object eval(Map<String, Object> bindings, QueryVariable variable) {
+        Object result = bindings.get(variable.getName());
+        if (result != null)
+            return result;
+        ClojureExecutionContext context = ClojureExecutionContext.get(this);
+        if (context == null)
+            return null;
+        return context.getBinding(variable.getName());
+    }
+
+    /**
+     * Evaluates a Clojure expression
+     *
+     * @param bindings   The new contextual bindings
+     * @param expression The expression to evaluate
+     * @return The evaluated value
+     */
+    private Object eval(Map<String, Object> bindings, ClojureExpression expression) {
+        compile();
+        ClojureExecutionContext context = ClojureExecutionContext.get(this);
+        if (context == null)
+            return null;
+        try {
+            context.push(bindings);
+            List clojureContext = new ArrayList();
+            for (Map.Entry<String, Object> binding : context.getAllBindings().entrySet()) {
+                if (binding.getValue() instanceof IRI)
+                    continue;
+                clojureContext.add(Symbol.create(binding.getKey()));
+                clojureContext.add(binding.getValue());
+            }
+            IPersistentList top = PersistentList.create(Arrays.asList(
+                    Symbol.create("clojure.core", "let"),
+                    PersistentVector.create(clojureContext.toArray()),
+                    // require bindings
+                    PersistentList.create(Arrays.asList(
+                            Symbol.create("clojure.core", "eval"),
+                            expression.getSource()
+                    ))
+            ));
+            return Compiler.eval(top);
+        } finally {
+            context.pop();
+        }
+    }
+
+    @Override
+    public ExecutableFunction getFunction(String functionIRI) {
+        return cljFunctions.get(functionIRI);
+    }
+
+    @Override
+    public Object execute(String functionIRI, Object... parameters) {
+        ClojureFunction cljFunction = cljFunctions.get(functionIRI);
+        if (cljFunction == null)
+            return null;
+        return execute(cljFunction, parameters);
+    }
+
+    /**
+     * Executes a function
+     *
+     * @param function   The function
+     * @param parameters The parameters
+     * @return The returned value
+     */
+    private Object execute(ClojureFunction function, Object... parameters) {
+        ClojureExecutionContext.get(this);
+        compile();
+        if (parameters == null || parameters.length == 0)
+            return function.getClojure().invoke();
+        switch (parameters.length) {
+            case 1:
+                return function.getClojure().invoke(parameters[0]);
+            case 2:
+                return function.getClojure().invoke(parameters[0], parameters[1]);
+            case 3:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2]);
+            case 4:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3]);
+            case 5:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]);
+            case 6:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5]);
+            case 7:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6]);
+            case 8:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
+            case 9:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9]);
+            case 10:
+                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9], parameters[10]);
+        }
+        return function.getClojure().invoke(parameters);
+    }
+
+    @Override
+    public XOWLDeserializer getDeserializer() {
+        return deserializer;
     }
 
     /**
@@ -104,10 +236,8 @@ public class ClojureEvaluator implements Evaluator {
      * @param definition The definition of the Clojure expression
      * @return The Clojure object representing the expression
      */
-    public Object loadExpression(ASTNode definition) {
-        StringBuilder builder = new StringBuilder();
-        serializeClojure(builder, definition);
-        return new ClojureExpression(Clojure.read(builder.toString()));
+    public ClojureExpression loadExpression(ASTNode definition) {
+        return new ClojureExpression(serializeClojure(definition));
     }
 
     /**
@@ -144,19 +274,9 @@ public class ClojureEvaluator implements Evaluator {
     }
 
     /**
-     * Retrieves the Clojure function for the specified IRI
-     *
-     * @param iri The IRI of a function
-     * @return The function, or null it is not defined
-     */
-    public ClojureFunction getFunction(String iri) {
-        return cljFunctions.get(iri);
-    }
-
-    /**
      * Compiles the outstanding function definitions
      */
-    private void compileOutstandings() {
+    private void compile() {
         synchronized (cljToBuild) {
             if (cljToBuild.isEmpty())
                 return;
@@ -174,7 +294,7 @@ public class ClojureEvaluator implements Evaluator {
             builder.append(IOUtils.LINE_SEPARATOR);
             builder.append("[ ");
             for (ClojureFunction function : cljToBuild) {
-                builder.append(function.getContent());
+                builder.append(function.getSource());
                 builder.append(IOUtils.LINE_SEPARATOR);
             }
             builder.append(" ]");
@@ -192,118 +312,17 @@ public class ClojureEvaluator implements Evaluator {
         }
     }
 
-    @Override
-    public Repository getRepository() {
-        return repository;
-    }
-
-    @Override
-    public Object eval(DynamicExpression expression) {
-        if (expression instanceof QueryVariable) {
-            EvaluatorContext context = EvaluatorContext.get(this);
-            return context.getBinding(((QueryVariable) expression).getName());
-        } else if (expression instanceof OpaqueExpression) {
-            Object value = ((OpaqueExpression) expression).getValue();
-            if (value instanceof ClojureFunction)
-                return execute((ClojureFunction) value);
-            if (value instanceof ClojureExpression)
-                return evaluateExpression((ClojureExpression) value);
-        }
-        return null;
-    }
-
-    @Override
-    public Object eval(DynamicExpression expression, Object... parameters) {
-        if (expression instanceof QueryVariable) {
-            EvaluatorContext context = EvaluatorContext.get(this);
-            return context.getBinding(((QueryVariable) expression).getName());
-        } else if (expression instanceof OpaqueExpression) {
-            Object value = ((OpaqueExpression) expression).getValue();
-            if (value instanceof ClojureFunction)
-                return execute((ClojureFunction) value, parameters);
-            if (value instanceof ClojureExpression)
-                return evaluateExpression((ClojureExpression) value);
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isDefined(String function) {
-        return getFunction(function) != null;
-    }
-
-    @Override
-    public Object execute(String function, Object... parameters) {
-        ClojureFunction cljFunction = getFunction(function);
-        if (cljFunction == null)
-            return null;
-        return execute(cljFunction, parameters);
-    }
 
     /**
-     * Evaluates a Clojure expression
+     * Re-serializes the specified AST node into a string for the Clojure reader
      *
-     * @param expression The expression to evaluate
-     * @return The evaluated value
+     * @param node An AST node
+     * @return The serialized Clojure source
      */
-    private Object evaluateExpression(ClojureExpression expression) {
-        compileOutstandings();
-        synchronized (RT.CURRENT_NS) {
-            List bindings = new ArrayList();
-            for (Map.Entry<String, Object> binding : EvaluatorContext.get(this).getBindings().entrySet()) {
-                if (binding.getValue() instanceof IRI)
-                    continue;
-                bindings.add(Symbol.create(binding.getKey()));
-                bindings.add(binding.getValue());
-            }
-            IPersistentList top = PersistentList.create(Arrays.asList(
-                    Symbol.create("clojure.core", "let"),
-                    PersistentVector.create(bindings.toArray()),
-                    // require bindings
-                    PersistentList.create(Arrays.asList(
-                            Symbol.create("clojure.core", "eval"),
-                            expression.getDefinition()
-                    ))
-            ));
-            return Compiler.eval(top);
-        }
-    }
-
-    /**
-     * Executes a function
-     *
-     * @param function   The function
-     * @param parameters The parameters
-     * @return The returned value
-     */
-    private Object execute(ClojureFunction function, Object... parameters) {
-        EvaluatorContext.get(this);
-        compileOutstandings();
-        if (parameters == null || parameters.length == 0)
-            return function.getClojure().invoke();
-        switch (parameters.length) {
-            case 1:
-                return function.getClojure().invoke(parameters[0]);
-            case 2:
-                return function.getClojure().invoke(parameters[0], parameters[1]);
-            case 3:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2]);
-            case 4:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3]);
-            case 5:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]);
-            case 6:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5]);
-            case 7:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6]);
-            case 8:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
-            case 9:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9]);
-            case 10:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9], parameters[10]);
-        }
-        return function.getClojure().invoke(parameters);
+    private static String serializeClojure(ASTNode node) {
+        StringBuilder builder = new StringBuilder();
+        serializeClojure(builder, node);
+        return builder.toString();
     }
 
     /**
