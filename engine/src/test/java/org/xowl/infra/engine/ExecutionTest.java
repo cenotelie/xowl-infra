@@ -32,6 +32,7 @@ import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultSolutions;
 import org.xowl.infra.store.sparql.Solutions;
+import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.SinkLogger;
@@ -39,6 +40,8 @@ import org.xowl.infra.utils.logging.SinkLogger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 /**
@@ -58,6 +61,27 @@ public class ExecutionTest {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
+        Object result = repository.getExecutionManager().execute("http://xowl.org/infra/engine/tests#sayHello");
+        Assert.assertFalse("Failed to execute the function", logger.isOnError());
+        Assert.assertEquals("Hello World", result);
+    }
+
+    @Test
+    public void testXOWLSerialization() throws Exception {
+        Path p = Files.createTempDirectory("testXOWLSerialization");
+        SinkLogger logger = new SinkLogger();
+        RepositoryRDF repository = new RepositoryRDF(StoreFactory.create().onDisk(p.toFile()).make());
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testSimpleExecution.xowl");
+        try {
+            repository.load(logger, "http://xowl.org/infra/engine/tests");
+        } catch (Exception exception) {
+            logger.error(exception);
+        }
+        Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
+        repository.getStore().commit();
+        repository.getStore().close();
+
+        repository = new RepositoryRDF(StoreFactory.create().onDisk(p.toFile()).make());
         Object result = repository.getExecutionManager().execute("http://xowl.org/infra/engine/tests#sayHello");
         Assert.assertFalse("Failed to execute the function", logger.isOnError());
         Assert.assertEquals("Hello World", result);

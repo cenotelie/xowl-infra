@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.storage;
 
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedDataset;
 import org.xowl.infra.store.storage.impl.DatasetImpl;
@@ -136,6 +137,11 @@ class OnDiskStoreCache extends DatasetImpl {
      */
     private void invalidate(GraphNode graph) {
         cachedGraphs.remove(graph);
+    }
+
+    @Override
+    public void setExecutionManager(ExecutionManager executionManager) {
+        this.executionManager = executionManager;
     }
 
     @Override

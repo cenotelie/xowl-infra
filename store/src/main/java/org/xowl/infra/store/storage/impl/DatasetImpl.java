@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage.impl;
 
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
@@ -86,6 +87,19 @@ public abstract class DatasetImpl implements Dataset {
      */
     public void setExecutionManager(ExecutionManager executionManager) {
         this.executionManager = executionManager;
+        if (executionManager != null) {
+            try {
+                IRINode definedAs = ((RepositoryRDF) executionManager.getRepository()).getStore().getIRINode(Vocabulary.xowlDefinedAs);
+                Iterator<Quad> iterator = getAll(null, definedAs, null);
+                while (iterator.hasNext()) {
+                    Quad quad = iterator.next();
+                    if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
+                        registerFunctionDefinition((IRINode) quad.getSubject(), (DynamicNode) quad.getObject());
+                }
+            } catch (UnsupportedNodeType exception) {
+                Logging.get().error(exception);
+            }
+        }
     }
 
     @Override
