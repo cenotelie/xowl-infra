@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
@@ -204,6 +205,9 @@ public abstract class Repository {
         if (services.hasNext())
             return services.next().newManager(repository);
 
+        Bundle bundle = FrameworkUtil.getBundle(Repository.class);
+        if (bundle == null)
+            return null;
         BundleContext context = FrameworkUtil.getBundle(Repository.class).getBundleContext();
         if (context == null)
             return null;
