@@ -365,7 +365,9 @@ public class RDFUtils {
                 writer.write("\"}");
                 break;
             case Node.TYPE_DYNAMIC:
-                writer.write("{\"type\": \"dynamic\"}");
+                writer.write("{\"type\": \"dynamic\", \"value\": \"}");
+                writer.write(TextUtils.escapeStringJSON(((DynamicNode) node).getEvaluable().getSource()));
+                writer.write("\"}");
                 break;
         }
     }
