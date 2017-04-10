@@ -204,6 +204,32 @@ public class ClojureExecutionManager implements ExecutionManager {
         return new ClojureExpression(source);
     }
 
+    @Override
+    public void registerFunction(String functionIRI, EvaluableExpression definition) {
+        if (functionIRI == null)
+            functionIRI = newCljName();
+        String[] parts = functionIRI.split("#");
+        String name = parts[parts.length - 1];
+        ClojureFunction function = new ClojureFunction(functionIRI, name, definition.getSource());
+        synchronized (cljToBuild) {
+            cljFunctions.put(functionIRI, function);
+            cljToBuild.add(function);
+        }
+    }
+
+    @Override
+    public void unregisterFunction(String functionIRI) {
+        synchronized (cljToBuild) {
+            cljFunctions.remove(functionIRI);
+            for (ClojureFunction function : cljToBuild) {
+                if (Objects.equals(functionIRI, function.getIdentifier())) {
+                    cljToBuild.remove(function);
+                    return;
+                }
+            }
+        }
+    }
+
     /**
      * Gets the Clojure object for the specified parsed expression
      *
@@ -212,28 +238,6 @@ public class ClojureExecutionManager implements ExecutionManager {
      */
     public ClojureExpression loadExpression(ASTNode definition) {
         return new ClojureExpression(serializeClojure(definition));
-    }
-
-    /**
-     * Loads the definition of a Clojure function
-     *
-     * @param iri        The function's global IRI
-     * @param definition The function's definition as an AST
-     * @return The managing object for the function
-     */
-    public ClojureFunction loadFunction(String iri, ASTNode definition) {
-        if (iri == null)
-            iri = newCljName();
-        String[] parts = iri.split("#");
-        String name = parts[parts.length - 1];
-        StringBuilder builder = new StringBuilder();
-        serializeClojure(builder, definition);
-        ClojureFunction function = new ClojureFunction(iri, name, builder.toString());
-        synchronized (cljToBuild) {
-            cljFunctions.put(iri, function);
-            cljToBuild.add(function);
-        }
-        return function;
     }
 
     /**

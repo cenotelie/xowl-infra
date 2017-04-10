@@ -48,4 +48,19 @@ public interface ExecutionManager extends Evaluator {
      * @return The expression
      */
     EvaluableExpression loadExpression(String source);
+
+    /**
+     * Registers a xOWL function
+     *
+     * @param functionIRI The IRI of the function
+     * @param definition  The function's definition
+     */
+    void registerFunction(String functionIRI, EvaluableExpression definition);
+
+    /**
+     * Unregisters a xOWL function
+     *
+     * @param functionIRI The IRI of the function
+     */
+    void unregisterFunction(String functionIRI);
 }

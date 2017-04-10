@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage.impl;
 
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.Dataset;
@@ -66,6 +67,10 @@ public abstract class DatasetImpl implements Dataset {
      * The current listeners on this store
      */
     protected final Collection<ChangeListener> listeners;
+    /**
+     * The execution manager to use
+     */
+    protected ExecutionManager executionManager;
 
     /**
      * Initializes this dataset
@@ -80,6 +85,7 @@ public abstract class DatasetImpl implements Dataset {
      * @param executionManager The execution manager to use
      */
     public void setExecutionManager(ExecutionManager executionManager) {
+        this.executionManager = executionManager;
     }
 
     @Override
@@ -148,6 +154,8 @@ public abstract class DatasetImpl implements Dataset {
                 int result = doAddQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
                 if (result == ADD_RESULT_NEW) {
                     added.add(quad);
+                    if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
+                        registerFunctionDefinition((IRINode) quad.getSubject(), (DynamicNode) quad.getObject());
                 } else if (result == ADD_RESULT_INCREMENT) {
                     incremented.add(quad);
                 }
@@ -155,6 +163,8 @@ public abstract class DatasetImpl implements Dataset {
             for (Quad quad : changeset.getRemoved()) {
                 int result = doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
                 if (result >= REMOVE_RESULT_REMOVED) {
+                    if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
+                        unregisterFunctionDefinition((IRINode) quad.getSubject());
                     removed.add(quad);
                 } else if (result == REMOVE_RESULT_DECREMENT) {
                     decremented.add(quad);
@@ -185,10 +195,13 @@ public abstract class DatasetImpl implements Dataset {
         int result = doAddQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
         if (result < DatasetImpl.ADD_RESULT_INCREMENT)
             return;
-        for (ChangeListener listener : listeners) {
-            if (result >= DatasetImpl.ADD_RESULT_NEW)
+        if (result >= DatasetImpl.ADD_RESULT_NEW) {
+            if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
+                registerFunctionDefinition((IRINode) quad.getSubject(), (DynamicNode) quad.getObject());
+            for (ChangeListener listener : listeners)
                 listener.onAdded(quad);
-            else
+        } else {
+            for (ChangeListener listener : listeners)
                 listener.onIncremented(quad);
         }
     }
@@ -199,10 +212,13 @@ public abstract class DatasetImpl implements Dataset {
         Quad quad = new Quad(graph, subject, property, value);
         if (result < DatasetImpl.ADD_RESULT_INCREMENT)
             return;
-        for (ChangeListener listener : listeners) {
-            if (result >= DatasetImpl.ADD_RESULT_NEW)
+        if (result >= DatasetImpl.ADD_RESULT_NEW) {
+            if (isFunctionDefinition(subject, property, value))
+                registerFunctionDefinition((IRINode) subject, (DynamicNode) value);
+            for (ChangeListener listener : listeners)
                 listener.onAdded(quad);
-            else
+        } else {
+            for (ChangeListener listener : listeners)
                 listener.onIncremented(quad);
         }
     }
@@ -214,10 +230,13 @@ public abstract class DatasetImpl implements Dataset {
             int result = doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
             if (result < DatasetImpl.REMOVE_RESULT_DECREMENT)
                 return;
-            for (ChangeListener listener : listeners) {
-                if (result >= DatasetImpl.REMOVE_RESULT_REMOVED)
+            if (result >= DatasetImpl.REMOVE_RESULT_REMOVED) {
+                if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
+                    unregisterFunctionDefinition((IRINode) quad.getSubject());
+                for (ChangeListener listener : listeners)
                     listener.onRemoved(quad);
-                else
+            } else {
+                for (ChangeListener listener : listeners)
                     listener.onDecremented(quad);
             }
         } else {
@@ -225,6 +244,10 @@ public abstract class DatasetImpl implements Dataset {
             List<MQuad> bufferRemoved = new ArrayList<>();
             doRemoveQuads(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject(), bufferDecremented, bufferRemoved);
             if (!bufferDecremented.isEmpty() || !bufferRemoved.isEmpty()) {
+                for (Quad removed : bufferRemoved) {
+                    if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
+                        unregisterFunctionDefinition((IRINode) removed.getSubject());
+                }
                 Changeset changeset = new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, (Collection) bufferDecremented, (Collection) bufferRemoved);
                 for (ChangeListener listener : listeners) {
                     listener.onChange(changeset);
@@ -241,10 +264,13 @@ public abstract class DatasetImpl implements Dataset {
             if (result < DatasetImpl.REMOVE_RESULT_DECREMENT)
                 return;
             Quad quad = new Quad(graph, subject, property, value);
-            for (ChangeListener listener : listeners) {
-                if (result >= DatasetImpl.REMOVE_RESULT_REMOVED)
+            if (result >= DatasetImpl.REMOVE_RESULT_REMOVED) {
+                if (isFunctionDefinition(subject, property, value))
+                    unregisterFunctionDefinition((IRINode) subject);
+                for (ChangeListener listener : listeners)
                     listener.onRemoved(quad);
-                else
+            } else {
+                for (ChangeListener listener : listeners)
                     listener.onDecremented(quad);
             }
         } else {
@@ -252,6 +278,10 @@ public abstract class DatasetImpl implements Dataset {
             List<MQuad> bufferRemoved = new ArrayList<>();
             doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
             if (!bufferDecremented.isEmpty() || !bufferRemoved.isEmpty()) {
+                for (Quad removed : bufferRemoved) {
+                    if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
+                        unregisterFunctionDefinition((IRINode) removed.getSubject());
+                }
                 Changeset changeset = new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, (Collection) bufferDecremented, (Collection) bufferRemoved);
                 for (ChangeListener listener : listeners) {
                     listener.onChange(changeset);
@@ -265,6 +295,10 @@ public abstract class DatasetImpl implements Dataset {
         List<MQuad> buffer = new ArrayList<>();
         doClear(buffer);
         if (!buffer.isEmpty()) {
+            for (Quad removed : buffer) {
+                if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
+                    unregisterFunctionDefinition((IRINode) removed.getSubject());
+            }
             Changeset changeset = Changeset.fromRemoved((Collection) buffer);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
@@ -281,6 +315,10 @@ public abstract class DatasetImpl implements Dataset {
         List<MQuad> buffer = new ArrayList<>();
         doClear(graph, buffer);
         if (!buffer.isEmpty()) {
+            for (Quad removed : buffer) {
+                if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
+                    unregisterFunctionDefinition((IRINode) removed.getSubject());
+            }
             Changeset changeset = Changeset.fromRemoved((Collection) buffer);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
@@ -316,6 +354,42 @@ public abstract class DatasetImpl implements Dataset {
                 listener.onChange(changeset);
             }
         }
+    }
+
+    /**
+     * Determines whether the given triple defines a xOWL function
+     *
+     * @param subject  The triple's subject
+     * @param property The triples's property
+     * @param object   The triples's object
+     * @return Whether the triple defines a xOWL function
+     */
+    protected boolean isFunctionDefinition(SubjectNode subject, Property property, Node object) {
+        return (object.getNodeType() == Node.TYPE_DYNAMIC
+                && property.getNodeType() == Node.TYPE_IRI
+                && subject.getNodeType() == Node.TYPE_IRI
+                && Vocabulary.xowlDefinedAs.equals(((IRINode) property).getIRIValue()));
+    }
+
+    /**
+     * Registers a xOWL function
+     *
+     * @param subject The function as a subject node
+     * @param object  The function's definition as a dynamic node
+     */
+    protected void registerFunctionDefinition(IRINode subject, DynamicNode object) {
+        if (executionManager != null)
+            executionManager.registerFunction(subject.getIRIValue(), object.getEvaluable());
+    }
+
+    /**
+     * Unregisters a xOWL function
+     *
+     * @param subject The function as a subject node
+     */
+    protected void unregisterFunctionDefinition(IRINode subject) {
+        if (executionManager != null)
+            executionManager.unregisterFunction(subject.getIRIValue());
     }
 
     /**
