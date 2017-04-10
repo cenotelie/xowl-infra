@@ -17,6 +17,9 @@
 
 package org.xowl.infra.store;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.owl2.Owl2Factory;
@@ -198,7 +201,18 @@ public abstract class Repository {
      */
     private static ExecutionManager getExecutionManager(Repository repository) {
         Iterator<ExecutionManagerProvider> services = EXECUTION_MANAGER_PROVIDER.iterator();
-        return services.hasNext() ? services.next().newManager(repository) : null;
+        if (services.hasNext())
+            return services.next().newManager(repository);
+
+        BundleContext context = FrameworkUtil.getBundle(Repository.class).getBundleContext();
+        if (context == null)
+            return null;
+        ServiceReference reference = context.getServiceReference(ExecutionManagerProvider.class);
+        if (reference == null)
+            return null;
+        ExecutionManagerProvider result = (ExecutionManagerProvider) context.getService(reference);
+        context.ungetService(reference);
+        return result.newManager(repository);
     }
 
 
