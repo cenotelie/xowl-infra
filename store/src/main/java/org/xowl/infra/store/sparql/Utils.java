@@ -126,10 +126,6 @@ class Utils {
             }
             return value;
         }
-        if (result.getNodeType() == Node.TYPE_DYNAMIC && context.getEvaluator() != null) {
-            Object value = evaluateNative(context, solution, ((DynamicNode) result).getEvaluable());
-            return RDFUtils.getRDF(context.getNodes(), value);
-        }
         return result;
     }
 

@@ -23,7 +23,6 @@ import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
-import org.xowl.infra.utils.collections.Couple;
 
 import java.util.*;
 
@@ -181,8 +180,7 @@ public class ExpressionOperator implements Expression {
             return null;
         if (value instanceof Node)
             return ((Node) value);
-        Couple<String, String> literalData = Datatypes.toLiteral(value);
-        return context.getNodes().getLiteralNode(literalData.x, literalData.y, null);
+        return RDFUtils.getRDF(context.getNodes(), value);
     }
 
     /**
