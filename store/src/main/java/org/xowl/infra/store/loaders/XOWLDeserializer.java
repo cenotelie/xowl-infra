@@ -164,5 +164,130 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
      * @param node The AST node
      * @return The opaque behavior
      */
-    protected abstract EvaluableExpression loadForm(ASTNode node);
+    protected EvaluableExpression loadForm(ASTNode node) {
+        return loadForm(serializeClojure(node));
+    }
+
+    /**
+     * Loads the opaque behavior from an AST node
+     *
+     * @param source The source for the expression
+     * @return The opaque behavior
+     */
+    protected abstract EvaluableExpression loadForm(String source);
+
+    /**
+     * Re-serializes the specified AST node into a string for the Clojure reader
+     *
+     * @param node An AST node
+     * @return The serialized Clojure source
+     */
+    private static String serializeClojure(ASTNode node) {
+        StringBuilder builder = new StringBuilder();
+        serializeClojure(builder, node);
+        return builder.toString();
+    }
+
+    /**
+     * Re-serializes the specified AST node into a string for the Clojure reader
+     *
+     * @param builder The string builder for the result
+     * @param node    An AST node
+     */
+    private static void serializeClojure(StringBuilder builder, ASTNode node) {
+        switch (node.getSymbol().getID()) {
+            case XOWLLexer.ID.CLJ_SYMBOL:
+            case XOWLLexer.ID.CLJ_KEYWORD:
+            case XOWLLexer.ID.LITERAL_STRING:
+            case XOWLLexer.ID.LITERAL_CHAR:
+            case XOWLLexer.ID.LITERAL_NIL:
+            case XOWLLexer.ID.LITERAL_TRUE:
+            case XOWLLexer.ID.LITERAL_FALSE:
+            case XOWLLexer.ID.LITERAL_INTEGER:
+            case XOWLLexer.ID.LITERAL_FLOAT:
+            case XOWLLexer.ID.LITERAL_RATIO:
+            case XOWLLexer.ID.LITERAL_ARGUMENT:
+                builder.append(node.getValue());
+                break;
+            case XOWLParser.ID.list:
+                builder.append("( ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append(")");
+                break;
+            case XOWLParser.ID.vector:
+                builder.append("[ ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append("]");
+                break;
+            case XOWLParser.ID.map:
+                builder.append("{ ");
+                for (ASTNode couple : node.getChildren()) {
+                    serializeClojure(builder, couple.getChildren().get(0));
+                    serializeClojure(builder, couple.getChildren().get(1));
+                }
+                builder.append("}");
+                break;
+            case XOWLParser.ID.set:
+                builder.append("#{ ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append("}");
+                break;
+            case XOWLParser.ID.constructor:
+                builder.append("#");
+                serializeClojure(builder, node.getChildren().get(0));
+                serializeClojure(builder, node.getChildren().get(1));
+                break;
+            case XOWLParser.ID.quote:
+                builder.append("'");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.deref:
+                builder.append("@");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.metadata:
+                builder.append("^");
+                serializeClojure(builder, node.getChildren().get(0));
+                serializeClojure(builder, node.getChildren().get(1));
+                break;
+            case XOWLParser.ID.regexp:
+                builder.append("#");
+                builder.append(node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.var_quote:
+                builder.append("#'");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.anon_function:
+                builder.append("#");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.ignore:
+                builder.append("#_");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.syntax_quote:
+                builder.append("`");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.unquote:
+                builder.append("~");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.unquote_splicing:
+                builder.append("~@");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case XOWLParser.ID.conditional:
+                builder.append("#?");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            default:
+                throw new Error("Unsupported construct: " + node.getSymbol().getName());
+        }
+        builder.append(" ");
+    }
 }

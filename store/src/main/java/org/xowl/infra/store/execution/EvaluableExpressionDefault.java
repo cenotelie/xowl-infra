@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,33 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.engine;
-
-import org.xowl.infra.store.execution.EvaluableExpression;
-import org.xowl.infra.store.loaders.XOWLDeserializer;
+package org.xowl.infra.store.execution;
 
 /**
- * The specialized xOWL deserializer that handles Clojure code
+ * Default implementation of an evaluable expression
  *
  * @author Laurent Wouters
  */
-class ClojureXOWLDeserializer extends XOWLDeserializer {
+public class EvaluableExpressionDefault implements EvaluableExpression {
     /**
-     * The parent execution manager
+     * The expression's source definition
      */
-    private final ClojureExecutionManager executionManager;
-
-    /**
-     * Initializes this de-serializer
-     *
-     * @param executionManager The parent execution manager
-     */
-    public ClojureXOWLDeserializer(ClojureExecutionManager executionManager) {
-        this.executionManager = executionManager;
-    }
+    private final String source;
 
     @Override
-    protected EvaluableExpression loadForm(String source) {
-        return executionManager.loadExpression(source);
+    public String getSource() {
+        return source;
+    }
+
+    /**
+     * Initializes this expression
+     *
+     * @param source The expression's source definition
+     */
+    public EvaluableExpressionDefault(String source) {
+        this.source = source != null ? source : "";
     }
 }

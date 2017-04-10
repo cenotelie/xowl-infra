@@ -21,6 +21,8 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.hime.redist.parsers.InitializationException;
+import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.EvaluableExpressionDefault;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
@@ -80,6 +82,14 @@ public class XOWLLoader implements Loader {
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
             return null;
+        if (executionManager == null) {
+            return (new XOWLDeserializer() {
+                @Override
+                protected EvaluableExpression loadForm(String source) {
+                    return new EvaluableExpressionDefault(source);
+                }
+            }).deserialize(uri, result.getRoot());
+        }
         return executionManager.getDeserializer().deserialize(uri, result.getRoot());
     }
 }
