@@ -1,0 +1,171 @@
+/*******************************************************************************
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
+grammar xRDF : SPARQL
+{
+    options
+    {
+        Axiom = "document";
+        Separator = "BLANK";
+    }
+    terminals
+    {
+        fragment SYMBOL_CHAR_FIRST  -> . - ([0-9] | '^' | '`' | '\'' | '"' | '#' | '~' | '@' | ':' | '/' | '%' | '(' | ')' | '[' | ']' | '{' | '}'
+                                            | WHITE_SPACE
+                                            | NEW_LINE ) ;
+        fragment SYMBOL_CHAR        -> SYMBOL_CHAR_FIRST | [0-9] | '^' | '\'' | '#' | '~' | '@' | '%' ;
+        fragment SYMBOL_ELEM        -> SYMBOL_CHAR_FIRST SYMBOL_CHAR* (':' SYMBOL_CHAR+)* ;
+        context clojure
+        {
+            CLJ_SYMBOL              -> '.' | '/' |  SYMBOL_ELEM ('/' SYMBOL_ELEM)? ;
+            CLJ_KEYWORD             -> ':' ':'? ((SYMBOL_CHAR_FIRST | [0-9]) SYMBOL_CHAR* (':' SYMBOL_CHAR+)*) ('/' ((SYMBOL_CHAR_FIRST | [0-9]) SYMBOL_CHAR* (':' SYMBOL_CHAR+)*))? ':'? ;
+            LITERAL_STRING          -> '"'  ( (. - ('"' | '\\'))
+                                                | '\\' ('\'' | '"' | '\\' | [btnfr])
+                                                | '\\' [0-7]
+                                                | '\\' [0-7] [0-7]
+                                                | '\\' [0-3] [0-7] [0-7]
+                                                | '\\' [u] [a-fA-F0-9] [a-fA-F0-9] [a-fA-F0-9] [a-fA-F0-9]
+                                            )* '"' ;
+            LITERAL_CHAR            -> '\\' ( (. - NEW_LINE)
+                                            | 'newline'
+                                            | 'space'
+                                            | 'tab'
+                                            | 'formfeed'
+                                            | 'backspace'
+                                            | 'return'
+                                            | 'o' [0-7]
+                                            | 'o' [0-7] [0-7]
+                                            | 'o' [0-3] [0-7] [0-7]
+                                            | [u] [a-fA-F0-9] [a-fA-F0-9] [a-fA-F0-9] [a-fA-F0-9]
+                                        ) ;
+            LITERAL_NIL             -> 'nil' ;
+            LITERAL_TRUE            -> 'true' ;
+            LITERAL_FALSE           -> 'false' ;
+            LITERAL_INTEGER         -> ('+'|'-')?
+                                        (     '0'
+                                            | [1-9] [0-9]*
+                                            | '0' [xX] [0-9A-Fa-f]+
+                                            | '0' [0-7]+
+                                            | [1-9] [0-9]? [rR] [0-9A-Za-z]+
+                                            | '0' [0-9]+
+                                        )
+                                        'N'? ;
+            LITERAL_RATIO           -> ('+'|'-')? [0-9]+ '/' [0-9]+ ;
+            LITERAL_FLOAT           -> ('+'|'-')? [0-9]+
+                                        ( '.' [0-9]* )?
+                                        ( [eE] ('+'|'-')? [0-9]+ )?
+                                        'M'? ;
+            LITERAL_ARGUMENT        -> '%' ([0-9]+ | '&')? ;
+            CLJ_LP                  -> '(' ;
+            CLJ_RP                  -> ')' ;
+            CLJ_LB                  -> '[' ;
+            CLJ_RB                  -> ']' ;
+            CLJ_LC                  -> '{' ;
+            CLJ_RC                  -> '}' ;
+            CLJ_DISPATCH            -> '#' ;
+            CLJ_SET_SEPARATOR       -> ',' ;
+            CLJ_QUOTE               -> '\'' ;
+            CLJ_DEREF               -> '@' ;
+            CLJ_METADATA            -> '^' ;
+            CLJ_IGNORE              -> '#_' ;
+            CLJ_SYNTAX_QUOTE        -> '`' ;
+            CLJ_UNQUOTE             -> '~' ;
+            CLJ_UNQUOTE_SPLICE      -> '~@' ;
+            CLJ_CONDITIONAL         -> '#?' '@'? ;
+            CLJ_XOWL_QUERY          -> 'xowl-query' ;
+            CLJ_XOWL_INSERT         -> 'xowl-insert' ;
+        }
+        context xowl
+        {
+            XOWL_OPAQUE_EXP         -> '$';
+        }
+        RULE                        -> ~'rule';
+    }
+    rules
+    {
+        document                    -> prologue xowl_statements ;
+        xowl_statements             -> xowl_statement* ;
+        xowl_statement              -> xowl_data^ | xowl_rule^ ;
+        xowl_data                   -> xowl_triples ^ '.'!
+                                        | xowl_graph_anon^
+                                        | xowl_graph_named^;
+        xowl_graph_anon             -> '{'! (xowl_triples ('.'! xowl_triples)* ('.'!)?)? '}'! ;
+        xowl_graph_named            -> (GRAPH!)? (iri | blank_node) xowl_graph_anon ;
+        xowl_triples                -> xowl_subject xowl_predicate_object_list
+                                        |  xowl_blank_property_list xowl_predicate_object_list? ;
+        xowl_predicate_object_list  -> xowl_verb xowl_object_list (';'! (xowl_verb xowl_object_list)?)* ;
+        xowl_object_list            -> xowl_object (','! xowl_object)* ;
+        xowl_verb                   -> xowl_predicate^ | 'a'^ ;
+        xowl_subject                -> iri^ | blank_node^ | xowl_collection^ ;
+        xowl_predicate              -> iri^ ;
+        xowl_object                 -> iri^ | blank_node^ | xowl_collection^ | xowl_blank_property_list^ | literal^ | xowl_dynamic ;
+        xowl_blank_property_list    -> '['! xowl_predicate_object_list^ ']'! ;
+        xowl_collection             -> '('! xowl_object* ')'! ;
+        xowl_dynamic                -> #xowl { XOWL_OPAQUE_EXP^ } #clojure{ clj_form } ;
+
+        xowl_rule                   -> xowl_rule_simple^ | xowl_rule_sparql^ ;
+        xowl_rule_simple            -> RULE! xowl_rule_mod iri '{'! xowl_rule_parts '}'! '=>'! '{'! xowl_rule_parts '}'! ;
+        xowl_rule_sparql            -> RULE! xowl_rule_mod iri '{'! sub_select '}'! '=>'! '{'! xowl_rule_parts '}'! ;
+        xowl_rule_mod               -> DISTINCT? ;
+        xowl_rule_parts             -> xowl_rule_part* ;
+        xowl_rule_part              -> xowl_data^ | NOT^ xowl_data ;
+
+
+        /*
+            Clojure grammar
+        */
+        clj_atom                -> CLJ_SYMBOL^
+                                    |  CLJ_KEYWORD^
+                                    |  LITERAL_STRING^
+                                    |  LITERAL_CHAR^
+                                    |  LITERAL_NIL^
+                                    |  LITERAL_TRUE^
+                                    |  LITERAL_FALSE^
+                                    |  LITERAL_INTEGER^
+                                    |  LITERAL_FLOAT^
+                                    |  LITERAL_RATIO^
+                                    |  LITERAL_ARGUMENT^ ;
+        clj_list                -> CLJ_LP! clj_form* CLJ_RP! ;
+        clj_vector              -> CLJ_LB! clj_form* CLJ_RB! ;
+        clj_map                 -> CLJ_LC! (clj_couple ((CLJ_SET_SEPARATOR!)? clj_couple)*)? CLJ_RC! ;
+        clj_couple              -> clj_form clj_form ;
+        clj_set                 -> CLJ_DISPATCH! CLJ_LC! clj_form* CLJ_RC! ;
+        clj_constructor         -> CLJ_DISPATCH! CLJ_SYMBOL (clj_vector | clj_map) ;
+        clj_quote               -> CLJ_QUOTE! clj_form ;
+        clj_deref               -> CLJ_DEREF! clj_form ;
+        clj_metadata            -> CLJ_METADATA! clj_map clj_form
+                                    |  CLJ_METADATA! CLJ_SYMBOL clj_form
+                                    |  CLJ_METADATA! CLJ_KEYWORD clj_form
+                                    |  CLJ_METADATA! LITERAL_STRING clj_form ;
+        clj_regexp              -> CLJ_DISPATCH! LITERAL_STRING ;
+        clj_var_quote           -> CLJ_DISPATCH! CLJ_QUOTE! clj_form ;
+        clj_anon_function       -> CLJ_DISPATCH! clj_list ;
+        clj_ignore              -> CLJ_IGNORE! clj_form ;
+        clj_syntax_quote        -> CLJ_SYNTAX_QUOTE! clj_form ;
+        clj_unquote             -> CLJ_UNQUOTE! clj_form ;
+        clj_unquote_splicing    -> CLJ_UNQUOTE_SPLICE! clj_form ;
+        clj_conditional         -> CLJ_CONDITIONAL! clj_form ;
+        clj_form                -> clj_atom^
+                                    |  clj_list^ | clj_vector^ | clj_map^ | clj_set^
+                                    |  clj_constructor^
+                                    |  clj_quote^ | clj_deref^ | clj_metadata^
+                                    |  clj_regexp^
+                                    |  clj_var_quote^ | clj_anon_function^ | clj_ignore^
+                                    |  clj_syntax_quote^ | clj_unquote^ | clj_unquote_splicing^
+                                    |  clj_conditional^ ;
+    }
+}

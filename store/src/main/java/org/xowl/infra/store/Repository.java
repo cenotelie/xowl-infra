@@ -126,6 +126,14 @@ public abstract class Repository {
      */
     public static final String SYNTAX_TRIG_EXTENSION = ".trig";
     /**
+     * Supported xRDF syntax
+     */
+    public static final String SYNTAX_XRDF = "application/x-xowl-xrdf";
+    /**
+     * File extension for the xRDF syntax
+     */
+    public static final String SYNTAX_XRDF_EXTENSION = ".xrdf";
+    /**
      * Supported Functional OWL2 syntax
      */
     public static final String SYNTAX_FUNCTIONAL_OWL2 = "text/owl-functional";
@@ -152,7 +160,7 @@ public abstract class Repository {
     /**
      * Supported Functional xOWL syntax
      */
-    public static final String SYNTAX_XOWL = "application/x-xowl";
+    public static final String SYNTAX_XOWL = "application/x-xowl-xowl";
     /**
      * File extension for the Functional xOWL syntax
      */
@@ -179,6 +187,8 @@ public abstract class Repository {
             return SYNTAX_JSON_LD;
         if (resource.endsWith(SYNTAX_TRIG_EXTENSION))
             return SYNTAX_TRIG;
+        if (resource.endsWith(SYNTAX_XRDF_EXTENSION))
+            return SYNTAX_XRDF;
         if (resource.endsWith(SYNTAX_FUNCTIONAL_OWL2_EXTENSION_A) || resource.endsWith(SYNTAX_FUNCTIONAL_OWL2_EXTENSION_B))
             return SYNTAX_FUNCTIONAL_OWL2;
         if (resource.endsWith(SYNTAX_OWLXML_EXTENSION_A) || resource.endsWith(SYNTAX_OWLXML_EXTENSION_B))
@@ -507,6 +517,8 @@ public abstract class Repository {
                 });
             case SYNTAX_TRIG:
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(getNodeManager()));
+            case SYNTAX_XRDF:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new xRDFLoader(getNodeManager()));
             case SYNTAX_FUNCTIONAL_OWL2:
                 return loadInputOWL(logger, reader, resourceIRI, metadata, new FunctionalOWL2Loader());
             case SYNTAX_OWLXML:
@@ -646,6 +658,8 @@ public abstract class Repository {
             }
             case SYNTAX_RDFT:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
+            case SYNTAX_XRDF:
+                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_FUNCTIONAL_OWL2:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_OWLXML:
@@ -700,6 +714,8 @@ public abstract class Repository {
                 break;
             }
             case SYNTAX_RDFT:
+                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
+            case SYNTAX_XRDF:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_FUNCTIONAL_OWL2:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
