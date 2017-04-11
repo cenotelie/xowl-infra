@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class RDFRuleEngineTest {
     /**
-     * The default prefixes for loading RDFT rules
+     * The default prefixes for loading xRDF rules
      */
     private static final String DEFAULT_PREFIXES = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
             "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
@@ -52,13 +52,13 @@ public class RDFRuleEngineTest {
 
 
     /**
-     * Loads a RDFT rule from a string
+     * Loads a xRDF rule from a string
      *
      * @param repository The current repository
      * @param input      The input to load from
      * @return The loaded rule
      */
-    protected RDFRule loadRDFTRule(RepositoryRDF repository, String input) {
+    protected RDFRule loadXRDFRule(RepositoryRDF repository, String input) {
         SinkLogger logger = new SinkLogger();
         xRDFLoader loader = new xRDFLoader(repository);
         RDFLoaderResult result = loader.loadRDF(logger, new StringReader(DEFAULT_PREFIXES + input), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
@@ -71,7 +71,7 @@ public class RDFRuleEngineTest {
     @Test
     public void testSimpleRule() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule = "rule xowl:test-rule { ?x rdf:type xowl:y } => { ?x rdf:type xowl:z }";
+        String rule = "rule xowl:test-rule { ?x rdf:type xowl:y . } => { ?x rdf:type xowl:z . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#z");
@@ -81,7 +81,7 @@ public class RDFRuleEngineTest {
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
         try {
             repository.getStore().add(q1);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule));
             repository.getRDFRuleEngine().flush();
             Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
             List<Quad> content = new ArrayList<>();
@@ -96,7 +96,7 @@ public class RDFRuleEngineTest {
     @Test
     public void testSelectRule() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule = "rule xowl:test-rule { SELECT * WHERE {?x a xowl:y} } => { ?x rdf:type xowl:z }";
+        String rule = "rule xowl:test-rule { SELECT * WHERE {?x a xowl:y} } => { ?x rdf:type xowl:z . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#z");
@@ -106,7 +106,7 @@ public class RDFRuleEngineTest {
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
         try {
             repository.getStore().add(q1);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule));
             repository.getRDFRuleEngine().flush();
             Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
             List<Quad> content = new ArrayList<>();
@@ -121,8 +121,8 @@ public class RDFRuleEngineTest {
     @Test
     public void testRuleChaining() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule1 = "rule xowl:test-rule { ?x rdf:type xowl:y } => { ?x rdf:type xowl:z }";
-        String rule2 = "rule xowl:test-rule { ?x rdf:type xowl:z } => { ?x rdf:type xowl:x }";
+        String rule1 = "rule xowl:test-rule1 { ?x rdf:type xowl:y . } => { ?x rdf:type xowl:z . }";
+        String rule2 = "rule xowl:test-rule2 { ?x rdf:type xowl:z . } => { ?x rdf:type xowl:x . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#z");
@@ -134,8 +134,8 @@ public class RDFRuleEngineTest {
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), x);
         try {
             repository.getStore().add(q1);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule1));
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule2));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule1));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule2));
             repository.getRDFRuleEngine().flush();
             Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
             List<Quad> content = new ArrayList<>();
@@ -150,8 +150,8 @@ public class RDFRuleEngineTest {
     @Test
     public void testRuleLoop() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule1 = "rule xowl:test-rule { ?x rdf:type xowl:y } => { ?x rdf:type xowl:z }";
-        String rule2 = "rule xowl:test-rule { ?x rdf:type xowl:z } => { ?x rdf:type xowl:y }";
+        String rule1 = "rule xowl:test-rule1 { ?x rdf:type xowl:y . } => { ?x rdf:type xowl:z . }";
+        String rule2 = "rule xowl:test-rule2 { ?x rdf:type xowl:z . } => { ?x rdf:type xowl:y . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#z");
@@ -163,8 +163,8 @@ public class RDFRuleEngineTest {
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
         try {
             repository.getStore().add(q1);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule1));
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule2));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule1));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule2));
             repository.getRDFRuleEngine().flush();
             Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
             List<Quad> content = new ArrayList<>();
@@ -179,7 +179,7 @@ public class RDFRuleEngineTest {
     @Test
     public void testSimpleRetract() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule = "rule xowl:test-rule { ?x rdf:type xowl:y } => { ?x rdf:type xowl:z }";
+        String rule = "rule xowl:test-rule { ?x rdf:type xowl:y . } => { ?x rdf:type xowl:z . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#z");
@@ -189,7 +189,7 @@ public class RDFRuleEngineTest {
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
         try {
             repository.getStore().add(q1);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule));
             repository.getRDFRuleEngine().flush();
             Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
             List<Quad> content = new ArrayList<>();
@@ -207,7 +207,7 @@ public class RDFRuleEngineTest {
     @Test
     public void testSelectRetract() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule = "rule xowl:test-rule { SELECT * WHERE {?x a xowl:y} } => { ?x rdf:type xowl:z }";
+        String rule = "rule xowl:test-rule { SELECT * WHERE {?x a xowl:y} } => { ?x rdf:type xowl:z . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#z");
@@ -217,7 +217,7 @@ public class RDFRuleEngineTest {
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
         try {
             repository.getStore().add(q1);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule));
             repository.getRDFRuleEngine().flush();
             Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
             List<Quad> content = new ArrayList<>();
@@ -235,8 +235,8 @@ public class RDFRuleEngineTest {
     @Test
     public void testRetractChaining() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule1 = "rule xowl:test-rule { ?x rdf:type xowl:y } => { ?x rdf:type xowl:z }";
-        String rule2 = "rule xowl:test-rule { ?x rdf:type xowl:z } => { ?x rdf:type xowl:x }";
+        String rule1 = "rule xowl:test-rule1 { ?x rdf:type xowl:y . } => { ?x rdf:type xowl:z . }";
+        String rule2 = "rule xowl:test-rule2 { ?x rdf:type xowl:z . } => { ?x rdf:type xowl:x . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#z");
@@ -248,8 +248,8 @@ public class RDFRuleEngineTest {
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), x);
         try {
             repository.getStore().add(q1);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule1));
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule2));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule1));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule2));
             repository.getRDFRuleEngine().flush();
             Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
             List<Quad> content = new ArrayList<>();
@@ -267,8 +267,8 @@ public class RDFRuleEngineTest {
     @Test
     public void testRetractLoop() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule1 = "rule xowl:test-rule { ?x rdf:type xowl:y } => { ?x rdf:type xowl:z }";
-        String rule2 = "rule xowl:test-rule { ?x rdf:type xowl:z } => { ?x rdf:type xowl:y }";
+        String rule1 = "rule xowl:test-rule1 { ?x rdf:type xowl:y . } => { ?x rdf:type xowl:z . }";
+        String rule2 = "rule xowl:test-rule2 { ?x rdf:type xowl:z . } => { ?x rdf:type xowl:y . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#z");
@@ -280,8 +280,8 @@ public class RDFRuleEngineTest {
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
         try {
             repository.getStore().add(q1);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule1));
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule2));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule1));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule2));
             repository.getRDFRuleEngine().flush();
             Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
             List<Quad> content = new ArrayList<>();
@@ -299,7 +299,7 @@ public class RDFRuleEngineTest {
     @Test
     public void testSelectAggregator() {
         RepositoryRDF repository = new RepositoryRDF();
-        String rule = "rule xowl:test-rule { SELECT (COUNT(?v) AS ?c) WHERE {xowl:x a ?v} } => { xowl:x xowl:value ?c }";
+        String rule = "rule xowl:test-rule { SELECT (COUNT(?v) AS ?c) WHERE {xowl:x a ?v} } => { xowl:x xowl:value ?c . }";
         IRINode x = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#x");
         IRINode y1 = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y1");
         IRINode y2 = repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#y2");
@@ -314,7 +314,7 @@ public class RDFRuleEngineTest {
         try {
             repository.getStore().add(qy1);
             repository.getStore().add(qy2);
-            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule));
+            repository.getRDFRuleEngine().add(loadXRDFRule(repository, rule));
             repository.getRDFRuleEngine().flush();
 
             List<Quad> content = new ArrayList<>();

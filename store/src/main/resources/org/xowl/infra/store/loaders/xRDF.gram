@@ -111,10 +111,10 @@ grammar xRDF : SPARQL
         xowl_predicate_object_list  -> xowl_verb xowl_object_list (';'! (xowl_verb xowl_object_list)?)* ;
         xowl_object_list            -> xowl_object (','! xowl_object)* ;
         xowl_verb                   -> xowl_predicate^ | A^ ;
-        xowl_subject                -> iri^ | blank_node^ | xowl_collection^ | xowl_dynamic^ ;
-        xowl_predicate              -> iri^ | xowl_dynamic^ ;
-        xowl_object                 -> iri^ | blank_node^ | xowl_collection^ | xowl_blank_property_list^ | literal^ | xowl_dynamic^ ;
-        xowl_graph_node             -> iri^ | blank_node^ | xowl_dynamic^ ;
+        xowl_subject                -> iri^ | blank_node^ | xowl_collection^ | VARIABLE^ | xowl_dynamic^ ;
+        xowl_predicate              -> iri^ | VARIABLE^ | xowl_dynamic^ ;
+        xowl_object                 -> iri^ | blank_node^ | xowl_collection^ | xowl_blank_property_list^ | literal^ | VARIABLE^ | xowl_dynamic^ ;
+        xowl_graph_node             -> iri^ | blank_node^ | VARIABLE^ | xowl_dynamic^ ;
         xowl_blank_property_list    -> '['! xowl_predicate_object_list^ ']'! ;
         xowl_collection             -> '('! xowl_object* ')'! ;
         xowl_dynamic                -> #xowl { XOWL_OPAQUE_EXP^ } #clojure{ clj_form } ;

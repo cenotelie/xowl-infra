@@ -5,7 +5,7 @@ It can be used to embed semantic web capabilities in an application:
 
 * Import RDF data in N-Triple, N-Quad, Turtle, RDF/XML and JSON-LD syntaxes
 * Import OWL2 data in OWL/XML and Functional OWL syntaxes
-* Import RDF-based rules in the RDFT syntax
+* Import RDF-based rules in the xRDF syntax
 * Import OWL2-based rules in the xOWL syntax
 * Export RDF data in N-Triple, N-Quad, Turtle, RDF/XML and JSON-LD syntaxes
 * Export OWL2 data in OWL/XML and Functional OWL syntaxes

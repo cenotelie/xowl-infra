@@ -359,6 +359,8 @@ public class xRDFLoader implements Loader {
                 return getNodeDouble(node);
             case xRDFParser.ID.literal_rdf:
                 return getNodeLiteral(node);
+            case xRDFLexer.ID.VARIABLE:
+                return getNodeVariable(node, context);
             case xRDFLexer.ID.XOWL_OPAQUE_EXP:
                 return getNodeDynamic(node);
             case xRDFParser.ID.xowl_collection:
@@ -549,10 +551,23 @@ public class xRDFLoader implements Loader {
     }
 
     /**
+     * Gets the variable node equivalent to the specified AST node
+     *
+     * @param node    An AST node
+     * @param context The current context
+     * @return The equivalent variable node
+     */
+    private Node getNodeVariable(ASTNode node, SPARQLContext context) {
+        String value = node.getValue();
+        value = TextUtils.unescape(value.substring(1));
+        return context.resolveVariable(value);
+    }
+
+    /**
      * Gets the dynamic node equivalent to the specified AST node
      *
      * @param node An AST node
-     * @return The equivalent RDF Literal node
+     * @return The equivalent dynamic node
      */
     private DynamicNode getNodeDynamic(ASTNode node) {
         return nodes.getDynamicNode(executionManager.loadExpression(serializeClojure(node.getChildren().get(0))));
