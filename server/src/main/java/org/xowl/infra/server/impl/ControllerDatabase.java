@@ -27,8 +27,8 @@ import org.xowl.infra.server.base.BaseStoredProcedureContext;
 import org.xowl.infra.store.*;
 import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
-import org.xowl.infra.store.loaders.RDFTLoader;
 import org.xowl.infra.store.loaders.SPARQLLoader;
+import org.xowl.infra.store.loaders.xRDFLoader;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFRule;
@@ -497,7 +497,7 @@ public class ControllerDatabase implements Closeable {
             }
 
             BufferedLogger bufferedLogger = new BufferedLogger();
-            RDFTLoader loader = new RDFTLoader(repository.getStore());
+            xRDFLoader loader = new xRDFLoader(repository);
             RDFLoaderResult result = loader.loadRDF(bufferedLogger, new StringReader(content), RULES_RESOURCE, null);
             if (result == null) {
                 // ill-formed request
@@ -599,7 +599,7 @@ public class ControllerDatabase implements Closeable {
         File file = new File(folder, SHA1.hashSHA1(iri));
         BufferedLogger logger = new BufferedLogger();
         try (Reader reader = IOUtils.getReader(file)) {
-            RDFTLoader loader = new RDFTLoader(repository.getStore());
+            xRDFLoader loader = new xRDFLoader(repository);
             RDFLoaderResult result = loader.loadRDF(logger, reader, RULES_RESOURCE, null);
             if (result == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read rule " + iri + ": " + logger.getErrorsAsString());

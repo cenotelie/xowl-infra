@@ -94,14 +94,6 @@ public abstract class Repository {
      */
     public static final String SYNTAX_TURTLE_EXTENSION = ".ttl";
     /**
-     * Supported RDF Transform syntax
-     */
-    public static final String SYNTAX_RDFT = "application/x-xowl-rdft";
-    /**
-     * File extension for the RDF Transform syntax
-     */
-    public static final String SYNTAX_RDFT_EXTENSION = ".rdft";
-    /**
      * Supported RDF/XML syntax
      */
     public static final String SYNTAX_RDFXML = "application/rdf+xml";
@@ -179,8 +171,6 @@ public abstract class Repository {
             return SYNTAX_NQUADS;
         if (resource.endsWith(SYNTAX_TURTLE_EXTENSION))
             return SYNTAX_TURTLE;
-        if (resource.endsWith(SYNTAX_RDFT_EXTENSION))
-            return SYNTAX_RDFT;
         if (resource.endsWith(SYNTAX_RDFXML_EXTENSION))
             return SYNTAX_RDFXML;
         if (resource.endsWith(SYNTAX_JSON_LD_EXTENSION))
@@ -494,8 +484,6 @@ public abstract class Repository {
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NQuadsLoader(getNodeManager()));
             case SYNTAX_TURTLE:
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TurtleLoader(getNodeManager()));
-            case SYNTAX_RDFT:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFTLoader(getNodeManager()));
             case SYNTAX_RDFXML:
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFXMLLoader(getNodeManager()));
             case SYNTAX_JSON_LD:
@@ -656,8 +644,6 @@ public abstract class Repository {
                 doExportRDF(logger, ontology, serializer);
                 break;
             }
-            case SYNTAX_RDFT:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_XRDF:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_FUNCTIONAL_OWL2:
@@ -713,8 +699,6 @@ public abstract class Repository {
                 doExportRDF(logger, serializer);
                 break;
             }
-            case SYNTAX_RDFT:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_XRDF:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_FUNCTIONAL_OWL2:

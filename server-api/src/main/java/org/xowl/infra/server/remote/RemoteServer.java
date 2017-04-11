@@ -777,7 +777,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + Boolean.toString(activate),
                 HttpConstants.METHOD_PUT,
                 content,
-                Repository.SYNTAX_RDFT,
+                Repository.SYNTAX_XRDF,
                 HttpConstants.MIME_JSON), this);
         if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
@@ -792,7 +792,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + Boolean.toString(activate),
                 HttpConstants.METHOD_PUT,
                 content,
-                Repository.SYNTAX_RDFT,
+                Repository.SYNTAX_XRDF,
                 HttpConstants.MIME_JSON), this);
     }
 

@@ -84,8 +84,6 @@ public abstract class W3CTestSuite {
                 return new NQuadsLoader(store);
             case Repository.SYNTAX_TURTLE:
                 return new TurtleLoader(store);
-            case Repository.SYNTAX_RDFT:
-                return new RDFTLoader(store);
             case Repository.SYNTAX_RDFXML:
                 return new RDFXMLLoader(store);
             case Repository.SYNTAX_JSON_LD:

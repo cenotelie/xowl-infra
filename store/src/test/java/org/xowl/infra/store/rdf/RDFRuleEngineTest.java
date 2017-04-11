@@ -24,8 +24,8 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
-import org.xowl.infra.store.loaders.RDFTLoader;
 import org.xowl.infra.store.loaders.W3CTestSuite;
+import org.xowl.infra.store.loaders.xRDFLoader;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.logging.SinkLogger;
 
@@ -60,7 +60,7 @@ public class RDFRuleEngineTest {
      */
     protected RDFRule loadRDFTRule(RepositoryRDF repository, String input) {
         SinkLogger logger = new SinkLogger();
-        RDFTLoader loader = new RDFTLoader(repository.getStore());
+        xRDFLoader loader = new xRDFLoader(repository);
         RDFLoaderResult result = loader.loadRDF(logger, new StringReader(DEFAULT_PREFIXES + input), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
         Assert.assertFalse("Failed to load the rule", logger.isOnError());
         Assert.assertNotNull("No result", result);
