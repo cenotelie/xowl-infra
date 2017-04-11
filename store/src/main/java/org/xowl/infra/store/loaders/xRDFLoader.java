@@ -655,7 +655,7 @@ public class xRDFLoader implements Loader {
      * @param node An AST node
      * @return The serialized Clojure source
      */
-    public static String serializeClojure(ASTNode node) {
+    private static String serializeClojure(ASTNode node) {
         StringBuilder builder = new StringBuilder();
         serializeClojure(builder, node);
         return builder.toString();
