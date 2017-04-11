@@ -404,7 +404,7 @@ public class IRIMapper {
         // map the xOWL abstract syntax
         mapper.addRegexpMap(IRIs.XOWL_LANG + "(.*)", Repository.SCHEME_RESOURCE + "/org/xowl/infra/lang/defs/\\1.fs");
         // map the OWL2 RL reasoning rules
-        mapper.addRegexpMap(IRIs.XOWL_RULES + "(.*)", Repository.SCHEME_RESOURCE + "/org/xowl/infra/store/rules/\\1.rdft");
+        mapper.addRegexpMap(IRIs.XOWL_RULES + "(.*)", Repository.SCHEME_RESOURCE + "/org/xowl/infra/store/rules/\\1.xrdf");
         return mapper;
     }
 }

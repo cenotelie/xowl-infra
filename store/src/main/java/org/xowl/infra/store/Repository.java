@@ -440,8 +440,10 @@ public abstract class Repository {
         }
 
         // resolve the dependencies
-        for (String dependency : metadata.dependencies) {
-            load(logger, dependency, dependency, false);
+        if (metadata.dependencies != null) {
+            for (String dependency : metadata.dependencies) {
+                load(logger, dependency, dependency, false);
+            }
         }
         return metadata.ontology;
     }
@@ -532,6 +534,8 @@ public abstract class Repository {
      */
     private Resource loadInputRDF(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, Resource metadata, Loader loader) throws Exception {
         RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
+        if (input == null)
+            return null;
         metadata.ontology = resolveOntology(ontologyIRI);
         metadata.dependencies = input.getImports();
         doLoadRDF(logger, metadata.ontology, input);
@@ -551,6 +555,8 @@ public abstract class Repository {
      */
     private Resource loadInputOWL(Logger logger, Reader reader, String resourceIRI, Resource metadata, Loader loader) throws Exception {
         OWLLoaderResult input = loader.loadOWL(logger, reader, resourceIRI);
+        if (input == null)
+            return null;
         metadata.ontology = resolveOntology(input.getIRI());
         metadata.dependencies = input.getImports();
         doLoadOWL(logger, metadata.ontology, input);
