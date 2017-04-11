@@ -19,8 +19,6 @@ package org.xowl.infra.store.writers;
 
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -63,7 +61,7 @@ public class JsonSerializer extends StructuredSerializer {
         buildRdfLists();
         try {
             serialize();
-        } catch (IOException | UnsupportedNodeType exception) {
+        } catch (IOException exception) {
             logger.error(exception);
         }
     }
@@ -71,7 +69,7 @@ public class JsonSerializer extends StructuredSerializer {
     /**
      * Serializes the data
      */
-    private void serialize() throws IOException, UnsupportedNodeType {
+    private void serialize() throws IOException {
         writer.write("[");
         boolean first = true;
         for (Map.Entry<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> entry : content.entrySet()) {
@@ -88,10 +86,9 @@ public class JsonSerializer extends StructuredSerializer {
      *
      * @param graph   The graph
      * @param content The content to serialize
-     * @throws IOException         When an IO error occurs
-     * @throws UnsupportedNodeType When the specified node is not supported
+     * @throws IOException When an IO error occurs
      */
-    private void serializeGraph(GraphNode graph, Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
+    private void serializeGraph(GraphNode graph, Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException {
         writer.write("{\"graph\": ");
         RDFUtils.serializeJSON(writer, graph);
         writer.write(", \"entities\": [");
@@ -103,10 +100,9 @@ public class JsonSerializer extends StructuredSerializer {
      * Serializes the content of a graph
      *
      * @param content The content to serialize
-     * @throws IOException         When an IO error occurs
-     * @throws UnsupportedNodeType When the specified node is not supported
+     * @throws IOException When an IO error occurs
      */
-    private void serializeGraphContent(Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
+    private void serializeGraphContent(Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException {
         boolean first = true;
         for (Map.Entry<SubjectNode, List<Couple<Property, Object>>> entry : content.entrySet()) {
             if (!first)
@@ -124,10 +120,9 @@ public class JsonSerializer extends StructuredSerializer {
      * Serializes the properties of a node
      *
      * @param properties The RDF properties
-     * @throws IOException         When an IO error occurs
-     * @throws UnsupportedNodeType When the specified node is not supported
+     * @throws IOException When an IO error occurs
      */
-    private void serializeProperties(List<Couple<Property, Object>> properties) throws IOException, UnsupportedNodeType {
+    private void serializeProperties(List<Couple<Property, Object>> properties) throws IOException {
         for (int i = 0; i != properties.size(); i++) {
             Property property = properties.get(i).x;
             if (bufferProperties.contains(property))
@@ -135,9 +130,9 @@ public class JsonSerializer extends StructuredSerializer {
             if (i != 0)
                 writer.write(", ");
             bufferProperties.add(property);
-            writer.write("{\"property\": \"");
-            writer.write(TextUtils.escapeStringJSON(((IRINode) property).getIRIValue()));
-            writer.write("\", \"values\": [");
+            writer.write("{\"property\": ");
+            RDFUtils.serializeJSON(writer, property);
+            writer.write(", \"values\": [");
             serializePropertyValue(properties.get(i).y);
             for (int j = i + 1; j != properties.size(); j++) {
                 Couple<Property, Object> data = properties.get(j);
@@ -155,10 +150,9 @@ public class JsonSerializer extends StructuredSerializer {
      * Serializes a property value from a node
      *
      * @param value The value for the property
-     * @throws IOException         When an IO error occurs
-     * @throws UnsupportedNodeType When the specified node is not supported
+     * @throws IOException When an IO error occurs
      */
-    private void serializePropertyValue(Object value) throws IOException, UnsupportedNodeType {
+    private void serializePropertyValue(Object value) throws IOException {
         if (value instanceof List) {
             List<Node> list = (List<Node>) value;
             writer.write("[");

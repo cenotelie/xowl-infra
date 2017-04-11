@@ -512,7 +512,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 HttpConstants.METHOD_POST,
                 sparql,
                 Command.MIME_SPARQL_QUERY,
-                Result.SYNTAX_JSON), this);
+                Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
         if (reply != XSPReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -527,7 +527,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 HttpConstants.METHOD_POST,
                 sparql,
                 Command.MIME_SPARQL_QUERY,
-                Result.SYNTAX_JSON), this);
+                Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
     }
 
     /**
