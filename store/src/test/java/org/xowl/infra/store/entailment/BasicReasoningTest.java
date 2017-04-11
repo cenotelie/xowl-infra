@@ -17,9 +17,12 @@
 
 package org.xowl.infra.store.entailment;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.utils.logging.BufferedLogger;
+import org.xowl.infra.utils.logging.Logging;
 
 /**
  * Test suite to ensure the ability for basic reasoning
@@ -29,7 +32,11 @@ import org.xowl.infra.store.RepositoryRDF;
 public class BasicReasoningTest {
     @Test
     public void testSetEntailment() throws Exception {
+        BufferedLogger logger = new BufferedLogger();
+        Logging.set(logger);
         RepositoryRDF repositoryRDF = new RepositoryRDF();
         repositoryRDF.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+        if (!logger.getErrorMessages().isEmpty())
+            Assert.fail("Error while setting the entailment regime");
     }
 }

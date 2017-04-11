@@ -262,8 +262,8 @@ rule xowl:inverse-functional-property-different-from {
 rule xowl:some-value-from-thing {
     ?x rdf:type ?r .
     ?r owl:onProperty ?p .
-    not ( ?r owl:onProperty owl:bottomObjectProperty ) .
-    not ( ?p owl:equivalentProperty owl:bottomObjectProperty ) .
+    NOT ?r owl:onProperty owl:bottomObjectProperty .
+    NOT ?p owl:equivalentProperty owl:bottomObjectProperty .
 } => {
     # ?x ?p ?o .
     # ?o xowl:status xowl:filler .
@@ -291,7 +291,7 @@ rule xowl:unsatisfiable-restriction2 {
 rule xowl:card-to-min-max {
     ?x owl:onProperty ?p .
     ?x owl:cardinality ?v .
-    not ( ?x xowl:marker xowl:min-max-to-card ) .
+    NOT ?x xowl:marker xowl:min-max-to-card .
 } => {
     ?y1 rdf:type owl:Restriction .
     ?y1 owl:onProperty ?p .
@@ -315,7 +315,7 @@ rule xowl:min-max-to-card {
     ?y2 rdf:type owl:Restriction .
     ?y2 owl:onProperty ?p .
     ?y2 owl:minCardinality ?v .
-    not ( .
+    NOT {
         ?l xowl:contains ?y1 .
         ?l xowl:contains ?y2 .
         ?i owl:intersectionOf ?l .
@@ -323,7 +323,7 @@ rule xowl:min-max-to-card {
         ?x owl:onProperty ?p .
         ?x owl:cardinality ?v .
         ?x xowl:marker xowl:card-to-min-max .
-    ) .
+    }
 } => {
     ?x rdf:type owl:Restriction .
     ?x owl:onProperty ?p .
