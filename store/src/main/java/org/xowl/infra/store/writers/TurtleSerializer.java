@@ -241,7 +241,7 @@ public class TurtleSerializer extends StructuredSerializer {
                 break;
             }
             default:
-                throw new UnsupportedNodeType(node, "Unsupported node type. Supported types are IRI nodes, blank nodes and literal nodes");
+                throw new UnsupportedNodeType(node, "Unsupported node type.");
         }
     }
 }

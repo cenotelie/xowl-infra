@@ -125,7 +125,7 @@ public abstract class NXSerializer implements RDFSerializer {
                 break;
             }
             default:
-                throw new UnsupportedNodeType(node, "Unsupported node type. Supported types are IRI nodes, blank nodes and literal nodes");
+                throw new UnsupportedNodeType(node, "Unsupported node type.");
         }
     }
 

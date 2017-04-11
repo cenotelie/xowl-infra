@@ -650,8 +650,11 @@ public abstract class Repository {
                 doExportRDF(logger, ontology, serializer);
                 break;
             }
-            case SYNTAX_XRDF:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
+            case SYNTAX_XRDF: {
+                RDFSerializer serializer = new xRDFSerializer(writer);
+                doExportRDF(logger, ontology, serializer);
+                break;
+            }
             case SYNTAX_FUNCTIONAL_OWL2:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_OWLXML:
@@ -705,8 +708,11 @@ public abstract class Repository {
                 doExportRDF(logger, serializer);
                 break;
             }
-            case SYNTAX_XRDF:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
+            case SYNTAX_XRDF: {
+                RDFSerializer serializer = new xRDFSerializer(writer);
+                doExportRDF(logger, serializer);
+                break;
+            }
             case SYNTAX_FUNCTIONAL_OWL2:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_OWLXML:

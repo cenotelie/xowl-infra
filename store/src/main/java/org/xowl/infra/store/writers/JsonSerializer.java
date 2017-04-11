@@ -35,18 +35,18 @@ import java.util.Map;
  *
  * @author Laurent Wouters
  */
-public class JSONXOWLSerializer extends StructuredSerializer {
+public class JsonSerializer extends StructuredSerializer {
     /**
      * The writer to use
      */
-    protected final Writer writer;
+    private final Writer writer;
 
     /**
      * Initializes this serializer
      *
      * @param writer The writer to use
      */
-    public JSONXOWLSerializer(Writer writer) {
+    public JsonSerializer(Writer writer) {
         this.writer = writer;
     }
 
@@ -71,7 +71,7 @@ public class JSONXOWLSerializer extends StructuredSerializer {
     /**
      * Serializes the data
      */
-    protected void serialize() throws IOException, UnsupportedNodeType {
+    private void serialize() throws IOException, UnsupportedNodeType {
         writer.write("[");
         boolean first = true;
         for (Map.Entry<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> entry : content.entrySet()) {
@@ -91,7 +91,7 @@ public class JSONXOWLSerializer extends StructuredSerializer {
      * @throws IOException         When an IO error occurs
      * @throws UnsupportedNodeType When the specified node is not supported
      */
-    protected void serializeGraph(GraphNode graph, Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
+    private void serializeGraph(GraphNode graph, Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
         writer.write("{\"graph\": ");
         RDFUtils.serializeJSON(writer, graph);
         writer.write(", \"entities\": [");
@@ -106,7 +106,7 @@ public class JSONXOWLSerializer extends StructuredSerializer {
      * @throws IOException         When an IO error occurs
      * @throws UnsupportedNodeType When the specified node is not supported
      */
-    protected void serializeGraphContent(Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
+    private void serializeGraphContent(Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
         boolean first = true;
         for (Map.Entry<SubjectNode, List<Couple<Property, Object>>> entry : content.entrySet()) {
             if (!first)
@@ -127,7 +127,7 @@ public class JSONXOWLSerializer extends StructuredSerializer {
      * @throws IOException         When an IO error occurs
      * @throws UnsupportedNodeType When the specified node is not supported
      */
-    protected void serializeProperties(List<Couple<Property, Object>> properties) throws IOException, UnsupportedNodeType {
+    private void serializeProperties(List<Couple<Property, Object>> properties) throws IOException, UnsupportedNodeType {
         for (int i = 0; i != properties.size(); i++) {
             Property property = properties.get(i).x;
             if (bufferProperties.contains(property))
@@ -158,7 +158,7 @@ public class JSONXOWLSerializer extends StructuredSerializer {
      * @throws IOException         When an IO error occurs
      * @throws UnsupportedNodeType When the specified node is not supported
      */
-    protected void serializePropertyValue(Object value) throws IOException, UnsupportedNodeType {
+    private void serializePropertyValue(Object value) throws IOException, UnsupportedNodeType {
         if (value instanceof List) {
             List<Node> list = (List<Node>) value;
             writer.write("[");

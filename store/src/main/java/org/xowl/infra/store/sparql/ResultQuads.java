@@ -89,6 +89,9 @@ public class ResultQuads implements Result {
             case Repository.SYNTAX_JSON_LD:
                 serializer = new JSONLDSerializer(writer);
                 break;
+            case Repository.SYNTAX_XRDF:
+                serializer = new xRDFSerializer(writer);
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported format " + syntax);
         }
