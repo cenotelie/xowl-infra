@@ -174,6 +174,7 @@ public class XSPReplyUtils {
                 case Repository.SYNTAX_TRIG:
                 case Repository.SYNTAX_RDFXML:
                 case Repository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_XRDF:
                 case Result.SYNTAX_JSON:
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:
@@ -367,6 +368,7 @@ public class XSPReplyUtils {
                 case Repository.SYNTAX_TRIG:
                 case Repository.SYNTAX_RDFXML:
                 case Repository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_XRDF:
                     return contentType;
             }
         }

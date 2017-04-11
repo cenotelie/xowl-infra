@@ -405,7 +405,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         switch (method) {
             case HttpConstants.METHOD_GET:
                 if (query != null) {
-                    if (body != null && !body.isEmpty()) {
+                    if (!body.isEmpty()) {
                         // should be empty
                         // ill-formed request
                         return response(new XSPReplyApiError(ApiV1.ERROR_REQUEST_BODY_NOT_EMPTY));
@@ -417,7 +417,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                     return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_PARAMETERS, "'query'"));
                 }
             case HttpConstants.METHOD_POST:
-                if (body == null || body.isEmpty()) {
+                if (body.isEmpty()) {
                     return response(new XSPReplyApiError(ApiV1.ERROR_EXPECTED_QUERY_IN_BODY));
                 }
                 return response(controller.sparql(client, name, body, defaults, named));

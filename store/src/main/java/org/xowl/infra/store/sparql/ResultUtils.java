@@ -65,6 +65,7 @@ public class ResultUtils {
                 case Repository.SYNTAX_TRIG:
                 case Repository.SYNTAX_RDFXML:
                 case Repository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_XRDF:
                     return type;
                 default:
                     return Repository.SYNTAX_NQUADS;
@@ -103,6 +104,7 @@ public class ResultUtils {
                 case Repository.SYNTAX_TRIG:
                 case Repository.SYNTAX_RDFXML:
                 case Repository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_XRDF:
                     return new ResultQuads(new ArrayList<Quad>(0));
                 // empty solutions
                 case Result.SYNTAX_JSON:
