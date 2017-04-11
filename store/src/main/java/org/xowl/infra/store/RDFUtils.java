@@ -60,6 +60,8 @@ public class RDFUtils {
      * @return The native value
      */
     public static Object getNative(Node node) {
+        if (node == null)
+            return null;
         switch (node.getNodeType()) {
             case Node.TYPE_IRI: {
                 IRI iri = Owl2Factory.newIRI();
@@ -86,6 +88,8 @@ public class RDFUtils {
      * @return The represented OWL element
      */
     public static Object getOWL(Node node) {
+        if (node == null)
+            return null;
         switch (node.getNodeType()) {
             case Node.TYPE_IRI: {
                 IRI iri = Owl2Factory.newIRI();
@@ -127,6 +131,10 @@ public class RDFUtils {
      * @return The representing RDF node
      */
     public static Node getRDF(NodeManager store, Object element) {
+        if (element == null)
+            return null;
+        if (element instanceof Node)
+            return ((Node) element);
         if (element instanceof IRI) {
             return store.getIRINode(((IRI) element).getHasValue());
         } else if (element instanceof Entity) {

@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.rdf;
 
+import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.sparql.*;
 import org.xowl.infra.store.storage.NodeManager;
@@ -136,9 +138,10 @@ public class RDFRuleSelect extends RDFRule {
      *
      * @param iri        The rule's identifying iri
      * @param antecedent The antecedent graph pattern representing the SPARQL SELECT
+     * @param guard      The rule's guard, if any
      */
-    public RDFRuleSelect(String iri, GraphPattern antecedent) {
-        super(iri);
+    public RDFRuleSelect(String iri, GraphPattern antecedent, EvaluableExpression guard) {
+        super(iri, guard);
         this.antecedent = antecedent;
         this.consequents = new RDFPattern();
         this.patterns = new ArrayList<>();
@@ -222,7 +225,7 @@ public class RDFRuleSelect extends RDFRule {
         state.addMatch(pattern, match);
         try {
             onSolutionsChanged(handler, antecedent.eval(state));
-        } catch (EvalException exception) {
+        } catch (EvaluationException exception) {
             Logging.get().error(exception);
         }
     }
@@ -233,7 +236,7 @@ public class RDFRuleSelect extends RDFRule {
         state.removeMatch(pattern, match);
         try {
             onSolutionsChanged(handler, antecedent.eval(state));
-        } catch (EvalException exception) {
+        } catch (EvaluationException exception) {
             Logging.get().error(exception);
         }
     }
@@ -281,8 +284,12 @@ public class RDFRuleSelect extends RDFRule {
         }
         for (int i = 0; i != newSolutions.size(); i++) {
             RDFPatternSolution solution = newSolutions.get(i);
-            if (solution != null)
-                handler.onTrigger(new RDFRuleExecutionSelect(this, solution));
+            if (solution != null) {
+                RDFRuleExecutionSelect execution = new RDFRuleExecutionSelect(this, solution);
+                if (!canFire(execution, handler.getEvaluator()))
+                    continue;
+                handler.onTrigger(execution);
+            }
         }
     }
 

@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
@@ -97,7 +98,7 @@ public class CommandDescribe implements Command {
                     for (VariableNode variable : variables) {
                         Node target = solution.get(variable);
                         if (target == null)
-                            throw new EvalException("Unbound variable " + variable.getName());
+                            throw new EvaluationException("Unbound variable " + variable.getName());
                         if ((target.getNodeType() & Node.FLAG_SUBJECT) == Node.FLAG_SUBJECT && !explored.contains(target)) {
                             SubjectNode subject = (SubjectNode) target;
                             describe(repository, subject, buffer);
@@ -121,7 +122,7 @@ public class CommandDescribe implements Command {
                 result.add(closure.next());
 
             return new ResultQuads(result);
-        } catch (EvalException | UnsupportedNodeType exception) {
+        } catch (EvaluationException | UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());
         }
     }

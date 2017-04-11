@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
@@ -34,9 +35,9 @@ public interface Expression {
      * @param context  The evaluation context
      * @param bindings The current bindings
      * @return The result
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException;
+    Object eval(EvalContext context, RDFPatternSolution bindings) throws EvaluationException;
 
     /**
      * Evaluates this expression for multiple expressions
@@ -44,9 +45,9 @@ public interface Expression {
      * @param context   The evaluation context
      * @param solutions The current set of solutions
      * @return The result
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    Object eval(EvalContext context, Solutions solutions) throws EvalException;
+    Object eval(EvalContext context, Solutions solutions) throws EvaluationException;
 
     /**
      * Gets whether this expression contains an aggregate

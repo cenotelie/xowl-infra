@@ -19,6 +19,8 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.execution.EvaluationException;
+import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.rdf.*;
 
 import java.util.List;
@@ -60,7 +62,7 @@ class ExpressionFunctions {
     static {
         register(new ExpressionFunction("STR", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 if (!(v1 instanceof Node))
                     return v1.toString();
@@ -76,45 +78,45 @@ class ExpressionFunctions {
         });
         register(new ExpressionFunction("LANG", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 if (!(v1 instanceof LiteralNode))
-                    throw new EvalException("Type error (Literal node required)");
+                    throw new EvaluationException("Type error (Literal node required)");
                 return ((LiteralNode) v1).getLangTag();
             }
         });
         register(new ExpressionFunction("LANGMATCHES", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("DATATYPE", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 if (!(v1 instanceof LiteralNode))
-                    throw new EvalException("Type error (Literal node required)");
+                    throw new EvaluationException("Type error (Literal node required)");
                 String datatype = ((LiteralNode) v1).getDatatype();
                 return context.getNodes().getIRINode(datatype);
             }
         });
         register(new ExpressionFunction("BOUND", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Expression exp1 = arguments.get(0);
                 if (!(exp1 instanceof ExpressionRDF))
-                    throw new EvalException("Type error (Variable node required)");
+                    throw new EvaluationException("Type error (Variable node required)");
                 Node node = ((ExpressionRDF) exp1).getNode();
                 if (node.getNodeType() != Node.TYPE_VARIABLE)
-                    throw new EvalException("Type error (Variable node required)");
+                    throw new EvaluationException("Type error (Variable node required)");
                 Node value = bindings.get((VariableNode) node);
                 return (value != null);
             }
         });
         register(new ExpressionFunction("IRI", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 String value = v1.toString();
                 if (v1 instanceof Node) {
@@ -132,7 +134,7 @@ class ExpressionFunctions {
         });
         register(new ExpressionFunction("URI", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 String value = v1.toString();
                 if (v1 instanceof Node) {
@@ -150,251 +152,251 @@ class ExpressionFunctions {
         });
         register(new ExpressionFunction("BNODE", 0, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 if (arguments.size() == 0)
                     return context.getNodes().getBlankNode();
-                throw new EvalException("Not implemented");
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("RAND", 0, 0) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 return (new Random()).nextDouble();
             }
         });
         register(new ExpressionFunction("ABS", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-                if (ExpressionOperator.isNumInteger(v1))
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                Object v1 = EvaluationUtils.primitive(arguments.get(0).eval(context, bindings));
+                if (EvaluationUtils.isNumInteger(v1))
                     return Math.abs((long) v1);
-                if (ExpressionOperator.isNumDecimal(v1))
+                if (EvaluationUtils.isNumDecimal(v1))
                     return Math.abs((double) v1);
-                throw new EvalException("Type error (numeric required)");
+                throw new EvaluationException("Type error (numeric required)");
             }
         });
         register(new ExpressionFunction("CEIL", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-                if (ExpressionOperator.isNumInteger(v1) || ExpressionOperator.isNumDecimal(v1))
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                Object v1 = EvaluationUtils.primitive(arguments.get(0).eval(context, bindings));
+                if (EvaluationUtils.isNumInteger(v1) || EvaluationUtils.isNumDecimal(v1))
                     return Math.ceil((double) v1);
-                throw new EvalException("Type error (numeric required)");
+                throw new EvaluationException("Type error (numeric required)");
             }
         });
         register(new ExpressionFunction("FLOOR", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-                if (ExpressionOperator.isNumInteger(v1) || ExpressionOperator.isNumDecimal(v1))
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                Object v1 = EvaluationUtils.primitive(arguments.get(0).eval(context, bindings));
+                if (EvaluationUtils.isNumInteger(v1) || EvaluationUtils.isNumDecimal(v1))
                     return Math.floor((double) v1);
-                throw new EvalException("Type error (numeric required)");
+                throw new EvaluationException("Type error (numeric required)");
             }
         });
         register(new ExpressionFunction("ROUND", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-                if (ExpressionOperator.isNumInteger(v1) || ExpressionOperator.isNumDecimal(v1))
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                Object v1 = EvaluationUtils.primitive(arguments.get(0).eval(context, bindings));
+                if (EvaluationUtils.isNumInteger(v1) || EvaluationUtils.isNumDecimal(v1))
                     return Math.round((double) v1);
-                throw new EvalException("Type error (numeric required)");
+                throw new EvaluationException("Type error (numeric required)");
             }
         });
         register(new ExpressionFunction("CONCAT", 0, Integer.MAX_VALUE) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("SUBSTR", 2, 3) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("STRLEN", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                Object v1 = EvaluationUtils.primitive(arguments.get(0).eval(context, bindings));
                 if (!(v1 instanceof String))
-                    throw new EvalException("Type error (String required)");
+                    throw new EvaluationException("Type error (String required)");
                 return v1.toString().length();
             }
         });
         register(new ExpressionFunction("REPLACE", 3, 4) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("UCASE", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("LCASE", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("ENCODE_FOR_URI", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("CONTAINS", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("STRSTARTS", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("STRENDS", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("STRBEFORE", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("STRAFTER", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("YEAR", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("MONTH", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("DAY", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("HOURS", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("MINUTES", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("SECONDS", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("TIMEZONE", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("TZ", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("NOW", 0, 0) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("UUID", 0, 0) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 String value = "urn:uuid:" + UUID.randomUUID().toString();
                 return context.getNodes().getIRINode(value);
             }
         });
         register(new ExpressionFunction("STRUUID", 0, 0) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 return UUID.randomUUID().toString();
             }
         });
         register(new ExpressionFunction("MD5", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("SHA1", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("SHA256", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("SHA384", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("SHA512", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
         register(new ExpressionFunction("COALESCE", 0, Integer.MAX_VALUE) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 for (Expression exp : arguments) {
                     try {
                         return exp.eval(context, bindings);
-                    } catch (EvalException ex) {
+                    } catch (EvaluationException ex) {
                         // ignore as per SPARQL specification
                     }
                 }
-                throw new EvalException("No adequate argument provided to COALESCE");
+                throw new EvaluationException("No adequate argument provided to COALESCE");
             }
         });
         register(new ExpressionFunction("IF", 3, 3) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                boolean test = ExpressionOperator.bool(ExpressionOperator.primitive(arguments.get(0).eval(context, bindings)));
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                boolean test = EvaluationUtils.bool(EvaluationUtils.primitive(arguments.get(0).eval(context, bindings)));
                 return arguments.get(test ? 1 : 2).eval(context, bindings);
             }
         });
         register(new ExpressionFunction("STRLANG", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 Object v2 = arguments.get(1).eval(context, bindings);
                 String s1 = v1 != null ? v1.toString() : "";
@@ -421,7 +423,7 @@ class ExpressionFunctions {
         });
         register(new ExpressionFunction("STRDT", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 Object v2 = arguments.get(1).eval(context, bindings);
                 String s1 = v1 != null ? v1.toString() : "";
@@ -451,63 +453,63 @@ class ExpressionFunctions {
         });
         register(new ExpressionFunction("sameTerm", 2, 2) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 Object v2 = arguments.get(1).eval(context, bindings);
                 if (!(v1 instanceof Node) || !(v2 instanceof Node))
-                    throw new EvalException("Type error (RDF nodes required)");
+                    throw new EvaluationException("Type error (RDF nodes required)");
                 return RDFUtils.same((Node) v1, (Node) v2);
             }
         });
         register(new ExpressionFunction("isIRI", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 if (!(v1 instanceof Node))
-                    throw new EvalException("Type error (RDF node required)");
+                    throw new EvaluationException("Type error (RDF node required)");
                 return ((Node) v1).getNodeType() == Node.TYPE_IRI;
             }
         });
         register(new ExpressionFunction("isURI", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 if (!(v1 instanceof Node))
-                    throw new EvalException("Type error (RDF node required)");
+                    throw new EvaluationException("Type error (RDF node required)");
                 return ((Node) v1).getNodeType() == Node.TYPE_IRI;
             }
         });
         register(new ExpressionFunction("isBLANK", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 if (!(v1 instanceof Node))
-                    throw new EvalException("Type error (RDF node required)");
+                    throw new EvaluationException("Type error (RDF node required)");
                 return ((Node) v1).getNodeType() == Node.TYPE_BLANK;
             }
         });
         register(new ExpressionFunction("isLITERAL", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 if (!(v1 instanceof Node))
-                    throw new EvalException("Type error (RDF node required)");
+                    throw new EvaluationException("Type error (RDF node required)");
                 return ((Node) v1).getNodeType() == Node.TYPE_LITERAL;
             }
         });
         register(new ExpressionFunction("isNUMERIC", 1, 1) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 Object v1 = arguments.get(0).eval(context, bindings);
                 if (v1 instanceof LiteralNode)
-                    v1 = ExpressionOperator.primitive(v1);
-                return (ExpressionOperator.isNumInteger(v1) || ExpressionOperator.isNumDecimal(v1));
+                    v1 = EvaluationUtils.primitive(v1);
+                return (EvaluationUtils.isNumInteger(v1) || EvaluationUtils.isNumDecimal(v1));
             }
         });
         register(new ExpressionFunction("REGEX", 2, 3) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
-                throw new EvalException("Not implemented");
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+                throw new EvaluationException("Not implemented");
             }
         });
     }

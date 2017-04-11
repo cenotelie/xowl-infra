@@ -120,13 +120,14 @@ grammar xRDF : SPARQL
         xowl_dynamic                -> #xowl { XOWL_OPAQUE_EXP^ } #clojure{ clj_form } ;
 
         xowl_rule                   -> xowl_rule_simple^ | xowl_rule_sparql^ ;
-        xowl_rule_simple            -> RULE! xowl_rule_mod iri '{'! xowl_rule_parts '}'! '=>'! '{'! xowl_rule_parts '}'! ;
-        xowl_rule_sparql            -> RULE! xowl_rule_mod iri '{'! sub_select '}'! '=>'! '{'! xowl_rule_parts '}'! ;
+        xowl_rule_simple            -> RULE! xowl_rule_mod iri '{'! xowl_rule_parts '}'! xowl_rule_guard '=>'! '{'! xowl_rule_parts '}'! ;
+        xowl_rule_sparql            -> RULE! xowl_rule_mod iri '{'! sub_select '}'! xowl_rule_guard '=>'! '{'! xowl_rule_parts '}'! ;
         xowl_rule_mod               -> DISTINCT? ;
         xowl_rule_parts             -> xowl_rule_part* ;
         xowl_rule_part              -> xowl_data
                                         | META NOT? xowl_data
                                         | NOT META? xowl_data ;
+        xowl_rule_guard             -> (WITH! #clojure{ clj_form })? ;
 
 
         /*

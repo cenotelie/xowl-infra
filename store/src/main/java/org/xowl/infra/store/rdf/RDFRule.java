@@ -18,8 +18,12 @@
 package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.EvaluationException;
+import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,6 +39,10 @@ public abstract class RDFRule {
      * The rule's identifying IRI
      */
     protected final String iri;
+    /**
+     * The rule's guard, if any
+     */
+    protected final EvaluableExpression guard;
 
     /**
      * Gets the rule's identifying IRI
@@ -48,10 +56,12 @@ public abstract class RDFRule {
     /**
      * Initializes this rule
      *
-     * @param iri The rule's identifying iri
+     * @param iri   The rule's identifying iri
+     * @param guard The rule's guard, if any
      */
-    public RDFRule(String iri) {
+    public RDFRule(String iri, EvaluableExpression guard) {
         this.iri = iri;
+        this.guard = guard;
     }
 
     /**
@@ -95,6 +105,26 @@ public abstract class RDFRule {
      * @return The production's changeset
      */
     public abstract Changeset produce(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator);
+
+    /**
+     * Determines whether this rule can be fired for the specified execution
+     *
+     * @param execution The candidate rule's execution
+     * @param evaluator The current evaluator
+     * @return Whether the rule can be fired
+     */
+    protected boolean canFire(RDFRuleExecution execution, Evaluator evaluator) {
+        if (guard != null && evaluator != null) {
+            try {
+                Object value = evaluator.eval(execution.getEvaluatorBindings(), guard);
+                return !EvaluationUtils.bool(value);
+            } catch (EvaluationException exception) {
+                Logging.get().error(exception);
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Finds the unique variable nodes in a pattern of quads (only look in in the positive quads)

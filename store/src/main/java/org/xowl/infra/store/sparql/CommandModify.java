@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
@@ -106,7 +107,7 @@ public class CommandModify implements Command {
             }
             repository.getStore().insert(Changeset.fromAddedRemoved(toInsert, toRemove));
             repository.getStore().commit();
-        } catch (UnsupportedNodeType | EvalException exception) {
+        } catch (UnsupportedNodeType | EvaluationException exception) {
             repository.getStore().rollback();
             return new ResultFailure(exception.getMessage());
         }

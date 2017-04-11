@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -60,11 +61,11 @@ public class GraphPatternService implements GraphPattern {
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvaluationException {
         // not implemented yet
         if (isSilent)
             return new SolutionsMultiset(0);
-        throw new EvalException("SERVICE is not supported");
+        throw new EvaluationException("SERVICE is not supported");
     }
 
     @Override

@@ -572,7 +572,7 @@ class xRDFLexer extends ContextSensitiveLexer {
         new Symbol(0x001F, "OP_BOR"),
         new Symbol(0x0020, "OP_BAND"),
         new Symbol(0x0023, "OP_NEQ"),
-        new Symbol(0x0167, "=>"),
+        new Symbol(0x0168, "=>"),
         new Symbol(0x0027, "OP_GEQ"),
         new Symbol(0x0012, "VARIABLE"),
         new Symbol(0x0112, "^^"),

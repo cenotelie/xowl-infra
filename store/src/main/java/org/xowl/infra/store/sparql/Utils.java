@@ -19,6 +19,8 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.EvaluationException;
+import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -139,7 +141,7 @@ class Utils {
      * @param solution The query solution mapping the variables to their value
      * @param buffer   The buffer for the realized quads
      */
-    public static void instantiate(EvalContext context, RDFPatternSolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvalException {
+    public static void instantiate(EvalContext context, RDFPatternSolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvaluationException {
         Map<Node, Node> blanks = new HashMap<>();
         for (Quad quad : template) {
             GraphNode graph = (GraphNode) instantiate(context, solution, blanks, quad.getGraph());
@@ -170,10 +172,10 @@ class Utils {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
         for (RDFPatternSolution solution : solutions) {
             try {
-                if (ExpressionOperator.bool(ExpressionOperator.primitive(expression.eval(context, solution)))) {
+                if (EvaluationUtils.bool(EvaluationUtils.primitive(expression.eval(context, solution)))) {
                     result.add(solution);
                 }
-            } catch (EvalException exception) {
+            } catch (EvaluationException exception) {
                 // do nothing
             }
         }
@@ -224,8 +226,8 @@ class Utils {
                         boolean value = false;
                         RDFPatternSolution merge = merge(l, r);
                         try {
-                            value = ExpressionOperator.bool(ExpressionOperator.primitive(expression.eval(context, merge)));
-                        } catch (EvalException exception) {
+                            value = EvaluationUtils.bool(EvaluationUtils.primitive(expression.eval(context, merge)));
+                        } catch (EvaluationException exception) {
                             // do nothing
                         }
                         match = value ? merge : l;
@@ -291,12 +293,12 @@ class Utils {
         Object value = null;
         try {
             value = expression.eval(context, solution);
-        } catch (EvalException exception) {
+        } catch (EvaluationException exception) {
             // do nothing
         }
         if (value == null)
             return solution;
-        Node valueNode = ExpressionOperator.rdf(value, context);
+        Node valueNode = RDFUtils.getRDF(context.getNodes(), value);
         if (valueNode == null)
             return solution;
         return new RDFPatternSolution(solution, variable, valueNode);
@@ -399,16 +401,16 @@ class Utils {
         for (int i = first; i != last; i++) {
             try {
                 Double key;
-                Object value = ExpressionOperator.primitive(expression.eval(context, buffer[i].x));
-                if (ExpressionOperator.isNumInteger(value)) {
-                    key = (double) ExpressionOperator.integer(value);
-                } else if (ExpressionOperator.isNumDecimal(value)) {
-                    key = ExpressionOperator.decimal(value);
+                Object value = EvaluationUtils.primitive(expression.eval(context, buffer[i].x));
+                if (EvaluationUtils.isNumInteger(value)) {
+                    key = (double) EvaluationUtils.integer(value);
+                } else if (EvaluationUtils.isNumDecimal(value)) {
+                    key = EvaluationUtils.decimal(value);
                 } else {
                     key = null;
                 }
                 buffer[i].y = key;
-            } catch (EvalException exception) {
+            } catch (EvaluationException exception) {
                 buffer[i].y = null;
             }
         }
@@ -421,9 +423,9 @@ class Utils {
      * @param projection The projection variables
      * @param context    The evaluation context
      * @return The projected solutions
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    public static Solutions project(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvalException {
+    public static Solutions project(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvaluationException {
         boolean aggregates = false;
         for (Couple<VariableNode, Expression> projector : projection) {
             if (projector.y != null && projector.y.containsAggregate()) {
@@ -441,9 +443,9 @@ class Utils {
      * @param projection The projection variables
      * @param context    The evaluation context
      * @return The projected solutions
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private static Solutions projectAggregates(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvalException {
+    private static Solutions projectAggregates(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvaluationException {
         List<List> projected = new ArrayList<>();
         for (Couple<VariableNode, Expression> projector : projection) {
             Object evaluated = projector.y.eval(context, solutions);
@@ -459,7 +461,7 @@ class Utils {
         for (int i = 0; i != projection.size(); i++) {
             VariableNode variable = projection.get(i).x;
             List values = projected.get(i);
-            Node value = values.isEmpty() ? null : ExpressionOperator.rdf(values.get(0), context);
+            Node value = values.isEmpty() ? null : RDFUtils.getRDF(context.getNodes(), values.get(0));
             bindings.add(new Couple<>(variable, value));
         }
         result.add(new RDFPatternSolution(bindings));
@@ -472,7 +474,7 @@ class Utils {
                 continue;
             VariableNode variable = projection.get(i).x;
             for (Object value : values) {
-                Node valueNode = values.isEmpty() ? null : ExpressionOperator.rdf(value, context);
+                Node valueNode = values.isEmpty() ? null : RDFUtils.getRDF(context.getNodes(), value);
                 for (RDFPatternSolution solution : result)
                     buffer.add(new RDFPatternSolution(solution, variable, valueNode));
                 for (RDFPatternSolution solution : buffer)
@@ -490,9 +492,9 @@ class Utils {
      * @param projection The projection variables
      * @param context    The evaluation context
      * @return The projected solutions
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private static Solutions projectSimple(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvalException {
+    private static Solutions projectSimple(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvaluationException {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
         for (RDFPatternSolution solution : solutions) {
             List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
@@ -501,10 +503,10 @@ class Utils {
                     Object value = null;
                     try {
                         value = projector.y.eval(context, solution);
-                    } catch (EvalException exception) {
+                    } catch (EvaluationException exception) {
                         // do nothing
                     }
-                    Node valueNode = ExpressionOperator.rdf(value, context);
+                    Node valueNode = RDFUtils.getRDF(context.getNodes(), value);
                     bindings.add(new Couple<>(projector.x, valueNode));
                 } else {
                     bindings.add(new Couple<>(projector.x, solution.get(projector.x)));
@@ -633,12 +635,12 @@ class Utils {
                 Object key = null;
                 try {
                     key = expression.y.eval(context, solution);
-                } catch (EvalException exception) {
+                } catch (EvaluationException exception) {
                     // do nothing
                 }
                 keys.add(key);
                 if (expression.x != null)
-                    targetSolution = new RDFPatternSolution(targetSolution, expression.x, ExpressionOperator.rdf(key, context));
+                    targetSolution = new RDFPatternSolution(targetSolution, expression.x, RDFUtils.getRDF(context.getNodes(), key));
             }
             result.add(keys, targetSolution);
         }

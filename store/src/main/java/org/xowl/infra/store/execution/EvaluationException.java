@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,20 +15,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.sparql;
+package org.xowl.infra.store.execution;
 
 /**
- * Exception while evaluating a SPARQL query
+ * Exception while evaluating an expression
  *
  * @author Laurent Wouters
  */
-public class EvalException extends Exception {
+public class EvaluationException extends Exception {
     /**
      * Initializes this exception
      *
      * @param message The message
      */
-    public EvalException(String message) {
+    public EvaluationException(String message) {
         super(message);
     }
 }

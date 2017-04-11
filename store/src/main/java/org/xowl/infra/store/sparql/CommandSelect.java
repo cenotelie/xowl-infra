@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -53,7 +54,7 @@ public class CommandSelect implements Command {
     public Result execute(RepositoryRDF repository) {
         try {
             return new ResultSolutions(pattern.eval(new EvalContextRepository(repository)));
-        } catch (EvalException exception) {
+        } catch (EvaluationException exception) {
             return new ResultFailure(exception.getMessage());
         }
     }

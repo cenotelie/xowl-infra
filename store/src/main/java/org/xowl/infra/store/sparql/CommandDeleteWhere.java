@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
@@ -68,7 +69,7 @@ public class CommandDeleteWhere implements Command {
                 Utils.instantiate(context, solution, quads, toRemove);
             repository.getStore().insert(Changeset.fromRemoved(toRemove));
             repository.getStore().commit();
-        } catch (UnsupportedNodeType | EvalException exception) {
+        } catch (UnsupportedNodeType | EvaluationException exception) {
             repository.getStore().rollback();
             return new ResultFailure(exception.getMessage());
         }

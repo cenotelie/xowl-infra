@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -28,7 +29,7 @@ import java.util.Map;
  */
 public class GraphPatternUnmatchable implements GraphPattern {
     @Override
-    public Solutions eval(EvalContext context) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvaluationException {
         return new SolutionsMultiset(0);
     }
 

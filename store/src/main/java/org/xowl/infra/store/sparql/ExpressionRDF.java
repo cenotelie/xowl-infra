@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.DynamicNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
@@ -56,7 +57,7 @@ public class ExpressionRDF implements Expression {
     }
 
     @Override
-    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvaluationException {
         Node result = node;
         if (result != null && result.getNodeType() == Node.TYPE_VARIABLE) {
             result = bindings.get((VariableNode) result);
@@ -68,7 +69,7 @@ public class ExpressionRDF implements Expression {
     }
 
     @Override
-    public Object eval(EvalContext context, Solutions solutions) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions) throws EvaluationException {
         if (node == null)
             return null;
         if (node.getNodeType() == Node.TYPE_VARIABLE || node.getNodeType() == Node.TYPE_DYNAMIC) {

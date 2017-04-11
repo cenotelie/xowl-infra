@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
@@ -58,12 +60,12 @@ public class GraphPatternBind implements GraphPattern {
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvaluationException {
         if (origin != null) {
             Solutions originalSolutions = origin.eval(context);
             return Utils.extend(originalSolutions, variable, expression, context);
         } else {
-            Node value = ExpressionOperator.rdf(expression.eval(context, (RDFPatternSolution) null), context);
+            Node value = RDFUtils.getRDF(context.getNodes(), expression.eval(context, (RDFPatternSolution) null));
             ArrayList<Couple<VariableNode, Node>> bindings = new ArrayList<>();
             bindings.add(new Couple<>(variable, value));
             RDFPatternSolution solution = new RDFPatternSolution(bindings);

@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
+import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.utils.collections.ConcatenatedIterator;
 import org.xowl.infra.utils.collections.SingleIterator;
@@ -115,8 +117,8 @@ class SolutionsGroup implements Solutions {
                     for (Group sub : subGroups) {
                         boolean isEqual = false;
                         try {
-                            isEqual = (ExpressionOperator.equals(sub.key, keys.get(i)));
-                        } catch (EvalException exception) {
+                            isEqual = (EvaluationUtils.equals(sub.key, keys.get(i)));
+                        } catch (EvaluationException exception) {
                             // do nothing
                         }
                         if (isEqual) {

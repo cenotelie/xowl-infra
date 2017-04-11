@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -32,9 +33,9 @@ public interface GraphPattern {
      *
      * @param context The evaluation context
      * @return The solutions
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    Solutions eval(EvalContext context) throws EvalException;
+    Solutions eval(EvalContext context) throws EvaluationException;
 
     /**
      * Recursively inspect this pattern and its children

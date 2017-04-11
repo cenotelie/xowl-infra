@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
+import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
@@ -51,18 +53,18 @@ public class ExpressionIn implements Expression {
     }
 
     @Override
-    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvaluationException {
         Object value = primary.eval(context, bindings);
         for (Expression test : range) {
             Object testValue = test.eval(context, bindings);
-            if (ExpressionOperator.equals(value, testValue))
+            if (EvaluationUtils.equals(value, testValue))
                 return true;
         }
         return false;
     }
 
     @Override
-    public Object eval(EvalContext context, Solutions solutions) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions) throws EvaluationException {
         List<Object> result = new ArrayList<>(solutions.size());
         for (RDFPatternSolution solution : solutions)
             result.add(eval(context, solution));

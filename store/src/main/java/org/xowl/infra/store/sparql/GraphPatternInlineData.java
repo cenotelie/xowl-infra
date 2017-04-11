@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
@@ -48,7 +49,7 @@ public class GraphPatternInlineData implements GraphPattern {
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvaluationException {
         return new SolutionsMultiset(data);
     }
 

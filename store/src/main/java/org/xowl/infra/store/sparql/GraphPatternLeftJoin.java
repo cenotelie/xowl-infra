@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -54,7 +55,7 @@ public class GraphPatternLeftJoin implements GraphPattern {
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvaluationException {
         Solutions leftSolutions = left.eval(context);
         Solutions rightSolutions = right.eval(context);
         return Utils.leftJoin(leftSolutions, rightSolutions, expression, context);

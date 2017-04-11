@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
@@ -67,11 +68,11 @@ public abstract class ExpressionFunction {
      * Checks the number of arguments
      *
      * @param arguments The passed arguments
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private void checkArgsCount(List<Expression> arguments) throws EvalException {
+    private void checkArgsCount(List<Expression> arguments) throws EvaluationException {
         if (arguments.size() < argsCountMin || arguments.size() > argsCountMax)
-            throw new EvalException("Function " + name + " requires [" + argsCountMin + "-" + argsCountMax + "] argument(s)");
+            throw new EvaluationException("Function " + name + " requires [" + argsCountMin + "-" + argsCountMax + "] argument(s)");
     }
 
     /**
@@ -81,9 +82,9 @@ public abstract class ExpressionFunction {
      * @param bindings  The current bindings
      * @param arguments The passed arguments
      * @return The result
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    public Object eval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
         checkArgsCount(arguments);
         return doEval(context, bindings, arguments);
     }
@@ -95,9 +96,9 @@ public abstract class ExpressionFunction {
      * @param solutions The current set of solutions
      * @param arguments The passed arguments
      * @return The result
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    public Object eval(EvalContext context, Solutions solutions, List<Expression> arguments) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions, List<Expression> arguments) throws EvaluationException {
         checkArgsCount(arguments);
         List<Object> results = new ArrayList<>(solutions.size());
         for (RDFPatternSolution solution : solutions)
@@ -112,7 +113,7 @@ public abstract class ExpressionFunction {
      * @param bindings  The current bindings
      * @param arguments The passed arguments
      * @return The result
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    protected abstract Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvalException;
+    protected abstract Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException;
 }

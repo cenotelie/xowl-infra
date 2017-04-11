@@ -671,85 +671,89 @@ class xRDFParser extends LRkParser {
          */
         public static final int xowl_rule_part = 0x014C;
         /**
+         * The unique identifier for variable xowl_rule_guard
+         */
+        public static final int xowl_rule_guard = 0x014D;
+        /**
          * The unique identifier for variable clj_atom
          */
-        public static final int clj_atom = 0x014D;
+        public static final int clj_atom = 0x014E;
         /**
          * The unique identifier for variable clj_list
          */
-        public static final int clj_list = 0x014E;
+        public static final int clj_list = 0x014F;
         /**
          * The unique identifier for variable clj_vector
          */
-        public static final int clj_vector = 0x014F;
+        public static final int clj_vector = 0x0150;
         /**
          * The unique identifier for variable clj_map
          */
-        public static final int clj_map = 0x0150;
+        public static final int clj_map = 0x0151;
         /**
          * The unique identifier for variable clj_couple
          */
-        public static final int clj_couple = 0x0151;
+        public static final int clj_couple = 0x0152;
         /**
          * The unique identifier for variable clj_set
          */
-        public static final int clj_set = 0x0152;
+        public static final int clj_set = 0x0153;
         /**
          * The unique identifier for variable clj_constructor
          */
-        public static final int clj_constructor = 0x0153;
+        public static final int clj_constructor = 0x0154;
         /**
          * The unique identifier for variable clj_quote
          */
-        public static final int clj_quote = 0x0154;
+        public static final int clj_quote = 0x0155;
         /**
          * The unique identifier for variable clj_deref
          */
-        public static final int clj_deref = 0x0155;
+        public static final int clj_deref = 0x0156;
         /**
          * The unique identifier for variable clj_metadata
          */
-        public static final int clj_metadata = 0x0156;
+        public static final int clj_metadata = 0x0157;
         /**
          * The unique identifier for variable clj_regexp
          */
-        public static final int clj_regexp = 0x0157;
+        public static final int clj_regexp = 0x0158;
         /**
          * The unique identifier for variable clj_var_quote
          */
-        public static final int clj_var_quote = 0x0158;
+        public static final int clj_var_quote = 0x0159;
         /**
          * The unique identifier for variable clj_anon_function
          */
-        public static final int clj_anon_function = 0x0159;
+        public static final int clj_anon_function = 0x015A;
         /**
          * The unique identifier for variable clj_ignore
          */
-        public static final int clj_ignore = 0x015A;
+        public static final int clj_ignore = 0x015B;
         /**
          * The unique identifier for variable clj_syntax_quote
          */
-        public static final int clj_syntax_quote = 0x015B;
+        public static final int clj_syntax_quote = 0x015C;
         /**
          * The unique identifier for variable clj_unquote
          */
-        public static final int clj_unquote = 0x015C;
+        public static final int clj_unquote = 0x015D;
         /**
          * The unique identifier for variable clj_unquote_splicing
          */
-        public static final int clj_unquote_splicing = 0x015D;
+        public static final int clj_unquote_splicing = 0x015E;
         /**
          * The unique identifier for variable clj_conditional
          */
-        public static final int clj_conditional = 0x015E;
+        public static final int clj_conditional = 0x015F;
         /**
          * The unique identifier for variable clj_form
          */
-        public static final int clj_form = 0x015F;
+        public static final int clj_form = 0x0160;
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x016D;
+        public static final int __axiom = 0x016F;
         /**
          * The unique identifier for virtual nil
          */
@@ -951,38 +955,40 @@ class xRDFParser extends LRkParser {
         new Symbol(0x014A, "xowl_rule_mod"), 
         new Symbol(0x014B, "xowl_rule_parts"), 
         new Symbol(0x014C, "xowl_rule_part"), 
-        new Symbol(0x014D, "clj_atom"), 
-        new Symbol(0x014E, "clj_list"), 
-        new Symbol(0x014F, "clj_vector"), 
-        new Symbol(0x0150, "clj_map"), 
-        new Symbol(0x0151, "clj_couple"), 
-        new Symbol(0x0152, "clj_set"), 
-        new Symbol(0x0153, "clj_constructor"), 
-        new Symbol(0x0154, "clj_quote"), 
-        new Symbol(0x0155, "clj_deref"), 
-        new Symbol(0x0156, "clj_metadata"), 
-        new Symbol(0x0157, "clj_regexp"), 
-        new Symbol(0x0158, "clj_var_quote"), 
-        new Symbol(0x0159, "clj_anon_function"), 
-        new Symbol(0x015A, "clj_ignore"), 
-        new Symbol(0x015B, "clj_syntax_quote"), 
-        new Symbol(0x015C, "clj_unquote"), 
-        new Symbol(0x015D, "clj_unquote_splicing"), 
-        new Symbol(0x015E, "clj_conditional"), 
-        new Symbol(0x015F, "clj_form"), 
-        new Symbol(0x0160, "__V352"), 
+        new Symbol(0x014D, "xowl_rule_guard"), 
+        new Symbol(0x014E, "clj_atom"), 
+        new Symbol(0x014F, "clj_list"), 
+        new Symbol(0x0150, "clj_vector"), 
+        new Symbol(0x0151, "clj_map"), 
+        new Symbol(0x0152, "clj_couple"), 
+        new Symbol(0x0153, "clj_set"), 
+        new Symbol(0x0154, "clj_constructor"), 
+        new Symbol(0x0155, "clj_quote"), 
+        new Symbol(0x0156, "clj_deref"), 
+        new Symbol(0x0157, "clj_metadata"), 
+        new Symbol(0x0158, "clj_regexp"), 
+        new Symbol(0x0159, "clj_var_quote"), 
+        new Symbol(0x015A, "clj_anon_function"), 
+        new Symbol(0x015B, "clj_ignore"), 
+        new Symbol(0x015C, "clj_syntax_quote"), 
+        new Symbol(0x015D, "clj_unquote"), 
+        new Symbol(0x015E, "clj_unquote_splicing"), 
+        new Symbol(0x015F, "clj_conditional"), 
+        new Symbol(0x0160, "clj_form"), 
         new Symbol(0x0161, "__V353"), 
         new Symbol(0x0162, "__V354"), 
         new Symbol(0x0163, "__V355"), 
         new Symbol(0x0164, "__V356"), 
         new Symbol(0x0165, "__V357"), 
         new Symbol(0x0166, "__V358"), 
-        new Symbol(0x0168, "__V360"), 
+        new Symbol(0x0167, "__V359"), 
         new Symbol(0x0169, "__V361"), 
         new Symbol(0x016A, "__V362"), 
         new Symbol(0x016B, "__V363"), 
         new Symbol(0x016C, "__V364"), 
-        new Symbol(0x016D, "__axiom") };
+        new Symbol(0x016D, "__V365"), 
+        new Symbol(0x016E, "__V366"), 
+        new Symbol(0x016F, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *

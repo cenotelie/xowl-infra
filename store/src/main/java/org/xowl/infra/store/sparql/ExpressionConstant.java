@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
@@ -43,12 +44,12 @@ public class ExpressionConstant implements Expression {
     }
 
     @Override
-    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvaluationException {
         return value;
     }
 
     @Override
-    public Object eval(EvalContext context, Solutions solutions) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions) throws EvaluationException {
         return value;
     }
 

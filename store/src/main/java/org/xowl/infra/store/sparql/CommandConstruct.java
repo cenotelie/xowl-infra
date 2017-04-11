@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
@@ -71,7 +72,7 @@ public class CommandConstruct implements Command {
             for (RDFPatternSolution solution : solutions)
                 Utils.instantiate(context, solution, template, quads);
             return new ResultQuads(quads);
-        } catch (EvalException exception) {
+        } catch (EvaluationException exception) {
             return new ResultFailure(exception.getMessage());
         }
     }

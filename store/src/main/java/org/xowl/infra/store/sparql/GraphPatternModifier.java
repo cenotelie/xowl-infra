@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
@@ -134,9 +135,9 @@ public class GraphPatternModifier {
      * @param solutions The solution set
      * @param context   The evaluation context
      * @return The transformed solution set
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    public Solutions apply(Solutions solutions, EvalContext context) throws EvalException {
+    public Solutions apply(Solutions solutions, EvalContext context) throws EvaluationException {
         Solutions result = solutions;
         if (!having.isEmpty()) {
             Expression exp = having.get(0);

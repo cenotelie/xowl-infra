@@ -24,6 +24,7 @@ import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.GraphPattern;
@@ -641,7 +642,12 @@ public class xRDFLoader implements Loader {
         // load basic info
         boolean isDistinct = (node.getChildren().get(0).getChildren().size() > 0);
         String iri = sparql.getNodeIRI(node.getChildren().get(1)).getIRIValue();
-        RDFRuleSimple result = new RDFRuleSimple(iri, isDistinct);
+
+        // load the guard
+        EvaluableExpression guard = null;
+        if (!node.getChildren().get(3).getChildren().isEmpty())
+            guard = executionManager.loadExpression(serializeClojure(node.getChildren().get(3).getChildren().get(0)));
+        RDFRuleSimple result = new RDFRuleSimple(iri, isDistinct, guard);
 
         // load the antecedents
         Collection<Quad> positives = new ArrayList<>();
@@ -657,7 +663,7 @@ public class xRDFLoader implements Loader {
 
         // load the consequents
         graph = nodes.getIRINode(IRIs.GRAPH_INFERENCE);
-        for (ASTNode part : node.getChildren().get(3).getChildren())
+        for (ASTNode part : node.getChildren().get(4).getChildren())
             loadRulePart(context, part, graph, positives, negatives);
         for (Quad quad : positives)
             result.addConsequentPositive(quad);
@@ -683,13 +689,18 @@ public class xRDFLoader implements Loader {
 
         // load the antecedents
         GraphPattern pattern = sparql.loadGraphPatternSubSelect(context, graph, node.getChildren().get(2));
-        RDFRuleSelect result = new RDFRuleSelect(iri, pattern);
+
+        // load the guard
+        EvaluableExpression guard = null;
+        if (!node.getChildren().get(3).getChildren().isEmpty())
+            guard = executionManager.loadExpression(serializeClojure(node.getChildren().get(3).getChildren().get(0)));
+        RDFRuleSelect result = new RDFRuleSelect(iri, pattern, guard);
 
         // load the consequents
         Collection<Quad> positives = new ArrayList<>();
         Collection<Collection<Quad>> negatives = new ArrayList<>();
         graph = nodes.getIRINode(IRIs.GRAPH_INFERENCE);
-        for (ASTNode part : node.getChildren().get(3).getChildren())
+        for (ASTNode part : node.getChildren().get(4).getChildren())
             loadRulePart(context, part, graph, positives, negatives);
         for (Quad quad : positives)
             result.addConsequentPositive(quad);

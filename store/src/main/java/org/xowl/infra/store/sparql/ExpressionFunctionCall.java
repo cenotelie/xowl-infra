@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
@@ -65,7 +66,7 @@ public class ExpressionFunctionCall implements Expression {
     }
 
     @Override
-    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvaluationException {
         ExpressionFunction function = ExpressionFunctions.get(iri);
         if (function != null) {
             // this is a builtin function
@@ -73,9 +74,9 @@ public class ExpressionFunctionCall implements Expression {
         }
         Evaluator evaluator = context.getEvaluator();
         if (evaluator == null)
-            throw new EvalException("Unknown function " + iri);
+            throw new EvaluationException("Unknown function " + iri);
         if (evaluator.getFunction(iri) == null)
-            throw new EvalException("Unknown function " + iri);
+            throw new EvaluationException("Unknown function " + iri);
         Object[] parameters = new Object[arguments.size()];
         for (int i = 0; i != arguments.size(); i++) {
             parameters[i] = arguments.get(i).eval(context, bindings);
@@ -86,7 +87,7 @@ public class ExpressionFunctionCall implements Expression {
     }
 
     @Override
-    public Object eval(EvalContext context, Solutions solutions) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions) throws EvaluationException {
         if (iri.equalsIgnoreCase("COUNT"))
             return evalAggregateCount(context, solutions);
         if (iri.equalsIgnoreCase("SUM"))
@@ -103,7 +104,7 @@ public class ExpressionFunctionCall implements Expression {
             return evalAggregateGroupConcat(context, solutions);
         ExpressionFunction function = ExpressionFunctions.get(iri);
         if (function == null)
-            throw new EvalException("Unknown function " + iri);
+            throw new EvaluationException("Unknown function " + iri);
         return function.eval(context, solutions, arguments);
     }
 
@@ -139,11 +140,11 @@ public class ExpressionFunctionCall implements Expression {
      * @param context   The evaluation context
      * @param solutions The current solutions
      * @return The evaluated value
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private Object evalAggregateCount(EvalContext context, Solutions solutions) throws EvalException {
+    private Object evalAggregateCount(EvalContext context, Solutions solutions) throws EvaluationException {
         if (arguments.size() > 1)
-            throw new EvalException("COUNT requires 1 argument");
+            throw new EvaluationException("COUNT requires 1 argument");
         if (isDistinct) {
             if (arguments.isEmpty())
                 return getDistincts(solutions).size();
@@ -167,10 +168,10 @@ public class ExpressionFunctionCall implements Expression {
      * @param context   The evaluation context
      * @param solutions The current solutions
      * @return The evaluated value
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private Object evalAggregateSum(EvalContext context, Solutions solutions) throws EvalException {
-        throw new EvalException("Unsupported aggregate");
+    private Object evalAggregateSum(EvalContext context, Solutions solutions) throws EvaluationException {
+        throw new EvaluationException("Unsupported aggregate");
     }
 
     /**
@@ -179,10 +180,10 @@ public class ExpressionFunctionCall implements Expression {
      * @param context   The evaluation context
      * @param solutions The current solutions
      * @return The evaluated value
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private Object evalAggregateMin(EvalContext context, Solutions solutions) throws EvalException {
-        throw new EvalException("Unsupported aggregate");
+    private Object evalAggregateMin(EvalContext context, Solutions solutions) throws EvaluationException {
+        throw new EvaluationException("Unsupported aggregate");
     }
 
     /**
@@ -191,10 +192,10 @@ public class ExpressionFunctionCall implements Expression {
      * @param context   The evaluation context
      * @param solutions The current solutions
      * @return The evaluated value
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private Object evalAggregateMax(EvalContext context, Solutions solutions) throws EvalException {
-        throw new EvalException("Unsupported aggregate");
+    private Object evalAggregateMax(EvalContext context, Solutions solutions) throws EvaluationException {
+        throw new EvaluationException("Unsupported aggregate");
     }
 
     /**
@@ -203,10 +204,10 @@ public class ExpressionFunctionCall implements Expression {
      * @param context   The evaluation context
      * @param solutions The current solutions
      * @return The evaluated value
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private Object evalAggregateAverage(EvalContext context, Solutions solutions) throws EvalException {
-        throw new EvalException("Unsupported aggregate");
+    private Object evalAggregateAverage(EvalContext context, Solutions solutions) throws EvaluationException {
+        throw new EvaluationException("Unsupported aggregate");
     }
 
     /**
@@ -215,10 +216,10 @@ public class ExpressionFunctionCall implements Expression {
      * @param context   The evaluation context
      * @param solutions The current solutions
      * @return The evaluated value
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private Object evalAggregateSample(EvalContext context, Solutions solutions) throws EvalException {
-        throw new EvalException("Unsupported aggregate");
+    private Object evalAggregateSample(EvalContext context, Solutions solutions) throws EvaluationException {
+        throw new EvaluationException("Unsupported aggregate");
     }
 
     /**
@@ -227,10 +228,10 @@ public class ExpressionFunctionCall implements Expression {
      * @param context   The evaluation context
      * @param solutions The current solutions
      * @return The evaluated value
-     * @throws EvalException When an error occurs during the evaluation
+     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private Object evalAggregateGroupConcat(EvalContext context, Solutions solutions) throws EvalException {
-        throw new EvalException("Unsupported aggregate");
+    private Object evalAggregateGroupConcat(EvalContext context, Solutions solutions) throws EvaluationException {
+        throw new EvaluationException("Unsupported aggregate");
     }
 
     /**

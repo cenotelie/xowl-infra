@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
@@ -108,7 +109,7 @@ public class GraphPatternSelect implements GraphPattern {
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvaluationException {
         Solutions solutions = where.eval(context);
         solutions = modifier != null ? modifier.apply(solutions, context) : solutions;
         solutions = (values != null) ? Utils.join(solutions, values.eval(context)) : solutions;

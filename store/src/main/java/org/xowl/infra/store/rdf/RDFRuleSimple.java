@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.rdf;
 
+import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.storage.NodeManager;
 
@@ -55,9 +56,10 @@ public class RDFRuleSimple extends RDFRule {
      *
      * @param iri      The rule's identifying iri
      * @param distinct Whether to trigger this rule only on distinct solutions
+     * @param guard    The rule's guard, if any
      */
-    public RDFRuleSimple(String iri, boolean distinct) {
-        super(iri);
+    public RDFRuleSimple(String iri, boolean distinct, EvaluableExpression guard) {
+        super(iri, guard);
         this.distinct = distinct;
         this.antecedents = new RDFPattern();
         this.consequents = new RDFPattern();
@@ -124,7 +126,10 @@ public class RDFRuleSimple extends RDFRule {
                     return;
             }
         }
-        handler.onTrigger(new RDFRuleExecutionSimple(this, match));
+        RDFRuleExecutionSimple execution = new RDFRuleExecutionSimple(this, match);
+        if (!canFire(execution, handler.getEvaluator()))
+            return;
+        handler.onTrigger(execution);
     }
 
     @Override
