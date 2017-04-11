@@ -22,6 +22,7 @@ import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.TextUtils;
@@ -318,7 +319,9 @@ public class RDFUtils {
                 writer.write("</anon>");
                 break;
             case Node.TYPE_DYNAMIC:
-                writer.write("<dynamic/>");
+                writer.write("<dynamic>");
+                writer.write(TextUtils.escapeStringW3C(((DynamicNode) node).getEvaluable().getSource()));
+                writer.write("</dynamic>");
                 break;
         }
     }
@@ -383,11 +386,11 @@ public class RDFUtils {
     /**
      * De-serializes the RDF node from the specified JSON AST node
      *
-     * @param nodeManager The node manager to use
-     * @param astNode     The AST node to de-serialize from
+     * @param repository The repository to use
+     * @param astNode    The AST node to de-serialize from
      * @return The RDF node
      */
-    public static Node deserializeJSON(NodeManager nodeManager, ASTNode astNode) {
+    public static Node deserializeJSON(Repository repository, ASTNode astNode) {
         Map<String, String> properties = new HashMap<>();
         for (ASTNode child : astNode.getChildren()) {
             String name = child.getChildren().get(0).getValue();
@@ -401,21 +404,29 @@ public class RDFUtils {
             return null;
         switch (type) {
             case "uri":
-                return nodeManager.getIRINode(properties.get("value"));
+                return repository.getNodeManager().getIRINode(properties.get("value"));
             case "bnode":
                 return new BlankNode(Long.parseLong(properties.get("value")));
             case "literal": {
                 String lexical = properties.get("value");
                 String datatype = properties.get("datatype");
                 String langTag = properties.get("xml:lang");
-                return nodeManager.getLiteralNode(lexical, datatype, langTag);
+                return repository.getNodeManager().getLiteralNode(lexical, datatype, langTag);
             }
             case "variable":
                 return new VariableNode(properties.get("value"));
             case "anon": {
                 AnonymousIndividual individual = Owl2Factory.newAnonymousIndividual();
                 individual.setNodeID(properties.get("value"));
-                return nodeManager.getAnonNode(individual);
+                return repository.getNodeManager().getAnonNode(individual);
+            }
+            case "dynamic": {
+                String source = properties.get("value");
+                ExecutionManager executionManager = repository.getExecutionManager();
+                if (executionManager == null)
+                    return null;
+                EvaluableExpression evaluable = executionManager.loadExpression(source);
+                return repository.getNodeManager().getDynamicNode(evaluable);
             }
         }
         return null;

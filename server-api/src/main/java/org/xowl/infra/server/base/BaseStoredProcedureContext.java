@@ -20,8 +20,8 @@ package org.xowl.infra.server.base;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
@@ -63,10 +63,10 @@ public class BaseStoredProcedureContext implements XOWLStoredProcedureContext {
     /**
      * Initializes this context
      *
-     * @param root  The context's definition
-     * @param nodes The node manager to use
+     * @param root       The context's definition
+     * @param repository The repository to use
      */
-    public BaseStoredProcedureContext(ASTNode root, NodeManager nodes) {
+    public BaseStoredProcedureContext(ASTNode root, Repository repository) {
         this.defaultIRIs = new ArrayList<>();
         this.namedIRIs = new ArrayList<>();
         this.parameters = new HashMap<>();
@@ -96,7 +96,7 @@ public class BaseStoredProcedureContext implements XOWLStoredProcedureContext {
                         ASTNode nodeProperty = nodeMap.getChildren().get(0);
                         String parameterName = TextUtils.unescape(nodeProperty.getChildren().get(0).getValue());
                         parameterName = parameterName.substring(1, parameterName.length() - 1);
-                        Node parameterValue = RDFUtils.deserializeJSON(nodes, nodeProperty.getChildren().get(1));
+                        Node parameterValue = RDFUtils.deserializeJSON(repository, nodeProperty.getChildren().get(1));
                         parameters.put(parameterName, parameterValue);
                     }
                     break;

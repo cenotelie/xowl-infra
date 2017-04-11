@@ -21,12 +21,12 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
@@ -172,7 +172,7 @@ public class ResultUtils {
      * @return The result
      */
     private static Result parseResponseJSON(String content) {
-        NodeManager nodeManager = new CachedNodes();
+        Repository repository = null;
         BufferedLogger bufferedLogger = new BufferedLogger();
         ASTNode nodeRoot = JSONLDLoader.parseJSON(bufferedLogger, content);
         if (nodeRoot == null)
@@ -244,7 +244,9 @@ public class ResultUtils {
                 for (ASTNode nodeBinding : nodeSolution.getChildren()) {
                     String varName = nodeBinding.getChildren().get(0).getValue();
                     VariableNode variable = variables.get(varName.substring(1, varName.length() - 1));
-                    Node value = RDFUtils.deserializeJSON(nodeManager, nodeBinding.getChildren().get(1));
+                    if (repository == null)
+                        repository = new RepositoryRDF();
+                    Node value = RDFUtils.deserializeJSON(repository, nodeBinding.getChildren().get(1));
                     bindings.add(new Couple<>(variable, value));
                 }
                 solutions.add(new RDFPatternSolution(bindings));

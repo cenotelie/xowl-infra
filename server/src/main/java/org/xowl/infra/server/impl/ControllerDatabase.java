@@ -802,7 +802,7 @@ public class ControllerDatabase implements Closeable {
         ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, contextDefinition);
         if (!bufferedLogger.getErrorMessages().isEmpty())
             throw new IllegalArgumentException(bufferedLogger.getErrorsAsString());
-        BaseStoredProcedureContext context = new BaseStoredProcedureContext(root, repository.getStore());
+        BaseStoredProcedureContext context = new BaseStoredProcedureContext(root, repository);
         return executeStoredProcedure(iri, context, isReadonly);
     }
 
