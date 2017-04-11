@@ -413,8 +413,8 @@ var MIME_TYPES = [
 	{ name: 'RDF/XML', value: 'application/rdf+xml', extensions: ['.rdf'] },
 	{ name: 'Functional OWL2', value: 'text/owl-functional', extensions: ['.ofn', '.fs'] },
 	{ name: 'OWL/XML', value: 'application/owl+xml', extensions: ['.owx', '.owl'] },
-	{ name: 'xOWL - Executable RDF', value: 'application/x-xowl-rdft', extensions: ['.xrdf'] },
-	{ name: 'xOWL - Executable OWL', value: 'application/x-xowl', extensions: ['.xowl'] }
+	{ name: 'xOWL - Executable RDF', value: 'application/x-xowl-xrdf', extensions: ['.xrdf'] },
+	{ name: 'xOWL - Executable OWL', value: 'application/x-xowl-xowl', extensions: ['.xowl'] }
 ];
 
 /*
