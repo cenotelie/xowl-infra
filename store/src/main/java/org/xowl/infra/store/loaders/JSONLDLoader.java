@@ -24,6 +24,7 @@ import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
@@ -214,6 +215,13 @@ public abstract class JSONLDLoader implements Loader {
      */
     public String getCurrentResource() {
         return resource;
+    }
+
+    /**
+     * Initializes this loader
+     */
+    public JSONLDLoader() {
+        this(new CachedNodes());
     }
 
     /**

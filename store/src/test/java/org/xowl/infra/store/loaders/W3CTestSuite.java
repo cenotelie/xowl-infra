@@ -25,13 +25,10 @@ import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
-import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,7 +103,7 @@ public abstract class W3CTestSuite {
             case Repository.SYNTAX_TRIG:
                 return new TriGLoader(store);
             case Repository.SYNTAX_XRDF:
-                return new xRDFLoader(store, null);
+                return new xRDFLoader();
         }
         return null;
     }
@@ -119,12 +116,7 @@ public abstract class W3CTestSuite {
      */
     protected Reader getResourceReader(String resource) {
         try {
-            Reader reader = Repository.getReaderFor(resource);
-            if (reader != null)
-                return reader;
-            // expect a local test resource
-            InputStream stream = W3CTestSuite.class.getResourceAsStream(resource);
-            return new InputStreamReader(stream, IOUtils.CHARSET);
+            return Repository.getReaderFor(resource);
         } catch (IOException exception) {
             Assert.fail(exception.getMessage());
             return null;

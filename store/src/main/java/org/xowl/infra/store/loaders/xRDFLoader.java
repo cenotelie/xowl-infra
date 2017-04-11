@@ -22,6 +22,7 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.IRIs;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
@@ -76,6 +77,22 @@ public class xRDFLoader implements Loader {
      * The cached node for the literal false node
      */
     private LiteralNode cacheFalse;
+
+    /**
+     * Initializes this loader
+     */
+    public xRDFLoader() {
+        this(new RepositoryRDF());
+    }
+
+    /**
+     * Initializes this loader
+     *
+     * @param repository The repository to use
+     */
+    public xRDFLoader(RepositoryRDF repository) {
+        this(repository.getStore(), repository.getExecutionManager());
+    }
 
     /**
      * Initializes this loader

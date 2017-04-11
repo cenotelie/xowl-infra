@@ -32,7 +32,6 @@ import org.xowl.infra.store.owl.OWLRuleEngine;
 import org.xowl.infra.store.rdf.RDFQueryEngine;
 import org.xowl.infra.store.rdf.RDFRuleEngine;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.writers.*;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
@@ -490,17 +489,17 @@ public abstract class Repository {
     private Resource loadInput(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax, Resource metadata) throws Exception {
         switch (syntax) {
             case SYNTAX_NTRIPLES:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NTriplesLoader(new CachedNodes()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NTriplesLoader(getNodeManager()));
             case SYNTAX_NQUADS:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NQuadsLoader(new CachedNodes()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NQuadsLoader(getNodeManager()));
             case SYNTAX_TURTLE:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TurtleLoader(new CachedNodes()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TurtleLoader(getNodeManager()));
             case SYNTAX_RDFT:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFTLoader(new CachedNodes()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFTLoader(getNodeManager()));
             case SYNTAX_RDFXML:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFXMLLoader(new CachedNodes()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFXMLLoader(getNodeManager()));
             case SYNTAX_JSON_LD:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JSONLDLoader(new CachedNodes()) {
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JSONLDLoader(getNodeManager()) {
                     @Override
                     protected Reader getReaderFor(Logger logger, String iri) {
                         String resource = mapper.get(iri);
@@ -517,9 +516,9 @@ public abstract class Repository {
                     }
                 });
             case SYNTAX_TRIG:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(new CachedNodes()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(getNodeManager()));
             case SYNTAX_XRDF:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new xRDFLoader(new CachedNodes(), executionManager));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new xRDFLoader(getNodeManager(), executionManager));
             case SYNTAX_FUNCTIONAL_OWL2:
                 return loadInputOWL(logger, reader, resourceIRI, metadata, new FunctionalOWL2Loader());
             case SYNTAX_OWLXML:

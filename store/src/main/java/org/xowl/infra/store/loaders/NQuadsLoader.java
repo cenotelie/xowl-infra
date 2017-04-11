@@ -24,6 +24,7 @@ import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
@@ -48,6 +49,13 @@ public class NQuadsLoader implements Loader {
      * Maps of blanks nodes
      */
     private Map<String, BlankNode> blanks;
+
+    /**
+     * Initializes this loader
+     */
+    public NQuadsLoader() {
+        this(new CachedNodes());
+    }
 
     /**
      * Initializes this loader

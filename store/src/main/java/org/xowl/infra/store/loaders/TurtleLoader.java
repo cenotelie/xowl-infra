@@ -20,6 +20,7 @@ package org.xowl.infra.store.loaders;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.parsers.BaseLRParser;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.IOUtils;
 
 import java.io.IOException;
@@ -31,6 +32,13 @@ import java.io.Reader;
  * @author Laurent Wouters
  */
 public class TurtleLoader extends BaseTurtleLoader {
+    /**
+     * Initializes this loader
+     */
+    public TurtleLoader() {
+        this(new CachedNodes());
+    }
+
     /**
      * Initializes this loader
      *

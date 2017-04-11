@@ -124,24 +124,24 @@ public class ResultUtils {
         if (contentType != null) {
             switch (contentType) {
                 case Repository.SYNTAX_NQUADS:
-                    return parseResponseQuads(content, new NQuadsLoader(new CachedNodes()));
+                    return parseResponseQuads(content, new NQuadsLoader());
                 case Repository.SYNTAX_NTRIPLES:
-                    return parseResponseQuads(content, new NTriplesLoader(new CachedNodes()));
+                    return parseResponseQuads(content, new NTriplesLoader());
                 case Repository.SYNTAX_TURTLE:
-                    return parseResponseQuads(content, new TurtleLoader(new CachedNodes()));
+                    return parseResponseQuads(content, new TurtleLoader());
                 case Repository.SYNTAX_TRIG:
-                    return parseResponseQuads(content, new TriGLoader(new CachedNodes()));
+                    return parseResponseQuads(content, new TriGLoader());
                 case Repository.SYNTAX_RDFXML:
-                    return parseResponseQuads(content, new RDFXMLLoader(new CachedNodes()));
+                    return parseResponseQuads(content, new RDFXMLLoader());
                 case Repository.SYNTAX_JSON_LD:
-                    return parseResponseQuads(content, new JSONLDLoader(new CachedNodes()) {
+                    return parseResponseQuads(content, new JSONLDLoader() {
                         @Override
                         protected Reader getReaderFor(Logger logger, String iri) {
                             return null;
                         }
                     });
                 case Repository.SYNTAX_XRDF:
-                    return parseResponseQuads(content, new xRDFLoader(new CachedNodes(), null));
+                    return parseResponseQuads(content, new xRDFLoader());
                 case Result.SYNTAX_JSON:
                 case HttpConstants.MIME_JSON:
                     return parseResponseJSON(content);

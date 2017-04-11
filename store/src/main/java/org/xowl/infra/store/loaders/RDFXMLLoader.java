@@ -23,6 +23,7 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -64,13 +65,19 @@ public class RDFXMLLoader implements Loader {
 
     /**
      * Initializes this loader
+     */
+    public RDFXMLLoader() {
+        this(new CachedNodes());
+    }
+
+    /**
+     * Initializes this loader
      *
      * @param store The RDF store used to create nodes
      */
     public RDFXMLLoader(NodeManager store) {
         this.store = store;
     }
-
 
     /**
      * Determines whether a specified name is a valid XML name
