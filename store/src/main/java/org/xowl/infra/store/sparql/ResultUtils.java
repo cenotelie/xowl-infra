@@ -66,6 +66,7 @@ public class ResultUtils {
                 case Repository.SYNTAX_RDFXML:
                 case Repository.SYNTAX_JSON_LD:
                 case Repository.SYNTAX_XRDF:
+                case HttpConstants.MIME_JSON:
                     return type;
                 default:
                     return Repository.SYNTAX_NQUADS;

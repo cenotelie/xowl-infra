@@ -20,6 +20,7 @@ package org.xowl.infra.store.sparql;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.writers.*;
+import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
@@ -92,6 +93,9 @@ public class ResultQuads implements Result {
             case Repository.SYNTAX_XRDF:
                 serializer = new xRDFSerializer(writer);
                 break;
+            case HttpConstants.MIME_JSON:
+                serializer = new JsonSerializer(writer);
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported format " + syntax);
         }
@@ -111,7 +115,7 @@ public class ResultQuads implements Result {
     @Override
     public String serializedJSON() {
         StringWriter writer = new StringWriter();
-        RDFSerializer serializer = new JSONLDSerializer(writer);
+        RDFSerializer serializer = new JsonSerializer(writer);
         SinkLogger logger = new SinkLogger();
         serializer.serialize(logger, quads.iterator());
         return writer.toString();

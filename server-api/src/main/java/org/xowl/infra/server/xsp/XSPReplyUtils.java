@@ -369,6 +369,7 @@ public class XSPReplyUtils {
                 case Repository.SYNTAX_RDFXML:
                 case Repository.SYNTAX_JSON_LD:
                 case Repository.SYNTAX_XRDF:
+                case HttpConstants.MIME_JSON:
                     return contentType;
             }
         }
