@@ -140,6 +140,8 @@ public class ResultUtils {
                             return null;
                         }
                     });
+                case Repository.SYNTAX_XRDF:
+                    return parseResponseQuads(content, new xRDFLoader(new CachedNodes(), null));
                 case Result.SYNTAX_JSON:
                 case HttpConstants.MIME_JSON:
                     return parseResponseJSON(content);

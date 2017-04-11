@@ -23,6 +23,7 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.GraphPattern;
 import org.xowl.infra.store.storage.NodeManager;
@@ -43,6 +44,10 @@ public class xRDFLoader implements Loader {
      * The RDF store used to create nodes
      */
     private final NodeManager nodes;
+    /**
+     * The execution manager to use
+     */
+    private final ExecutionManager executionManager;
     /**
      * The inner SPARQL loader
      */
@@ -75,10 +80,12 @@ public class xRDFLoader implements Loader {
     /**
      * Initializes this loader
      *
-     * @param store The RDF store used to create nodes
+     * @param store            The RDF store used to create nodes
+     * @param executionManager The execution manager to use
      */
-    public xRDFLoader(NodeManager store) {
+    public xRDFLoader(NodeManager store, ExecutionManager executionManager) {
         this.nodes = store;
+        this.executionManager = executionManager;
         this.sparql = new SPARQLLoader(store);
         this.namespaces = new HashMap<>();
     }
@@ -330,6 +337,8 @@ public class xRDFLoader implements Loader {
                 return getNodeDouble(node);
             case xRDFParser.ID.literal_rdf:
                 return getNodeLiteral(node);
+            case xRDFLexer.ID.XOWL_OPAQUE_EXP:
+                return getNodeDynamic(node);
             case xRDFParser.ID.xowl_collection:
                 return getNodeCollection(node, context, graph, buffer);
             case xRDFParser.ID.xowl_blank_property_list:
@@ -516,6 +525,16 @@ public class xRDFLoader implements Loader {
     }
 
     /**
+     * Gets the dynamic node equivalent to the specified AST node
+     *
+     * @param node An AST node
+     * @return The equivalent RDF Literal node
+     */
+    private DynamicNode getNodeDynamic(ASTNode node) {
+        return nodes.getDynamicNode(executionManager.loadExpression(serializeClojure(node.getChildren().get(0))));
+    }
+
+    /**
      * Gets the RDF list node equivalent to the specified AST node representing a collection of RDF nodes
      *
      * @param node    An AST node
@@ -566,7 +585,6 @@ public class xRDFLoader implements Loader {
         }
         throw new LoaderException("Failed to resolve local name " + value, node);
     }
-
 
     /**
      * Loads a simple rule
@@ -629,5 +647,120 @@ public class xRDFLoader implements Loader {
             for (Quad quad : conjunction)
                 result.addConsequentNegative(quad);
         return result;
+    }
+
+    /**
+     * Re-serializes the specified AST node into a string for the Clojure reader
+     *
+     * @param node An AST node
+     * @return The serialized Clojure source
+     */
+    public static String serializeClojure(ASTNode node) {
+        StringBuilder builder = new StringBuilder();
+        serializeClojure(builder, node);
+        return builder.toString();
+    }
+
+    /**
+     * Re-serializes the specified AST node into a string for the Clojure reader
+     *
+     * @param builder The string builder for the result
+     * @param node    An AST node
+     */
+    private static void serializeClojure(StringBuilder builder, ASTNode node) {
+        switch (node.getSymbol().getID()) {
+            case xRDFLexer.ID.CLJ_SYMBOL:
+            case xRDFLexer.ID.CLJ_KEYWORD:
+            case xRDFLexer.ID.LITERAL_STRING:
+            case xRDFLexer.ID.LITERAL_CHAR:
+            case xRDFLexer.ID.LITERAL_NIL:
+            case xRDFLexer.ID.LITERAL_TRUE:
+            case xRDFLexer.ID.LITERAL_FALSE:
+            case xRDFLexer.ID.LITERAL_INTEGER:
+            case xRDFLexer.ID.LITERAL_FLOAT:
+            case xRDFLexer.ID.LITERAL_RATIO:
+            case xRDFLexer.ID.LITERAL_ARGUMENT:
+                builder.append(node.getValue());
+                break;
+            case xRDFParser.ID.clj_list:
+                builder.append("( ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append(")");
+                break;
+            case xRDFParser.ID.clj_vector:
+                builder.append("[ ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append("]");
+                break;
+            case xRDFParser.ID.clj_map:
+                builder.append("{ ");
+                for (ASTNode couple : node.getChildren()) {
+                    serializeClojure(builder, couple.getChildren().get(0));
+                    serializeClojure(builder, couple.getChildren().get(1));
+                }
+                builder.append("}");
+                break;
+            case xRDFParser.ID.clj_set:
+                builder.append("#{ ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append("}");
+                break;
+            case xRDFParser.ID.clj_constructor:
+                builder.append("#");
+                serializeClojure(builder, node.getChildren().get(0));
+                serializeClojure(builder, node.getChildren().get(1));
+                break;
+            case xRDFParser.ID.clj_quote:
+                builder.append("'");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_deref:
+                builder.append("@");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_metadata:
+                builder.append("^");
+                serializeClojure(builder, node.getChildren().get(0));
+                serializeClojure(builder, node.getChildren().get(1));
+                break;
+            case xRDFParser.ID.clj_regexp:
+                builder.append("#");
+                builder.append(node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_var_quote:
+                builder.append("#'");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_anon_function:
+                builder.append("#");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_ignore:
+                builder.append("#_");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_syntax_quote:
+                builder.append("`");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_unquote:
+                builder.append("~");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_unquote_splicing:
+                builder.append("~@");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_conditional:
+                builder.append("#?");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            default:
+                throw new Error("Unsupported construct: " + node.getSymbol().getName());
+        }
+        builder.append(" ");
     }
 }

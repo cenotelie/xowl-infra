@@ -106,7 +106,7 @@ public abstract class W3CTestSuite {
             case Repository.SYNTAX_TRIG:
                 return new TriGLoader(store);
             case Repository.SYNTAX_XRDF:
-                return new xRDFLoader(store);
+                return new xRDFLoader(store, null);
         }
         return null;
     }
