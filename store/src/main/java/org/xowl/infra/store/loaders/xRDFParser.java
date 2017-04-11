@@ -745,7 +745,7 @@ class xRDFParser extends LRkParser {
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x016C;
+        public static final int __axiom = 0x016B;
         /**
          * The unique identifier for virtual nil
          */
@@ -969,15 +969,15 @@ class xRDFParser extends LRkParser {
         new Symbol(0x015F, "__V351"), 
         new Symbol(0x0160, "__V352"), 
         new Symbol(0x0161, "__V353"), 
+        new Symbol(0x0162, "__V354"), 
         new Symbol(0x0163, "__V355"), 
         new Symbol(0x0164, "__V356"), 
-        new Symbol(0x0165, "__V357"), 
+        new Symbol(0x0166, "__V358"), 
         new Symbol(0x0167, "__V359"), 
         new Symbol(0x0168, "__V360"), 
         new Symbol(0x0169, "__V361"), 
         new Symbol(0x016A, "__V362"), 
-        new Symbol(0x016B, "__V363"), 
-        new Symbol(0x016C, "__axiom") };
+        new Symbol(0x016B, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *

@@ -109,7 +109,7 @@ grammar xRDF : SPARQL
                                         |  xowl_blank_property_list xowl_predicate_object_list? ;
         xowl_predicate_object_list  -> xowl_verb xowl_object_list (';'! (xowl_verb xowl_object_list)?)* ;
         xowl_object_list            -> xowl_object (','! xowl_object)* ;
-        xowl_verb                   -> xowl_predicate^ | 'a'^ ;
+        xowl_verb                   -> xowl_predicate^ | A^ ;
         xowl_subject                -> iri^ | blank_node^ | xowl_collection^ ;
         xowl_predicate              -> iri^ ;
         xowl_object                 -> iri^ | blank_node^ | xowl_collection^ | xowl_blank_property_list^ | literal^ | xowl_dynamic ;

@@ -22,16 +22,18 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.IRIs;
+import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.GraphPattern;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * Implements a loader of xRDF syntax
@@ -45,6 +47,30 @@ public class xRDFLoader implements Loader {
      * The inner SPARQL loader
      */
     private final SPARQLLoader sparql;
+    /**
+     * Map of the current namespaces
+     */
+    private final Map<String, String> namespaces;
+    /**
+     * The base URI for relative URIs
+     */
+    private String baseURI;
+    /**
+     * The current graph
+     */
+    private GraphNode graph;
+    /**
+     * The cached node for the RDF#type property
+     */
+    private IRINode cacheIsA;
+    /**
+     * The cached node for the literal true node
+     */
+    private LiteralNode cacheTrue;
+    /**
+     * The cached node for the literal false node
+     */
+    private LiteralNode cacheFalse;
 
     /**
      * Initializes this loader
@@ -54,6 +80,7 @@ public class xRDFLoader implements Loader {
     public xRDFLoader(NodeManager store) {
         this.nodes = store;
         this.sparql = new SPARQLLoader(store);
+        this.namespaces = new HashMap<>();
     }
 
     @Override
@@ -84,6 +111,8 @@ public class xRDFLoader implements Loader {
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
         try {
+            baseURI = resourceIRI;
+            graph = nodes.getIRINode(graphIRI);
             return loadDocument(parseResult.getRoot());
         } catch (LoaderException exception) {
             logger.error(exception);
@@ -112,22 +141,21 @@ public class xRDFLoader implements Loader {
     private RDFLoaderResult loadDocument(ASTNode node) throws LoaderException {
         RDFLoaderResult result = new RDFLoaderResult();
         sparql.loadPrologue(node.getChildren().get(0));
+        loadPrologue(node.getChildren().get(0));
         for (ASTNode nodeElement : node.getChildren().get(1).getChildren()) {
             switch (nodeElement.getSymbol().getID()) {
                 case xRDFParser.ID.xowl_triples: {
-                    result.getRules().add(loadRuleSimple(nodeElement));
+                    loadTriples(new SPARQLContext(nodes), nodeElement, graph, result.getQuads());
                     break;
                 }
                 case xRDFParser.ID.xowl_graph_anon: {
-                    result.getRules().add(loadRuleSimple(nodeElement));
+                    loadGraphContent(new SPARQLContext(nodes), nodeElement, graph, result.getQuads());
                     break;
                 }
                 case xRDFParser.ID.xowl_graph_named: {
-                    result.getRules().add(loadRuleSimple(nodeElement));
+                    loadGraphNamed(new SPARQLContext(nodes), nodeElement, result.getQuads());
                     break;
                 }
-
-
                 case xRDFParser.ID.xowl_rule_simple: {
                     result.getRules().add(loadRuleSimple(nodeElement));
                     break;
@@ -141,31 +169,403 @@ public class xRDFLoader implements Loader {
         return result;
     }
 
-
     /**
-     * Loads quads from the specified AST node
+     * Loads the prologue from the corresponding AST node
      *
-     * @param context   The current context
-     * @param node      An AST node
-     * @param graph     The current graph to use
-     * @param positives The buffer of positive quads
-     * @param negatives The buffer of negative quads
+     * @param node The AST node
      */
-    void loadQuadsForTarget(SPARQLContext context, ASTNode node, GraphNode graph, Collection<Quad> positives, Collection<Collection<Quad>> negatives) throws LoaderException {
-        // quads -> triples_template? quads_supp*
+    private void loadPrologue(ASTNode node) {
         for (ASTNode child : node.getChildren()) {
             switch (child.getSymbol().getID()) {
-                case SPARQLParser.ID.triples_template:
-                    loadTriples(context, child, graph, positives, negatives);
+                case xRDFParser.ID.decl_base:
+                    loadBase(child);
                     break;
-                case SPARQLParser.ID.quads_supp:
-                    loadQuadsSupplementary(context, child, graph, positives, negatives);
+                case xRDFParser.ID.decl_prefix:
+                    loadPrefixID(child);
                     break;
             }
         }
     }
 
+    /**
+     * Loads a prefix and its associated namespace represented by the specified AST node
+     *
+     * @param node An AST node
+     */
+    private void loadPrefixID(ASTNode node) {
+        String prefix = node.getChildren().get(0).getValue();
+        String uri = node.getChildren().get(1).getValue();
+        prefix = prefix.substring(0, prefix.length() - 1);
+        uri = TextUtils.unescape(uri.substring(1, uri.length() - 1));
+        namespaces.put(prefix, uri);
+    }
 
+    /**
+     * Loads the base URI represented by the specified AST node
+     *
+     * @param node An AST node
+     */
+    private void loadBase(ASTNode node) {
+        String value = node.getChildren().get(0).getValue();
+        value = TextUtils.unescape(value.substring(1, value.length() - 1));
+        baseURI = URIUtils.resolveRelative(baseURI, value);
+    }
+
+    /**
+     * Loads the content of graph from the specified AST node
+     *
+     * @param context The current context
+     * @param node    An AST node
+     * @param graph   The current graph to use
+     * @param buffer  The buffer of quads
+     * @throws LoaderException When failing to load the input
+     */
+    protected void loadGraphContent(SPARQLContext context, ASTNode node, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
+        for (ASTNode child : node.getChildren())
+            loadTriples(context, child, graph, buffer);
+    }
+
+    /**
+     * Loads a named graph from the specified AST node
+     *
+     * @param context The current context
+     * @param node    An AST node
+     * @param buffer  The buffer of quads
+     * @throws LoaderException When failing to load the input
+     */
+    protected void loadGraphNamed(SPARQLContext context, ASTNode node, Collection<Quad> buffer) throws LoaderException {
+        GraphNode graph = (GraphNode) getNode(node.getChildren().get(0), context, this.graph, buffer);
+        loadGraphContent(context, node.getChildren().get(1), graph, buffer);
+    }
+
+    /**
+     * Loads quads from triples in the specified AST node
+     *
+     * @param context The current context
+     * @param node    An AST node
+     * @param graph   The current graph to use
+     * @param buffer  The buffer of quads
+     */
+    private void loadTriples(SPARQLContext context, ASTNode node, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
+        if (node.getChildren().get(0).getSymbol().getID() == xRDFParser.ID.xowl_blank_property_list) {
+            // the subject is a blank node
+            BlankNode subject = getNodeBlankWithProperties(context, node.getChildren().get(0), graph, buffer);
+            if (node.getChildren().size() > 1)
+                applyProperties(subject, node.getChildren().get(1), context, graph, buffer);
+        } else {
+            Node subject = getNode(node.getChildren().get(0), context, graph, buffer);
+            applyProperties((SubjectNode) subject, node.getChildren().get(1), context, graph, buffer);
+        }
+    }
+
+    /**
+     * Gets the RDF blank node (with its properties) equivalent to the specified AST node
+     *
+     * @param context The current context
+     * @param node    An AST node
+     * @param graph   The current graph to use
+     * @param buffer  The buffer of quads
+     * @return The equivalent RDF blank node
+     */
+    private BlankNode getNodeBlankWithProperties(SPARQLContext context, ASTNode node, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
+        BlankNode subject = nodes.getBlankNode();
+        applyProperties(subject, node, context, graph, buffer);
+        return subject;
+    }
+
+    /**
+     * Applies the RDF verbs and properties described in the specified AST node to the given RDF subject node
+     *
+     * @param subject An RDF subject node
+     * @param node    An AST node
+     * @param context The current context
+     * @param graph   The current graph to use
+     * @param buffer  The buffer of quads
+     */
+    private void applyProperties(SubjectNode subject, ASTNode node, SPARQLContext context, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
+        int index = 0;
+        List<ASTNode> children = node.getChildren();
+        while (index != children.size()) {
+            Property verb = (Property) getNode(children.get(index), context, graph, buffer);
+            for (ASTNode objectNode : children.get(index + 1).getChildren()) {
+                Node object = getNode(objectNode, context, graph, buffer);
+                buffer.add(new Quad(graph, subject, verb, object));
+            }
+            index += 2;
+        }
+    }
+
+    /**
+     * Gets the RDF node equivalent to the specified AST node
+     *
+     * @param node    An AST node
+     * @param context The current context
+     * @param graph   The current graph to use
+     * @param buffer  The buffer of quads
+     * @return The equivalent RDF nodes
+     */
+    private Node getNode(ASTNode node, SPARQLContext context, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
+        switch (node.getSymbol().getID()) {
+            case xRDFLexer.ID.A:
+                return getNodeIsA();
+            case xRDFLexer.ID.IRIREF:
+                return getNodeIRIRef(node);
+            case xRDFLexer.ID.PNAME_LN:
+                return getNodePNameLN(node);
+            case xRDFLexer.ID.PNAME_NS:
+                return getNodePNameNS(node);
+            case xRDFLexer.ID.BLANK_NODE_LABEL:
+                return getNodeBlank(node, context);
+            case xRDFLexer.ID.ANON:
+                return getNodeAnon();
+            case xRDFLexer.ID.TRUE:
+                return getNodeTrue();
+            case xRDFLexer.ID.FALSE:
+                return getNodeFalse();
+            case xRDFLexer.ID.INTEGER:
+                return getNodeInteger(node);
+            case xRDFLexer.ID.DECIMAL:
+                return getNodeDecimal(node);
+            case xRDFLexer.ID.DOUBLE:
+                return getNodeDouble(node);
+            case xRDFParser.ID.literal_rdf:
+                return getNodeLiteral(node);
+            case xRDFParser.ID.xowl_collection:
+                return getNodeCollection(node, context, graph, buffer);
+            case xRDFParser.ID.xowl_blank_property_list:
+                return getNodeBlankWithProperties(context, node, graph, buffer);
+        }
+        throw new LoaderException("Unexpected node " + node.getValue(), node);
+    }
+
+    /**
+     * Gets the RDF IRI node for the RDF type element
+     *
+     * @return The RDF IRI node
+     */
+    private IRINode getNodeIsA() {
+        if (cacheIsA == null)
+            cacheIsA = nodes.getIRINode(Vocabulary.rdfType);
+        return cacheIsA;
+    }
+
+    /**
+     * Gets the RDF IRI node equivalent to the specified AST node
+     *
+     * @param node An AST node
+     * @return The equivalent RDF IRI node
+     */
+    private IRINode getNodeIRIRef(ASTNode node) {
+        String value = node.getValue();
+        value = TextUtils.unescape(value.substring(1, value.length() - 1));
+        return nodes.getIRINode(URIUtils.resolveRelative(baseURI, value));
+    }
+
+    /**
+     * Gets the RDF IRI node equivalent to the specified AST node (local name)
+     *
+     * @param node An AST node
+     * @return The equivalent RDF IRI node
+     */
+    private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
+        String value = node.getValue();
+        return nodes.getIRINode(getIRIForLocalName(node, value));
+    }
+
+    /**
+     * Gets the RDF IRI node equivalent to the specified AST node (namespace)
+     *
+     * @param node An AST node
+     * @return The equivalent RDF IRI node
+     */
+    private IRINode getNodePNameNS(ASTNode node) {
+        String value = node.getValue();
+        value = TextUtils.unescape(value.substring(0, value.length() - 1));
+        value = namespaces.get(value);
+        return nodes.getIRINode(value);
+    }
+
+    /**
+     * Gets the RDF blank node equivalent to the specified AST node
+     *
+     * @param node    An AST node
+     * @param context The current context
+     * @return The equivalent RDF blank node
+     */
+    private Node getNodeBlank(ASTNode node, SPARQLContext context) {
+        String value = node.getValue();
+        value = TextUtils.unescape(value.substring(2));
+        return context.resolveBlankNode(value);
+    }
+
+    /**
+     * Gets a new (anonymous) blank node
+     *
+     * @return A new blank node
+     */
+    private BlankNode getNodeAnon() {
+        return nodes.getBlankNode();
+    }
+
+    /**
+     * Gets the RDF Literal node for the boolean true value
+     *
+     * @return The RDF Literal node
+     */
+    private LiteralNode getNodeTrue() {
+        if (cacheTrue == null)
+            cacheTrue = nodes.getLiteralNode("true", Vocabulary.xsdBoolean, null);
+        return cacheTrue;
+    }
+
+    /**
+     * Gets the RDF Literal node for the boolean false value
+     *
+     * @return The RDF Literal node
+     */
+    private LiteralNode getNodeFalse() {
+        if (cacheFalse == null)
+            cacheFalse = nodes.getLiteralNode("false", Vocabulary.xsdBoolean, null);
+        return cacheFalse;
+    }
+
+    /**
+     * Gets the RDF Integer Literal equivalent to the specified AST node
+     *
+     * @param node An AST node
+     * @return The equivalent RDF Integer Literal node
+     */
+    private LiteralNode getNodeInteger(ASTNode node) {
+        String value = node.getValue();
+        return nodes.getLiteralNode(value, Vocabulary.xsdInteger, null);
+    }
+
+    /**
+     * Gets the RDF Decimal Literal equivalent to the specified AST node
+     *
+     * @param node An AST node
+     * @return The equivalent RDF Decimal Literal node
+     */
+    private LiteralNode getNodeDecimal(ASTNode node) {
+        String value = node.getValue();
+        return nodes.getLiteralNode(value, Vocabulary.xsdDecimal, null);
+    }
+
+    /**
+     * Gets the RDF Double Literal equivalent to the specified AST node
+     *
+     * @param node An AST node
+     * @return The equivalent RDF Double Literal node
+     */
+    private LiteralNode getNodeDouble(ASTNode node) {
+        String value = node.getValue();
+        return nodes.getLiteralNode(value, Vocabulary.xsdDouble, null);
+    }
+
+    /**
+     * Gets the RDF Literal node equivalent to the specified AST node
+     *
+     * @param node An AST node
+     * @return The equivalent RDF Literal node
+     */
+    private LiteralNode getNodeLiteral(ASTNode node) throws LoaderException {
+        // Compute the lexical value
+        String value = null;
+        ASTNode childString = node.getChildren().get(0);
+        switch (childString.getSymbol().getID()) {
+            case xRDFLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
+            case xRDFLexer.ID.STRING_LITERAL_QUOTE:
+                value = childString.getValue();
+                value = value.substring(1, value.length() - 1);
+                value = TextUtils.unescape(value);
+                break;
+            case xRDFLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
+            case xRDFLexer.ID.STRING_LITERAL_LONG_QUOTE:
+                value = childString.getValue();
+                value = value.substring(3, value.length() - 3);
+                value = TextUtils.unescape(value);
+                break;
+        }
+
+        // No suffix, this is a naked string
+        if (node.getChildren().size() <= 1)
+            return nodes.getLiteralNode(value, Vocabulary.xsdString, null);
+
+        ASTNode suffixChild = node.getChildren().get(1);
+        if (suffixChild.getSymbol().getID() == xRDFLexer.ID.LANGTAG) {
+            // This is a language-tagged string
+            String tag = suffixChild.getValue();
+            return nodes.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
+        } else if (suffixChild.getSymbol().getID() == xRDFLexer.ID.IRIREF) {
+            // Datatype is specified with an IRI
+            String iri = suffixChild.getValue();
+            iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
+            return nodes.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
+        } else if (suffixChild.getSymbol().getID() == xRDFLexer.ID.PNAME_LN) {
+            // Datatype is specified with a local name
+            String local = getIRIForLocalName(suffixChild, suffixChild.getValue());
+            return nodes.getLiteralNode(value, local, null);
+        } else if (suffixChild.getSymbol().getID() == xRDFLexer.ID.PNAME_NS) {
+            // Datatype is specified with a namespace
+            String ns = suffixChild.getValue();
+            ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
+            ns = namespaces.get(ns);
+            return nodes.getLiteralNode(value, ns, null);
+        }
+        throw new LoaderException("Unexpected node " + node.getValue(), node);
+    }
+
+    /**
+     * Gets the RDF list node equivalent to the specified AST node representing a collection of RDF nodes
+     *
+     * @param node    An AST node
+     * @param context The current context
+     * @param graph   The current graph to use
+     * @param buffer  The buffer of quads
+     * @return A RDF list node
+     */
+    private Node getNodeCollection(ASTNode node, SPARQLContext context, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
+        List<Node> elements = new ArrayList<>();
+        for (ASTNode child : node.getChildren())
+            elements.add(getNode(child, context, graph, buffer));
+        if (elements.isEmpty())
+            return nodes.getIRINode(Vocabulary.rdfNil);
+
+        BlankNode[] proxies = new BlankNode[elements.size()];
+        for (int i = 0; i != proxies.length; i++) {
+            proxies[i] = nodes.getBlankNode();
+            buffer.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
+        }
+        for (int i = 0; i != proxies.length - 1; i++) {
+            buffer.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
+        }
+        buffer.add(new Quad(graph, proxies[proxies.length - 1], nodes.getIRINode(Vocabulary.rdfRest), nodes.getIRINode(Vocabulary.rdfNil)));
+        return proxies[0];
+    }
+
+    /**
+     * Gets the full IRI for the specified escaped local name
+     *
+     * @param node  The parent ASt node
+     * @param value An escaped local name
+     * @return The equivalent full IRI
+     */
+    private String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
+        value = TextUtils.unescape(value);
+        int index = 0;
+        while (index != value.length()) {
+            if (value.charAt(index) == ':') {
+                String prefix = value.substring(0, index);
+                String uri = namespaces.get(prefix);
+                if (uri != null) {
+                    String name = value.substring(index + 1);
+                    return URIUtils.resolveRelative(baseURI, uri + name);
+                }
+            }
+            index++;
+        }
+        throw new LoaderException("Failed to resolve local name " + value, node);
+    }
 
 
     /**
