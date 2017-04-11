@@ -344,6 +344,10 @@ class xRDFLexer extends ContextSensitiveLexer {
          */
         public static final int MOVE = 0x004C;
         /**
+         * The unique identifier for terminal META
+         */
+        public static final int META = 0x0135;
+        /**
          * The unique identifier for terminal LITERAL_FALSE
          */
         public static final int LITERAL_FALSE = 0x011C;
@@ -568,7 +572,7 @@ class xRDFLexer extends ContextSensitiveLexer {
         new Symbol(0x001F, "OP_BOR"),
         new Symbol(0x0020, "OP_BAND"),
         new Symbol(0x0023, "OP_NEQ"),
-        new Symbol(0x0165, "=>"),
+        new Symbol(0x0167, "=>"),
         new Symbol(0x0027, "OP_GEQ"),
         new Symbol(0x0012, "VARIABLE"),
         new Symbol(0x0112, "^^"),
@@ -606,6 +610,7 @@ class xRDFLexer extends ContextSensitiveLexer {
         new Symbol(0x0047, "LOAD"),
         new Symbol(0x0046, "INTO"),
         new Symbol(0x004C, "MOVE"),
+        new Symbol(0x0135, "META"),
         new Symbol(0x011C, "LITERAL_FALSE"),
         new Symbol(0x002D, "FALSE"),
         new Symbol(0x0036, "WHERE"),

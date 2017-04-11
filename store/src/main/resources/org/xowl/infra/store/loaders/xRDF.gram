@@ -94,6 +94,7 @@ grammar xRDF : SPARQL
             XOWL_OPAQUE_EXP         -> '$';
         }
         RULE                        -> ~'rule';
+        META                        -> ~'meta';
     }
     rules
     {
@@ -104,15 +105,16 @@ grammar xRDF : SPARQL
                                         | xowl_graph_anon^
                                         | xowl_graph_named^;
         xowl_graph_anon             -> '{'! (xowl_triples ('.'! xowl_triples)* ('.'!)?)? '}'! ;
-        xowl_graph_named            -> (GRAPH!)? (iri | blank_node) xowl_graph_anon ;
+        xowl_graph_named            -> (GRAPH!)? xowl_graph_node xowl_graph_anon ;
         xowl_triples                -> xowl_subject xowl_predicate_object_list
                                         |  xowl_blank_property_list xowl_predicate_object_list? ;
         xowl_predicate_object_list  -> xowl_verb xowl_object_list (';'! (xowl_verb xowl_object_list)?)* ;
         xowl_object_list            -> xowl_object (','! xowl_object)* ;
         xowl_verb                   -> xowl_predicate^ | A^ ;
-        xowl_subject                -> iri^ | blank_node^ | xowl_collection^ ;
-        xowl_predicate              -> iri^ ;
-        xowl_object                 -> iri^ | blank_node^ | xowl_collection^ | xowl_blank_property_list^ | literal^ | xowl_dynamic ;
+        xowl_subject                -> iri^ | blank_node^ | xowl_collection^ | xowl_dynamic^ ;
+        xowl_predicate              -> iri^ | xowl_dynamic^ ;
+        xowl_object                 -> iri^ | blank_node^ | xowl_collection^ | xowl_blank_property_list^ | literal^ | xowl_dynamic^ ;
+        xowl_graph_node             -> iri^ | blank_node^ | xowl_dynamic^ ;
         xowl_blank_property_list    -> '['! xowl_predicate_object_list^ ']'! ;
         xowl_collection             -> '('! xowl_object* ')'! ;
         xowl_dynamic                -> #xowl { XOWL_OPAQUE_EXP^ } #clojure{ clj_form } ;
@@ -122,7 +124,9 @@ grammar xRDF : SPARQL
         xowl_rule_sparql            -> RULE! xowl_rule_mod iri '{'! sub_select '}'! '=>'! '{'! xowl_rule_parts '}'! ;
         xowl_rule_mod               -> DISTINCT? ;
         xowl_rule_parts             -> xowl_rule_part* ;
-        xowl_rule_part              -> xowl_data^ | NOT^ xowl_data ;
+        xowl_rule_part              -> xowl_data
+                                        | META NOT? xowl_data
+                                        | NOT META? xowl_data ;
 
 
         /*

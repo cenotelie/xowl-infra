@@ -581,171 +581,175 @@ class xRDFParser extends LRkParser {
         /**
          * The unique identifier for variable document
          */
-        public static final int document = 0x0135;
+        public static final int document = 0x0136;
         /**
          * The unique identifier for variable xowl_statements
          */
-        public static final int xowl_statements = 0x0136;
+        public static final int xowl_statements = 0x0137;
         /**
          * The unique identifier for variable xowl_statement
          */
-        public static final int xowl_statement = 0x0137;
+        public static final int xowl_statement = 0x0138;
         /**
          * The unique identifier for variable xowl_data
          */
-        public static final int xowl_data = 0x0138;
+        public static final int xowl_data = 0x0139;
         /**
          * The unique identifier for variable xowl_graph_anon
          */
-        public static final int xowl_graph_anon = 0x0139;
+        public static final int xowl_graph_anon = 0x013A;
         /**
          * The unique identifier for variable xowl_graph_named
          */
-        public static final int xowl_graph_named = 0x013A;
+        public static final int xowl_graph_named = 0x013B;
         /**
          * The unique identifier for variable xowl_triples
          */
-        public static final int xowl_triples = 0x013B;
+        public static final int xowl_triples = 0x013C;
         /**
          * The unique identifier for variable xowl_predicate_object_list
          */
-        public static final int xowl_predicate_object_list = 0x013C;
+        public static final int xowl_predicate_object_list = 0x013D;
         /**
          * The unique identifier for variable xowl_object_list
          */
-        public static final int xowl_object_list = 0x013D;
+        public static final int xowl_object_list = 0x013E;
         /**
          * The unique identifier for variable xowl_verb
          */
-        public static final int xowl_verb = 0x013E;
+        public static final int xowl_verb = 0x013F;
         /**
          * The unique identifier for variable xowl_subject
          */
-        public static final int xowl_subject = 0x013F;
+        public static final int xowl_subject = 0x0140;
         /**
          * The unique identifier for variable xowl_predicate
          */
-        public static final int xowl_predicate = 0x0140;
+        public static final int xowl_predicate = 0x0141;
         /**
          * The unique identifier for variable xowl_object
          */
-        public static final int xowl_object = 0x0141;
+        public static final int xowl_object = 0x0142;
+        /**
+         * The unique identifier for variable xowl_graph_node
+         */
+        public static final int xowl_graph_node = 0x0143;
         /**
          * The unique identifier for variable xowl_blank_property_list
          */
-        public static final int xowl_blank_property_list = 0x0142;
+        public static final int xowl_blank_property_list = 0x0144;
         /**
          * The unique identifier for variable xowl_collection
          */
-        public static final int xowl_collection = 0x0143;
+        public static final int xowl_collection = 0x0145;
         /**
          * The unique identifier for variable xowl_dynamic
          */
-        public static final int xowl_dynamic = 0x0144;
+        public static final int xowl_dynamic = 0x0146;
         /**
          * The unique identifier for variable xowl_rule
          */
-        public static final int xowl_rule = 0x0145;
+        public static final int xowl_rule = 0x0147;
         /**
          * The unique identifier for variable xowl_rule_simple
          */
-        public static final int xowl_rule_simple = 0x0146;
+        public static final int xowl_rule_simple = 0x0148;
         /**
          * The unique identifier for variable xowl_rule_sparql
          */
-        public static final int xowl_rule_sparql = 0x0147;
+        public static final int xowl_rule_sparql = 0x0149;
         /**
          * The unique identifier for variable xowl_rule_mod
          */
-        public static final int xowl_rule_mod = 0x0148;
+        public static final int xowl_rule_mod = 0x014A;
         /**
          * The unique identifier for variable xowl_rule_parts
          */
-        public static final int xowl_rule_parts = 0x0149;
+        public static final int xowl_rule_parts = 0x014B;
         /**
          * The unique identifier for variable xowl_rule_part
          */
-        public static final int xowl_rule_part = 0x014A;
+        public static final int xowl_rule_part = 0x014C;
         /**
          * The unique identifier for variable clj_atom
          */
-        public static final int clj_atom = 0x014B;
+        public static final int clj_atom = 0x014D;
         /**
          * The unique identifier for variable clj_list
          */
-        public static final int clj_list = 0x014C;
+        public static final int clj_list = 0x014E;
         /**
          * The unique identifier for variable clj_vector
          */
-        public static final int clj_vector = 0x014D;
+        public static final int clj_vector = 0x014F;
         /**
          * The unique identifier for variable clj_map
          */
-        public static final int clj_map = 0x014E;
+        public static final int clj_map = 0x0150;
         /**
          * The unique identifier for variable clj_couple
          */
-        public static final int clj_couple = 0x014F;
+        public static final int clj_couple = 0x0151;
         /**
          * The unique identifier for variable clj_set
          */
-        public static final int clj_set = 0x0150;
+        public static final int clj_set = 0x0152;
         /**
          * The unique identifier for variable clj_constructor
          */
-        public static final int clj_constructor = 0x0151;
+        public static final int clj_constructor = 0x0153;
         /**
          * The unique identifier for variable clj_quote
          */
-        public static final int clj_quote = 0x0152;
+        public static final int clj_quote = 0x0154;
         /**
          * The unique identifier for variable clj_deref
          */
-        public static final int clj_deref = 0x0153;
+        public static final int clj_deref = 0x0155;
         /**
          * The unique identifier for variable clj_metadata
          */
-        public static final int clj_metadata = 0x0154;
+        public static final int clj_metadata = 0x0156;
         /**
          * The unique identifier for variable clj_regexp
          */
-        public static final int clj_regexp = 0x0155;
+        public static final int clj_regexp = 0x0157;
         /**
          * The unique identifier for variable clj_var_quote
          */
-        public static final int clj_var_quote = 0x0156;
+        public static final int clj_var_quote = 0x0158;
         /**
          * The unique identifier for variable clj_anon_function
          */
-        public static final int clj_anon_function = 0x0157;
+        public static final int clj_anon_function = 0x0159;
         /**
          * The unique identifier for variable clj_ignore
          */
-        public static final int clj_ignore = 0x0158;
+        public static final int clj_ignore = 0x015A;
         /**
          * The unique identifier for variable clj_syntax_quote
          */
-        public static final int clj_syntax_quote = 0x0159;
+        public static final int clj_syntax_quote = 0x015B;
         /**
          * The unique identifier for variable clj_unquote
          */
-        public static final int clj_unquote = 0x015A;
+        public static final int clj_unquote = 0x015C;
         /**
          * The unique identifier for variable clj_unquote_splicing
          */
-        public static final int clj_unquote_splicing = 0x015B;
+        public static final int clj_unquote_splicing = 0x015D;
         /**
          * The unique identifier for variable clj_conditional
          */
-        public static final int clj_conditional = 0x015C;
+        public static final int clj_conditional = 0x015E;
         /**
          * The unique identifier for variable clj_form
          */
-        public static final int clj_form = 0x015D;
+        public static final int clj_form = 0x015F;
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x016B;
+        public static final int __axiom = 0x016D;
         /**
          * The unique identifier for virtual nil
          */
@@ -924,60 +928,61 @@ class xRDFParser extends LRkParser {
         new Symbol(0x010E, "__V270"), 
         new Symbol(0x010F, "__V271"), 
         new Symbol(0x0111, "__V273"), 
-        new Symbol(0x0135, "document"), 
-        new Symbol(0x0136, "xowl_statements"), 
-        new Symbol(0x0137, "xowl_statement"), 
-        new Symbol(0x0138, "xowl_data"), 
-        new Symbol(0x0139, "xowl_graph_anon"), 
-        new Symbol(0x013A, "xowl_graph_named"), 
-        new Symbol(0x013B, "xowl_triples"), 
-        new Symbol(0x013C, "xowl_predicate_object_list"), 
-        new Symbol(0x013D, "xowl_object_list"), 
-        new Symbol(0x013E, "xowl_verb"), 
-        new Symbol(0x013F, "xowl_subject"), 
-        new Symbol(0x0140, "xowl_predicate"), 
-        new Symbol(0x0141, "xowl_object"), 
-        new Symbol(0x0142, "xowl_blank_property_list"), 
-        new Symbol(0x0143, "xowl_collection"), 
-        new Symbol(0x0144, "xowl_dynamic"), 
-        new Symbol(0x0145, "xowl_rule"), 
-        new Symbol(0x0146, "xowl_rule_simple"), 
-        new Symbol(0x0147, "xowl_rule_sparql"), 
-        new Symbol(0x0148, "xowl_rule_mod"), 
-        new Symbol(0x0149, "xowl_rule_parts"), 
-        new Symbol(0x014A, "xowl_rule_part"), 
-        new Symbol(0x014B, "clj_atom"), 
-        new Symbol(0x014C, "clj_list"), 
-        new Symbol(0x014D, "clj_vector"), 
-        new Symbol(0x014E, "clj_map"), 
-        new Symbol(0x014F, "clj_couple"), 
-        new Symbol(0x0150, "clj_set"), 
-        new Symbol(0x0151, "clj_constructor"), 
-        new Symbol(0x0152, "clj_quote"), 
-        new Symbol(0x0153, "clj_deref"), 
-        new Symbol(0x0154, "clj_metadata"), 
-        new Symbol(0x0155, "clj_regexp"), 
-        new Symbol(0x0156, "clj_var_quote"), 
-        new Symbol(0x0157, "clj_anon_function"), 
-        new Symbol(0x0158, "clj_ignore"), 
-        new Symbol(0x0159, "clj_syntax_quote"), 
-        new Symbol(0x015A, "clj_unquote"), 
-        new Symbol(0x015B, "clj_unquote_splicing"), 
-        new Symbol(0x015C, "clj_conditional"), 
-        new Symbol(0x015D, "clj_form"), 
-        new Symbol(0x015E, "__V350"), 
-        new Symbol(0x015F, "__V351"), 
+        new Symbol(0x0136, "document"), 
+        new Symbol(0x0137, "xowl_statements"), 
+        new Symbol(0x0138, "xowl_statement"), 
+        new Symbol(0x0139, "xowl_data"), 
+        new Symbol(0x013A, "xowl_graph_anon"), 
+        new Symbol(0x013B, "xowl_graph_named"), 
+        new Symbol(0x013C, "xowl_triples"), 
+        new Symbol(0x013D, "xowl_predicate_object_list"), 
+        new Symbol(0x013E, "xowl_object_list"), 
+        new Symbol(0x013F, "xowl_verb"), 
+        new Symbol(0x0140, "xowl_subject"), 
+        new Symbol(0x0141, "xowl_predicate"), 
+        new Symbol(0x0142, "xowl_object"), 
+        new Symbol(0x0143, "xowl_graph_node"), 
+        new Symbol(0x0144, "xowl_blank_property_list"), 
+        new Symbol(0x0145, "xowl_collection"), 
+        new Symbol(0x0146, "xowl_dynamic"), 
+        new Symbol(0x0147, "xowl_rule"), 
+        new Symbol(0x0148, "xowl_rule_simple"), 
+        new Symbol(0x0149, "xowl_rule_sparql"), 
+        new Symbol(0x014A, "xowl_rule_mod"), 
+        new Symbol(0x014B, "xowl_rule_parts"), 
+        new Symbol(0x014C, "xowl_rule_part"), 
+        new Symbol(0x014D, "clj_atom"), 
+        new Symbol(0x014E, "clj_list"), 
+        new Symbol(0x014F, "clj_vector"), 
+        new Symbol(0x0150, "clj_map"), 
+        new Symbol(0x0151, "clj_couple"), 
+        new Symbol(0x0152, "clj_set"), 
+        new Symbol(0x0153, "clj_constructor"), 
+        new Symbol(0x0154, "clj_quote"), 
+        new Symbol(0x0155, "clj_deref"), 
+        new Symbol(0x0156, "clj_metadata"), 
+        new Symbol(0x0157, "clj_regexp"), 
+        new Symbol(0x0158, "clj_var_quote"), 
+        new Symbol(0x0159, "clj_anon_function"), 
+        new Symbol(0x015A, "clj_ignore"), 
+        new Symbol(0x015B, "clj_syntax_quote"), 
+        new Symbol(0x015C, "clj_unquote"), 
+        new Symbol(0x015D, "clj_unquote_splicing"), 
+        new Symbol(0x015E, "clj_conditional"), 
+        new Symbol(0x015F, "clj_form"), 
         new Symbol(0x0160, "__V352"), 
         new Symbol(0x0161, "__V353"), 
         new Symbol(0x0162, "__V354"), 
         new Symbol(0x0163, "__V355"), 
         new Symbol(0x0164, "__V356"), 
+        new Symbol(0x0165, "__V357"), 
         new Symbol(0x0166, "__V358"), 
-        new Symbol(0x0167, "__V359"), 
         new Symbol(0x0168, "__V360"), 
         new Symbol(0x0169, "__V361"), 
         new Symbol(0x016A, "__V362"), 
-        new Symbol(0x016B, "__axiom") };
+        new Symbol(0x016B, "__V363"), 
+        new Symbol(0x016C, "__V364"), 
+        new Symbol(0x016D, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *

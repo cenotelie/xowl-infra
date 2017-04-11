@@ -144,6 +144,7 @@ public class xRDFLoader implements Loader {
      *
      * @param node An AST node
      * @return The loaded elements
+     * @throws LoaderException When failing to load the input
      */
     private RDFLoaderResult loadDocument(ASTNode node) throws LoaderException {
         RDFLoaderResult result = new RDFLoaderResult();
@@ -252,6 +253,7 @@ public class xRDFLoader implements Loader {
      * @param node    An AST node
      * @param graph   The current graph to use
      * @param buffer  The buffer of quads
+     * @throws LoaderException When failing to load the input
      */
     private void loadTriples(SPARQLContext context, ASTNode node, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
         if (node.getChildren().get(0).getSymbol().getID() == xRDFParser.ID.xowl_blank_property_list) {
@@ -273,6 +275,7 @@ public class xRDFLoader implements Loader {
      * @param graph   The current graph to use
      * @param buffer  The buffer of quads
      * @return The equivalent RDF blank node
+     * @throws LoaderException When failing to load the input
      */
     private BlankNode getNodeBlankWithProperties(SPARQLContext context, ASTNode node, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
         BlankNode subject = nodes.getBlankNode();
@@ -288,6 +291,7 @@ public class xRDFLoader implements Loader {
      * @param context The current context
      * @param graph   The current graph to use
      * @param buffer  The buffer of quads
+     * @throws LoaderException When failing to load the input
      */
     private void applyProperties(SubjectNode subject, ASTNode node, SPARQLContext context, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
         int index = 0;
@@ -310,6 +314,7 @@ public class xRDFLoader implements Loader {
      * @param graph   The current graph to use
      * @param buffer  The buffer of quads
      * @return The equivalent RDF nodes
+     * @throws LoaderException When failing to load the input
      */
     private Node getNode(ASTNode node, SPARQLContext context, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
         switch (node.getSymbol().getID()) {
@@ -375,6 +380,7 @@ public class xRDFLoader implements Loader {
      *
      * @param node An AST node
      * @return The equivalent RDF IRI node
+     * @throws LoaderException When failing to load the input
      */
     private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
         String value = node.getValue();
@@ -476,6 +482,7 @@ public class xRDFLoader implements Loader {
      *
      * @param node An AST node
      * @return The equivalent RDF Literal node
+     * @throws LoaderException When failing to load the input
      */
     private LiteralNode getNodeLiteral(ASTNode node) throws LoaderException {
         // Compute the lexical value
@@ -542,6 +549,7 @@ public class xRDFLoader implements Loader {
      * @param graph   The current graph to use
      * @param buffer  The buffer of quads
      * @return A RDF list node
+     * @throws LoaderException When failing to load the input
      */
     private Node getNodeCollection(ASTNode node, SPARQLContext context, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
         List<Node> elements = new ArrayList<>();
@@ -568,6 +576,7 @@ public class xRDFLoader implements Loader {
      * @param node  The parent ASt node
      * @param value An escaped local name
      * @return The equivalent full IRI
+     * @throws LoaderException When failing to load the input
      */
     private String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
         value = TextUtils.unescape(value);
@@ -591,6 +600,7 @@ public class xRDFLoader implements Loader {
      *
      * @param node The AST node
      * @return The loaded rule
+     * @throws LoaderException When failing to load the input
      */
     private RDFRule loadRuleSimple(ASTNode node) throws LoaderException {
         // initial context setup
@@ -600,19 +610,23 @@ public class xRDFLoader implements Loader {
         boolean isDistinct = (node.getChildren().get(0).getChildren().size() > 0);
         String iri = sparql.getNodeIRI(node.getChildren().get(1)).getIRIValue();
         RDFRuleSimple result = new RDFRuleSimple(iri, isDistinct);
+
         // load the antecedents
         Collection<Quad> positives = new ArrayList<>();
         Collection<Collection<Quad>> negatives = new ArrayList<>();
-        sparql.loadQuadsForTarget(context, node.getChildren().get(2), graph, positives, negatives);
+        for (ASTNode part : node.getChildren().get(2).getChildren())
+            loadRulePart(context, part, graph, positives, negatives);
         for (Quad quad : positives)
             result.addAntecedentPositive(quad);
         for (Collection<Quad> conjunction : negatives)
             result.addAntecedentNegatives(conjunction);
         positives.clear();
         negatives.clear();
+
         // load the consequents
         graph = nodes.getIRINode(IRIs.GRAPH_INFERENCE);
-        sparql.loadQuadsForTarget(context, node.getChildren().get(3), graph, positives, negatives);
+        for (ASTNode part : node.getChildren().get(3).getChildren())
+            loadRulePart(context, part, graph, positives, negatives);
         for (Quad quad : positives)
             result.addConsequentPositive(quad);
         for (Collection<Quad> conjunction : negatives)
@@ -626,6 +640,7 @@ public class xRDFLoader implements Loader {
      *
      * @param node The AST node
      * @return The loaded rule
+     * @throws LoaderException When failing to load the input
      */
     private RDFRule loadRuleSPARQL(ASTNode node) throws LoaderException {
         // initial context setup
@@ -633,20 +648,62 @@ public class xRDFLoader implements Loader {
         GraphNode graph = (GraphNode) context.resolveVariable("__graph");
         // load basic info
         String iri = sparql.getNodeIRI(node.getChildren().get(1)).getIRIValue();
+
         // load the antecedents
         GraphPattern pattern = sparql.loadGraphPatternSubSelect(context, graph, node.getChildren().get(2));
         RDFRuleSelect result = new RDFRuleSelect(iri, pattern);
+
         // load the consequents
         Collection<Quad> positives = new ArrayList<>();
         Collection<Collection<Quad>> negatives = new ArrayList<>();
         graph = nodes.getIRINode(IRIs.GRAPH_INFERENCE);
-        sparql.loadQuadsForTarget(context, node.getChildren().get(3), graph, positives, negatives);
+        for (ASTNode part : node.getChildren().get(3).getChildren())
+            loadRulePart(context, part, graph, positives, negatives);
         for (Quad quad : positives)
             result.addConsequentPositive(quad);
         for (Collection<Quad> conjunction : negatives)
             for (Quad quad : conjunction)
                 result.addConsequentNegative(quad);
         return result;
+    }
+
+    /**
+     * Loads a part of a rule
+     *
+     * @param context   The current context
+     * @param node      The AST node to load from
+     * @param graph     The current graph
+     * @param positives The buffer of positive quads
+     * @param negatives The buffer of negative quads
+     * @throws LoaderException When failing to load the input
+     */
+    private void loadRulePart(SPARQLContext context, ASTNode node, GraphNode graph, Collection<Quad> positives, Collection<Collection<Quad>> negatives) throws LoaderException {
+        Collection<Quad> buffer = positives;
+        for (ASTNode child : node.getChildren()) {
+            switch (child.getSymbol().getID()) {
+                case xRDFLexer.ID.NOT: {
+                    buffer = new ArrayList<>();
+                    negatives.add(buffer);
+                    break;
+                }
+                case xRDFLexer.ID.META: {
+                    graph = nodes.getIRINode(IRIs.GRAPH_META);
+                    break;
+                }
+                case xRDFParser.ID.xowl_triples: {
+                    loadTriples(context, child, graph, buffer);
+                    break;
+                }
+                case xRDFParser.ID.xowl_graph_anon: {
+                    loadGraphContent(context, child, graph, buffer);
+                    break;
+                }
+                case xRDFParser.ID.xowl_graph_named: {
+                    loadGraphNamed(context, child, buffer);
+                    break;
+                }
+            }
+        }
     }
 
     /**
