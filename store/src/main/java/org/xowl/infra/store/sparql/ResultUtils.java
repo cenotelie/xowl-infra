@@ -53,34 +53,40 @@ public class ResultUtils {
      * Coerce the content type of a SPARQL response depending on the result type
      *
      * @param result The SPARQL result
-     * @param type   The negotiated content type
+     * @param types  The negotiated content types
      * @return The coerced content type
      */
-    public static String coerceContentType(Result result, String type) {
+    public static String coerceContentType(Result result, List<String> types) {
         if (result instanceof ResultQuads) {
-            switch (type) {
-                case Repository.SYNTAX_NTRIPLES:
-                case Repository.SYNTAX_NQUADS:
-                case Repository.SYNTAX_TURTLE:
-                case Repository.SYNTAX_TRIG:
-                case Repository.SYNTAX_RDFXML:
-                case Repository.SYNTAX_JSON_LD:
-                case Repository.SYNTAX_XRDF:
-                case HttpConstants.MIME_JSON:
-                    return type;
-                default:
-                    return Repository.SYNTAX_NQUADS;
+            if (types == null)
+                return Repository.SYNTAX_NQUADS;
+            for (String type : types) {
+                switch (type) {
+                    case Repository.SYNTAX_NTRIPLES:
+                    case Repository.SYNTAX_NQUADS:
+                    case Repository.SYNTAX_TURTLE:
+                    case Repository.SYNTAX_TRIG:
+                    case Repository.SYNTAX_RDFXML:
+                    case Repository.SYNTAX_JSON_LD:
+                    case Repository.SYNTAX_XRDF:
+                    case HttpConstants.MIME_JSON:
+                        return type;
+                }
             }
+            return Repository.SYNTAX_NQUADS;
         } else {
-            switch (type) {
-                case Result.SYNTAX_CSV:
-                case Result.SYNTAX_TSV:
-                case Result.SYNTAX_XML:
-                case Result.SYNTAX_JSON:
-                    return type;
-                default:
-                    return Result.SYNTAX_JSON;
+            if (types == null)
+                return Result.SYNTAX_JSON;
+            for (String type : types) {
+                switch (type) {
+                    case Result.SYNTAX_CSV:
+                    case Result.SYNTAX_TSV:
+                    case Result.SYNTAX_XML:
+                    case Result.SYNTAX_JSON:
+                        return type;
+                }
             }
+            return Result.SYNTAX_JSON;
         }
     }
 

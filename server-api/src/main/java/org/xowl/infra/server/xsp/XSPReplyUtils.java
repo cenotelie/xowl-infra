@@ -80,7 +80,7 @@ public class XSPReplyUtils {
             // special handling for SPARQL
             Result sparqlResult = (Result) ((XSPReplyResult) reply).getData();
             if (sparqlResult.isSuccess()) {
-                String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes != null ? httpNegotiateContentType(acceptTypes) : Repository.SYNTAX_NQUADS);
+                String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes);
                 StringWriter writer = new StringWriter();
                 try {
                     sparqlResult.print(writer, resultType);
@@ -345,35 +345,6 @@ public class XSPReplyUtils {
             return new XSPReplySuccess(message);
         else
             return new XSPReplyFailure(message);
-    }
-
-    /**
-     * Negotiates the content type from the specified requested ones
-     *
-     * @param contentTypes The requested content types by order of preference
-     * @return The accepted content type
-     */
-    public static String httpNegotiateContentType(List<String> contentTypes) {
-        for (String contentType : contentTypes) {
-            switch (contentType) {
-                // The SPARQL result syntaxes
-                case Result.SYNTAX_CSV:
-                case Result.SYNTAX_TSV:
-                case Result.SYNTAX_XML:
-                case Result.SYNTAX_JSON:
-                    // The RDF syntaxes for quads
-                case Repository.SYNTAX_NTRIPLES:
-                case Repository.SYNTAX_NQUADS:
-                case Repository.SYNTAX_TURTLE:
-                case Repository.SYNTAX_TRIG:
-                case Repository.SYNTAX_RDFXML:
-                case Repository.SYNTAX_JSON_LD:
-                case Repository.SYNTAX_XRDF:
-                case HttpConstants.MIME_JSON:
-                    return contentType;
-            }
-        }
-        return Repository.SYNTAX_NQUADS;
     }
 
     /**
