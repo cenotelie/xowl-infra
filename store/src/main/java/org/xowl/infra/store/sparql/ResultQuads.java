@@ -17,14 +17,13 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.writers.*;
 import org.xowl.infra.utils.http.HttpConstants;
-import org.xowl.infra.utils.logging.SinkLogger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,54 +69,16 @@ public class ResultQuads implements Result {
 
     @Override
     public void print(Writer writer, String syntax) throws IOException {
-        RDFSerializer serializer;
-        switch (syntax) {
-            case Repository.SYNTAX_NTRIPLES:
-                serializer = new NTripleSerializer(writer);
-                break;
-            case Repository.SYNTAX_NQUADS:
-                serializer = new NQuadsSerializer(writer);
-                break;
-            case Repository.SYNTAX_TURTLE:
-                serializer = new TurtleSerializer(writer);
-                break;
-            case Repository.SYNTAX_TRIG:
-                serializer = new TriGSerializer(writer);
-                break;
-            case Repository.SYNTAX_RDFXML:
-                serializer = new RDFXMLSerializer(writer);
-                break;
-            case Repository.SYNTAX_JSON_LD:
-                serializer = new JSONLDSerializer(writer);
-                break;
-            case Repository.SYNTAX_XRDF:
-                serializer = new xRDFSerializer(writer);
-                break;
-            case HttpConstants.MIME_JSON:
-                serializer = new JsonSerializer(writer);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported format " + syntax);
-        }
-        SinkLogger logger = new SinkLogger();
-        serializer.serialize(logger, quads.iterator());
+        RDFUtils.serialize(writer, Logging.get(), quads.iterator(), syntax);
     }
 
     @Override
     public String serializedString() {
-        StringWriter writer = new StringWriter();
-        RDFSerializer serializer = new NQuadsSerializer(writer);
-        SinkLogger logger = new SinkLogger();
-        serializer.serialize(logger, quads.iterator());
-        return writer.toString();
+        return RDFUtils.serialize(quads.iterator(), Repository.SYNTAX_XRDF);
     }
 
     @Override
     public String serializedJSON() {
-        StringWriter writer = new StringWriter();
-        RDFSerializer serializer = new JsonSerializer(writer);
-        SinkLogger logger = new SinkLogger();
-        serializer.serialize(logger, quads.iterator());
-        return writer.toString();
+        return RDFUtils.serialize(quads.iterator(), HttpConstants.MIME_JSON);
     }
 }

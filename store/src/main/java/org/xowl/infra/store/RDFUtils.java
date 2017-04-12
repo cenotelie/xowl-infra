@@ -25,15 +25,17 @@ import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.writers.*;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.http.HttpConstants;
+import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Utility APIs for RDF
@@ -272,6 +274,97 @@ public class RDFUtils {
         if (object == null)
             blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
         return true;
+    }
+
+    /**
+     * Coerces the content type for RDF quads
+     *
+     * @param types The requested types
+     * @return The coerced content type
+     */
+    public static String coerceContentTypeQuads(List<String> types) {
+        if (types == null)
+            return Repository.SYNTAX_NQUADS;
+        for (String type : types) {
+            switch (type) {
+                case Repository.SYNTAX_NTRIPLES:
+                case Repository.SYNTAX_NQUADS:
+                case Repository.SYNTAX_TURTLE:
+                case Repository.SYNTAX_TRIG:
+                case Repository.SYNTAX_RDFXML:
+                case Repository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_XRDF:
+                case HttpConstants.MIME_JSON:
+                    return type;
+            }
+        }
+        return Repository.SYNTAX_XRDF;
+    }
+
+    /**
+     * Serializes quads in a syntax
+     *
+     * @param quads  An iterator over the quads to serialize
+     * @param syntax The syntax to use
+     * @return The serialized quads
+     */
+    public static String serialize(Iterator<Quad> quads, String syntax) {
+        return serialize(Logging.get(), quads, syntax);
+    }
+
+    /**
+     * Serializes quads in a syntax
+     *
+     * @param logger The logger to use
+     * @param quads  An iterator over the quads to serialize
+     * @param syntax The syntax to use
+     * @return The serialized quads
+     */
+    public static String serialize(Logger logger, Iterator<Quad> quads, String syntax) {
+        Writer writer = new StringWriter();
+        serialize(writer, logger, quads, syntax);
+        return writer.toString();
+    }
+
+    /**
+     * Serializes quads in a syntax
+     *
+     * @param writer The write to write to
+     * @param logger The logger to use
+     * @param quads  An iterator over the quads to serialize
+     * @param syntax The syntax to use
+     */
+    public static void serialize(Writer writer, Logger logger, Iterator<Quad> quads, String syntax) {
+        RDFSerializer serializer;
+        switch (syntax) {
+            case Repository.SYNTAX_NTRIPLES:
+                serializer = new NTripleSerializer(writer);
+                break;
+            case Repository.SYNTAX_NQUADS:
+                serializer = new NQuadsSerializer(writer);
+                break;
+            case Repository.SYNTAX_TURTLE:
+                serializer = new TurtleSerializer(writer);
+                break;
+            case Repository.SYNTAX_TRIG:
+                serializer = new TriGSerializer(writer);
+                break;
+            case Repository.SYNTAX_RDFXML:
+                serializer = new RDFXMLSerializer(writer);
+                break;
+            case Repository.SYNTAX_JSON_LD:
+                serializer = new JSONLDSerializer(writer);
+                break;
+            case Repository.SYNTAX_XRDF:
+                serializer = new xRDFSerializer(writer);
+                break;
+            case HttpConstants.MIME_JSON:
+                serializer = new JsonSerializer(writer);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported format " + syntax);
+        }
+        serializer.serialize(logger, quads);
     }
 
     /**

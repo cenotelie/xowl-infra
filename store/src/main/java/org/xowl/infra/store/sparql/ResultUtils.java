@@ -50,30 +50,15 @@ import java.util.Map;
  */
 public class ResultUtils {
     /**
-     * Coerce the content type of a SPARQL response depending on the result type
+     * Coerces the content type of a SPARQL response depending on the result type
      *
      * @param result The SPARQL result
-     * @param types  The negotiated content types
+     * @param types  The requested types
      * @return The coerced content type
      */
     public static String coerceContentType(Result result, List<String> types) {
         if (result instanceof ResultQuads) {
-            if (types == null)
-                return Repository.SYNTAX_NQUADS;
-            for (String type : types) {
-                switch (type) {
-                    case Repository.SYNTAX_NTRIPLES:
-                    case Repository.SYNTAX_NQUADS:
-                    case Repository.SYNTAX_TURTLE:
-                    case Repository.SYNTAX_TRIG:
-                    case Repository.SYNTAX_RDFXML:
-                    case Repository.SYNTAX_JSON_LD:
-                    case Repository.SYNTAX_XRDF:
-                    case HttpConstants.MIME_JSON:
-                        return type;
-                }
-            }
-            return Repository.SYNTAX_NQUADS;
+            return RDFUtils.coerceContentTypeQuads(types);
         } else {
             if (types == null)
                 return Result.SYNTAX_JSON;
