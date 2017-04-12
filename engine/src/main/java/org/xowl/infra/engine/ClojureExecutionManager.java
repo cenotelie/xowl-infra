@@ -24,7 +24,6 @@ import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutableFunction;
 import org.xowl.infra.store.execution.ExecutionManager;
-import org.xowl.infra.store.loaders.XOWLDeserializer;
 import org.xowl.infra.utils.IOUtils;
 
 import java.io.IOException;
@@ -189,11 +188,6 @@ public class ClojureExecutionManager implements ExecutionManager {
                 return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9], parameters[10]);
         }
         return function.getClojure().invoke(parameters);
-    }
-
-    @Override
-    public XOWLDeserializer getDeserializer() {
-        return new ClojureXOWLDeserializer(this);
     }
 
     @Override

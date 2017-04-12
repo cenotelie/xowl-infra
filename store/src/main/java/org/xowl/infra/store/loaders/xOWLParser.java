@@ -30,11 +30,11 @@ import org.xowl.hime.redist.parsers.RNGLRParser;
 /**
  * Represents a parser
  */
-public class XOWLParser extends RNGLRParser {
+public class xOWLParser extends RNGLRParser {
     /**
      * The automaton for this parser
      */
-    private static final RNGLRAutomaton commonAutomaton = RNGLRAutomaton.find(XOWLParser.class, "XOWLParser.bin");
+    private static final RNGLRAutomaton commonAutomaton = RNGLRAutomaton.find(xOWLParser.class, "xOWLParser.bin");
     /**
      * Contains the constant IDs for the variables and virtuals in this parser
      */
@@ -763,7 +763,7 @@ public class XOWLParser extends RNGLRParser {
      *
      * @param lexer The input lexer
      */
-    public XOWLParser(XOWLLexer lexer) throws InitializationException {
+    public xOWLParser(xOWLLexer lexer) throws InitializationException {
         super(commonAutomaton, variables, virtuals, null, lexer);
     }
 }

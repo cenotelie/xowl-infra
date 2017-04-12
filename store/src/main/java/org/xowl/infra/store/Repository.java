@@ -514,7 +514,7 @@ public abstract class Repository {
             case SYNTAX_OWLXML:
                 return loadInputOWL(logger, reader, resourceIRI, metadata, new OWLXMLLoader());
             case SYNTAX_XOWL:
-                return loadInputOWL(logger, reader, resourceIRI, metadata, new XOWLLoader(executionManager));
+                return loadInputOWL(logger, reader, resourceIRI, metadata, new xOWLLoader(executionManager));
             default:
                 throw new IllegalArgumentException("Unsupported syntax: " + syntax);
         }

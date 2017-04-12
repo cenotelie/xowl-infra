@@ -31,11 +31,11 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-public class XOWLLexer extends ContextSensitiveLexer {
+public class xOWLLexer extends ContextSensitiveLexer {
     /**
      * The automaton for this lexer
      */
-    private static final Automaton commonAutomaton = Automaton.find(XOWLLexer.class, "XOWLLexer.bin");
+    private static final Automaton commonAutomaton = Automaton.find(xOWLLexer.class, "xOWLLexer.bin");
     /**
      * Contains the constant IDs for the terminals for this lexer
      */
@@ -393,7 +393,7 @@ public class XOWLLexer extends ContextSensitiveLexer {
      *
      * @param input The lexer's input
      */
-    public XOWLLexer(String input) {
+    public xOWLLexer(String input) {
         super(commonAutomaton, terminals, 0x0007, input);
     }
     /**
@@ -401,7 +401,7 @@ public class XOWLLexer extends ContextSensitiveLexer {
      *
      * @param input The lexer's input
      */
-    public XOWLLexer(InputStreamReader input) {
+    public xOWLLexer(InputStreamReader input) {
         super(commonAutomaton, terminals, 0x0007, input);
     }
 }

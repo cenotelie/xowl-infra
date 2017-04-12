@@ -18,7 +18,6 @@
 package org.xowl.infra.store.execution;
 
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.loaders.XOWLDeserializer;
 
 /**
  * Manages the execution of xOWL ontologies for a repository
@@ -33,13 +32,6 @@ public interface ExecutionManager extends Evaluator {
      * @return The parent repository
      */
     Repository getRepository();
-
-    /**
-     * Gets the deserializer of xOWL ontologies
-     *
-     * @return The deserializer of xOWL ontologies
-     */
-    XOWLDeserializer getDeserializer();
 
     /**
      * Loads an evaluable expression from the specified source
