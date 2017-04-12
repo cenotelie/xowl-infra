@@ -6,6 +6,7 @@ var dbName = getParameterByName("db");
 var procName = getParameterByName("procedure");
 var procedure = null;
 var PARAMETERS_VALUES = [];
+var resultCount = 0;
 
 function init() {
 	doSetupPage(xowl, true, [
@@ -110,32 +111,18 @@ function renderSparqlResults(ct, content) {
 					cells.push("");
 				}
 			}
-			renderSparqlResult(cells);
+			renderRdfNodes(cells, injectResult);
 		}
-	} else if (ct === "application/n-quads") {
+	} else if (ct === "application/json") {
+		var data = JSON.parse(content);
 		renderClear();
 		renderSparqlHeader(['s', 'p', 'o', 'g']);
-		var entities = parseNQuads(content);
-		var names = Object.getOwnPropertyNames(entities);
-		for (var p = 0; p != names.length; p++) {
-			var entity = entities[names[p]];
-			for (j = 0; j != entity.properties.length; j++) {
-				var property = entity.properties[j];
-				var cells = [];
-				if (entity.isIRI)
-					cells.push({ type: "iri", value: entity.id });
-				else
-					cells.push({ type: "bnode", value: entity.id });
-				cells.push({ type: "iri", value: property.id });
-				cells.push(property.value);
-				cells.push({ type: "iri", value: property.graph });
-				renderSparqlResult(cells);
-			}
-		}
+		renderRdfQuads(data, injectResult);
 	}
 }
 
 function renderClear() {
+	resultCount = 0;
 	var parent = document.getElementById("result-heads");
 	while (parent.hasChildNodes()) {
 		parent.removeChild(parent.lastChild);
@@ -160,17 +147,11 @@ function renderSparqlHeader(columns) {
 	head.appendChild(row);
 }
 
-function renderSparqlResult(columns) {
+function injectResult(row) {
+	resultCount++;
 	var data = document.getElementById("result-data");
-	var row = document.createElement("tr");
 	var cell = document.createElement("td");
-	cell.appendChild(document.createTextNode((data.childElementCount + 1).toString()));
-	row.appendChild(cell);
-	for (var i = 0; i != columns.length; i++) {
-		cell = document.createElement("td");
-		if (columns[i] !== "")
-			cell.appendChild(rdfToDom(columns[i]));
-		row.appendChild(cell);
-	}
+	cell.appendChild(document.createTextNode(resultCount.toString()));
+	row.insertBefore(cell, row.firstChild);
 	data.appendChild(row);
 }

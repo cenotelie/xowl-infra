@@ -447,7 +447,7 @@ function getShortURI(value) {
  * @param value An RDF node (represented as a Javascript object)
  * @return The HTML DOM rendering of the node
  */
-function rdfToDom(value) {
+function renderRdfNode(value) {
 	if (value.type === "uri") {
 		var dom = document.createElement("a");
 		dom.appendChild(document.createTextNode(getShortURI(value.value)));
@@ -457,11 +457,6 @@ function rdfToDom(value) {
 		var dom = document.createElement("span");
 		dom.appendChild(document.createTextNode('_:' + value.value));
 		dom.classList.add("rdfBlank");
-		return dom;
-	} else if (value.type === "variable") {
-		var dom = document.createElement("span");
-		dom.appendChild(document.createTextNode('?' + value.value));
-		dom.classList.add("rdfVariable");
 		return dom;
 	} else if (value.type === "literal") {
 		var span1 = document.createElement("span");
@@ -484,5 +479,128 @@ function rdfToDom(value) {
 			dom.appendChild(span2);
 		}
 		return dom;
+	} else if (value.type === "variable") {
+		var dom = document.createElement("span");
+		dom.appendChild(document.createTextNode('?' + value.value));
+		dom.classList.add("rdfVariable");
+		return dom;
+	} else if (value.type === "anon") {
+		var dom = document.createElement("span");
+		dom.appendChild(document.createTextNode('_:' + value.value));
+		dom.classList.add("rdfAnonymous");
+		return dom;
+	} else if (value.type === "dynamic") {
+		var dom = document.createElement("span");
+		dom.appendChild(document.createTextNode('$ ' + value.value));
+		dom.classList.add("rdfDynamic");
+		return dom;
 	}
+	return null;
+}
+
+/*
+ * Renders an array of RDF nodes
+ *
+ * @param nodes     The RDF nodes to render
+ * @param injectRow The function to call when injecting a row into the DOM
+ */
+function renderRdfNodes(nodes, injectRow) {
+	var row = document.createElement("tr");
+	var cell = document.createElement("td");
+	for (var i = 0; i != nodes.length; i++) {
+		cell = document.createElement("td");
+		if (nodes[i] !== "")
+			cell.appendChild(renderRdfNode(nodes[i]));
+		row.appendChild(cell);
+	}
+	injectRow(row);
+}
+
+/*
+ * Renders RDF quads
+ *
+ * @param data      The object representing the quads
+ * @param injectRow The function to call when injecting a row into the DOM
+ */
+function renderRdfQuads(data, injectRow) {
+	for (var g = 0; g != data.length; g++) {
+		var dataGraph = data[g];
+		var nodeGraph = dataGraph.graph;
+		for (var e = 0; e != dataGraph.entities.length; e++) {
+			var dataEntity = dataGraph.entities[e];
+			var nodeSubject = dataEntity.subject;
+			for (var p = 0; p != dataEntity.properties.length; p++) {
+				var dataProperty = dataEntity.properties[p];
+				var nodeProperty = dataProperty.property;
+				for (var v = 0; v != dataProperty.values.length; v++) {
+					var dataValue = dataProperty.values[v];
+					if (Array.isArray(dataValue)) {
+						var root = renderRdfList(nodeGraph, dataValue, injectRow);
+						renderRdfNodes([nodeGraph, nodeSubject, nodeProperty, root], injectRow);
+					} else {
+						renderRdfNodes([nodeGraph, nodeSubject, nodeProperty, dataValue], injectRow);
+					}
+				}
+			}
+		}
+	}
+}
+
+/*
+ * Renders a RDF list
+ *
+ * @param nodeGraph The node for the graph
+ * @param values    The values in the list
+ * @param injectRow The function to call when injecting a row into the DOM
+ * @return The list's root node
+ */
+function renderRdfList(nodeGraph, values, injectRow) {
+	if (values.length == 0)
+		return {"type": "uri", "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"};
+	var current = newRdfBlank();
+	var root = current;
+	for (var i = 0; i != values.length - 1; i++) {
+		var follower = newRdfBlank();
+		renderRdfNodes([
+			nodeGraph,
+			current,
+			{"type": "uri", "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"},
+			values[i]], injectRow);
+		renderRdfNodes([
+			nodeGraph,
+			current,
+			{"type": "uri", "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"},
+			follower], injectRow);
+		current = follower;
+	}
+	renderRdfNodes([
+		nodeGraph,
+		current,
+		{"type": "uri", "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"},
+		values[values.length - 1]], injectRow);
+	renderRdfNodes([
+		nodeGraph,
+		current,
+		{"type": "uri", "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"},
+		{"type": "uri", "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}], injectRow);
+	return root;
+}
+
+/*
+ * The identifier for the next blank node to be generated
+ */
+var NEXT_BLANK = 0;
+
+/*
+ * Generates a new blank node
+ *
+ * @return The new blank node
+ */
+function newRdfBlank() {
+	var node = {
+		"type": "bnode",
+		"value": "list_" + NEXT_BLANK.toString()
+	};
+	NEXT_BLANK++;
+	return node;
 }

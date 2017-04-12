@@ -327,7 +327,7 @@ XOWL.prototype.doSPARQL = function (callback, db, sparql) {
 		}
 	}
 	xmlHttp.open("POST", this.endpoint + "/databases/" + db + "/sparql", true);
-	xmlHttp.setRequestHeader("Accept", "application/n-quads, application/sparql-results+json");
+	xmlHttp.setRequestHeader("Accept", "application/sparql-results+json, application/json");
 	xmlHttp.setRequestHeader("Content-Type", "application/sparql-query");
 	xmlHttp.withCredentials = true;
 	xmlHttp.send(sparql);
