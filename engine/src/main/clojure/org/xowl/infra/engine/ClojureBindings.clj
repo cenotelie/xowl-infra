@@ -20,7 +20,44 @@
            (org.xowl.infra.store RDFUtils)
            (org.xowl.infra.store.rdf RDFPatternSolution Node)
            (org.xowl.infra.store.sparql Result ResultSolutions)
-           (org.xowl.infra.lang.owl2 IRI)))
+           (org.xowl.infra.lang.owl2 IRI)
+           (org.xowl.infra.utils.logging Logging)))
+
+(defn rdfIriNode? [^Node node]
+  (if (nil? node)
+    false
+    (= (.getNodeType node) Node/TYPE_IRI))
+  )
+
+(defn rdfNlankNode? [^Node node]
+  (if (nil? node)
+    false
+    (= (.getNodeType node) Node/TYPE_BLANK))
+  )
+
+(defn rdfAnonymousNode? [^Node node]
+  (if (nil? node)
+    false
+    (= (.getNodeType node) Node/TYPE_ANONYMOUS))
+  )
+
+(defn rdfLiteralNode? [^Node node]
+  (if (nil? node)
+    false
+    (= (.getNodeType node) Node/TYPE_LITERAL))
+  )
+
+(defn rdfVariableNode? [^Node node]
+  (if (nil? node)
+    false
+    (= (.getNodeType node) Node/TYPE_VARIABLE))
+  )
+
+(defn rdfDynamicNode? [^Node node]
+  (if (nil? node)
+    false
+    (= (.getNodeType node) Node/TYPE_DYNAMIC))
+  )
 
 (defn iriToStr [^IRI entity]
   (.getHasValue entity))
@@ -52,3 +89,12 @@
 
 (defn getDataValues [^IRI entity ^String property]
   (ClojureAPI/getDataValues entity property))
+
+(defn logInfo [message]
+  (.info (Logging/get) message))
+
+(defn logWarning [message]
+  (.warning (Logging/get) message))
+
+(defn logError [message]
+  (.error (Logging/get) message))
