@@ -498,7 +498,7 @@ public class ControllerDatabase implements Closeable {
 
             BufferedLogger bufferedLogger = new BufferedLogger();
             xRDFLoader loader = new xRDFLoader(repository);
-            RDFLoaderResult result = loader.loadRDF(bufferedLogger, new StringReader(content), RULES_RESOURCE, null);
+            RDFLoaderResult result = loader.loadRDF(bufferedLogger, new StringReader(content), RULES_RESOURCE, IRIs.GRAPH_DEFAULT);
             if (result == null) {
                 // ill-formed request
                 throw new IllegalArgumentException("Malformed rule definition: " + bufferedLogger.getErrorsAsString());
@@ -600,7 +600,7 @@ public class ControllerDatabase implements Closeable {
         BufferedLogger logger = new BufferedLogger();
         try (Reader reader = IOUtils.getReader(file)) {
             xRDFLoader loader = new xRDFLoader(repository);
-            RDFLoaderResult result = loader.loadRDF(logger, reader, RULES_RESOURCE, null);
+            RDFLoaderResult result = loader.loadRDF(logger, reader, RULES_RESOURCE, IRIs.GRAPH_DEFAULT);
             if (result == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read rule " + iri + ": " + logger.getErrorsAsString());
             RDFRule rule = result.getRules().get(0);
