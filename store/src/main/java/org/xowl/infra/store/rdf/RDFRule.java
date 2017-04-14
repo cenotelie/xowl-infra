@@ -43,6 +43,10 @@ public abstract class RDFRule {
      * The rule's guard, if any
      */
     protected final EvaluableExpression guard;
+    /**
+     * The source for this rule
+     */
+    protected final String source;
 
     /**
      * Gets the rule's identifying IRI
@@ -54,14 +58,35 @@ public abstract class RDFRule {
     }
 
     /**
+     * Gets the source for this rule
+     *
+     * @return The source for this rule
+     */
+    public String getSource() {
+        return source;
+    }
+
+    /**
      * Initializes this rule
      *
      * @param iri   The rule's identifying iri
      * @param guard The rule's guard, if any
      */
     public RDFRule(String iri, EvaluableExpression guard) {
+        this(iri, guard, null);
+    }
+
+    /**
+     * Initializes this rule
+     *
+     * @param iri    The rule's identifying iri
+     * @param guard  The rule's guard, if any
+     * @param source The source for this rule
+     */
+    public RDFRule(String iri, EvaluableExpression guard, String source) {
         this.iri = iri;
         this.guard = guard;
+        this.source = source;
     }
 
     /**

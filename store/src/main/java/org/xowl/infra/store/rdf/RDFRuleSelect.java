@@ -141,7 +141,19 @@ public class RDFRuleSelect extends RDFRule {
      * @param guard      The rule's guard, if any
      */
     public RDFRuleSelect(String iri, GraphPattern antecedent, EvaluableExpression guard) {
-        super(iri, guard);
+        this(iri, antecedent, guard, null);
+    }
+
+    /**
+     * Initializes this rule
+     *
+     * @param iri        The rule's identifying iri
+     * @param antecedent The antecedent graph pattern representing the SPARQL SELECT
+     * @param guard      The rule's guard, if any
+     * @param source     The source for this rule
+     */
+    public RDFRuleSelect(String iri, GraphPattern antecedent, EvaluableExpression guard, String source) {
+        super(iri, guard, source);
         this.antecedent = antecedent;
         this.consequents = new RDFPattern();
         this.patterns = new ArrayList<>();

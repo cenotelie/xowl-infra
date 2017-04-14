@@ -59,7 +59,19 @@ public class RDFRuleSimple extends RDFRule {
      * @param guard    The rule's guard, if any
      */
     public RDFRuleSimple(String iri, boolean distinct, EvaluableExpression guard) {
-        super(iri, guard);
+        this(iri, distinct, guard, null);
+    }
+
+    /**
+     * Initializes this rule
+     *
+     * @param iri      The rule's identifying iri
+     * @param distinct Whether to trigger this rule only on distinct solutions
+     * @param guard    The rule's guard, if any
+     * @param source   The source for this rule
+     */
+    public RDFRuleSimple(String iri, boolean distinct, EvaluableExpression guard, String source) {
+        super(iri, guard, source);
         this.distinct = distinct;
         this.antecedents = new RDFPattern();
         this.consequents = new RDFPattern();

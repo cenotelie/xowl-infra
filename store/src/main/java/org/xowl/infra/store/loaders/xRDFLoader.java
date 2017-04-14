@@ -17,10 +17,7 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.ParseError;
-import org.xowl.hime.redist.ParseResult;
-import org.xowl.hime.redist.TextContext;
+import org.xowl.hime.redist.*;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
@@ -138,7 +135,7 @@ public class xRDFLoader implements Loader {
         try {
             baseURI = resourceIRI;
             graph = nodes.getIRINode(graphIRI);
-            return loadDocument(parseResult.getRoot());
+            return loadDocument(parseResult.getRoot(), parseResult.getInput());
         } catch (LoaderException exception) {
             logger.error(exception);
             logger.error("@" + exception.getOrigin().getPosition());
@@ -160,11 +157,12 @@ public class xRDFLoader implements Loader {
     /**
      * Loads the document represented by the specified AST node
      *
-     * @param node An AST node
+     * @param node  An AST node
+     * @param input The input text that was parsed
      * @return The loaded elements
      * @throws LoaderException When failing to load the input
      */
-    private RDFLoaderResult loadDocument(ASTNode node) throws LoaderException {
+    private RDFLoaderResult loadDocument(ASTNode node, Text input) throws LoaderException {
         RDFLoaderResult result = new RDFLoaderResult();
         sparql.loadPrologue(node.getChildren().get(0));
         loadPrologue(node.getChildren().get(0));
@@ -183,11 +181,11 @@ public class xRDFLoader implements Loader {
                     break;
                 }
                 case xRDFParser.ID.xowl_rule_simple: {
-                    result.getRules().add(loadRuleSimple(nodeElement));
+                    result.getRules().add(loadRuleSimple(nodeElement, input));
                     break;
                 }
                 case xRDFParser.ID.xowl_rule_sparql: {
-                    result.getRules().add(loadRuleSPARQL(nodeElement));
+                    result.getRules().add(loadRuleSPARQL(nodeElement, input));
                     break;
                 }
             }
@@ -631,28 +629,32 @@ public class xRDFLoader implements Loader {
     /**
      * Loads a simple rule
      *
-     * @param node The AST node
+     * @param node  The AST node
+     * @param input The input text that was parsed
      * @return The loaded rule
      * @throws LoaderException When failing to load the input
      */
-    private RDFRule loadRuleSimple(ASTNode node) throws LoaderException {
+    private RDFRule loadRuleSimple(ASTNode node, Text input) throws LoaderException {
         // initial context setup
         SPARQLContext context = new SPARQLContext(nodes, true);
         GraphNode graph = (GraphNode) context.resolveVariable("__graph");
         // load basic info
-        boolean isDistinct = (node.getChildren().get(0).getChildren().size() > 0);
-        String iri = sparql.getNodeIRI(node.getChildren().get(1)).getIRIValue();
+        boolean isDistinct = (node.getChildren().get(1).getChildren().size() > 0);
+        String iri = sparql.getNodeIRI(node.getChildren().get(2)).getIRIValue();
+        int sourceBegin = node.getChildren().get(0).getSpan().getIndex();
+        int sourceEnd = node.getChildren().get(6).getSpan().getIndex() + 1;
+        String source = input.getValue(sourceBegin, sourceEnd - sourceBegin + 1);
 
         // load the guard
         EvaluableExpression guard = null;
-        if (!node.getChildren().get(3).getChildren().isEmpty())
-            guard = executionManager.loadExpression(serializeClojure(node.getChildren().get(3).getChildren().get(0)));
-        RDFRuleSimple result = new RDFRuleSimple(iri, isDistinct, guard);
+        if (!node.getChildren().get(4).getChildren().isEmpty())
+            guard = executionManager.loadExpression(serializeClojure(node.getChildren().get(4).getChildren().get(0)));
+        RDFRuleSimple result = new RDFRuleSimple(iri, isDistinct, guard, source);
 
         // load the antecedents
         Collection<Quad> positives = new ArrayList<>();
         Collection<Collection<Quad>> negatives = new ArrayList<>();
-        for (ASTNode part : node.getChildren().get(2).getChildren())
+        for (ASTNode part : node.getChildren().get(3).getChildren())
             loadRulePart(context, part, graph, positives, negatives);
         for (Quad quad : positives)
             result.addAntecedentPositive(quad);
@@ -663,7 +665,7 @@ public class xRDFLoader implements Loader {
 
         // load the consequents
         graph = nodes.getIRINode(IRIs.GRAPH_INFERENCE);
-        for (ASTNode part : node.getChildren().get(4).getChildren())
+        for (ASTNode part : node.getChildren().get(5).getChildren())
             loadRulePart(context, part, graph, positives, negatives);
         for (Quad quad : positives)
             result.addConsequentPositive(quad);
@@ -676,31 +678,35 @@ public class xRDFLoader implements Loader {
     /**
      * Loads a rule that is base on a SPARQL query
      *
-     * @param node The AST node
+     * @param node  The AST node
+     * @param input The input text that was parsed
      * @return The loaded rule
      * @throws LoaderException When failing to load the input
      */
-    private RDFRule loadRuleSPARQL(ASTNode node) throws LoaderException {
+    private RDFRule loadRuleSPARQL(ASTNode node, Text input) throws LoaderException {
         // initial context setup
         SPARQLContext context = new SPARQLContext(nodes, true);
         GraphNode graph = (GraphNode) context.resolveVariable("__graph");
         // load basic info
-        String iri = sparql.getNodeIRI(node.getChildren().get(1)).getIRIValue();
+        String iri = sparql.getNodeIRI(node.getChildren().get(2)).getIRIValue();
+        int sourceBegin = node.getChildren().get(0).getSpan().getIndex();
+        int sourceEnd = node.getChildren().get(6).getSpan().getIndex() + 1;
+        String source = input.getValue(sourceBegin, sourceEnd - sourceBegin + 1);
 
         // load the antecedents
-        GraphPattern pattern = sparql.loadGraphPatternSubSelect(context, graph, node.getChildren().get(2));
+        GraphPattern pattern = sparql.loadGraphPatternSubSelect(context, graph, node.getChildren().get(3));
 
         // load the guard
         EvaluableExpression guard = null;
-        if (!node.getChildren().get(3).getChildren().isEmpty())
-            guard = executionManager.loadExpression(serializeClojure(node.getChildren().get(3).getChildren().get(0)));
-        RDFRuleSelect result = new RDFRuleSelect(iri, pattern, guard);
+        if (!node.getChildren().get(4).getChildren().isEmpty())
+            guard = executionManager.loadExpression(serializeClojure(node.getChildren().get(4).getChildren().get(0)));
+        RDFRuleSelect result = new RDFRuleSelect(iri, pattern, guard, source);
 
         // load the consequents
         Collection<Quad> positives = new ArrayList<>();
         Collection<Collection<Quad>> negatives = new ArrayList<>();
         graph = nodes.getIRINode(IRIs.GRAPH_INFERENCE);
-        for (ASTNode part : node.getChildren().get(4).getChildren())
+        for (ASTNode part : node.getChildren().get(5).getChildren())
             loadRulePart(context, part, graph, positives, negatives);
         for (Quad quad : positives)
             result.addConsequentPositive(quad);
