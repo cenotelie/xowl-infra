@@ -185,7 +185,7 @@ public class Program {
      */
     public void execute() {
         // load the inputs
-        RepositoryDirectSemantics repository = new RepositoryDirectSemantics(IRIMapper.getDefault());
+        RepositoryDirectSemantics repository = new RepositoryDirectSemantics(IRIMapper.getDefault(), false);
         for (Couple<String, String> mapping : repositories)
             repository.getIRIMapper().addRegexpMap(mapping.x, mapping.y);
         for (String input : inputs) {

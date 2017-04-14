@@ -96,7 +96,7 @@ public class RepositoryRDF extends Repository {
      * Initializes this repository
      */
     public RepositoryRDF() {
-        this(getDefaultStore(), IRIMapper.getDefault());
+        this(getDefaultStore(), IRIMapper.getDefault(), false);
     }
 
     /**
@@ -105,7 +105,7 @@ public class RepositoryRDF extends Repository {
      * @param store The store to use as backend
      */
     public RepositoryRDF(BaseStore store) {
-        this(store, IRIMapper.getDefault());
+        this(store, IRIMapper.getDefault(), false);
     }
 
     /**
@@ -114,17 +114,28 @@ public class RepositoryRDF extends Repository {
      * @param mapper The IRI mapper to use
      */
     public RepositoryRDF(IRIMapper mapper) {
-        this(getDefaultStore(), mapper);
+        this(getDefaultStore(), mapper, false);
     }
 
     /**
      * Initializes this repository
      *
-     * @param store  The store to use as backend
-     * @param mapper The IRI mapper to use
+     * @param mapper              The IRI mapper to use
+     * @param resolveDependencies Whether dependencies should be resolved when loading resources
      */
-    public RepositoryRDF(BaseStore store, IRIMapper mapper) {
-        super(mapper);
+    public RepositoryRDF(IRIMapper mapper, boolean resolveDependencies) {
+        this(getDefaultStore(), mapper, resolveDependencies);
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param store               The store to use as backend
+     * @param mapper              The IRI mapper to use
+     * @param resolveDependencies Whether dependencies should be resolved when loading resources
+     */
+    public RepositoryRDF(BaseStore store, IRIMapper mapper, boolean resolveDependencies) {
+        super(mapper, resolveDependencies);
         this.backend = store;
         this.backend.setExecutionManager(executionManager);
         this.graphs = new HashMap<>();

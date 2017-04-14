@@ -247,6 +247,10 @@ public abstract class Repository {
      */
     protected final Map<String, Ontology> ontologies;
     /**
+     * Whether dependencies should be resolved when loading resources
+     */
+    protected final boolean resolveDependencies;
+    /**
      * The evaluator to use
      */
     protected final ExecutionManager executionManager;
@@ -267,12 +271,14 @@ public abstract class Repository {
     /**
      * Initializes this repository
      *
-     * @param mapper The IRI mapper to use
+     * @param mapper              The IRI mapper to use
+     * @param resolveDependencies Whether dependencies should be resolved when loading resources
      */
-    public Repository(IRIMapper mapper) {
+    public Repository(IRIMapper mapper, boolean resolveDependencies) {
         this.mapper = mapper;
         this.resources = new HashMap<>();
         this.ontologies = new HashMap<>();
+        this.resolveDependencies = resolveDependencies;
         this.executionManager = getExecutionManager(this);
         this.regime = EntailmentRegime.none;
     }
@@ -440,7 +446,7 @@ public abstract class Repository {
         }
 
         // resolve the dependencies
-        if (metadata.dependencies != null) {
+        if (resolveDependencies && metadata.dependencies != null) {
             for (String dependency : metadata.dependencies) {
                 load(logger, dependency, dependency, false);
             }
@@ -492,6 +498,8 @@ public abstract class Repository {
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JSONLDLoader(getNodeManager()) {
                     @Override
                     protected Reader getReaderFor(Logger logger, String iri) {
+                        if (!resolveDependencies)
+                            return null;
                         String resource = mapper.get(iri);
                         if (resource == null) {
                             logger.error("Cannot identify the location of " + iri);

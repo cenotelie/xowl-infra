@@ -33,10 +33,8 @@ import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.DispatchLogger;
-import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
-import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -128,12 +126,7 @@ public class ResultUtils {
                 case Repository.SYNTAX_RDFXML:
                     return parseResponseQuads(content, new RDFXMLLoader());
                 case Repository.SYNTAX_JSON_LD:
-                    return parseResponseQuads(content, new JSONLDLoader() {
-                        @Override
-                        protected Reader getReaderFor(Logger logger, String iri) {
-                            return null;
-                        }
-                    });
+                    return parseResponseQuads(content, new JSONLDLoader());
                 case Repository.SYNTAX_XRDF:
                     return parseResponseQuads(content, new xRDFLoader());
                 case Result.SYNTAX_JSON:

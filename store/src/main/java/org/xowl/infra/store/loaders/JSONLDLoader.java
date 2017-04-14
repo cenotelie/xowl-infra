@@ -41,8 +41,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public abstract class JSONLDLoader implements Loader {
-
+public class JSONLDLoader implements Loader {
     /**
      * List of the reversed keywords
      */
@@ -166,12 +165,7 @@ public abstract class JSONLDLoader implements Loader {
      * @return The AST root node, or null of the parsing failed
      */
     public static ASTNode parseJSON(Logger logger, Reader reader) {
-        JSONLDLoader loader = new JSONLDLoader(null) {
-            @Override
-            protected Reader getReaderFor(Logger logger, String iri) {
-                return null;
-            }
-        };
+        JSONLDLoader loader = new JSONLDLoader();
         ParseResult result = loader.parse(logger, reader);
         if (result == null)
             return null;
@@ -319,7 +313,9 @@ public abstract class JSONLDLoader implements Loader {
      * @param iri    The IRI of an auxiliary document
      * @return The corresponding reader, or null if it cannot be resolved
      */
-    protected abstract Reader getReaderFor(Logger logger, String iri);
+    protected Reader getReaderFor(Logger logger, String iri) {
+        return null;
+    }
 
     /**
      * Loads a JSON-LD document from the specified AST node

@@ -94,10 +94,11 @@ public class RepositoryDirectSemantics extends Repository {
     /**
      * Initializes this repository
      *
-     * @param mapper The IRI mapper to use
+     * @param mapper              The IRI mapper to use
+     * @param resolveDependencies Whether dependencies should be resolved when loading resources
      */
-    public RepositoryDirectSemantics(IRIMapper mapper) {
-        super(mapper);
+    public RepositoryDirectSemantics(IRIMapper mapper, boolean resolveDependencies) {
+        super(mapper, resolveDependencies);
         this.nodeManager = new CachedNodes();
         this.mapEntities = new HashMap<>();
         this.classUnions = new ArrayList<>();
