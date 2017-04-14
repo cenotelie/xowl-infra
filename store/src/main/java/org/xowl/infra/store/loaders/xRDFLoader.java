@@ -75,6 +75,10 @@ public class xRDFLoader implements Loader {
      * The cached node for the literal false node
      */
     private LiteralNode cacheFalse;
+    /**
+     * The prepared source for the prologue
+     */
+    private String prologueSource;
 
     /**
      * Initializes this loader
@@ -166,6 +170,7 @@ public class xRDFLoader implements Loader {
         RDFLoaderResult result = new RDFLoaderResult();
         sparql.loadPrologue(node.getChildren().get(0));
         loadPrologue(node.getChildren().get(0));
+        prologueSource = generatePrologueSource();
         for (ASTNode nodeElement : node.getChildren().get(1).getChildren()) {
             switch (nodeElement.getSymbol().getID()) {
                 case xRDFParser.ID.xowl_triples: {
@@ -233,6 +238,30 @@ public class xRDFLoader implements Loader {
         String value = node.getChildren().get(0).getValue();
         value = TextUtils.unescape(value.substring(1, value.length() - 1));
         baseURI = URIUtils.resolveRelative(baseURI, value);
+    }
+
+    /**
+     * Generates the source for the prologue
+     *
+     * @return The source for the prologue
+     */
+    private String generatePrologueSource() {
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, String> entry : namespaces.entrySet()) {
+            builder.append("PREFIX ");
+            builder.append(entry.getKey());
+            builder.append(": <");
+            builder.append(TextUtils.escapeAbsoluteURIW3C(entry.getValue()));
+            builder.append(">");
+            builder.append(IOUtils.LINE_SEPARATOR);
+        }
+        if (baseURI != null) {
+            builder.append("BASE <");
+            builder.append(TextUtils.escapeAbsoluteURIW3C(baseURI));
+            builder.append(">");
+            builder.append(IOUtils.LINE_SEPARATOR);
+        }
+        return builder.toString();
     }
 
     /**
@@ -643,13 +672,13 @@ public class xRDFLoader implements Loader {
         String iri = sparql.getNodeIRI(node.getChildren().get(2)).getIRIValue();
         int sourceBegin = node.getChildren().get(0).getSpan().getIndex();
         int sourceEnd = node.getChildren().get(6).getSpan().getIndex() + 1;
-        String source = input.getValue(sourceBegin, sourceEnd - sourceBegin + 1);
+        String source = input.getValue(sourceBegin, sourceEnd - sourceBegin);
 
         // load the guard
         EvaluableExpression guard = null;
         if (!node.getChildren().get(4).getChildren().isEmpty())
             guard = executionManager.loadExpression(serializeClojure(node.getChildren().get(4).getChildren().get(0)));
-        RDFRuleSimple result = new RDFRuleSimple(iri, isDistinct, guard, source);
+        RDFRuleSimple result = new RDFRuleSimple(iri, isDistinct, guard, prologueSource + source);
 
         // load the antecedents
         Collection<Quad> positives = new ArrayList<>();
@@ -691,7 +720,7 @@ public class xRDFLoader implements Loader {
         String iri = sparql.getNodeIRI(node.getChildren().get(2)).getIRIValue();
         int sourceBegin = node.getChildren().get(0).getSpan().getIndex();
         int sourceEnd = node.getChildren().get(6).getSpan().getIndex() + 1;
-        String source = input.getValue(sourceBegin, sourceEnd - sourceBegin + 1);
+        String source = input.getValue(sourceBegin, sourceEnd - sourceBegin);
 
         // load the antecedents
         GraphPattern pattern = sparql.loadGraphPatternSubSelect(context, graph, node.getChildren().get(3));
@@ -700,7 +729,7 @@ public class xRDFLoader implements Loader {
         EvaluableExpression guard = null;
         if (!node.getChildren().get(4).getChildren().isEmpty())
             guard = executionManager.loadExpression(serializeClojure(node.getChildren().get(4).getChildren().get(0)));
-        RDFRuleSelect result = new RDFRuleSelect(iri, pattern, guard, source);
+        RDFRuleSelect result = new RDFRuleSelect(iri, pattern, guard, prologueSource + source);
 
         // load the consequents
         Collection<Quad> positives = new ArrayList<>();
