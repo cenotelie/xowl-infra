@@ -510,7 +510,7 @@ public class ControllerDatabase implements Closeable {
             String name = SHA1.hashSHA1(rule.getIRI());
             File file = new File(folder, name);
             try (Writer writer = IOUtils.getWriter(file)) {
-                writer.write(content);
+                writer.write(rule.getSource());
                 writer.flush();
             }
 
@@ -526,7 +526,7 @@ public class ControllerDatabase implements Closeable {
                 repository.getRDFRuleEngine().add(rule);
                 repository.getRDFRuleEngine().flush();
             }
-            return new BaseRule(rule.getIRI(), content, activate);
+            return new BaseRule(rule.getIRI(), rule.getSource(), activate);
         } finally {
             onThreadExit();
         }
