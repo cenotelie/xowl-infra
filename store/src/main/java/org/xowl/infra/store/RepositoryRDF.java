@@ -356,11 +356,11 @@ public class RepositoryRDF extends Repository {
                 break;
             case OWL2_RDF:
             case OWL2_DIRECT:
-                load(Logging.get(), IRIs.RDF);
-                load(Logging.get(), IRIs.RDFS);
-                load(Logging.get(), IRIs.OWL2);
-                load(Logging.get(), IRIs.XOWL_RULES + "owl2");
-                load(Logging.get(), IRIs.XOWL_RULES + "xowl");
+                load(Logging.get(), IRIs.RDF, IRIs.GRAPH_INFERENCE, false);
+                load(Logging.get(), IRIs.RDFS, IRIs.GRAPH_INFERENCE, false);
+                load(Logging.get(), IRIs.OWL2, IRIs.GRAPH_INFERENCE, false);
+                load(Logging.get(), IRIs.XOWL_RULES + "owl2", IRIs.GRAPH_INFERENCE, false);
+                load(Logging.get(), IRIs.XOWL_RULES + "xowl", IRIs.GRAPH_INFERENCE, false);
                 break;
         }
     }
