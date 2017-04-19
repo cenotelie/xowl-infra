@@ -29,11 +29,11 @@ import org.xowl.hime.redist.parsers.LRkParser;
 /**
  * Represents a parser
  */
-class JSONLDParser extends LRkParser {
+class JsonParser extends LRkParser {
     /**
      * The automaton for this parser
      */
-    private static final LRkAutomaton commonAutomaton = LRkAutomaton.find(JSONLDParser.class, "JSONLDParser.bin");
+    private static final LRkAutomaton commonAutomaton = LRkAutomaton.find(JsonParser.class, "JsonParser.bin");
     /**
      * Contains the constant IDs for the variables and virtuals in this parser
      */
@@ -91,7 +91,7 @@ class JSONLDParser extends LRkParser {
      *
      * @param lexer The input lexer
      */
-    public JSONLDParser(JSONLDLexer lexer) {
+    public JsonParser(JsonLexer lexer) {
         super(commonAutomaton, variables, virtuals, null, lexer);
     }
 }

@@ -27,11 +27,11 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-class JSONLDNameInfo {
+class JsonLdNameInfo {
     /**
      * The type of container for a multi-valued property
      */
-    public JSONLDContainerType containerType = JSONLDContainerType.Undefined;
+    public JsonLdContainerType containerType = JsonLdContainerType.Undefined;
     /**
      * The full IRI of the name
      */
@@ -65,7 +65,7 @@ class JSONLDNameInfo {
      * @param attribute The attribute
      */
     public void mergeWith(Couple<String, Object> attribute) {
-        if (!JSONLDLoader.KEYWORDS.contains(attribute.x))
+        if (!JsonLdLoader.KEYWORDS.contains(attribute.x))
             return;
         switch (attribute.x) {
             case Vocabulary.JSONLD.type:
@@ -73,8 +73,8 @@ class JSONLDNameInfo {
                     valueType = attribute.y.toString();
                 break;
             case Vocabulary.JSONLD.container:
-                if (containerType == JSONLDContainerType.Undefined)
-                    containerType = (JSONLDContainerType) attribute.y;
+                if (containerType == JsonLdContainerType.Undefined)
+                    containerType = (JsonLdContainerType) attribute.y;
                 break;
             case Vocabulary.JSONLD.language:
                 if (language == null)

@@ -20,7 +20,7 @@ package org.xowl.infra.server.xsp;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLFactory;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.loaders.JSONLDLoader;
+import org.xowl.infra.store.loaders.JsonLoader;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.sparql.ResultUtils;
@@ -146,7 +146,7 @@ public class XSPReplyUtils {
             return XSPReplyNotFound.instance();
         if (response.getCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
             BufferedLogger bufferedLogger = new BufferedLogger();
-            ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, response.getBodyAsString());
+            ASTNode root = JsonLoader.parseJson(bufferedLogger, response.getBodyAsString());
             if (root == null)
                 return new XSPReplyFailure(response.getBodyAsString());
             return new XSPReplyApiError(XSPReplyApiError.parseApiError(root), XSPReplyApiError.parseSupplementary(root));
@@ -226,7 +226,7 @@ public class XSPReplyUtils {
         if (content == null || content.isEmpty())
             return XSPReplySuccess.instance();
         BufferedLogger bufferedLogger = new BufferedLogger();
-        ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, response.getBodyAsString());
+        ASTNode root = JsonLoader.parseJson(bufferedLogger, response.getBodyAsString());
         if (root == null)
             return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         Object data = getJSONObject(root, factory);
@@ -270,7 +270,7 @@ public class XSPReplyUtils {
      */
     public static XSPReply parseJSONResult(String content, XOWLFactory factory) {
         BufferedLogger bufferedLogger = new BufferedLogger();
-        ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, content);
+        ASTNode root = JsonLoader.parseJson(bufferedLogger, content);
         if (root == null)
             return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         if ("array".equals(root.getSymbol().getName()))

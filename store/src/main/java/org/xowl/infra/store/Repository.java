@@ -34,6 +34,7 @@ import org.xowl.infra.store.rdf.RDFRuleEngine;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.writers.*;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.*;
@@ -110,6 +111,14 @@ public abstract class Repository {
      */
     public static final String SYNTAX_JSON_LD_EXTENSION = ".jsonld";
     /**
+     * Supported JSON syntax
+     */
+    public static final String SYNTAX_JSON = HttpConstants.MIME_JSON;
+    /**
+     * File extension for the JSON syntax
+     */
+    public static final String SYNTAX_JSON_EXTENSION = ".json";
+    /**
      * Supported TriG syntax
      */
     public static final String SYNTAX_TRIG = "application/trig";
@@ -175,6 +184,8 @@ public abstract class Repository {
             return SYNTAX_RDFXML;
         if (resource.endsWith(SYNTAX_JSON_LD_EXTENSION))
             return SYNTAX_JSON_LD;
+        if (resource.endsWith(SYNTAX_JSON_EXTENSION))
+            return SYNTAX_JSON;
         if (resource.endsWith(SYNTAX_TRIG_EXTENSION))
             return SYNTAX_TRIG;
         if (resource.endsWith(SYNTAX_XRDF_EXTENSION))
@@ -495,7 +506,7 @@ public abstract class Repository {
             case SYNTAX_RDFXML:
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFXMLLoader(getNodeManager()));
             case SYNTAX_JSON_LD:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JSONLDLoader(getNodeManager()) {
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLdLoader(getNodeManager()) {
                     @Override
                     protected Reader getReaderFor(Logger logger, String iri) {
                         if (!resolveDependencies)
@@ -513,6 +524,8 @@ public abstract class Repository {
                         }
                     }
                 });
+            case SYNTAX_JSON:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLoader(this));
             case SYNTAX_TRIG:
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(getNodeManager()));
             case SYNTAX_XRDF:

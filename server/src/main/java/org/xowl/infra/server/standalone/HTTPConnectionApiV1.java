@@ -27,7 +27,7 @@ import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.EntailmentRegime;
-import org.xowl.infra.store.loaders.JSONLDLoader;
+import org.xowl.infra.store.loaders.JsonLoader;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
 import org.xowl.infra.utils.http.HttpConstants;
@@ -580,7 +580,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 try {
                     String body = Utils.getRequestBody(httpExchange);
                     BufferedLogger logger = new BufferedLogger();
-                    ASTNode root = JSONLDLoader.parseJSON(logger, body);
+                    ASTNode root = JsonLoader.parseJson(logger, body);
                     if (root == null)
                         return response(new XSPReplyApiError(ApiV1.ERROR_CONTENT_PARSING_FAILED, logger.getErrorsAsString()));
                     BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, Logging.get());

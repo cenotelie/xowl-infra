@@ -22,7 +22,7 @@ package org.xowl.infra.store.loaders;
  *
  * @author Laurent Wouters
  */
-enum JSONLDContainerType {
+enum JsonLdContainerType {
     /**
      * Undefined for a single-valued property
      */

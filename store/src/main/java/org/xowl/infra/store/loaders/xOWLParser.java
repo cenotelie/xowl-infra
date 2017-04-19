@@ -30,7 +30,7 @@ import org.xowl.hime.redist.parsers.RNGLRParser;
 /**
  * Represents a parser
  */
-public class xOWLParser extends RNGLRParser {
+class xOWLParser extends RNGLRParser {
     /**
      * The automaton for this parser
      */

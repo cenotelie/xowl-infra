@@ -87,7 +87,7 @@ public abstract class W3CTestSuite {
             case Repository.SYNTAX_RDFXML:
                 return new RDFXMLLoader(store);
             case Repository.SYNTAX_JSON_LD:
-                return new JSONLDLoader(store) {
+                return new JsonLdLoader(store) {
                     @Override
                     protected Reader getReaderFor(Logger logger, String iri) {
                         String resource = mapper.get(iri);
@@ -98,6 +98,8 @@ public abstract class W3CTestSuite {
                         return getResourceReader(resource);
                     }
                 };
+            case Repository.SYNTAX_JSON:
+                return new JsonLoader();
             case Repository.SYNTAX_TRIG:
                 return new TriGLoader(store);
             case Repository.SYNTAX_XRDF:

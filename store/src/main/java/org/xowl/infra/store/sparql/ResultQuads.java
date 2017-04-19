@@ -20,7 +20,6 @@ package org.xowl.infra.store.sparql;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
@@ -79,6 +78,6 @@ public class ResultQuads implements Result {
 
     @Override
     public String serializedJSON() {
-        return RDFUtils.serialize(quads.iterator(), HttpConstants.MIME_JSON);
+        return RDFUtils.serialize(quads.iterator(), Repository.SYNTAX_JSON);
     }
 }

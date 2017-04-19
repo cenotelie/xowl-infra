@@ -25,10 +25,7 @@ import org.xowl.infra.server.base.BaseRule;
 import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.base.BaseStoredProcedureContext;
 import org.xowl.infra.store.*;
-import org.xowl.infra.store.loaders.JSONLDLoader;
-import org.xowl.infra.store.loaders.RDFLoaderResult;
-import org.xowl.infra.store.loaders.SPARQLLoader;
-import org.xowl.infra.store.loaders.xRDFLoader;
+import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFRule;
@@ -686,7 +683,7 @@ public class ControllerDatabase implements Closeable {
         BufferedLogger logger = new BufferedLogger();
         File file = new File(folder, SHA1.hashSHA1(name));
         try (Reader reader = IOUtils.getReader(file)) {
-            ASTNode root = JSONLDLoader.parseJSON(logger, reader);
+            ASTNode root = JsonLoader.parseJson(logger, reader);
             if (root == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read procedure " + name + ": " + logger.getErrorsAsString());
             BaseStoredProcedure procedure = new BaseStoredProcedure(root, repository.getStore(), logger);
@@ -799,7 +796,7 @@ public class ControllerDatabase implements Closeable {
      */
     public Result executeStoredProcedure(String iri, String contextDefinition, boolean isReadonly) throws IOException, IllegalArgumentException {
         BufferedLogger bufferedLogger = new BufferedLogger();
-        ASTNode root = JSONLDLoader.parseJSON(bufferedLogger, contextDefinition);
+        ASTNode root = JsonLoader.parseJson(bufferedLogger, contextDefinition);
         if (!bufferedLogger.getErrorMessages().isEmpty())
             throw new IllegalArgumentException(bufferedLogger.getErrorsAsString());
         BaseStoredProcedureContext context = new BaseStoredProcedureContext(root, repository);

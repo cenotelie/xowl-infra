@@ -28,7 +28,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class JSONLDContextFragment {
+class JsonLdContextFragment {
     /**
      * The name mappings in this fragment
      */
@@ -95,22 +95,22 @@ class JSONLDContextFragment {
      *
      * @param definition The AST node to load from
      */
-    public JSONLDContextFragment(ASTNode definition) throws LoaderException {
+    public JsonLdContextFragment(ASTNode definition) throws LoaderException {
         mappings = new HashMap<>();
         attributes = new HashMap<>();
         String tLanguage = null;
         String tBase = null;
         String tVocab = null;
         for (ASTNode member : definition.getChildren()) {
-            String key = JSONLDLoader.getValue(member.getChildren().get(0));
+            String key = JsonLdLoader.getValue(member.getChildren().get(0));
             if (Vocabulary.JSONLD.language.equals(key)) {
-                tLanguage = JSONLDLoader.getValue(member.getChildren().get(1));
+                tLanguage = JsonLdLoader.getValue(member.getChildren().get(1));
                 tLanguage = tLanguage == null ? Vocabulary.JSONLD.null_ : tLanguage;
             } else if (Vocabulary.JSONLD.base.equals(key)) {
-                tBase = JSONLDLoader.getValue(member.getChildren().get(1));
+                tBase = JsonLdLoader.getValue(member.getChildren().get(1));
                 tBase = tBase == null ? Vocabulary.JSONLD.null_ : tBase;
             } else if (Vocabulary.JSONLD.vocab.equals(key)) {
-                tVocab = JSONLDLoader.getValue(member.getChildren().get(1));
+                tVocab = JsonLdLoader.getValue(member.getChildren().get(1));
                 tVocab = tVocab == null ? Vocabulary.JSONLD.null_ : tVocab;
             }
         }
@@ -126,10 +126,10 @@ class JSONLDContextFragment {
      */
     public void loadNames(ASTNode definition) throws LoaderException {
         for (ASTNode member : definition.getChildren()) {
-            String key = JSONLDLoader.getValue(member.getChildren().get(0));
+            String key = JsonLdLoader.getValue(member.getChildren().get(0));
             if (key == null)
                 throw new LoaderException("Expected valid key", definition);
-            if (!JSONLDLoader.KEYWORDS.contains(key)) {
+            if (!JsonLdLoader.KEYWORDS.contains(key)) {
                 loadName(key, member.getChildren().get(1));
             }
         }
@@ -143,14 +143,14 @@ class JSONLDContextFragment {
      */
     private void loadName(String name, ASTNode definition) throws LoaderException {
         switch (definition.getSymbol().getID()) {
-            case JSONLDLexer.ID.LITERAL_STRING:
+            case JsonLexer.ID.LITERAL_STRING:
                 // this is an IRI
-                mappings.put(name, JSONLDLoader.getValue(definition));
+                mappings.put(name, JsonLdLoader.getValue(definition));
                 break;
-            case JSONLDLexer.ID.LITERAL_NULL:
+            case JsonLexer.ID.LITERAL_NULL:
                 // explicitly forbids the expansion
                 mappings.put(name, Vocabulary.JSONLD.null_);
-            case JSONLDParser.ID.object:
+            case JsonParser.ID.object:
                 loadNameFromObject(name, definition);
                 break;
             default:
@@ -168,41 +168,41 @@ class JSONLDContextFragment {
         List<Couple<String, Object>> list = new ArrayList<>();
         attributes.put(name, list);
         for (ASTNode member : definition.getChildren()) {
-            String key = JSONLDLoader.getValue(member.getChildren().get(0));
+            String key = JsonLdLoader.getValue(member.getChildren().get(0));
             if (Vocabulary.JSONLD.id.equals(key)) {
-                String value = JSONLDLoader.getValue(member.getChildren().get(1));
+                String value = JsonLdLoader.getValue(member.getChildren().get(1));
                 value = value == null ? Vocabulary.JSONLD.null_ : value;
                 mappings.put(name, value);
             } else if (Vocabulary.JSONLD.type.equals(key)) {
-                String value = JSONLDLoader.getValue(member.getChildren().get(1));
+                String value = JsonLdLoader.getValue(member.getChildren().get(1));
                 list.add(new Couple<String, Object>(Vocabulary.JSONLD.type, value));
             } else if (Vocabulary.JSONLD.container.equals(key)) {
-                String value = JSONLDLoader.getValue(member.getChildren().get(1));
+                String value = JsonLdLoader.getValue(member.getChildren().get(1));
                 if (value != null) {
                     switch (value) {
                         case Vocabulary.JSONLD.list:
-                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.List));
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JsonLdContainerType.List));
                             break;
                         case Vocabulary.JSONLD.set:
-                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.Set));
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JsonLdContainerType.Set));
                             break;
                         case Vocabulary.JSONLD.index:
-                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.Index));
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JsonLdContainerType.Index));
                             break;
                         case Vocabulary.JSONLD.language:
-                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.Language));
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JsonLdContainerType.Language));
                             break;
                         default:
-                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.Undefined));
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JsonLdContainerType.Undefined));
                             break;
                     }
                 }
             } else if (Vocabulary.JSONLD.language.equals(key)) {
-                String value = JSONLDLoader.getValue(member.getChildren().get(1));
+                String value = JsonLdLoader.getValue(member.getChildren().get(1));
                 value = value == null ? Vocabulary.JSONLD.null_ : value;
                 list.add(new Couple<String, Object>(Vocabulary.JSONLD.language, value));
             } else if (Vocabulary.JSONLD.reverse.equals(key)) {
-                String value = JSONLDLoader.getValue(member.getChildren().get(1));
+                String value = JsonLdLoader.getValue(member.getChildren().get(1));
                 list.add(new Couple<String, Object>(Vocabulary.JSONLD.reverse, value));
             }
         }

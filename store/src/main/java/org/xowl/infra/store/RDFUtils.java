@@ -28,7 +28,6 @@ import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.writers.*;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
@@ -293,8 +292,8 @@ public class RDFUtils {
                 case Repository.SYNTAX_TRIG:
                 case Repository.SYNTAX_RDFXML:
                 case Repository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_JSON:
                 case Repository.SYNTAX_XRDF:
-                case HttpConstants.MIME_JSON:
                     return type;
             }
         }
@@ -355,11 +354,11 @@ public class RDFUtils {
             case Repository.SYNTAX_JSON_LD:
                 serializer = new JSONLDSerializer(writer);
                 break;
+            case Repository.SYNTAX_JSON:
+                serializer = new JsonSerializer(writer);
+                break;
             case Repository.SYNTAX_XRDF:
                 serializer = new xRDFSerializer(writer);
-                break;
-            case HttpConstants.MIME_JSON:
-                serializer = new JsonSerializer(writer);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported format " + syntax);

@@ -31,11 +31,11 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-class JSONLDLexer extends ContextFreeLexer {
+class JsonLexer extends ContextFreeLexer {
     /**
      * The automaton for this lexer
      */
-    private static final Automaton commonAutomaton = Automaton.find(JSONLDLexer.class, "JSONLDLexer.bin");
+    private static final Automaton commonAutomaton = Automaton.find(JsonLexer.class, "JsonLexer.bin");
     /**
      * Contains the constant IDs for the terminals for this lexer
      */
@@ -125,7 +125,7 @@ class JSONLDLexer extends ContextFreeLexer {
      *
      * @param input The lexer's input
      */
-    public JSONLDLexer(String input) {
+    public JsonLexer(String input) {
         super(commonAutomaton, terminals, 0x0006, input);
     }
     /**
@@ -133,7 +133,7 @@ class JSONLDLexer extends ContextFreeLexer {
      *
      * @param input The lexer's input
      */
-    public JSONLDLexer(InputStreamReader input) {
+    public JsonLexer(InputStreamReader input) {
         super(commonAutomaton, terminals, 0x0006, input);
     }
 }

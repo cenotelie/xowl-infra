@@ -30,26 +30,26 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class JSONLDContext {
+class JsonLdContext {
     /**
      * The parent loader
      */
-    private final JSONLDLoader loader;
+    private final JsonLdLoader loader;
     /**
      * The parent context
      */
-    private final JSONLDContext parent;
+    private final JsonLdContext parent;
     /**
      * The fragments in this context
      */
-    private final List<JSONLDContextFragment> fragments;
+    private final List<JsonLdContextFragment> fragments;
 
     /**
      * Initializes an empty context
      *
      * @param loader The parent loader
      */
-    public JSONLDContext(JSONLDLoader loader) {
+    public JsonLdContext(JsonLdLoader loader) {
         this.loader = loader;
         this.parent = null;
         this.fragments = Collections.emptyList();
@@ -61,25 +61,25 @@ class JSONLDContext {
      * @param parent     The parent context
      * @param definition The AST node to load from
      */
-    public JSONLDContext(JSONLDContext parent, ASTNode definition) throws LoaderException {
+    public JsonLdContext(JsonLdContext parent, ASTNode definition) throws LoaderException {
         this.loader = parent.loader;
-        this.parent = definition.getSymbol().getID() == JSONLDLexer.ID.LITERAL_NULL ? null : parent;
+        this.parent = definition.getSymbol().getID() == JsonLexer.ID.LITERAL_NULL ? null : parent;
         this.fragments = new ArrayList<>();
         List<ASTNode> definitions = new ArrayList<>();
         definitions.add(definition);
         for (int i = 0; i != definitions.size(); i++) {
             definition = definitions.get(i);
-            if (definition.getSymbol().getID() == JSONLDLexer.ID.LITERAL_STRING) {
+            if (definition.getSymbol().getID() == JsonLexer.ID.LITERAL_STRING) {
                 // external document
-                definition = loader.getExternalContextDefinition(JSONLDLoader.getValue(definition));
+                definition = loader.getExternalContextDefinition(JsonLdLoader.getValue(definition));
                 if (definition != null)
                     definitions.add(definition);
-            } else if (definition.getSymbol().getID() == JSONLDParser.ID.array) {
+            } else if (definition.getSymbol().getID() == JsonParser.ID.array) {
                 // combined definitions
                 definitions.addAll(definition.getChildren());
-            } else if (definition.getSymbol().getID() == JSONLDParser.ID.object) {
+            } else if (definition.getSymbol().getID() == JsonParser.ID.object) {
                 // inline definition
-                JSONLDContextFragment fragment = new JSONLDContextFragment(definition);
+                JsonLdContextFragment fragment = new JsonLdContextFragment(definition);
                 fragments.add(fragment);
                 fragment.loadNames(definition);
             }
@@ -129,7 +129,7 @@ class JSONLDContext {
     private String doExpandIRI(final String name, final boolean useTerm, final boolean useBaseURI, final boolean useVocabulary, final boolean useResource) {
         if (name == null)
             return null;
-        if (JSONLDLoader.KEYWORDS.contains(name))
+        if (JsonLdLoader.KEYWORDS.contains(name))
             // do not map keywords
             return name;
         // look for a fix point in expansion
@@ -192,10 +192,10 @@ class JSONLDContext {
      * @return The expanded name, or null if the expansion failed
      */
     private String doExpandUsingTerms(final String name) {
-        JSONLDContext current = this;
+        JsonLdContext current = this;
         while (current != null) {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
-                JSONLDContextFragment fragment = current.fragments.get(i);
+                JsonLdContextFragment fragment = current.fragments.get(i);
                 String result = fragment.expand(name);
                 if (result != null) {
                     if (Vocabulary.JSONLD.null_.equals(result))
@@ -241,10 +241,10 @@ class JSONLDContext {
      * @return The expanded name, or null if the expansion failed
      */
     private String doExpandUsingVocabulary(final String name) {
-        JSONLDContext current = this;
+        JsonLdContext current = this;
         while (current != null) {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
-                JSONLDContextFragment fragment = current.fragments.get(i);
+                JsonLdContextFragment fragment = current.fragments.get(i);
                 if (fragment.getVocabulary() != null) {
                     // found a vocabulary
                     if (Vocabulary.JSONLD.null_.equals(fragment.getVocabulary()))
@@ -265,10 +265,10 @@ class JSONLDContext {
      * @return The expanded name, or null if the expansion failed
      */
     private String doExpandUsingBaseURI(final String name) {
-        JSONLDContext current = this;
+        JsonLdContext current = this;
         while (current != null) {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
-                JSONLDContextFragment fragment = current.fragments.get(i);
+                JsonLdContextFragment fragment = current.fragments.get(i);
                 if (fragment.getBaseURI() != null) {
                     // found a base IRI
                     if (Vocabulary.JSONLD.null_.equals(fragment.getBaseURI()))
@@ -289,10 +289,10 @@ class JSONLDContext {
      * @return The associated namespace
      */
     private String resolveNamespace(String name) {
-        JSONLDContext current = this;
+        JsonLdContext current = this;
         while (current != null) {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
-                JSONLDContextFragment fragment = current.fragments.get(i);
+                JsonLdContextFragment fragment = current.fragments.get(i);
                 String result = fragment.expand(name);
                 if (result != null) {
                     if (Vocabulary.JSONLD.null_.equals(result))
@@ -312,10 +312,10 @@ class JSONLDContext {
      * @param term A name
      * @return The associated information
      */
-    public JSONLDNameInfo getInfoFor(String term) {
-        JSONLDNameInfo result = new JSONLDNameInfo();
+    public JsonLdNameInfo getInfoFor(String term) {
+        JsonLdNameInfo result = new JsonLdNameInfo();
         result.fullIRI = expandName(term);
-        JSONLDContext current = this;
+        JsonLdContext current = this;
         while (current != null) {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
                 result.mergeWith(current.fragments.get(i).getAttributes(term));
@@ -336,7 +336,7 @@ class JSONLDContext {
      * @return The current language, if any
      */
     public String getLanguage() {
-        JSONLDContext current = this;
+        JsonLdContext current = this;
         while (current != null) {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
                 String language = current.fragments.get(i).getLanguage();

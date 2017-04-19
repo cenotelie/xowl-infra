@@ -30,7 +30,6 @@ import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.DispatchLogger;
 import org.xowl.infra.utils.logging.Logging;
@@ -84,7 +83,7 @@ public class ResultUtils {
         if (content == null) {
             // this is probably an empty content
             if (contentType == null)
-                // no content type, cannot determine what type of response, interpret as absence of repsonse
+                // no content type, cannot determine what type of response, interpret as absence of response
                 return new ResultFailure("No response");
             switch (contentType) {
                 // empty quads
@@ -94,11 +93,11 @@ public class ResultUtils {
                 case Repository.SYNTAX_TRIG:
                 case Repository.SYNTAX_RDFXML:
                 case Repository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_JSON:
                 case Repository.SYNTAX_XRDF:
                     return new ResultQuads(new ArrayList<Quad>(0));
                 // empty solutions
                 case Result.SYNTAX_JSON:
-                case HttpConstants.MIME_JSON:
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:
                 case Result.SYNTAX_XML:
@@ -126,11 +125,12 @@ public class ResultUtils {
                 case Repository.SYNTAX_RDFXML:
                     return parseResponseQuads(content, new RDFXMLLoader());
                 case Repository.SYNTAX_JSON_LD:
-                    return parseResponseQuads(content, new JSONLDLoader());
+                    return parseResponseQuads(content, new JsonLdLoader());
+                case Repository.SYNTAX_JSON:
+                    return parseResponseQuads(content, new JsonLoader());
                 case Repository.SYNTAX_XRDF:
                     return parseResponseQuads(content, new xRDFLoader());
                 case Result.SYNTAX_JSON:
-                case HttpConstants.MIME_JSON:
                     return parseResponseJSON(content);
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:
@@ -161,7 +161,7 @@ public class ResultUtils {
     private static Result parseResponseJSON(String content) {
         Repository repository = null;
         BufferedLogger bufferedLogger = new BufferedLogger();
-        ASTNode nodeRoot = JSONLDLoader.parseJSON(bufferedLogger, content);
+        ASTNode nodeRoot = JsonLoader.parseJson(bufferedLogger, content);
         if (nodeRoot == null)
             return new ResultFailure(bufferedLogger.getErrorsAsString());
         if ("array".equals(nodeRoot.getSymbol().getName()))
