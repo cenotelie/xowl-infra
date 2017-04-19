@@ -352,7 +352,7 @@ public class RDFUtils {
                 serializer = new RDFXMLSerializer(writer);
                 break;
             case Repository.SYNTAX_JSON_LD:
-                serializer = new JSONLDSerializer(writer);
+                serializer = new JsonLdSerializer(writer);
                 break;
             case Repository.SYNTAX_JSON:
                 serializer = new JsonSerializer(writer);

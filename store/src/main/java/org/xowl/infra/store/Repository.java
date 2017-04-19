@@ -667,7 +667,7 @@ public abstract class Repository {
                 break;
             }
             case SYNTAX_JSON_LD: {
-                RDFSerializer serializer = new JSONLDSerializer(writer);
+                RDFSerializer serializer = new JsonLdSerializer(writer);
                 doExportRDF(logger, ontology, serializer);
                 break;
             }
@@ -725,7 +725,7 @@ public abstract class Repository {
                 break;
             }
             case SYNTAX_JSON_LD: {
-                RDFSerializer serializer = new JSONLDSerializer(writer);
+                RDFSerializer serializer = new JsonLdSerializer(writer);
                 doExportRDF(logger, serializer);
                 break;
             }

@@ -37,7 +37,7 @@ import java.util.Map;
  * @author Stephen Creff
  * @author Laurent Wouters
  */
-public class JSONLDSerializer extends StructuredSerializer {
+public class JsonLdSerializer extends StructuredSerializer {
     /**
      * The writer to use
      */
@@ -48,7 +48,7 @@ public class JSONLDSerializer extends StructuredSerializer {
      *
      * @param writer The writer to use
      */
-    public JSONLDSerializer(Writer writer) {
+    public JsonLdSerializer(Writer writer) {
         this.writer = writer;
     }
 
