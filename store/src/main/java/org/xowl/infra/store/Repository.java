@@ -525,7 +525,7 @@ public abstract class Repository {
                     }
                 });
             case SYNTAX_JSON:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLoader(this));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLoader(this, getNodeManager()));
             case SYNTAX_TRIG:
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(getNodeManager()));
             case SYNTAX_XRDF:

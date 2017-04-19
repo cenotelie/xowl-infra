@@ -31,10 +31,7 @@ import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents the basic API for Turtle-like syntax loaders
@@ -436,19 +433,7 @@ public abstract class BaseTurtleLoader implements Loader {
         List<Node> elements = new ArrayList<>();
         for (ASTNode child : node.getChildren())
             elements.add(getNode(child));
-        if (elements.isEmpty())
-            return store.getIRINode(Vocabulary.rdfNil);
-
-        BlankNode[] proxies = new BlankNode[elements.size()];
-        for (int i = 0; i != proxies.length; i++) {
-            proxies[i] = store.getBlankNode();
-            quads.add(new Quad(graph, proxies[i], store.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
-        }
-        for (int i = 0; i != proxies.length - 1; i++) {
-            quads.add(new Quad(graph, proxies[i], store.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
-        }
-        quads.add(new Quad(graph, proxies[proxies.length - 1], store.getIRINode(Vocabulary.rdfRest), store.getIRINode(Vocabulary.rdfNil)));
-        return proxies[0];
+        return buildRdfList(elements, graph, store, quads);
     }
 
     /**
@@ -504,5 +489,30 @@ public abstract class BaseTurtleLoader implements Loader {
             }
             index += 2;
         }
+    }
+
+    /**
+     * Gets the RDF list node equivalent to the specified list of RDF nodes
+     *
+     * @param elements    The RDF nodes in the list
+     * @param graph       The current graph
+     * @param nodeManager The node manager to use
+     * @param quads       The buffer for the created quads
+     * @return The head of the RDF list
+     */
+    protected static Node buildRdfList(List<Node> elements, GraphNode graph, NodeManager nodeManager, Collection<Quad> quads) {
+        if (elements.isEmpty())
+            return nodeManager.getIRINode(Vocabulary.rdfNil);
+
+        BlankNode[] proxies = new BlankNode[elements.size()];
+        for (int i = 0; i != proxies.length; i++) {
+            proxies[i] = nodeManager.getBlankNode();
+            quads.add(new Quad(graph, proxies[i], nodeManager.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
+        }
+        for (int i = 0; i != proxies.length - 1; i++) {
+            quads.add(new Quad(graph, proxies[i], nodeManager.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
+        }
+        quads.add(new Quad(graph, proxies[proxies.length - 1], nodeManager.getIRINode(Vocabulary.rdfRest), nodeManager.getIRINode(Vocabulary.rdfNil)));
+        return proxies[0];
     }
 }
