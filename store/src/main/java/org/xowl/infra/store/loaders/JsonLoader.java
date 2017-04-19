@@ -168,13 +168,23 @@ public class JsonLoader implements Loader {
      */
     private RDFLoaderResult loadDocument(ASTNode node) {
         RDFLoaderResult result = new RDFLoaderResult();
+        loadGraphs(node, result.getQuads());
+        return result;
+    }
+
+    /**
+     * Loads the graphs form the specified AST node
+     *
+     * @param node   An AST node
+     * @param buffer A buffer for the produced quads
+     */
+    public void loadGraphs(ASTNode node, Collection<Quad> buffer) {
         if (node.getSymbol().getID() == JsonParser.ID.array) {
             for (ASTNode child : node.getChildren())
-                loadGraph(child, result.getQuads());
+                loadGraph(child, buffer);
         } else {
-            loadGraph(node, result.getQuads());
+            loadGraph(node, buffer);
         }
-        return result;
     }
 
     /**
