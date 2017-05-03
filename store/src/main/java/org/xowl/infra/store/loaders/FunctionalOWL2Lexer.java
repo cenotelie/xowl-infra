@@ -31,7 +31,7 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-class FunctionalOWL2Lexer extends ContextFreeLexer {
+public class FunctionalOWL2Lexer extends ContextFreeLexer {
     /**
      * The automaton for this lexer
      */

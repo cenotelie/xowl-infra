@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-class xRDFLexer extends ContextSensitiveLexer {
+public class xRDFLexer extends ContextSensitiveLexer {
     /**
      * The automaton for this lexer
      */

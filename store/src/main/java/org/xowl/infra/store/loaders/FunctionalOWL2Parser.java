@@ -29,7 +29,7 @@ import org.xowl.hime.redist.parsers.LRkParser;
 /**
  * Represents a parser
  */
-class FunctionalOWL2Parser extends LRkParser {
+public class FunctionalOWL2Parser extends LRkParser {
     /**
      * The automaton for this parser
      */

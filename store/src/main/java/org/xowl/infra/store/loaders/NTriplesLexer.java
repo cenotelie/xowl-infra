@@ -31,7 +31,7 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-class NTriplesLexer extends ContextFreeLexer {
+public class NTriplesLexer extends ContextFreeLexer {
     /**
      * The automaton for this lexer
      */

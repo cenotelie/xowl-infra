@@ -31,7 +31,7 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-class SPARQLLexer extends ContextFreeLexer {
+public class SPARQLLexer extends ContextFreeLexer {
     /**
      * The automaton for this lexer
      */

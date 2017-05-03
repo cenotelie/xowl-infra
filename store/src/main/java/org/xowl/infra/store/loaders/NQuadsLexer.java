@@ -31,7 +31,7 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-class NQuadsLexer extends ContextFreeLexer {
+public class NQuadsLexer extends ContextFreeLexer {
     /**
      * The automaton for this lexer
      */

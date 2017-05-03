@@ -29,7 +29,7 @@ import org.xowl.hime.redist.parsers.LRkParser;
 /**
  * Represents a parser
  */
-class SPARQLParser extends LRkParser {
+public class SPARQLParser extends LRkParser {
     /**
      * The automaton for this parser
      */

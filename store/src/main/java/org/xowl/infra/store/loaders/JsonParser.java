@@ -29,7 +29,7 @@ import org.xowl.hime.redist.parsers.LRkParser;
 /**
  * Represents a parser
  */
-class JsonParser extends LRkParser {
+public class JsonParser extends LRkParser {
     /**
      * The automaton for this parser
      */

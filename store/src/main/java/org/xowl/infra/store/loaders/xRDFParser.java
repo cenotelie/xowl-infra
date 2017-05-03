@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Represents a parser
  */
-class xRDFParser extends LRkParser {
+public class xRDFParser extends LRkParser {
     /**
      * The automaton for this parser
      */

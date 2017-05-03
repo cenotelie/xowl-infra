@@ -31,7 +31,7 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-class JsonLexer extends ContextFreeLexer {
+public class JsonLexer extends ContextFreeLexer {
     /**
      * The automaton for this lexer
      */

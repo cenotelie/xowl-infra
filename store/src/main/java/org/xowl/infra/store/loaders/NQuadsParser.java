@@ -29,7 +29,7 @@ import org.xowl.hime.redist.parsers.LRkParser;
 /**
  * Represents a parser
  */
-class NQuadsParser extends LRkParser {
+public class NQuadsParser extends LRkParser {
     /**
      * The automaton for this parser
      */

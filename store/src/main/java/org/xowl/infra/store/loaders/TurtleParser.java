@@ -29,7 +29,7 @@ import org.xowl.hime.redist.parsers.LRkParser;
 /**
  * Represents a parser
  */
-class TurtleParser extends LRkParser {
+public class TurtleParser extends LRkParser {
     /**
      * The automaton for this parser
      */

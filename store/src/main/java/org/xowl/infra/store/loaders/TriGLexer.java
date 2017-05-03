@@ -31,7 +31,7 @@ import java.io.InputStreamReader;
 /**
  * Represents a lexer
  */
-class TriGLexer extends ContextFreeLexer {
+public class TriGLexer extends ContextFreeLexer {
     /**
      * The automaton for this lexer
      */
