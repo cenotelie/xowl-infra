@@ -22,10 +22,10 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.Symbol;
-import org.xowl.hime.redist.parsers.InitializationException;
-import org.xowl.hime.redist.parsers.RNGLRAutomaton;
-import org.xowl.hime.redist.parsers.RNGLRParser;
+import fr.cenotelie.hime.redist.Symbol;
+import fr.cenotelie.hime.redist.parsers.InitializationException;
+import fr.cenotelie.hime.redist.parsers.RNGLRAutomaton;
+import fr.cenotelie.hime.redist.parsers.RNGLRParser;
 
 /**
  * Represents a parser

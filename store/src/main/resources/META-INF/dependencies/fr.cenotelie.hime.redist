@@ -4,4 +4,4 @@ version = 2.0.6
 copyright = Copyright (c) 2016 Laurent Wouters
 link = https://bitbucket.org/laurentw/hime
 licenseName = LGPL v3
-licenseText = /META-INF/dependencies/org.xowl.hime.redist.license
+licenseText = /META-INF/dependencies/fr.cenotelie.hime.redist.license

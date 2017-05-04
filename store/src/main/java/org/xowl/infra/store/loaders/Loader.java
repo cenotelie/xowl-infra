@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.ParseResult;
+import fr.cenotelie.hime.redist.ParseResult;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Reader;

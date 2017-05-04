@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store;
 
-import org.xowl.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.lang.runtime.Entity;

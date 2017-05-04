@@ -19,7 +19,7 @@ package org.xowl.infra.store.loaders;
 
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
-import org.xowl.hime.redist.ParseResult;
+import fr.cenotelie.hime.redist.ParseResult;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;

@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;

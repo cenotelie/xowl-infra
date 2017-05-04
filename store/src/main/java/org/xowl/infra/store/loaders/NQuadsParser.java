@@ -22,9 +22,9 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.Symbol;
-import org.xowl.hime.redist.parsers.LRkAutomaton;
-import org.xowl.hime.redist.parsers.LRkParser;
+import fr.cenotelie.hime.redist.Symbol;
+import fr.cenotelie.hime.redist.parsers.LRkAutomaton;
+import fr.cenotelie.hime.redist.parsers.LRkParser;
 
 /**
  * Represents a parser

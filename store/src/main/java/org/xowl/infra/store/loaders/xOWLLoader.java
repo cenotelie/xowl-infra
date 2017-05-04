@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.ParseError;
-import org.xowl.hime.redist.ParseResult;
-import org.xowl.hime.redist.TextContext;
-import org.xowl.hime.redist.parsers.InitializationException;
+import fr.cenotelie.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ParseError;
+import fr.cenotelie.hime.redist.ParseResult;
+import fr.cenotelie.hime.redist.TextContext;
+import fr.cenotelie.hime.redist.parsers.InitializationException;
 import org.xowl.infra.lang.actions.ActionsFactory;
 import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;

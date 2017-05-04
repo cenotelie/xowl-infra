@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ASTNode;
 
 /**
  * Represents an exception that occurs while loading some data due to some error in the input data

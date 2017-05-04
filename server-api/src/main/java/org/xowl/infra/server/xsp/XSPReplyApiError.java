@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.xsp;
 
-import org.xowl.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.ApiError;
 import org.xowl.infra.utils.TextUtils;
 

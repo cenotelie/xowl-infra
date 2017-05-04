@@ -19,7 +19,7 @@ package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.ApiV1;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.base.BaseStoredProcedure;

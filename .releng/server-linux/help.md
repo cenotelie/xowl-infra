@@ -20,7 +20,7 @@ Additional components embedded in this application are:
 
 | Library | Copyright | License | Full text |
 |----|----|----|----|
-| Java library [`org.xowl.hime:redist:2.0.6`](https://bitbucket.org/laurentw/hime) | Copyright (c) 2016 Laurent Wouters | LGPL v3 | xowl-server.jar$META-INF/licenses/org.xowl.hime.redist |
+| Java library [`fr.cenotelie.hime:redist:2.0.6`](http://cenotelie.fr/hime) | Copyright (c) 2017 Association Cénotélie | LGPL v3 | xowl-server.jar$META-INF/licenses/fr.cenotelie.hime.redist |
 | Java library [`de.svenkubiak:jBCrypt:0.4`](http://www.mindrot.org/projects/jBCrypt/) | Copyright (c) 2006 Damien Miller | BSD  | xowl-server.jar$META-INF/licenses/de.svenkubiak.jBCrypt |
 | Java library [`org.clojure:clojure:1.8.0`](http://clojure.org) | Copyright (c) Rich Hickey | EPL v1.0 | xowl-server.jar$META-INF/licenses/org.clojure.clojure |
 | Web Framework [`Bootstrap`](http://getbootstrap.com/) | Copyright (c) 2011-2016 Twitter, Inc. | MIT | xowl-server.jar$META-INF/licenses/bootstrap |

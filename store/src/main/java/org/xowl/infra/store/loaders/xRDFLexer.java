@@ -5,9 +5,9 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.Symbol;
-import org.xowl.hime.redist.lexer.Automaton;
-import org.xowl.hime.redist.lexer.ContextSensitiveLexer;
+import fr.cenotelie.hime.redist.Symbol;
+import fr.cenotelie.hime.redist.lexer.Automaton;
+import fr.cenotelie.hime.redist.lexer.ContextSensitiveLexer;
 
 import java.io.InputStreamReader;
 

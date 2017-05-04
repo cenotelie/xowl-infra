@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ASTNode;
 
 /**
  * Represents a factory of xOWL Server API objects

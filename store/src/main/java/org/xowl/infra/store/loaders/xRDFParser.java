@@ -5,12 +5,12 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.SemanticAction;
-import org.xowl.hime.redist.SemanticBody;
-import org.xowl.hime.redist.Symbol;
-import org.xowl.hime.redist.parsers.InitializationException;
-import org.xowl.hime.redist.parsers.LRkAutomaton;
-import org.xowl.hime.redist.parsers.LRkParser;
+import fr.cenotelie.hime.redist.SemanticAction;
+import fr.cenotelie.hime.redist.SemanticBody;
+import fr.cenotelie.hime.redist.Symbol;
+import fr.cenotelie.hime.redist.parsers.InitializationException;
+import fr.cenotelie.hime.redist.parsers.LRkAutomaton;
+import fr.cenotelie.hime.redist.parsers.LRkParser;
 
 import java.util.Map;
 

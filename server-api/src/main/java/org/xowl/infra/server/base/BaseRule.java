@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.base;
 
-import org.xowl.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.utils.TextUtils;
 

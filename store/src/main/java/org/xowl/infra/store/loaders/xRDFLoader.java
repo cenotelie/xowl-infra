@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.xowl.hime.redist.*;
+import fr.cenotelie.hime.redist.*;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
