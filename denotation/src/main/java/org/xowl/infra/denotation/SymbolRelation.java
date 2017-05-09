@@ -30,23 +30,23 @@ public class SymbolRelation implements Identifiable, Serializable {
     /**
      * The standard contains relation
      */
-    public static final SymbolProperty RELATION_CONTAINS = new SymbolProperty("http://xowl.org/infra/denotation/relation/contains", "contains");
+    public static final SymbolRelation RELATION_CONTAINS = new SymbolRelation("http://xowl.org/infra/denotation/relation/contains", "contains");
     /**
      * The standard contained by relation
      */
-    public static final SymbolProperty RELATION_CONTAINED_BY = new SymbolProperty("http://xowl.org/infra/denotation/relation/containedBy", "containedBy");
+    public static final SymbolRelation RELATION_CONTAINED_BY = new SymbolRelation("http://xowl.org/infra/denotation/relation/containedBy", "containedBy");
     /**
      * The standard overlaps relation
      */
-    public static final SymbolProperty RELATION_OVERLAPS = new SymbolProperty("http://xowl.org/infra/denotation/relation/overlaps", "overlaps");
+    public static final SymbolRelation RELATION_OVERLAPS = new SymbolRelation("http://xowl.org/infra/denotation/relation/overlaps", "overlaps");
     /**
      * The standard links relation
      */
-    public static final SymbolProperty RELATION_LINKS = new SymbolProperty("http://xowl.org/infra/denotation/relation/links", "links");
+    public static final SymbolRelation RELATION_LINKS = new SymbolRelation("http://xowl.org/infra/denotation/relation/links", "links");
     /**
      * The standard linked by relation
      */
-    public static final SymbolProperty RELATION_LINKED_BY = new SymbolProperty("http://xowl.org/infra/denotation/relation/linkedBy", "linkedBy");
+    public static final SymbolRelation RELATION_LINKED_BY = new SymbolRelation("http://xowl.org/infra/denotation/relation/linkedBy", "linkedBy");
 
 
     /**
