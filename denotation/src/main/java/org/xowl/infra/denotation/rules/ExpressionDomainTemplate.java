@@ -18,22 +18,22 @@
 package org.xowl.infra.denotation.rules;
 
 /**
- * A reference to a symbol pattern in an expression
+ * A reference to a domain template in an expression
  *
  * @author Laurent Wouters
  */
-public class ExpressionSymbolPattern implements Expression {
+public class ExpressionDomainTemplate implements Expression {
     /**
-     * The referenced symbol pattern
+     * The referenced domain template
      */
-    private SymbolPattern pattern;
+    private DomainTemplate template;
 
     /**
      * Initializes this expression
      *
-     * @param pattern The referenced symbol pattern
+     * @param template The referenced domain template
      */
-    public ExpressionSymbolPattern(SymbolPattern pattern) {
-        this.pattern = pattern;
+    public ExpressionDomainTemplate(DomainTemplate template) {
+        this.template = template;
     }
 }
