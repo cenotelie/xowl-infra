@@ -17,8 +17,13 @@
 
 package org.xowl.infra.denotation;
 
+import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.storage.NodeManager;
+
 /**
  * Represents the "size" property for a symbol
+ * The size is expected to be represented as a double value
  *
  * @author Laurent Wouters
  */
@@ -38,5 +43,32 @@ public class SymbolPropertySize extends SymbolProperty {
      */
     private SymbolPropertySize() {
         super(URI, "size", true);
+    }
+
+    public boolean isValidValue(Object value) {
+        return value != null && (value instanceof Double);
+    }
+
+    /**
+     * Serializes in JSON a value of this property
+     *
+     * @param builder The string builder to serialize to
+     * @param value   The value to serialize
+     */
+    public void serializeValueJson(StringBuilder builder, Object value) {
+        builder.append("\"");
+        builder.append(Double.toString((double) value));
+        builder.append("\"");
+    }
+
+    /**
+     * Serializes in RDF a value of this property
+     *
+     * @param nodes The node manager to use
+     * @param value The value to serialize
+     * @return The RDF node
+     */
+    public Node serializeValueRdf(NodeManager nodes, Object value) {
+        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdDouble, null);
     }
 }
