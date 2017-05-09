@@ -17,6 +17,7 @@
 
 package org.xowl.infra.denotation;
 
+import org.xowl.infra.denotation.rules.DenotationRule;
 import org.xowl.infra.utils.Serializable;
 
 import java.util.ArrayList;

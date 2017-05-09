@@ -15,14 +15,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation;
+package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.RDFRule;
-import org.xowl.infra.store.sparql.EvalContext;
 import org.xowl.infra.utils.Serializable;
-
-import java.util.Collection;
 
 /**
  * Represents a denotation rule, i.e. a rule that associates symbols in a user's artifact to elements of domain knowledge
@@ -36,27 +31,4 @@ public interface DenotationRule extends Serializable {
      * @return Whether this rule can be reused in another denotation
      */
     boolean isReusable();
-
-    /**
-     * Gets the collection of symbols matched by this rule
-     *
-     * @param context The current context for the rule
-     * @return The matched symbols
-     */
-    Collection<Node> getMatchedSymbols(EvalContext context);
-
-    /**
-     * Gets the associated domain concepts
-     *
-     * @return The associated domain concepts
-     */
-    Collection<Node> getDomainConcepts();
-
-    /**
-     * Get the transformation rule that can generate an ontological instance of the domain schema
-     * for the symbols of a user's artifact
-     *
-     * @return The transformation rule
-     */
-    RDFRule getTransformationRule();
 }
