@@ -15,50 +15,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation;
-
-import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.NodeManager;
+package org.xowl.infra.denotation.artifact;
 
 /**
- * Represents the "size" property for a symbol
- * The size is expected to be represented as a double value
+ * Represents the "texture" property for a symbol
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertySize extends SymbolProperty {
+public class SymbolPropertyTexture extends SymbolProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/size";
+    public static final String URI = "http://xowl.org/infra/denotation/property/texture";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertySize();
+    public static final SymbolProperty INSTANCE = new SymbolPropertyTexture();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertySize() {
-        super(URI, "size", true);
-    }
-
-    @Override
-    public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Double);
-    }
-
-    @Override
-    public void serializeValueJson(StringBuilder builder, Object value) {
-        builder.append("\"");
-        builder.append(Double.toString((double) value));
-        builder.append("\"");
-    }
-
-    @Override
-    public Node serializeValueRdf(NodeManager nodes, Object value) {
-        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdDouble, null);
+    private SymbolPropertyTexture() {
+        super(URI, "texture", true);
     }
 }

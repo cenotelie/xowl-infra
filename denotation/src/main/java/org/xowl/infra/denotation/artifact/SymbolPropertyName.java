@@ -15,34 +15,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation;
+package org.xowl.infra.denotation.artifact;
 
 /**
- * Represents the "zone2d" property for a visual symbol in a 2D graph
- * The zone is expected to be an identifier that corresponds to an element in the original artifact's representation
+ * Represents the "name" property for a symbol
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyZone2D extends SymbolProperty {
+public class SymbolPropertyName extends SymbolProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/zone2d";
+    public static final String URI = "http://xowl.org/infra/denotation/property/name";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyZone2D();
+    public static final SymbolProperty INSTANCE = new SymbolPropertyName();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyZone2D() {
-        super(URI, "zone2d", false);
-    }
-
-    @Override
-    public boolean isValidValue(Object value) {
-        return value != null;
+    private SymbolPropertyName() {
+        super(URI, "name", true);
     }
 }

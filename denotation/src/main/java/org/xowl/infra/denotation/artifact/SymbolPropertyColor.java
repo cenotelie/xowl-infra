@@ -15,56 +15,54 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation;
+package org.xowl.infra.denotation.artifact;
 
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 
-import java.awt.geom.Point2D;
+import java.awt.*;
 
 /**
- * Represents the "position" property for a visual symbol in a 2D graph
- * The position is expected to be represented as a instance of the AWT Point2D class
+ * Represents the "color" property for a symbol
+ * The color is expected to be an instance of the AWT Color class
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyPosition2D extends SymbolProperty {
+public class SymbolPropertyColor extends SymbolProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/position2d";
+    public static final String URI = "http://xowl.org/infra/denotation/property/color";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyPosition2D();
+    public static final SymbolProperty INSTANCE = new SymbolPropertyColor();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyPosition2D() {
-        super(URI, "position2d", true);
+    private SymbolPropertyColor() {
+        super(URI, "color", true);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Point2D);
+        return value != null && (value instanceof Color);
     }
 
     @Override
     public void serializeValueJson(StringBuilder builder, Object value) {
-        Point2D point = (Point2D) value;
-        builder.append("{\"x\": \"");
-        builder.append(Double.toString(point.getX()));
-        builder.append("\", \"y\": \"");
-        builder.append(Double.toString(point.getY()));
-        builder.append("\"}");
+        Color color = (Color) value;
+        builder.append("\"");
+        builder.append(Integer.toString(color.getRGB()));
+        builder.append("\"");
     }
 
     @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
-        Point2D point = (Point2D) value;
-        return nodes.getLiteralNode(Double.toString(point.getX()) + " " + Double.toString(point.getX()), Vocabulary.xsdString, null);
+        Color color = (Color) value;
+        return nodes.getLiteralNode(Integer.toString(color.getRGB()), Vocabulary.xsdString, null);
     }
 }

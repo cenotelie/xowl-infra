@@ -15,10 +15,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation;
+package org.xowl.infra.denotation.artifact;
 
-import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.utils.Identifiable;
+import org.xowl.infra.utils.Serializable;
+import org.xowl.infra.utils.TextUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,7 +29,7 @@ import java.util.Collections;
  *
  * @author Laurent Wouters
  */
-public class Artifact implements Identifiable {
+public class Artifact implements Identifiable, Serializable {
     /**
      * The identifier of this artifact
      */
@@ -38,9 +39,9 @@ public class Artifact implements Identifiable {
      */
     private final String name;
     /**
-     * The quads describing the symbols in this artifact
+     * The symbols found in the artifact
      */
-    private final Collection<Quad> symbols;
+    private final Collection<Symbol> symbols;
     /**
      * The representation of this artifact
      */
@@ -55,11 +56,11 @@ public class Artifact implements Identifiable {
      *
      * @param identifier            The identifier of this artifact
      * @param name                  The human-readable name of this artifact
-     * @param symbols               The quads describing the symbols in this artifact
+     * @param symbols               The symbols found in the artifact
      * @param representationContent The representation of this artifact
      * @param representationMime    The MIME type for the representation
      */
-    public Artifact(String identifier, String name, Collection<Quad> symbols, byte[] representationContent, String representationMime) {
+    public Artifact(String identifier, String name, Collection<Symbol> symbols, byte[] representationContent, String representationMime) {
         this.identifier = identifier;
         this.name = name;
         this.symbols = Collections.unmodifiableCollection(symbols);
@@ -67,27 +68,12 @@ public class Artifact implements Identifiable {
         this.representationMime = representationMime;
     }
 
-    @Override
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return identifier;
-    }
-
     /**
-     * Gets the quads describing the symbols in this artifact
+     * Gets the symbols found in the artifact
      *
-     * @return The quads describing the symbols in this artifact
+     * @return The symbols found in the artifact
      */
-    public Collection<Quad> getSymbols() {
+    public Collection<Symbol> getSymbols() {
         return symbols;
     }
 
@@ -107,5 +93,44 @@ public class Artifact implements Identifiable {
      */
     public String getRepresentationMime() {
         return representationMime;
+    }
+
+    @Override
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String serializedString() {
+        return identifier;
+    }
+
+    @Override
+    public String serializedJSON() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"type\": \"");
+        builder.append(Artifact.class.getCanonicalName());
+        builder.append("\", \"identifier\": \"");
+        builder.append(TextUtils.serializeJSON(identifier));
+        builder.append("\", \"name\": \"");
+        builder.append(TextUtils.serializeJSON(name));
+        builder.append("\", \"symbols\": [");
+        boolean first = true;
+        for (Symbol symbol : symbols) {
+            if (!first)
+                builder.append(", ");
+            first = false;
+            builder.append(symbol.serializedJSON());
+        }
+        builder.append("], \"representationMime\": \"");
+        if (representationMime != null)
+            builder.append(TextUtils.escapeStringJSON(representationMime));
+        builder.append("\"}");
+        return builder.toString();
     }
 }
