@@ -17,6 +17,10 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.utils.collections.Couple;
+
+import java.util.Collection;
+
 /**
  * Represents a template for a domain element
  *
@@ -27,13 +31,27 @@ public class DomainTemplate {
      * The identifier for this template
      */
     private final String identifier;
+    /**
+     * The IRI of the instantiated domain concept
+     */
+    private final String conceptIri;
+    /**
+     * The properties for this element
+     */
+    private Collection<Couple<String, Expression>> properties;
+    /**
+     * The symbol pattern to bind to this template
+     */
+    private Collection<SymbolPattern> bound;
 
     /**
      * Initializes this template
      *
      * @param identifier The identifier for this template
+     * @param conceptIri The IRI of the instantiated domain concept
      */
-    public DomainTemplate(String identifier) {
+    public DomainTemplate(String identifier, String conceptIri) {
         this.identifier = identifier;
+        this.conceptIri = conceptIri;
     }
 }
