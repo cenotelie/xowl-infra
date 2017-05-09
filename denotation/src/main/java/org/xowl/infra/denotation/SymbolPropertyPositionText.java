@@ -21,34 +21,32 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 
-import java.awt.*;
-
 /**
- * Represents the "color" property for a symbol
- * The color is expected to be an instance of the AWT Color class
+ * Represents the "position" property for a textual symbol
+ * The position is expected to be represented as a positive integer corresponding to the index of the symbol in its context text
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyColor extends SymbolProperty {
+public class SymbolPropertyPositionText extends SymbolProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/color";
+    public static final String URI = "http://xowl.org/infra/denotation/property/positionText";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyColor();
+    public static final SymbolProperty INSTANCE = new SymbolPropertyPositionText();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyColor() {
-        super(URI, "color", true);
+    private SymbolPropertyPositionText() {
+        super(URI, "positionText", true);
     }
 
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Color);
+        return value != null && (value instanceof Integer) && (((int) value) >= 0);
     }
 
     /**
@@ -58,9 +56,8 @@ public class SymbolPropertyColor extends SymbolProperty {
      * @param value   The value to serialize
      */
     public void serializeValueJson(StringBuilder builder, Object value) {
-        Color color = (Color) value;
         builder.append("\"");
-        builder.append(Integer.toString(color.getRGB()));
+        builder.append(Integer.toString((int) value));
         builder.append("\"");
     }
 
@@ -72,7 +69,6 @@ public class SymbolPropertyColor extends SymbolProperty {
      * @return The RDF node
      */
     public Node serializeValueRdf(NodeManager nodes, Object value) {
-        Color color = (Color) value;
-        return nodes.getLiteralNode(Integer.toString(color.getRGB()), Vocabulary.xsdString, null);
+        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdInt, null);
     }
 }
