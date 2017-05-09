@@ -101,6 +101,8 @@ public class Symbol implements Identifiable, Serializable {
      * @param value    The value to be associated
      */
     public void addPropertyValue(SymbolProperty property, Object value) {
+        if (!property.isValidValue(value))
+            return;
         if (properties == null)
             properties = new HashMap<>();
         properties.put(property, value);
@@ -188,10 +190,11 @@ public class Symbol implements Identifiable, Serializable {
         IRINode subject = getRdfNode(nodes);
         buffer.add(new Quad(graph, subject, nodes.getIRINode(Vocabulary.rdfType), nodes.getIRINode(TYPE_SYMBOL)));
         if (name != null)
-            buffer.add(new Quad(graph, subject, nodes.getIRINode(SymbolProperty.PROPERTY_NAME.getIdentifier()), nodes.getLiteralNode(name, Vocabulary.xsdString, null)));
+            buffer.add(new Quad(graph, subject, nodes.getIRINode(SymbolPropertyName.URI), nodes.getLiteralNode(name, Vocabulary.xsdString, null)));
         if (properties != null) {
             for (Map.Entry<SymbolProperty, Object> property : properties.entrySet()) {
-                buffer.add(new Quad(graph, subject, nodes.getIRINode(property.getKey().getIdentifier()), property.getKey().serializeValueRdf(nodes, property.getValue())));
+                if (property.getKey().isRdfSerialized())
+                    buffer.add(new Quad(graph, subject, nodes.getIRINode(property.getKey().getIdentifier()), property.getKey().serializeValueRdf(nodes, property.getValue())));
             }
         }
         if (relations != null) {

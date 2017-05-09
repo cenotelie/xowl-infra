@@ -17,7 +17,7 @@
 
 package org.xowl.infra.denotation;
 
-import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Identifiable;
@@ -31,40 +31,6 @@ import org.xowl.infra.utils.TextUtils;
  */
 public class SymbolProperty implements Identifiable, Serializable {
     /**
-     * The standard name property
-     */
-    public static final SymbolProperty PROPERTY_NAME = new SymbolProperty("http://xowl.org/infra/denotation/property/name", "name");
-    /**
-     * The standard position property
-     */
-    public static final SymbolProperty PROPERTY_POSITION = new SymbolProperty("http://xowl.org/infra/denotation/property/position", "position");
-    /**
-     * The standard shape property
-     */
-    public static final SymbolProperty PROPERTY_SHAPE = new SymbolProperty("http://xowl.org/infra/denotation/property/shape", "shape");
-    /**
-     * The standard size property
-     */
-    public static final SymbolProperty PROPERTY_SIZE = new SymbolProperty("http://xowl.org/infra/denotation/property/size", "size");
-    /**
-     * The standard color property
-     */
-    public static final SymbolProperty PROPERTY_COLOR = new SymbolProperty("http://xowl.org/infra/denotation/property/color", "color");
-    /**
-     * The standard brightness property
-     */
-    public static final SymbolProperty PROPERTY_BRIGHTNESS = new SymbolProperty("http://xowl.org/infra/denotation/property/brightness", "brightness");
-    /**
-     * The standard orientation property
-     */
-    public static final SymbolProperty PROPERTY_ORIENTATION = new SymbolProperty("http://xowl.org/infra/denotation/property/orientation", "orientation");
-    /**
-     * The standard texture property
-     */
-    public static final SymbolProperty PROPERTY_TEXTURE = new SymbolProperty("http://xowl.org/infra/denotation/property/texture", "texture");
-
-
-    /**
      * The uri of this property
      */
     private final String uri;
@@ -72,16 +38,41 @@ public class SymbolProperty implements Identifiable, Serializable {
      * The human-readable name of this property
      */
     private final String name;
+    /**
+     * Whether this property is relevant for RDF serialization
+     */
+    private final boolean isRdfSerialized;
 
     /**
      * Initializes this property
      *
-     * @param uri  The identifier of this property
-     * @param name The human-readable name of this property
+     * @param uri             The identifier of this property
+     * @param name            The human-readable name of this property
+     * @param isRdfSerialized Whether this property is relevant for RDF serialization
      */
-    public SymbolProperty(String uri, String name) {
+    public SymbolProperty(String uri, String name, boolean isRdfSerialized) {
         this.uri = uri;
         this.name = name;
+        this.isRdfSerialized = isRdfSerialized;
+    }
+
+    /**
+     * Gets whether this property is relevant for RDF serialization
+     *
+     * @return Whether this property is relevant for RDF serialization
+     */
+    public boolean isRdfSerialized() {
+        return isRdfSerialized;
+    }
+
+    /**
+     * Gets whether the specified value is a valid value for this property
+     *
+     * @param value The value to check
+     * @return Whether the specified value is a valid value for this property
+     */
+    public boolean isValidValue(Object value) {
+        return value != null && (value instanceof String);
     }
 
     /**
@@ -92,8 +83,7 @@ public class SymbolProperty implements Identifiable, Serializable {
      */
     public void serializeValueJson(StringBuilder builder, Object value) {
         builder.append("\"");
-        if (value != null)
-            builder.append(TextUtils.serializeJSON(value.toString()));
+        builder.append(TextUtils.serializeJSON(value.toString()));
         builder.append("\"");
     }
 
@@ -105,7 +95,7 @@ public class SymbolProperty implements Identifiable, Serializable {
      * @return The RDF node
      */
     public Node serializeValueRdf(NodeManager nodes, Object value) {
-        return RDFUtils.getRDF(nodes, value);
+        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdString, null);
     }
 
     @Override
@@ -131,6 +121,8 @@ public class SymbolProperty implements Identifiable, Serializable {
                 TextUtils.escapeStringJSON(uri) +
                 "\", \"name\": \"" +
                 TextUtils.escapeStringJSON(name) +
+                "\", \"isRdfSerialized\": \"" +
+                Boolean.toString(isRdfSerialized) +
                 "\"}";
     }
 
