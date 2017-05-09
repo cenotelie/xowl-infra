@@ -41,18 +41,30 @@ public class Artifact implements Identifiable {
      * The quads describing the symbols in this artifact
      */
     private final Collection<Quad> symbols;
+    /**
+     * The representation of this artifact
+     */
+    private final byte[] representationContent;
+    /**
+     * The MIME type for the representation
+     */
+    private final String representationMime;
 
     /**
      * Initializes this artifact
      *
-     * @param identifier The identifier of this artifact
-     * @param name       The human-readable name of this artifact
-     * @param symbols    The quads describing the symbols in this artifact
+     * @param identifier            The identifier of this artifact
+     * @param name                  The human-readable name of this artifact
+     * @param symbols               The quads describing the symbols in this artifact
+     * @param representationContent The representation of this artifact
+     * @param representationMime    The MIME type for the representation
      */
-    public Artifact(String identifier, String name, Collection<Quad> symbols) {
+    public Artifact(String identifier, String name, Collection<Quad> symbols, byte[] representationContent, String representationMime) {
         this.identifier = identifier;
         this.name = name;
         this.symbols = Collections.unmodifiableCollection(symbols);
+        this.representationContent = representationContent;
+        this.representationMime = representationMime;
     }
 
     @Override
@@ -77,5 +89,23 @@ public class Artifact implements Identifiable {
      */
     public Collection<Quad> getSymbols() {
         return symbols;
+    }
+
+    /**
+     * Gets the content of the artifact's representation
+     *
+     * @return The artifact's representation
+     */
+    public byte[] getRepresentationContent() {
+        return representationContent;
+    }
+
+    /**
+     * Gets the MIME type of the artifact's representation
+     *
+     * @return The MIME type of the artifact's representation
+     */
+    public String getRepresentationMime() {
+        return representationMime;
     }
 }

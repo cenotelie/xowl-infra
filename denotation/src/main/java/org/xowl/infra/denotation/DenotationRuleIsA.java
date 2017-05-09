@@ -17,27 +17,17 @@
 
 package org.xowl.infra.denotation;
 
-import org.xowl.infra.store.Repository;
-import org.xowl.infra.utils.Identifiable;
-
 /**
- * Represents a parser for artifacts produced by users
+ * Implements the "is-a" denotation rule that associates the pattern of symbols to concepts in the domain.
+ * The operational interpretation of this rule is that the domain concepts can be ontologically instantiated for
+ * each solution to the pattern of symbols.
+ * An example of such rule is "Each red box in the diagram is a system function" where:
+ * - the pattern of symbols is a single symbol with the "box" shape property and the "red" color property
+ * - the instantiable domain concept is "system function"
+ * When this rule is matched, a new instance of the domain concepts is created and associated to the symbols.
  *
- * @param <T> The type of input for the parser
  * @author Laurent Wouters
  */
-public interface ArtifactParser<T> extends Identifiable {
-    /**
-     * The URI for the Symbol type
-     */
-    String SYMBOL = "http://xowl.org/infra/denotation/Symbol";
+public class DenotationRuleIsA {
 
-    /**
-     * Parses the specified input
-     *
-     * @param repository The repository to use for the production of the artifact
-     * @param input      The input to parse
-     * @return The resulting artifact
-     */
-    Artifact parse(Repository repository, T input);
 }
