@@ -28,11 +28,6 @@ import org.xowl.infra.utils.Identifiable;
  */
 public interface ArtifactParser<T> extends Identifiable {
     /**
-     * The URI for the Symbol type
-     */
-    String SYMBOL = "http://xowl.org/infra/denotation/Symbol";
-
-    /**
      * Parses the specified input
      *
      * @param repository The repository to use for the production of the artifact

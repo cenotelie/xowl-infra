@@ -52,7 +52,7 @@ public class SymbolRelation implements Identifiable, Serializable {
     /**
      * The identifier of this relation
      */
-    private final String identifier;
+    private final String uri;
     /**
      * The human-readable name of this relation
      */
@@ -61,17 +61,17 @@ public class SymbolRelation implements Identifiable, Serializable {
     /**
      * Initializes this relation
      *
-     * @param identifier The identifier of this relation
-     * @param name       The human-readable name of this relation
+     * @param uri  The uri of this relation
+     * @param name The human-readable name of this relation
      */
-    public SymbolRelation(String identifier, String name) {
-        this.identifier = identifier;
+    public SymbolRelation(String uri, String name) {
+        this.uri = uri;
         this.name = name;
     }
 
     @Override
     public String getIdentifier() {
-        return identifier;
+        return uri;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class SymbolRelation implements Identifiable, Serializable {
 
     @Override
     public String serializedString() {
-        return identifier;
+        return uri;
     }
 
     @Override
@@ -89,7 +89,7 @@ public class SymbolRelation implements Identifiable, Serializable {
         return "{\"type\": \"" +
                 SymbolRelation.class.getCanonicalName() +
                 "\", \"identifier\": \"" +
-                TextUtils.escapeStringJSON(identifier) +
+                TextUtils.escapeStringJSON(uri) +
                 "\", \"name\": \"" +
                 TextUtils.escapeStringJSON(name) +
                 "\"}";
@@ -97,6 +97,6 @@ public class SymbolRelation implements Identifiable, Serializable {
 
     @Override
     public String toString() {
-        return identifier;
+        return uri;
     }
 }

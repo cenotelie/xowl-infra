@@ -17,6 +17,9 @@
 
 package org.xowl.infra.denotation;
 
+import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
@@ -62,9 +65,9 @@ public class SymbolProperty implements Identifiable, Serializable {
 
 
     /**
-     * The identifier of this property
+     * The uri of this property
      */
-    private final String identifier;
+    private final String uri;
     /**
      * The human-readable name of this property
      */
@@ -73,17 +76,41 @@ public class SymbolProperty implements Identifiable, Serializable {
     /**
      * Initializes this property
      *
-     * @param identifier The identifier of this property
-     * @param name       The human-readable name of this property
+     * @param uri  The identifier of this property
+     * @param name The human-readable name of this property
      */
-    public SymbolProperty(String identifier, String name) {
-        this.identifier = identifier;
+    public SymbolProperty(String uri, String name) {
+        this.uri = uri;
         this.name = name;
+    }
+
+    /**
+     * Serializes in JSON a value of this property
+     *
+     * @param builder The string builder to serialize to
+     * @param value   The value to serialize
+     */
+    public void serializeValueJson(StringBuilder builder, Object value) {
+        builder.append("\"");
+        if (value != null)
+            builder.append(TextUtils.serializeJSON(value.toString()));
+        builder.append("\"");
+    }
+
+    /**
+     * Serializes in RDF a value of this property
+     *
+     * @param nodes The node manager to use
+     * @param value The value to serialize
+     * @return The RDF node
+     */
+    public Node serializeValueRdf(NodeManager nodes, Object value) {
+        return RDFUtils.getRDF(nodes, value);
     }
 
     @Override
     public String getIdentifier() {
-        return identifier;
+        return uri;
     }
 
     @Override
@@ -93,7 +120,7 @@ public class SymbolProperty implements Identifiable, Serializable {
 
     @Override
     public String serializedString() {
-        return identifier;
+        return uri;
     }
 
     @Override
@@ -101,7 +128,7 @@ public class SymbolProperty implements Identifiable, Serializable {
         return "{\"type\": \"" +
                 SymbolProperty.class.getCanonicalName() +
                 "\", \"identifier\": \"" +
-                TextUtils.escapeStringJSON(identifier) +
+                TextUtils.escapeStringJSON(uri) +
                 "\", \"name\": \"" +
                 TextUtils.escapeStringJSON(name) +
                 "\"}";
@@ -109,6 +136,6 @@ public class SymbolProperty implements Identifiable, Serializable {
 
     @Override
     public String toString() {
-        return identifier;
+        return uri;
     }
 }
