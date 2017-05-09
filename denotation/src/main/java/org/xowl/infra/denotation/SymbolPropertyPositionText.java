@@ -45,29 +45,19 @@ public class SymbolPropertyPositionText extends SymbolProperty {
         super(URI, "positionText", true);
     }
 
+    @Override
     public boolean isValidValue(Object value) {
         return value != null && (value instanceof Integer) && (((int) value) >= 0);
     }
 
-    /**
-     * Serializes in JSON a value of this property
-     *
-     * @param builder The string builder to serialize to
-     * @param value   The value to serialize
-     */
+    @Override
     public void serializeValueJson(StringBuilder builder, Object value) {
         builder.append("\"");
         builder.append(Integer.toString((int) value));
         builder.append("\"");
     }
 
-    /**
-     * Serializes in RDF a value of this property
-     *
-     * @param nodes The node manager to use
-     * @param value The value to serialize
-     * @return The RDF node
-     */
+    @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
         return nodes.getLiteralNode(value.toString(), Vocabulary.xsdInt, null);
     }

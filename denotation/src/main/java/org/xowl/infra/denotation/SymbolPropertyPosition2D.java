@@ -47,16 +47,12 @@ public class SymbolPropertyPosition2D extends SymbolProperty {
         super(URI, "position2d", true);
     }
 
+    @Override
     public boolean isValidValue(Object value) {
         return value != null && (value instanceof Point2D);
     }
 
-    /**
-     * Serializes in JSON a value of this property
-     *
-     * @param builder The string builder to serialize to
-     * @param value   The value to serialize
-     */
+    @Override
     public void serializeValueJson(StringBuilder builder, Object value) {
         Point2D point = (Point2D) value;
         builder.append("{\"x\": \"");
@@ -66,13 +62,7 @@ public class SymbolPropertyPosition2D extends SymbolProperty {
         builder.append("\"}");
     }
 
-    /**
-     * Serializes in RDF a value of this property
-     *
-     * @param nodes The node manager to use
-     * @param value The value to serialize
-     * @return The RDF node
-     */
+    @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
         Point2D point = (Point2D) value;
         return nodes.getLiteralNode(Double.toString(point.getX()) + " " + Double.toString(point.getX()), Vocabulary.xsdString, null);

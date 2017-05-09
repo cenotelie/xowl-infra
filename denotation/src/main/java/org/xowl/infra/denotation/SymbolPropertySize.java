@@ -45,29 +45,19 @@ public class SymbolPropertySize extends SymbolProperty {
         super(URI, "size", true);
     }
 
+    @Override
     public boolean isValidValue(Object value) {
         return value != null && (value instanceof Double);
     }
 
-    /**
-     * Serializes in JSON a value of this property
-     *
-     * @param builder The string builder to serialize to
-     * @param value   The value to serialize
-     */
+    @Override
     public void serializeValueJson(StringBuilder builder, Object value) {
         builder.append("\"");
         builder.append(Double.toString((double) value));
         builder.append("\"");
     }
 
-    /**
-     * Serializes in RDF a value of this property
-     *
-     * @param nodes The node manager to use
-     * @param value The value to serialize
-     * @return The RDF node
-     */
+    @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
         return nodes.getLiteralNode(value.toString(), Vocabulary.xsdDouble, null);
     }

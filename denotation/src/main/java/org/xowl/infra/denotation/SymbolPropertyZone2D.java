@@ -17,52 +17,32 @@
 
 package org.xowl.infra.denotation;
 
-import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.NodeManager;
-
-import java.awt.*;
-
 /**
- * Represents the "color" property for a symbol
- * The color is expected to be an instance of the AWT Color class
+ * Represents the "zone2d" property for a visual symbol in a 2D graph
+ * The zone is expected to be an identifier that corresponds to an element in the original artifact's representation
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyColor extends SymbolProperty {
+public class SymbolPropertyZone2D extends SymbolProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/color";
+    public static final String URI = "http://xowl.org/infra/denotation/property/zone2d";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyColor();
+    public static final SymbolProperty INSTANCE = new SymbolPropertyZone2D();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyColor() {
-        super(URI, "color", true);
+    private SymbolPropertyZone2D() {
+        super(URI, "zone2d", false);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Color);
-    }
-
-    @Override
-    public void serializeValueJson(StringBuilder builder, Object value) {
-        Color color = (Color) value;
-        builder.append("\"");
-        builder.append(Integer.toString(color.getRGB()));
-        builder.append("\"");
-    }
-
-    @Override
-    public Node serializeValueRdf(NodeManager nodes, Object value) {
-        Color color = (Color) value;
-        return nodes.getLiteralNode(Integer.toString(color.getRGB()), Vocabulary.xsdString, null);
+        return value != null;
     }
 }
