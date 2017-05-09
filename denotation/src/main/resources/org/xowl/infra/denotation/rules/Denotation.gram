@@ -127,7 +127,7 @@ grammar Denotation
         rule_symbol_relation    -> RELATION! iri IDENTIFIER ;
         rule_symbol_bound       -> (BOUND! TO! IDENTIFIER)? ;
         rule_mappings           -> rule_mapping (AND! rule_mapping)* ;
-        rule_mapping            -> A! iri rule_mapping_properties rule_mapping_bindings ;
+        rule_mapping            -> A! iri rule_mapping_alias rule_mapping_properties rule_mapping_bindings ;
         rule_mapping_alias      -> (AS! IDENTIFIER)? ;
         rule_mapping_properties -> rule_mapping_property* ;
         rule_mapping_property   -> WITH! iri OP_EQ expression ;
