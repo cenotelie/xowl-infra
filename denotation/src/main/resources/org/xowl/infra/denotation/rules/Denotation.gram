@@ -1,0 +1,178 @@
+/*******************************************************************************
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
+grammar Denotation
+{
+    options
+    {
+        Axiom = "denotation";
+        Separator = "BLANK";
+    }
+    terminals
+    {
+        // separator characters
+        fragment NEW_LINE       -> U+000D /* CR */
+                                |  U+000A /* LF */
+                                |  U+000D U+000A /* CR LF */
+                                |  U+2028 /* LS */
+                                |  U+2029 /* PS */ ;
+        fragment WHITE_SPACE    -> U+0020 | U+0009 | U+000B | U+000C ;
+        fragment COMMENT        -> '#' (.* - (.* NEW_LINE .*)) NEW_LINE ;
+        BLANK                   -> NEW_LINE | WHITE_SPACE | COMMENT ;
+
+        LANGTAG					-> '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ;
+        IRIREF                  -> '<' (
+                                    . - (U+0000 .. U+0020 | [<>"{}|^`\\])
+                                    | '\\u' [a-fA-F0-9]{4}
+                                    | '\\U' [a-fA-F0-9]{8}
+                                )* '>' ;
+        fragment PLX            -> '%' [a-fA-F0-9] [a-fA-F0-9]
+                                |  '\\' ( [_~.!$&'()*+,;=/?#@%] | '-') ;
+        fragment PN_CHARS_BASE  -> [A-Za-z] | U+00C0 .. U+00D6 | U+00D8 .. U+00F6 | U+00F8 .. U+02FF | U+0370 .. U+037D
+                                            | U+037F .. U+1FFF | U+200C .. U+200D | U+2070 .. U+218F | U+2C00 .. U+2FEF
+                                            | U+3001 .. U+D7FF | U+F900 .. U+FDCF | U+FDF0 .. U+FFFD
+                                            | U+10000 .. U+EFFFF ;
+        fragment PN_CHARS_U     -> PN_CHARS_BASE | '_' ;
+        fragment PN_CHARS       -> PN_CHARS_U | '-' | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040;
+        fragment PN_PREFIX      -> PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)? ;
+        fragment PN_LOCAL       -> (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))? ;
+        PNAME_NS                -> PN_PREFIX? ':' ;
+        PNAME_LN                -> PNAME_NS PN_LOCAL ;
+
+        // Basic literals
+        INTEGER                 -> [0-9]+ ;
+        DECIMAL                 -> [0-9]* '.' [0-9]+ ;
+        DOUBLE                  -> ( [0-9]+ '.' [0-9]* [eE] ('+' | '-')? [0-9]+
+                                                | '.' [0-9]+ [eE] ('+' | '-')? [0-9]+
+                                                | [0-9]+ [eE] ('+' | '-')? [0-9]+
+                                                ) ;
+        fragment STRING_DOUBLE_QUOTE    -> '"' (
+                                        . - (U+0022 | U+005C | U+000A | U+000D)
+                                        | '\\' ([tbnrf"'] | '\\')
+                                        | '\\u' [a-fA-F0-9]{4}
+                                        | '\\U' [a-fA-F0-9]{8}
+                                        )* '"' ;
+        fragment STRING_SINGLE_QUOTE    -> '\'' (
+                                        . - (U+0027 | U+005C | U+000A | U+000D)
+                                        | '\\' ([tbnrf"'] | '\\')
+                                        | '\\u' [a-fA-F0-9]{4}
+                                        | '\\U' [a-fA-F0-9]{8}
+                                        )* '\'' ;
+        STRING                          -> STRING_DOUBLE_QUOTE | STRING_SINGLE_QUOTE ;
+
+        OP_PLUS         -> '+' ;
+        OP_MINUS        -> '-' ;
+        OP_MULT         -> '*' ;
+        OP_DIV          -> '/' ;
+        OP_BOR          -> '||' ;
+        OP_BAND         -> '&&' ;
+        OP_NOT          -> '!' ;
+        OP_EQ           -> '=' ;
+        OP_NEQ          -> '!=' ;
+        OP_LESS         -> '<' ;
+        OP_LEQ          -> '<=' ;
+        OP_GREAT        -> '>' ;
+        OP_GEQ          -> '>=' ;
+        OP_OPT          -> '?' ;
+        OP_UNION        -> '|' ;
+        OP_INV          -> '^' ;
+        OP_COMMA        -> ',';
+
+        IDENTIFIER      -> [a-zA-Z_] [a-zA-Z_0-9]* ;
+
+        BASE            -> ~'base';
+        PREFIX          -> ~'prefix';
+        TRUE            -> ~'true';
+        FALSE           -> ~'false';
+        RULE            -> ~'rule';
+        REPRESENTS      -> ~'represents';
+        IS              -> ~'is';
+        SYMBOL          -> ~'symbol';
+        AND             -> ~'AND';
+        WITH            -> ~'with';
+        RELATION        -> ~'relation';
+        BOUND           -> ~'bound';
+        TO              -> ~'to';
+        A               -> ~'a';
+        AS              -> ~'as';
+        IN              -> ~'IN';
+        NOT             -> ~'NOT';
+    }
+    rules
+    {
+        denotation              -> prologue denotation_rules ;
+        prologue                -> (decl_base | decl_prefix)* ;
+        decl_base               -> BASE! IRIREF ;
+        decl_prefix             -> PREFIX! PNAME_NS IRIREF ;
+
+        denotation_rules        -> rule* ;
+        rule                    -> rule_represents^ | rule_is^ ;
+        rule_represents         -> RULE! STRING rule_symbols REPRESENTS! iri ;
+        rule_is                 -> RULE! STRING rule_symbols IS! rule_mappings ;
+        rule_symbols            -> rule_symbol (AND! rule_symbol)* ;
+        rule_symbol             -> SYMBOL! IDENTIFIER rule_symbol_properties rule_symbol_relations rule_symbol_bound ;
+        rule_symbol_properties  -> (WITH! expression)? ;
+        rule_symbol_relations   -> rule_symbol_relation* ;
+        rule_symbol_relation    -> RELATION! iri IDENTIFIER ;
+        rule_symbol_bound       -> (BOUND! TO! IDENTIFIER)? ;
+        rule_mappings           -> rule_mapping (AND! rule_mapping)* ;
+        rule_mapping            -> A! iri rule_mapping_properties rule_mapping_bindings ;
+        rule_mapping_alias      -> (AS! IDENTIFIER)? ;
+        rule_mapping_properties -> rule_mapping_property* ;
+        rule_mapping_property   -> WITH! iri OP_EQ expression ;
+        rule_mapping_bindings   -> rule_mapping_binding* ;
+        rule_mapping_binding    -> BOUND! TO! IDENTIFIER^ ;
+
+        expression_list         -> '('! (expression (','! expression)*)? ')'! ;
+        expression              -> exp_or^ ;
+        exp_or                  -> exp_and^
+                                |  exp_or OP_BOR^ exp_and ;
+        exp_and                 -> exp_logical^
+                                |  exp_and OP_BAND^ exp_logical ;
+        exp_logical             -> exp_relational^ ;
+        exp_relational          -> exp_numeric^
+                                |  exp_numeric OP_EQ^ exp_numeric
+                                |  exp_numeric OP_NEQ^ exp_numeric
+                                |  exp_numeric OP_LESS^ exp_numeric
+                                |  exp_numeric OP_LEQ^ exp_numeric
+                                |  exp_numeric OP_GREAT^ exp_numeric
+                                |  exp_numeric OP_GEQ^ exp_numeric
+                                |  exp_numeric IN^ expression_list
+                                |  exp_numeric NOT^ IN! expression_list ;
+        exp_numeric             -> exp_add^ ;
+        exp_add                 -> exp_mult^
+                                |  exp_add OP_PLUS^ exp_mult
+                                |  exp_add OP_MINUS^ exp_mult ;
+        exp_mult                -> exp_unary^
+                                |  exp_mult OP_MULT^ exp_unary
+                                |  exp_mult OP_DIV^ exp_unary ;
+        exp_unary               -> exp_primary^
+                                |  OP_NOT^ exp_primary
+                                |  OP_PLUS^ exp_primary
+                                |  OP_MINUS^ exp_primary ;
+        exp_primary             -> exp_bracketted^
+                                |  iri^
+                                |  literal^
+                                |  IDENTIFIER^ ;
+        exp_bracketted          -> '('! expression^ ')'! ;
+
+        iri                     -> IRIREF^ | prefixedName^ ;
+        prefixedName            -> PNAME_LN^ | PNAME_NS^ ;
+        literal                 -> TRUE^ | FALSE^ | INTEGER^ | DECIMAL^ | DOUBLE^ | literal_rdf ;
+        literal_rdf             -> STRING (LANGTAG | '^^'! iri)? ;
+    }
+}
