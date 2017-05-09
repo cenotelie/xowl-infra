@@ -17,27 +17,37 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.utils.Serializable;
-
 import java.util.Collection;
 
 /**
- * Represents a denotation rule, i.e. a rule that associates symbols in a user's artifact to elements of domain knowledge
+ * An expression for the appearance (or not) in an enumeration
  *
  * @author Laurent Wouters
  */
-public interface DenotationRule extends Serializable {
+public class ExpressionIn implements Expression {
     /**
-     * Gets whether this rule can be reused in another denotation
-     *
-     * @return Whether this rule can be reused in another denotation
+     * The value to look for in the enumeration
      */
-    boolean isReusable();
+    private final Expression value;
+    /**
+     * The possible values of the enumeration
+     */
+    private final Collection<Expression> enumeration;
+    /**
+     * Whether this expression is positive
+     */
+    private final boolean isNegative;
 
     /**
-     * Gets the symbol patterns to be matched for this rule
+     * Initializes this expression
      *
-     * @return The symbol patterns
+     * @param value       The value to look for in the enumeration
+     * @param enumeration The possible values of the enumeration
+     * @param isNegative  Whether this expression is positive
      */
-    Collection<SymbolPattern> getSymbolPatterns();
+    public ExpressionIn(Expression value, Collection<Expression> enumeration, boolean isNegative) {
+        this.value = value;
+        this.enumeration = enumeration;
+        this.isNegative = isNegative;
+    }
 }

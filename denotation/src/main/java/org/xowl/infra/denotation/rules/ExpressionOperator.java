@@ -17,27 +17,44 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.utils.Serializable;
-
-import java.util.Collection;
-
 /**
- * Represents a denotation rule, i.e. a rule that associates symbols in a user's artifact to elements of domain knowledge
+ * An operator expression
  *
  * @author Laurent Wouters
  */
-public interface DenotationRule extends Serializable {
+public class ExpressionOperator implements Expression {
     /**
-     * Gets whether this rule can be reused in another denotation
-     *
-     * @return Whether this rule can be reused in another denotation
+     * The possible operators
      */
-    boolean isReusable();
+    public enum Operator {
+        Plus, Minus, Multiply, Divide,
+        BooleanAnd, BooleanOr, BooleanNot,
+        Equal, Different, Greater, GreaterEqual, Lesser, LesserEqual
+    }
 
     /**
-     * Gets the symbol patterns to be matched for this rule
-     *
-     * @return The symbol patterns
+     * The operator
      */
-    Collection<SymbolPattern> getSymbolPatterns();
+    private final Operator operator;
+    /**
+     * The first operand
+     */
+    private final Expression operand1;
+    /**
+     * The second operand
+     */
+    private final Expression operand2;
+
+    /**
+     * Initializes this expression
+     *
+     * @param operator The operator
+     * @param operand1 The first operand
+     * @param operand2 The second operand
+     */
+    public ExpressionOperator(Operator operator, Expression operand1, Expression operand2) {
+        this.operator = operator;
+        this.operand1 = operand1;
+        this.operand2 = operand2;
+    }
 }

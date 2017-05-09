@@ -17,27 +17,43 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.utils.Serializable;
+import org.xowl.infra.denotation.artifact.SymbolRelation;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.Collection;
 
 /**
- * Represents a denotation rule, i.e. a rule that associates symbols in a user's artifact to elements of domain knowledge
+ * Represents a pattern of concrete symbol
  *
  * @author Laurent Wouters
  */
-public interface DenotationRule extends Serializable {
+public class SymbolPattern {
     /**
-     * Gets whether this rule can be reused in another denotation
-     *
-     * @return Whether this rule can be reused in another denotation
+     * The identifier for this pattern
      */
-    boolean isReusable();
+    private final String identifier;
+    /**
+     * The constraint on the symbol's properties
+     */
+    private Expression properties;
+    /**
+     * The constraint on the symbol's relations
+     */
+    private Collection<Couple<SymbolRelation, SymbolPattern>> relations;
+    /**
+     * The identifier of the variable for the bound domain element, if any
+     */
+    private String domain;
 
     /**
-     * Gets the symbol patterns to be matched for this rule
+     * Initializes this pattern
      *
-     * @return The symbol patterns
+     * @param identifier The identifier for this pattern
      */
-    Collection<SymbolPattern> getSymbolPatterns();
+    public SymbolPattern(String identifier) {
+        this.identifier = identifier;
+        this.properties = null;
+        this.relations = null;
+        this.domain = null;
+    }
 }

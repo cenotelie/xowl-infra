@@ -17,27 +17,23 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.utils.Serializable;
-
-import java.util.Collection;
-
 /**
- * Represents a denotation rule, i.e. a rule that associates symbols in a user's artifact to elements of domain knowledge
+ * A reference to a symbol pattern in an expression
  *
  * @author Laurent Wouters
  */
-public interface DenotationRule extends Serializable {
+public class ExpressionSymbolPattern implements Expression {
     /**
-     * Gets whether this rule can be reused in another denotation
-     *
-     * @return Whether this rule can be reused in another denotation
+     * The referenced symbol pattern
      */
-    boolean isReusable();
+    private SymbolPattern pattern;
 
     /**
-     * Gets the symbol patterns to be matched for this rule
+     * Initializes this expression
      *
-     * @return The symbol patterns
+     * @param pattern The referenced symbol pattern
      */
-    Collection<SymbolPattern> getSymbolPatterns();
+    public ExpressionSymbolPattern(SymbolPattern pattern) {
+        this.pattern = pattern;
+    }
 }
