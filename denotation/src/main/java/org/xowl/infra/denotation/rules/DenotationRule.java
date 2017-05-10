@@ -17,6 +17,11 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.RDFRule;
+import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.Identifiable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +31,11 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class DenotationRule {
+public class DenotationRule implements Identifiable {
+    /**
+     * The rule's URI
+     */
+    private final String uri;
     /**
      * The rule's title
      */
@@ -43,20 +52,23 @@ public class DenotationRule {
     /**
      * Initializes this rule
      *
+     * @param uri   The rule's uri
      * @param title The rule's title
      */
-    public DenotationRule(String title) {
+    public DenotationRule(String uri, String title) {
+        this.uri = uri;
         this.title = title;
         this.antecedents = new ArrayList<>();
         this.consequents = new ArrayList<>();
     }
 
-    /**
-     * Gets the rule's title
-     *
-     * @return The rule's title
-     */
-    public String getTitle() {
+    @Override
+    public String getIdentifier() {
+        return uri;
+    }
+
+    @Override
+    public String getName() {
         return title;
     }
 
@@ -131,5 +143,17 @@ public class DenotationRule {
      */
     public void removeConsequent(DenotationRuleConsequent consequent) {
         consequents.remove(consequent);
+    }
+
+    /**
+     * Builds the RDF rule that implements this denotation rule
+     *
+     * @param graphSigns The graph for the signs
+     * @param graphSemes The graph for the semes
+     * @param nodes      The node manager to use
+     * @return The RDF rule
+     */
+    public RDFRule buildRdfRule(GraphNode graphSigns, GraphNode graphSemes, NodeManager nodes) {
+        return null;
     }
 }

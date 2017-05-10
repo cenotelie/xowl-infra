@@ -40,6 +40,11 @@ import java.util.*;
  */
 public class DenotationRuleLoader {
     /**
+     * The base URI for rules
+     */
+    private static final String RULE_URI = "http://xowl.org/infra/denotation/rules/";
+
+    /**
      * Map of the current namespaces
      */
     private final Map<String, String> namespaces;
@@ -55,6 +60,10 @@ public class DenotationRuleLoader {
      * The parsed input
      */
     private Text input;
+    /**
+     * The counter of loaded rules
+     */
+    private int ruleCounter;
     /**
      * The counter of explicit seme
      */
@@ -110,6 +119,7 @@ public class DenotationRuleLoader {
         if (!result.getErrors().isEmpty())
             return Collections.emptyList();
         this.input = result.getInput();
+        this.ruleCounter = 0;
         this.semeCounter = 0;
 
         Collection<DenotationRule> rules = new ArrayList<>();
@@ -174,7 +184,8 @@ public class DenotationRuleLoader {
     private DenotationRule loadRule(ASTNode node) {
         String title = node.getChildren().get(0).getValue();
         title = TextUtils.unescape(title.substring(1, title.length() - 1));
-        DenotationRule rule = new DenotationRule(title);
+        DenotationRule rule = new DenotationRule(RULE_URI + ruleCounter, title);
+        ruleCounter++;
         Map<String, SignPattern> signPatterns = new HashMap<>();
         Map<String, SemeTemplate> semeTemplates = new HashMap<>();
 

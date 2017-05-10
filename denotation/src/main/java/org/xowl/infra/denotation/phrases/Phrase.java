@@ -18,6 +18,9 @@
 package org.xowl.infra.denotation.phrases;
 
 import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
@@ -43,6 +46,10 @@ public class Phrase implements Identifiable, Serializable {
      * The signs found in the phrase
      */
     private final List<Sign> signs;
+    /**
+     * The signs by identifier
+     */
+    private Map<String, Sign> signsById;
 
     /**
      * Initializes this phrase
@@ -109,6 +116,34 @@ public class Phrase implements Identifiable, Serializable {
      */
     public Collection<Sign> getSigns() {
         return signs;
+    }
+
+    /**
+     * Gets the signs for the specified identifier
+     *
+     * @param identifier The identifier to look for
+     * @return The corresponding sign, or null if there is none
+     */
+    public Sign getSign(String identifier) {
+        if (signsById == null) {
+            signsById = new HashMap<>();
+            for (Sign sign : signs)
+                signsById.put(sign.getIdentifier(), sign);
+        }
+        return signsById.get(identifier);
+    }
+
+    /**
+     * Builds the RDF serialization of this phrase
+     *
+     * @param nodes  The node manager to use
+     * @param graph  The target graph
+     * @param buffer The buffer for the produced quads
+     */
+    public void serializeRdf(NodeManager nodes, GraphNode graph, Collection<Quad> buffer) {
+        for (Sign sign : signs) {
+            sign.serializeRdf(nodes, graph, buffer);
+        }
     }
 
     @Override

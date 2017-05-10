@@ -17,28 +17,99 @@
 
 package org.xowl.infra.denotation;
 
+import org.xowl.infra.denotation.phrases.Phrase;
+import org.xowl.infra.denotation.phrases.Sign;
 import org.xowl.infra.denotation.rules.DenotationRule;
+import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.rdf.Changeset;
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.rdf.RDFRule;
+import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.logging.Logging;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 /**
- * Represents the user's denotation of a specific phrases
+ * Represents the user's denotation of a specific phrase
  *
  * @author Laurent Wouters
  */
 public class Denotation {
     /**
+     * The default graphs for the signs
+     */
+    private static final String GRAPH_SIGNS = "http://xowl.org/infra/denotation/signs";
+    /**
+     * The default graphs for the semes
+     */
+    private static final String GRAPH_SEMES = "http://xowl.org/infra/denotation/semes";
+
+    /**
+     * The input phrase
+     */
+    private final Phrase phrase;
+    /**
      * The denotation rules for this denotation
      */
-    private final Collection<DenotationRule> rules;
+    private final Map<String, DenotationRule> rules;
+    /**
+     * The map to the RDF rules
+     */
+    private final Map<DenotationRule, RDFRule> rdfRules;
+    /**
+     * The backend repository
+     */
+    private final RepositoryRDF repository;
+    /**
+     * The graphs for the signs
+     */
+    private final GraphNode graphSigns;
+    /**
+     * The graph for the semes
+     */
+    private final GraphNode graphSemes;
 
     /**
      * Initializes an empty denotation
+     *
+     * @param phrase The input phrase
      */
-    public Denotation() {
-        this.rules = new ArrayList<>();
+    public Denotation(Phrase phrase) {
+        this(phrase, GRAPH_SEMES);
+    }
+
+    /**
+     * Initializes an empty denotation
+     *
+     * @param phrase     The input phrase
+     * @param graphSemes The graph of the semes
+     */
+    public Denotation(Phrase phrase, String graphSemes) {
+        this.phrase = phrase;
+        this.rules = new HashMap<>();
+        this.rdfRules = new HashMap<>();
+        this.repository = new RepositoryRDF(StoreFactory.create().inMemory().withReasoning().make());
+        this.graphSigns = repository.getStore().getIRINode(GRAPH_SIGNS);
+        this.graphSemes = repository.getStore().getIRINode(graphSemes);
+        try {
+            Collection<Quad> buffer = new ArrayList<>();
+            phrase.serializeRdf(repository.getStore(), graphSigns, buffer);
+            repository.getStore().insert(Changeset.fromAdded(buffer));
+        } catch (UnsupportedNodeType exception) {
+            // cannot happen
+            Logging.get().error(exception);
+        }
+    }
+
+    /**
+     * Gets the input phrase
+     *
+     * @return The input phrase
+     */
+    public Phrase getPhrase() {
+        return phrase;
     }
 
     /**
@@ -47,7 +118,17 @@ public class Denotation {
      * @return The denotation rules for this denotation
      */
     public Collection<DenotationRule> getRules() {
-        return Collections.unmodifiableCollection(rules);
+        return Collections.unmodifiableCollection(rules.values());
+    }
+
+    /**
+     * Gets the denotation rule for the specified identifier
+     *
+     * @param identifier The identifier of a rule
+     * @return The rule, or null if there is none
+     */
+    public DenotationRule getRule(String identifier) {
+        return rules.get(identifier);
     }
 
     /**
@@ -56,7 +137,13 @@ public class Denotation {
      * @param rule The rule to add
      */
     public void addRule(DenotationRule rule) {
-        rules.add(rule);
+        rules.put(rule.getIdentifier(), rule);
+        RDFRule rdfRule = rule.buildRdfRule(graphSigns, graphSemes, repository.getStore());
+        if (rdfRule != null) {
+            rdfRules.put(rule, rdfRule);
+            repository.getRDFRuleEngine().add(rdfRule);
+            repository.getRDFRuleEngine().flush();
+        }
     }
 
     /**
@@ -65,6 +152,50 @@ public class Denotation {
      * @param rule The rule to remove
      */
     public void removeRule(DenotationRule rule) {
-        rules.remove(rule);
+        if (rules.remove(rule.getIdentifier()) != null) {
+            RDFRule rdfRule = rdfRules.remove(rule);
+            if (rdfRule != null) {
+                repository.getRDFRuleEngine().remove(rdfRule);
+            }
+        }
+    }
+
+    /**
+     * Gets the rules matching the specified sign
+     *
+     * @param sign A sign
+     * @return The rules matching the specified sign
+     */
+    public Collection<DenotationRule> getRulesMatching(Sign sign) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Gets the signs matched by the specified rule
+     *
+     * @param rule A rule
+     * @return The signs matched by the specified rule
+     */
+    public Collection<Sign> getSignsMatchedBy(DenotationRule rule) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Gets the quads representing the semantics of the input phrase
+     *
+     * @return The quads representing the semantics of the input phrase
+     */
+    public Collection<Quad> getSemantic() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Gets the quads representing the semantics of the specified sign
+     *
+     * @param sign A sign
+     * @return The quads representing the semantics of the sign
+     */
+    public Collection<Quad> getSemanticsOf(Sign sign) {
+        return Collections.emptyList();
     }
 }
