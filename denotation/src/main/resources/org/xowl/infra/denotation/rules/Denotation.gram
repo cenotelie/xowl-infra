@@ -88,6 +88,7 @@ grammar Denotation
         OP_GREAT        -> '>' ;
         OP_GEQ          -> '>=' ;
         OP_COMMA        -> ',';
+        OP_DOT          -> '.';
 
         VARIABLE        -> '?' [a-zA-Z_] [a-zA-Z_0-9]* ;
 
@@ -107,8 +108,9 @@ grammar Denotation
         TO              -> ~'to';
         A               -> ~'a';
         AS              -> ~'as';
-        IN              -> ~'IN';
-        NOT             -> ~'NOT';
+        IN              -> ~'in';
+        NOT             -> ~'not';
+        THIS            -> ~'this';
     }
     rules
     {
@@ -135,7 +137,7 @@ grammar Denotation
         seme_pattern            -> A! iri seme_alias seme_properties seme_bindings ;
         seme_alias              -> (AS! VARIABLE)? ;
         seme_properties         -> seme_property* ;
-        seme_property           ->  WITH! iri OP_EQ expression ;
+        seme_property           -> WITH! iri OP_EQ expression ;
         seme_bindings           -> seme_binding* ;
         seme_binding            -> BIND! TO! SIGN! seme_binding_target^ ;
         seme_binding_target     -> VARIABLE^ | STRING^ ;
@@ -167,6 +169,8 @@ grammar Denotation
                                 |  OP_NOT^ exp_primary
                                 |  OP_PLUS^ exp_primary
                                 |  OP_MINUS^ exp_primary ;
+        exp_member_access       -> exp_primary^
+                                |  exp_member_access OP_DOT^ iri ;
         exp_primary             -> exp_bracketted^
                                 |  iri^
                                 |  literal^

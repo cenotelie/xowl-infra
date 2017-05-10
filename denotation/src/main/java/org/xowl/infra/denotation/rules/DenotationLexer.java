@@ -60,9 +60,13 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int OP_COMMA = 0x0024;
         /**
+         * The unique identifier for terminal OP_DOT
+         */
+        public static final int OP_DOT = 0x0025;
+        /**
          * The unique identifier for terminal A
          */
-        public static final int A = 0x0034;
+        public static final int A = 0x0035;
         /**
          * The unique identifier for terminal INTEGER
          */
@@ -104,25 +108,29 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int OP_GEQ = 0x0023;
         /**
+         * The unique identifier for terminal DECIMAL
+         */
+        public static final int DECIMAL = 0x0012;
+        /**
          * The unique identifier for terminal VARIABLE
          */
-        public static final int VARIABLE = 0x0025;
+        public static final int VARIABLE = 0x0026;
         /**
          * The unique identifier for terminal TO
          */
-        public static final int TO = 0x0033;
+        public static final int TO = 0x0034;
         /**
          * The unique identifier for terminal IS
          */
-        public static final int IS = 0x002B;
+        public static final int IS = 0x002C;
         /**
          * The unique identifier for terminal IN
          */
-        public static final int IN = 0x0036;
+        public static final int IN = 0x0037;
         /**
          * The unique identifier for terminal AS
          */
-        public static final int AS = 0x0035;
+        public static final int AS = 0x0036;
         /**
          * The unique identifier for terminal STRING
          */
@@ -132,17 +140,13 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int PNAME_LN = 0x0010;
         /**
-         * The unique identifier for terminal DECIMAL
-         */
-        public static final int DECIMAL = 0x0012;
-        /**
          * The unique identifier for terminal AND
          */
-        public static final int AND = 0x002E;
+        public static final int AND = 0x002F;
         /**
          * The unique identifier for terminal NOT
          */
-        public static final int NOT = 0x0037;
+        public static final int NOT = 0x0038;
         /**
          * The unique identifier for terminal DOUBLE
          */
@@ -150,47 +154,51 @@ class DenotationLexer extends ContextFreeLexer {
         /**
          * The unique identifier for terminal BASE
          */
-        public static final int BASE = 0x0026;
+        public static final int BASE = 0x0027;
         /**
          * The unique identifier for terminal BIND
          */
-        public static final int BIND = 0x0032;
+        public static final int BIND = 0x0033;
         /**
          * The unique identifier for terminal TRUE
          */
-        public static final int TRUE = 0x0028;
+        public static final int TRUE = 0x0029;
+        /**
+         * The unique identifier for terminal THIS
+         */
+        public static final int THIS = 0x0039;
         /**
          * The unique identifier for terminal RULE
          */
-        public static final int RULE = 0x002A;
+        public static final int RULE = 0x002B;
         /**
          * The unique identifier for terminal SIGN
          */
-        public static final int SIGN = 0x002C;
+        public static final int SIGN = 0x002D;
         /**
          * The unique identifier for terminal SEME
          */
-        public static final int SEME = 0x002D;
+        public static final int SEME = 0x002E;
         /**
          * The unique identifier for terminal WITH
          */
-        public static final int WITH = 0x002F;
+        public static final int WITH = 0x0030;
         /**
          * The unique identifier for terminal BOUND
          */
-        public static final int BOUND = 0x0031;
+        public static final int BOUND = 0x0032;
         /**
          * The unique identifier for terminal FALSE
          */
-        public static final int FALSE = 0x0029;
+        public static final int FALSE = 0x002A;
         /**
          * The unique identifier for terminal PREFIX
          */
-        public static final int PREFIX = 0x0027;
+        public static final int PREFIX = 0x0028;
         /**
          * The unique identifier for terminal RELATION
          */
-        public static final int RELATION = 0x0030;
+        public static final int RELATION = 0x0031;
     }
     /**
      * Contains the constant IDs for the contexts for this lexer
@@ -218,11 +226,12 @@ class DenotationLexer extends ContextFreeLexer {
         new Symbol(0x001D, "OP_NOT"),
         new Symbol(0x001E, "OP_EQ"),
         new Symbol(0x0022, "OP_GREAT"),
-        new Symbol(0x0068, ","),
+        new Symbol(0x006B, ","),
         new Symbol(0x0024, "OP_COMMA"),
-        new Symbol(0x0034, "A"),
-        new Symbol(0x0067, "("),
-        new Symbol(0x006A, ")"),
+        new Symbol(0x0025, "OP_DOT"),
+        new Symbol(0x0035, "A"),
+        new Symbol(0x006A, "("),
+        new Symbol(0x006D, ")"),
         new Symbol(0x0011, "INTEGER"),
         new Symbol(0x000F, "PNAME_NS"),
         new Symbol(0x0006, "BLANK"),
@@ -233,29 +242,30 @@ class DenotationLexer extends ContextFreeLexer {
         new Symbol(0x001C, "OP_BAND"),
         new Symbol(0x001F, "OP_NEQ"),
         new Symbol(0x0023, "OP_GEQ"),
-        new Symbol(0x0025, "VARIABLE"),
-        new Symbol(0x0033, "TO"),
-        new Symbol(0x002B, "IS"),
-        new Symbol(0x0036, "IN"),
-        new Symbol(0x0035, "AS"),
-        new Symbol(0x006B, "^^"),
+        new Symbol(0x0012, "DECIMAL"),
+        new Symbol(0x0026, "VARIABLE"),
+        new Symbol(0x0034, "TO"),
+        new Symbol(0x002C, "IS"),
+        new Symbol(0x0037, "IN"),
+        new Symbol(0x0036, "AS"),
+        new Symbol(0x006E, "^^"),
         new Symbol(0x0016, "STRING"),
         new Symbol(0x0010, "PNAME_LN"),
-        new Symbol(0x0012, "DECIMAL"),
-        new Symbol(0x002E, "AND"),
-        new Symbol(0x0037, "NOT"),
+        new Symbol(0x002F, "AND"),
+        new Symbol(0x0038, "NOT"),
         new Symbol(0x0013, "DOUBLE"),
-        new Symbol(0x0026, "BASE"),
-        new Symbol(0x0032, "BIND"),
-        new Symbol(0x0028, "TRUE"),
-        new Symbol(0x002A, "RULE"),
-        new Symbol(0x002C, "SIGN"),
-        new Symbol(0x002D, "SEME"),
-        new Symbol(0x002F, "WITH"),
-        new Symbol(0x0031, "BOUND"),
-        new Symbol(0x0029, "FALSE"),
-        new Symbol(0x0027, "PREFIX"),
-        new Symbol(0x0030, "RELATION") };
+        new Symbol(0x0027, "BASE"),
+        new Symbol(0x0033, "BIND"),
+        new Symbol(0x0029, "TRUE"),
+        new Symbol(0x0039, "THIS"),
+        new Symbol(0x002B, "RULE"),
+        new Symbol(0x002D, "SIGN"),
+        new Symbol(0x002E, "SEME"),
+        new Symbol(0x0030, "WITH"),
+        new Symbol(0x0032, "BOUND"),
+        new Symbol(0x002A, "FALSE"),
+        new Symbol(0x0028, "PREFIX"),
+        new Symbol(0x0031, "RELATION") };
     /**
      * Initializes a new instance of the lexer
      *

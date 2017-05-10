@@ -18,22 +18,31 @@
 package org.xowl.infra.denotation.rules;
 
 /**
- * A reference to a domain template in an expression
+ * Represents an explicit seme (ontological entity) as a consequent of a denotation rule
  *
  * @author Laurent Wouters
  */
-public class ExpressionDomainTemplate implements Expression {
+public class DenotationRuleConsequentSemeExplicit extends DenotationRuleConsequent {
     /**
-     * The referenced domain template
+     * The seme's IRI
      */
-    private DomainTemplate template;
+    private final String iri;
 
     /**
-     * Initializes this expression
+     * Initializes this consequent
      *
-     * @param template The referenced domain template
+     * @param iri The seme's IRI
      */
-    public ExpressionDomainTemplate(DomainTemplate template) {
-        this.template = template;
+    public DenotationRuleConsequentSemeExplicit(String iri) {
+        this.iri = iri;
+    }
+
+    /**
+     * Gets the seme's IRI
+     *
+     * @return The seme's IRI
+     */
+    public String getSemeIri() {
+        return iri;
     }
 }

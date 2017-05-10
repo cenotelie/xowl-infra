@@ -29,167 +29,171 @@ class DenotationParser extends LRkParser {
         /**
          * The unique identifier for variable denotation
          */
-        public static final int denotation = 0x0038;
+        public static final int denotation = 0x003A;
         /**
          * The unique identifier for variable prologue
          */
-        public static final int prologue = 0x0039;
+        public static final int prologue = 0x003B;
         /**
          * The unique identifier for variable decl_base
          */
-        public static final int decl_base = 0x003A;
+        public static final int decl_base = 0x003C;
         /**
          * The unique identifier for variable decl_prefix
          */
-        public static final int decl_prefix = 0x003B;
+        public static final int decl_prefix = 0x003D;
         /**
          * The unique identifier for variable denotation_rules
          */
-        public static final int denotation_rules = 0x003C;
+        public static final int denotation_rules = 0x003E;
         /**
          * The unique identifier for variable rule
          */
-        public static final int rule = 0x003D;
+        public static final int rule = 0x003F;
         /**
          * The unique identifier for variable signs
          */
-        public static final int signs = 0x003E;
+        public static final int signs = 0x0040;
         /**
          * The unique identifier for variable sign_specific
          */
-        public static final int sign_specific = 0x003F;
+        public static final int sign_specific = 0x0041;
         /**
          * The unique identifier for variable sign_patterns
          */
-        public static final int sign_patterns = 0x0040;
+        public static final int sign_patterns = 0x0042;
         /**
          * The unique identifier for variable sign_pattern
          */
-        public static final int sign_pattern = 0x0041;
+        public static final int sign_pattern = 0x0043;
         /**
          * The unique identifier for variable sign_pattern_properties
          */
-        public static final int sign_pattern_properties = 0x0042;
+        public static final int sign_pattern_properties = 0x0044;
         /**
          * The unique identifier for variable sign_pattern_relations
          */
-        public static final int sign_pattern_relations = 0x0043;
+        public static final int sign_pattern_relations = 0x0045;
         /**
          * The unique identifier for variable sign_pattern_relation
          */
-        public static final int sign_pattern_relation = 0x0044;
+        public static final int sign_pattern_relation = 0x0046;
         /**
          * The unique identifier for variable sign_pattern_binding
          */
-        public static final int sign_pattern_binding = 0x0045;
+        public static final int sign_pattern_binding = 0x0047;
         /**
          * The unique identifier for variable semes
          */
-        public static final int semes = 0x0046;
+        public static final int semes = 0x0048;
         /**
          * The unique identifier for variable seme
          */
-        public static final int seme = 0x0047;
+        public static final int seme = 0x0049;
         /**
          * The unique identifier for variable seme_explicit
          */
-        public static final int seme_explicit = 0x0048;
+        public static final int seme_explicit = 0x004A;
         /**
          * The unique identifier for variable seme_pattern
          */
-        public static final int seme_pattern = 0x0049;
+        public static final int seme_pattern = 0x004B;
         /**
          * The unique identifier for variable seme_alias
          */
-        public static final int seme_alias = 0x004A;
+        public static final int seme_alias = 0x004C;
         /**
          * The unique identifier for variable seme_properties
          */
-        public static final int seme_properties = 0x004B;
+        public static final int seme_properties = 0x004D;
         /**
          * The unique identifier for variable seme_property
          */
-        public static final int seme_property = 0x004C;
+        public static final int seme_property = 0x004E;
         /**
          * The unique identifier for variable seme_bindings
          */
-        public static final int seme_bindings = 0x004D;
+        public static final int seme_bindings = 0x004F;
         /**
          * The unique identifier for variable seme_binding
          */
-        public static final int seme_binding = 0x004E;
+        public static final int seme_binding = 0x0050;
         /**
          * The unique identifier for variable seme_binding_target
          */
-        public static final int seme_binding_target = 0x004F;
+        public static final int seme_binding_target = 0x0051;
         /**
          * The unique identifier for variable expression_list
          */
-        public static final int expression_list = 0x0050;
+        public static final int expression_list = 0x0052;
         /**
          * The unique identifier for variable expression
          */
-        public static final int expression = 0x0051;
+        public static final int expression = 0x0053;
         /**
          * The unique identifier for variable exp_or
          */
-        public static final int exp_or = 0x0052;
+        public static final int exp_or = 0x0054;
         /**
          * The unique identifier for variable exp_and
          */
-        public static final int exp_and = 0x0053;
+        public static final int exp_and = 0x0055;
         /**
          * The unique identifier for variable exp_logical
          */
-        public static final int exp_logical = 0x0054;
+        public static final int exp_logical = 0x0056;
         /**
          * The unique identifier for variable exp_relational
          */
-        public static final int exp_relational = 0x0055;
+        public static final int exp_relational = 0x0057;
         /**
          * The unique identifier for variable exp_numeric
          */
-        public static final int exp_numeric = 0x0056;
+        public static final int exp_numeric = 0x0058;
         /**
          * The unique identifier for variable exp_add
          */
-        public static final int exp_add = 0x0057;
+        public static final int exp_add = 0x0059;
         /**
          * The unique identifier for variable exp_mult
          */
-        public static final int exp_mult = 0x0058;
+        public static final int exp_mult = 0x005A;
         /**
          * The unique identifier for variable exp_unary
          */
-        public static final int exp_unary = 0x0059;
+        public static final int exp_unary = 0x005B;
+        /**
+         * The unique identifier for variable exp_member_access
+         */
+        public static final int exp_member_access = 0x005C;
         /**
          * The unique identifier for variable exp_primary
          */
-        public static final int exp_primary = 0x005A;
+        public static final int exp_primary = 0x005D;
         /**
          * The unique identifier for variable exp_bracketted
          */
-        public static final int exp_bracketted = 0x005B;
+        public static final int exp_bracketted = 0x005E;
         /**
          * The unique identifier for variable iri
          */
-        public static final int iri = 0x005C;
+        public static final int iri = 0x005F;
         /**
          * The unique identifier for variable prefixedName
          */
-        public static final int prefixedName = 0x005D;
+        public static final int prefixedName = 0x0060;
         /**
          * The unique identifier for variable literal
          */
-        public static final int literal = 0x005E;
+        public static final int literal = 0x0061;
         /**
          * The unique identifier for variable literal_rdf
          */
-        public static final int literal_rdf = 0x005F;
+        public static final int literal_rdf = 0x0062;
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x006C;
+        public static final int __axiom = 0x006F;
     }
     /**
      * The collection of variables matched by this parser
@@ -198,55 +202,56 @@ class DenotationParser extends LRkParser {
      * so that variable indices in the automaton can be used to retrieve the variables in this table
      */
     private static final Symbol[] variables = {
-        new Symbol(0x0038, "denotation"), 
-        new Symbol(0x0039, "prologue"), 
-        new Symbol(0x003A, "decl_base"), 
-        new Symbol(0x003B, "decl_prefix"), 
-        new Symbol(0x003C, "denotation_rules"), 
-        new Symbol(0x003D, "rule"), 
-        new Symbol(0x003E, "signs"), 
-        new Symbol(0x003F, "sign_specific"), 
-        new Symbol(0x0040, "sign_patterns"), 
-        new Symbol(0x0041, "sign_pattern"), 
-        new Symbol(0x0042, "sign_pattern_properties"), 
-        new Symbol(0x0043, "sign_pattern_relations"), 
-        new Symbol(0x0044, "sign_pattern_relation"), 
-        new Symbol(0x0045, "sign_pattern_binding"), 
-        new Symbol(0x0046, "semes"), 
-        new Symbol(0x0047, "seme"), 
-        new Symbol(0x0048, "seme_explicit"), 
-        new Symbol(0x0049, "seme_pattern"), 
-        new Symbol(0x004A, "seme_alias"), 
-        new Symbol(0x004B, "seme_properties"), 
-        new Symbol(0x004C, "seme_property"), 
-        new Symbol(0x004D, "seme_bindings"), 
-        new Symbol(0x004E, "seme_binding"), 
-        new Symbol(0x004F, "seme_binding_target"), 
-        new Symbol(0x0050, "expression_list"), 
-        new Symbol(0x0051, "expression"), 
-        new Symbol(0x0052, "exp_or"), 
-        new Symbol(0x0053, "exp_and"), 
-        new Symbol(0x0054, "exp_logical"), 
-        new Symbol(0x0055, "exp_relational"), 
-        new Symbol(0x0056, "exp_numeric"), 
-        new Symbol(0x0057, "exp_add"), 
-        new Symbol(0x0058, "exp_mult"), 
-        new Symbol(0x0059, "exp_unary"), 
-        new Symbol(0x005A, "exp_primary"), 
-        new Symbol(0x005B, "exp_bracketted"), 
-        new Symbol(0x005C, "iri"), 
-        new Symbol(0x005D, "prefixedName"), 
-        new Symbol(0x005E, "literal"), 
-        new Symbol(0x005F, "literal_rdf"), 
-        new Symbol(0x0060, "__V96"), 
-        new Symbol(0x0061, "__V97"), 
-        new Symbol(0x0062, "__V98"), 
+        new Symbol(0x003A, "denotation"), 
+        new Symbol(0x003B, "prologue"), 
+        new Symbol(0x003C, "decl_base"), 
+        new Symbol(0x003D, "decl_prefix"), 
+        new Symbol(0x003E, "denotation_rules"), 
+        new Symbol(0x003F, "rule"), 
+        new Symbol(0x0040, "signs"), 
+        new Symbol(0x0041, "sign_specific"), 
+        new Symbol(0x0042, "sign_patterns"), 
+        new Symbol(0x0043, "sign_pattern"), 
+        new Symbol(0x0044, "sign_pattern_properties"), 
+        new Symbol(0x0045, "sign_pattern_relations"), 
+        new Symbol(0x0046, "sign_pattern_relation"), 
+        new Symbol(0x0047, "sign_pattern_binding"), 
+        new Symbol(0x0048, "semes"), 
+        new Symbol(0x0049, "seme"), 
+        new Symbol(0x004A, "seme_explicit"), 
+        new Symbol(0x004B, "seme_pattern"), 
+        new Symbol(0x004C, "seme_alias"), 
+        new Symbol(0x004D, "seme_properties"), 
+        new Symbol(0x004E, "seme_property"), 
+        new Symbol(0x004F, "seme_bindings"), 
+        new Symbol(0x0050, "seme_binding"), 
+        new Symbol(0x0051, "seme_binding_target"), 
+        new Symbol(0x0052, "expression_list"), 
+        new Symbol(0x0053, "expression"), 
+        new Symbol(0x0054, "exp_or"), 
+        new Symbol(0x0055, "exp_and"), 
+        new Symbol(0x0056, "exp_logical"), 
+        new Symbol(0x0057, "exp_relational"), 
+        new Symbol(0x0058, "exp_numeric"), 
+        new Symbol(0x0059, "exp_add"), 
+        new Symbol(0x005A, "exp_mult"), 
+        new Symbol(0x005B, "exp_unary"), 
+        new Symbol(0x005C, "exp_member_access"), 
+        new Symbol(0x005D, "exp_primary"), 
+        new Symbol(0x005E, "exp_bracketted"), 
+        new Symbol(0x005F, "iri"), 
+        new Symbol(0x0060, "prefixedName"), 
+        new Symbol(0x0061, "literal"), 
+        new Symbol(0x0062, "literal_rdf"), 
         new Symbol(0x0063, "__V99"), 
         new Symbol(0x0064, "__V100"), 
         new Symbol(0x0065, "__V101"), 
         new Symbol(0x0066, "__V102"), 
+        new Symbol(0x0067, "__V103"), 
+        new Symbol(0x0068, "__V104"), 
         new Symbol(0x0069, "__V105"), 
-        new Symbol(0x006C, "__axiom") };
+        new Symbol(0x006C, "__V108"), 
+        new Symbol(0x006F, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *

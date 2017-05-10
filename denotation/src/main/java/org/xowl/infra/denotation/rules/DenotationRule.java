@@ -17,31 +17,100 @@
 
 package org.xowl.infra.denotation.rules;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Represents a denotation rule, i.e. a rule that associates signs in a user's phrases to meaning elements as ontological entities
+ * Represents a denotation rule, i.e. a rule that associates signs in a user's phrases to meaning elements as ontological entities (semes)
  *
  * @author Laurent Wouters
  */
-public abstract class DenotationRule {
+public class DenotationRule {
     /**
      * The rule's title
      */
     private final String title;
-
+    /**
+     * The rule's antecedents
+     */
+    private final List<DenotationRuleAntecedent> antecedents;
+    /**
+     * The rule's consequents
+     */
+    private final List<DenotationRuleConsequent> consequents;
 
     /**
-     * Gets whether this rule can be reused in another denotation
+     * Initializes this rule
      *
-     * @return Whether this rule can be reused in another denotation
+     * @param title The rule's title
      */
-    boolean isReusable();
+    public DenotationRule(String title) {
+        this.title = title;
+        this.antecedents = new ArrayList<>();
+        this.consequents = new ArrayList<>();
+    }
 
     /**
-     * Gets the symbol patterns to be matched for this rule
+     * Gets the rule's title
      *
-     * @return The symbol patterns
+     * @return The rule's title
      */
-    Collection<SymbolPattern> getSymbolPatterns();
+    public String getTitle() {
+        return title;
+    }
+
+    /**
+     * Gets the rule's antecedents
+     *
+     * @return The rule's antecedents
+     */
+    public List<DenotationRuleAntecedent> getAntecedents() {
+        return Collections.unmodifiableList(antecedents);
+    }
+
+    /**
+     * Adds an antecedent to this rule
+     *
+     * @param antecedent The antecedent to add
+     */
+    public void addAntecedent(DenotationRuleAntecedent antecedent) {
+        antecedents.add(antecedent);
+    }
+
+    /**
+     * Removes an antecedent from this rule
+     *
+     * @param antecedent The antecedent to remove
+     */
+    public void removeAntecedent(DenotationRuleAntecedent antecedent) {
+        antecedents.remove(antecedent);
+    }
+
+    /**
+     * Gets the rule's consequents
+     *
+     * @return The rule's consequents
+     */
+    public List<DenotationRuleConsequent> getConsequents() {
+        return Collections.unmodifiableList(consequents);
+    }
+
+    /**
+     * Adds a consequent to this rule
+     *
+     * @param consequent The consequent to add
+     */
+    public void addConsequent(DenotationRuleConsequent consequent) {
+        consequents.add(consequent);
+    }
+
+    /**
+     * Removes a consequent from this rule
+     *
+     * @param consequent The consequent to remove
+     */
+    public void removeConsequent(DenotationRuleConsequent consequent) {
+        consequents.remove(consequent);
+    }
 }
