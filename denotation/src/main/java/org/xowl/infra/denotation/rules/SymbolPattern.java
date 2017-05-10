@@ -17,7 +17,7 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.denotation.artifact.SignRelation;
+import org.xowl.infra.denotation.phrases.SignRelation;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.Collection;

@@ -15,50 +15,54 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 
+import java.awt.*;
+
 /**
- * Represents the "size" property for a symbol
- * The size is expected to be represented as a double value
+ * Represents the "color" property for a sign
+ * The color is expected to be an instance of the AWT Color class
  *
  * @author Laurent Wouters
  */
-public class SignPropertySize extends SignProperty {
+public class SignPropertyColor extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/size";
+    public static final String URI = "http://xowl.org/infra/denotation/property/color";
 
     /**
      * The singleton instance
      */
-    public static final SignProperty INSTANCE = new SignPropertySize();
+    public static final SignProperty INSTANCE = new SignPropertyColor();
 
     /**
      * Initializes this property
      */
-    private SignPropertySize() {
-        super(URI, "size", true);
+    private SignPropertyColor() {
+        super(URI, "color", true);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Double);
+        return value != null && (value instanceof Color);
     }
 
     @Override
     public void serializeValueJson(StringBuilder builder, Object value) {
+        Color color = (Color) value;
         builder.append("\"");
-        builder.append(Double.toString((double) value));
+        builder.append(Integer.toString(color.getRGB()));
         builder.append("\"");
     }
 
     @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
-        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdDouble, null);
+        Color color = (Color) value;
+        return nodes.getLiteralNode(Integer.toString(color.getRGB()), Vocabulary.xsdString, null);
     }
 }

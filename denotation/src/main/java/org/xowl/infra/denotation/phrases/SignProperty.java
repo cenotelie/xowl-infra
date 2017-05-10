@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
@@ -25,7 +25,7 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Represents a significant property of the symbol
+ * Represents a significant property of the sign
  *
  * @author Laurent Wouters
  */

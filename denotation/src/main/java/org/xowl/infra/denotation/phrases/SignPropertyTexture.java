@@ -15,24 +15,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
-
-import org.xowl.infra.store.Repository;
-import org.xowl.infra.utils.Identifiable;
+package org.xowl.infra.denotation.phrases;
 
 /**
- * Represents a parser for artifacts produced by users
+ * Represents the "texture" property for a sign
  *
- * @param <T> The type of input for the parser
  * @author Laurent Wouters
  */
-public interface ArtifactParser<T> extends Identifiable {
+public class SignPropertyTexture extends SignProperty {
     /**
-     * Parses the specified input
-     *
-     * @param repository The repository to use for the production of the artifact
-     * @param input      The input to parse
-     * @return The resulting artifact
+     * The URI for this property
      */
-    Artifact parse(Repository repository, T input);
+    public static final String URI = "http://xowl.org/infra/denotation/property/texture";
+
+    /**
+     * The singleton instance
+     */
+    public static final SignProperty INSTANCE = new SignPropertyTexture();
+
+    /**
+     * Initializes this property
+     */
+    private SignPropertyTexture() {
+        super(URI, "texture", true);
+    }
 }

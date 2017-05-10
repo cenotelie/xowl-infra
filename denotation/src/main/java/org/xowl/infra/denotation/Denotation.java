@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Represents the user's denotation of a specific artifact
+ * Represents the user's denotation of a specific phrases
  *
  * @author Laurent Wouters
  */

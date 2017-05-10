@@ -15,54 +15,50 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 
-import java.awt.*;
-
 /**
- * Represents the "color" property for a symbol
- * The color is expected to be an instance of the AWT Color class
+ * Represents the "brightness" property for a sign
+ * The brightness is expected to be a double between 0 and 1
  *
  * @author Laurent Wouters
  */
-public class SignPropertyColor extends SignProperty {
+public class SignPropertyBrightness extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/color";
+    public static final String URI = "http://xowl.org/infra/denotation/property/brightness";
 
     /**
      * The singleton instance
      */
-    public static final SignProperty INSTANCE = new SignPropertyColor();
+    public static final SignProperty INSTANCE = new SignPropertyBrightness();
 
     /**
      * Initializes this property
      */
-    private SignPropertyColor() {
-        super(URI, "color", true);
+    private SignPropertyBrightness() {
+        super(URI, "brightness", true);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Color);
+        return value != null && (value instanceof Double) && (((double) value) >= 0) && (((double) value) <= 0);
     }
 
     @Override
     public void serializeValueJson(StringBuilder builder, Object value) {
-        Color color = (Color) value;
         builder.append("\"");
-        builder.append(Integer.toString(color.getRGB()));
+        builder.append(Double.toString((double) value));
         builder.append("\"");
     }
 
     @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
-        Color color = (Color) value;
-        return nodes.getLiteralNode(Integer.toString(color.getRGB()), Vocabulary.xsdString, null);
+        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdDouble, null);
     }
 }

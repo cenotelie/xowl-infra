@@ -22,7 +22,7 @@ import org.xowl.infra.utils.Serializable;
 import java.util.Collection;
 
 /**
- * Represents a denotation rule, i.e. a rule that associates symbols in a user's artifact to elements of domain knowledge
+ * Represents a denotation rule, i.e. a rule that associates symbols in a user's phrases to elements of domain knowledge
  *
  * @author Laurent Wouters
  */

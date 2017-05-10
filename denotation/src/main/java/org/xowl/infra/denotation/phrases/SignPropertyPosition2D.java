@@ -15,50 +15,56 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 
+import java.awt.geom.Point2D;
+
 /**
- * Represents the "brightness" property for a symbol
- * The brightness is expected to be a double between 0 and 1
+ * Represents the "position" property for a visual sign in a 2D graph
+ * The position is expected to be represented as a instance of the AWT Point2D class
  *
  * @author Laurent Wouters
  */
-public class SignPropertyBrightness extends SignProperty {
+public class SignPropertyPosition2D extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/brightness";
+    public static final String URI = "http://xowl.org/infra/denotation/property/position2d";
 
     /**
      * The singleton instance
      */
-    public static final SignProperty INSTANCE = new SignPropertyBrightness();
+    public static final SignProperty INSTANCE = new SignPropertyPosition2D();
 
     /**
      * Initializes this property
      */
-    private SignPropertyBrightness() {
-        super(URI, "brightness", true);
+    private SignPropertyPosition2D() {
+        super(URI, "position2d", true);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Double) && (((double) value) >= 0) && (((double) value) <= 0);
+        return value != null && (value instanceof Point2D);
     }
 
     @Override
     public void serializeValueJson(StringBuilder builder, Object value) {
-        builder.append("\"");
-        builder.append(Double.toString((double) value));
-        builder.append("\"");
+        Point2D point = (Point2D) value;
+        builder.append("{\"x\": \"");
+        builder.append(Double.toString(point.getX()));
+        builder.append("\", \"y\": \"");
+        builder.append(Double.toString(point.getY()));
+        builder.append("\"}");
     }
 
     @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
-        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdDouble, null);
+        Point2D point = (Point2D) value;
+        return nodes.getLiteralNode(Double.toString(point.getX()) + " " + Double.toString(point.getX()), Vocabulary.xsdString, null);
     }
 }

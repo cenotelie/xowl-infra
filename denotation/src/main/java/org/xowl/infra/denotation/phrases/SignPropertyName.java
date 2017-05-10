@@ -15,28 +15,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 /**
- * Represents the "texture" property for a symbol
+ * Represents the "name" property for a sign
  *
  * @author Laurent Wouters
  */
-public class SignPropertyTexture extends SignProperty {
+public class SignPropertyName extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/texture";
+    public static final String URI = "http://xowl.org/infra/denotation/property/name";
 
     /**
      * The singleton instance
      */
-    public static final SignProperty INSTANCE = new SignPropertyTexture();
+    public static final SignProperty INSTANCE = new SignPropertyName();
 
     /**
      * Initializes this property
      */
-    private SignPropertyTexture() {
-        super(URI, "texture", true);
+    private SignPropertyName() {
+        super(URI, "name", true);
     }
 }

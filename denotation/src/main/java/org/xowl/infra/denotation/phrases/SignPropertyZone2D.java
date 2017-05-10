@@ -15,50 +15,34 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
-
-import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.NodeManager;
+package org.xowl.infra.denotation.phrases;
 
 /**
- * Represents the "position" property for a textual symbol
- * The position is expected to be represented as a positive integer corresponding to the index of the symbol in its context text
+ * Represents the "zone2d" property for a visual sign in a 2D graph
+ * The zone is expected to be an identifier that corresponds to an element in the original phrases's representation
  *
  * @author Laurent Wouters
  */
-public class SignPropertyPositionText extends SignProperty {
+public class SignPropertyZone2D extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/positionText";
+    public static final String URI = "http://xowl.org/infra/denotation/property/zone2d";
 
     /**
      * The singleton instance
      */
-    public static final SignProperty INSTANCE = new SignPropertyPositionText();
+    public static final SignProperty INSTANCE = new SignPropertyZone2D();
 
     /**
      * Initializes this property
      */
-    private SignPropertyPositionText() {
-        super(URI, "positionText", true);
+    private SignPropertyZone2D() {
+        super(URI, "zone2d", false);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Integer) && (((int) value) >= 0);
-    }
-
-    @Override
-    public void serializeValueJson(StringBuilder builder, Object value) {
-        builder.append("\"");
-        builder.append(Integer.toString((int) value));
-        builder.append("\"");
-    }
-
-    @Override
-    public Node serializeValueRdf(NodeManager nodes, Object value) {
-        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdInt, null);
+        return value != null;
     }
 }

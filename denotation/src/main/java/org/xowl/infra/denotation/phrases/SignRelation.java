@@ -15,14 +15,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Represents a significant relation of a symbol with another symbol
+ * Represents a significant relation of a sign with another sign
  *
  * @author Laurent Wouters
  */

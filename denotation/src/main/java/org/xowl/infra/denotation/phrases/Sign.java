@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.GraphNode;
@@ -29,7 +29,7 @@ import org.xowl.infra.utils.TextUtils;
 import java.util.*;
 
 /**
- * Represents a symbol in a user's artifact
+ * Represents a sign in a user's phrases
  *
  * @author Laurent Wouters
  */
@@ -40,31 +40,31 @@ public class Sign implements Identifiable, Serializable {
     public static final String TYPE_SYMBOL = "http://xowl.org/infra/denotation/Sign";
 
     /**
-     * The symbol's identifier that can be traced back in the original's artifact
+     * The sign's identifier that can be traced back in the original's phrases
      */
     private final String identifier;
     /**
-     * The symbol's name, if any
+     * The sign's name, if any
      */
     private final String name;
     /**
-     * The symbol's properties
+     * The sign's properties
      */
     private Map<SignProperty, Object> properties;
     /**
-     * The relations of this symbols with other symbols
+     * The relations of this signs with other signs
      */
     private Map<SignRelation, List<Sign>> relations;
     /**
-     * The IRI node for the RDF representation of this symbol
+     * The IRI node for the RDF representation of this sign
      */
     private IRINode rdfNode;
 
     /**
-     * Initializes this symbol
+     * Initializes this sign
      *
-     * @param identifier The symbol's identifier that can be traced back in the original's artifact
-     * @param name       The symbol's name, if any
+     * @param identifier The sign's identifier that can be traced back in the original's phrases
+     * @param name       The sign's name, if any
      */
     public Sign(String identifier, String name) {
         this.identifier = identifier;
@@ -72,9 +72,9 @@ public class Sign implements Identifiable, Serializable {
     }
 
     /**
-     * Gets the properties of this symbol
+     * Gets the properties of this sign
      *
-     * @return The properties of this symbol
+     * @return The properties of this sign
      */
     public Collection<SignProperty> getProperties() {
         if (properties == null)
@@ -85,7 +85,7 @@ public class Sign implements Identifiable, Serializable {
     /**
      * Gets the value associated to the specified property
      *
-     * @param property A symbol property
+     * @param property A sign property
      * @return The associated value, or null if there is none
      */
     public Object getPropertyValue(SignProperty property) {
@@ -95,7 +95,7 @@ public class Sign implements Identifiable, Serializable {
     }
 
     /**
-     * Associates a value to a property for this symbol
+     * Associates a value to a property for this sign
      *
      * @param property The property to set
      * @param value    The value to be associated
@@ -109,9 +109,9 @@ public class Sign implements Identifiable, Serializable {
     }
 
     /**
-     * Gets the relations of this symbol
+     * Gets the relations of this sign
      *
-     * @return The relations of this symbol
+     * @return The relations of this sign
      */
     public Collection<SignRelation> getRelations() {
         if (relations == null)
@@ -120,12 +120,12 @@ public class Sign implements Identifiable, Serializable {
     }
 
     /**
-     * Gets the first symbol associated to this one for the specified relation
+     * Gets the first sign associated to this one for the specified relation
      *
      * @param relation A relation
-     * @return The first related symbol
+     * @return The first related sign
      */
-    public Sign getRelationSymbol(SignRelation relation) {
+    public Sign getRelationSign(SignRelation relation) {
         if (relations == null)
             return null;
         List<Sign> result = relations.get(relation);
@@ -135,12 +135,12 @@ public class Sign implements Identifiable, Serializable {
     }
 
     /**
-     * Gets all the symbols associated to this one for the specified relartion
+     * Gets all the signs associated to this one for the specified relartion
      *
      * @param relation A relation
-     * @return The related symbols
+     * @return The related signs
      */
-    public List<Sign> getRelationSymbols(SignRelation relation) {
+    public List<Sign> getRelationSigns(SignRelation relation) {
         if (relations == null)
             return Collections.emptyList();
         List<Sign> result = relations.get(relation);
@@ -153,9 +153,9 @@ public class Sign implements Identifiable, Serializable {
      * Adds a related sign
      *
      * @param relation The relation
-     * @param sign   The related sign
+     * @param sign     The related sign
      */
-    public void addRelationSymbol(SignRelation relation, Sign sign) {
+    public void addRelationSign(SignRelation relation, Sign sign) {
         if (relations == null)
             relations = new HashMap<>();
         List<Sign> result = relations.get(relation);
@@ -167,7 +167,7 @@ public class Sign implements Identifiable, Serializable {
     }
 
     /**
-     * Gets the RDF node for the RDF representation of this symbol
+     * Gets the RDF node for the RDF representation of this sign
      *
      * @param nodes The node manager to use
      * @return The RDF node
@@ -180,7 +180,7 @@ public class Sign implements Identifiable, Serializable {
     }
 
     /**
-     * Builds the RDF serialization of this symbol
+     * Builds the RDF serialization of this sign
      *
      * @param nodes  The node manager to use
      * @param graph  The target graph

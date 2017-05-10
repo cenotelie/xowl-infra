@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
@@ -23,27 +23,28 @@ import org.xowl.infra.utils.TextUtils;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
- * Represents an artifact produced by a user, as read by a parser
+ * Represents an phrases produced by a user, as read by a parser
  *
  * @author Laurent Wouters
  */
-public class Artifact implements Identifiable, Serializable {
+public class Phrase implements Identifiable, Serializable {
     /**
-     * The identifier of this artifact
+     * The identifier of this phrases
      */
     private final String identifier;
     /**
-     * The human-readable name of this artifact
+     * The human-readable name of this phrases
      */
     private final String name;
     /**
-     * The signs found in the artifact
+     * The signs found in the phrases
      */
-    private final Collection<Sign> signs;
+    private final List<Sign> signs;
     /**
-     * The representation of this artifact
+     * The representation of this phrases
      */
     private final byte[] representationContent;
     /**
@@ -52,44 +53,44 @@ public class Artifact implements Identifiable, Serializable {
     private final String representationMime;
 
     /**
-     * Initializes this artifact
+     * Initializes this phrases
      *
-     * @param identifier            The identifier of this artifact
-     * @param name                  The human-readable name of this artifact
-     * @param signs               The signs found in the artifact
-     * @param representationContent The representation of this artifact
+     * @param identifier            The identifier of this phrases
+     * @param name                  The human-readable name of this phrases
+     * @param signs                 The signs found in the phrases
+     * @param representationContent The representation of this phrases
      * @param representationMime    The MIME type for the representation
      */
-    public Artifact(String identifier, String name, Collection<Sign> signs, byte[] representationContent, String representationMime) {
+    public Phrase(String identifier, String name, List<Sign> signs, byte[] representationContent, String representationMime) {
         this.identifier = identifier;
         this.name = name;
-        this.signs = Collections.unmodifiableCollection(signs);
+        this.signs = Collections.unmodifiableList(signs);
         this.representationContent = representationContent;
         this.representationMime = representationMime;
     }
 
     /**
-     * Gets the signs found in the artifact
+     * Gets the signs found in the phrases
      *
-     * @return The signs found in the artifact
+     * @return The signs found in the phrases
      */
     public Collection<Sign> getSigns() {
         return signs;
     }
 
     /**
-     * Gets the content of the artifact's representation
+     * Gets the content of the phrases's representation
      *
-     * @return The artifact's representation
+     * @return The phrases's representation
      */
     public byte[] getRepresentationContent() {
         return representationContent;
     }
 
     /**
-     * Gets the MIME type of the artifact's representation
+     * Gets the MIME type of the phrases's representation
      *
-     * @return The MIME type of the artifact's representation
+     * @return The MIME type of the phrases's representation
      */
     public String getRepresentationMime() {
         return representationMime;
@@ -114,7 +115,7 @@ public class Artifact implements Identifiable, Serializable {
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\"type\": \"");
-        builder.append(Artifact.class.getCanonicalName());
+        builder.append(Phrase.class.getCanonicalName());
         builder.append("\", \"identifier\": \"");
         builder.append(TextUtils.serializeJSON(identifier));
         builder.append("\", \"name\": \"");

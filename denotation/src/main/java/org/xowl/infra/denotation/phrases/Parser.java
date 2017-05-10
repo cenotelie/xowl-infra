@@ -15,34 +15,23 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
+
+import org.xowl.infra.utils.Identifiable;
 
 /**
- * Represents the "zone2d" property for a visual symbol in a 2D graph
- * The zone is expected to be an identifier that corresponds to an element in the original artifact's representation
+ * Represents a parser for phrases produced by users
+ * A parser reads an input phrases and produces a phrase, i.e. a list of signs.
  *
+ * @param <T> The type of input for the parser
  * @author Laurent Wouters
  */
-public class SignPropertyZone2D extends SignProperty {
+public interface Parser<T> extends Identifiable {
     /**
-     * The URI for this property
+     * Parses the specified input
+     *
+     * @param input The input to parse
+     * @return The resulting phrases
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/zone2d";
-
-    /**
-     * The singleton instance
-     */
-    public static final SignProperty INSTANCE = new SignPropertyZone2D();
-
-    /**
-     * Initializes this property
-     */
-    private SignPropertyZone2D() {
-        super(URI, "zone2d", false);
-    }
-
-    @Override
-    public boolean isValidValue(Object value) {
-        return value != null;
-    }
+    Phrase parse(T input);
 }

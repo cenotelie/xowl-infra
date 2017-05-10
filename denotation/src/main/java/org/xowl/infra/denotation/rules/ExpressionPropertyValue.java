@@ -17,7 +17,7 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.denotation.artifact.SignProperty;
+import org.xowl.infra.denotation.phrases.SignProperty;
 
 /**
  * An expression for the value of a symbol property

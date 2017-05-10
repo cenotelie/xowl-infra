@@ -15,39 +15,39 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.denotation.artifact;
+package org.xowl.infra.denotation.phrases;
 
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 
 /**
- * Represents the "orientation" property for a symbol
- * The orientation is expected to be represented by an angle as a double value between -2*PI and 2*PI
+ * Represents the "size" property for a sign
+ * The size is expected to be represented as a double value
  *
  * @author Laurent Wouters
  */
-public class SignPropertyOrientation extends SignProperty {
+public class SignPropertySize extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/orientation";
+    public static final String URI = "http://xowl.org/infra/denotation/property/size";
 
     /**
      * The singleton instance
      */
-    public static final SignProperty INSTANCE = new SignPropertyOrientation();
+    public static final SignProperty INSTANCE = new SignPropertySize();
 
     /**
      * Initializes this property
      */
-    private SignPropertyOrientation() {
-        super(URI, "orientation", true);
+    private SignPropertySize() {
+        super(URI, "size", true);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Double) && (((double) value) >= -2 * Math.PI) && (((double) value) <= 2 * Math.PI);
+        return value != null && (value instanceof Double);
     }
 
     @Override
