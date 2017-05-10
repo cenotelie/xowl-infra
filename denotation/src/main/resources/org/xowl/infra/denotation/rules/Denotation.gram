@@ -98,7 +98,7 @@ grammar Denotation
         RULE            -> ~'rule';
         REPRESENTS      -> ~'represents';
         IS              -> ~'is';
-        SYMBOL          -> ~'symbol';
+        SIGN            -> ~'sign';
         AND             -> ~'AND';
         WITH            -> ~'with';
         RELATION        -> ~'relation';
@@ -118,14 +118,14 @@ grammar Denotation
 
         denotation_rules        -> rule* ;
         rule                    -> rule_represents^ | rule_is^ ;
-        rule_represents         -> RULE! STRING rule_symbols REPRESENTS! iri ;
-        rule_is                 -> RULE! STRING rule_symbols IS! rule_mappings ;
-        rule_symbols            -> rule_symbol (AND! rule_symbol)* ;
-        rule_symbol             -> SYMBOL! IDENTIFIER rule_symbol_properties rule_symbol_relations rule_symbol_bound ;
-        rule_symbol_properties  -> (WITH! expression)? ;
-        rule_symbol_relations   -> rule_symbol_relation* ;
-        rule_symbol_relation    -> RELATION! iri IDENTIFIER ;
-        rule_symbol_bound       -> (BOUND! TO! IDENTIFIER)? ;
+        rule_represents         -> RULE! STRING rule_signs REPRESENTS! iri ;
+        rule_is                 -> RULE! STRING rule_signs IS! rule_mappings ;
+        rule_signs              -> rule_sign (AND! rule_sign)* ;
+        rule_sign               -> SIGN! IDENTIFIER rule_sign_properties rule_sign_relations rule_sign_bound ;
+        rule_sign_properties    -> (WITH! expression)? ;
+        rule_sign_relations     -> rule_sign_relation* ;
+        rule_sign_relation      -> RELATION! iri IDENTIFIER ;
+        rule_sign_bound         -> (BOUND! TO! IDENTIFIER)? ;
         rule_mappings           -> rule_mapping (AND! rule_mapping)* ;
         rule_mapping            -> A! iri rule_mapping_alias rule_mapping_properties rule_mapping_bindings ;
         rule_mapping_alias      -> (AS! IDENTIFIER)? ;

@@ -59,29 +59,29 @@ class DenotationParser extends LRkParser {
          */
         public static final int rule_is = 0x003E;
         /**
-         * The unique identifier for variable rule_symbols
+         * The unique identifier for variable rule_signs
          */
-        public static final int rule_symbols = 0x003F;
+        public static final int rule_signs = 0x003F;
         /**
-         * The unique identifier for variable rule_symbol
+         * The unique identifier for variable rule_sign
          */
-        public static final int rule_symbol = 0x0040;
+        public static final int rule_sign = 0x0040;
         /**
-         * The unique identifier for variable rule_symbol_properties
+         * The unique identifier for variable rule_sign_properties
          */
-        public static final int rule_symbol_properties = 0x0041;
+        public static final int rule_sign_properties = 0x0041;
         /**
-         * The unique identifier for variable rule_symbol_relations
+         * The unique identifier for variable rule_sign_relations
          */
-        public static final int rule_symbol_relations = 0x0042;
+        public static final int rule_sign_relations = 0x0042;
         /**
-         * The unique identifier for variable rule_symbol_relation
+         * The unique identifier for variable rule_sign_relation
          */
-        public static final int rule_symbol_relation = 0x0043;
+        public static final int rule_sign_relation = 0x0043;
         /**
-         * The unique identifier for variable rule_symbol_bound
+         * The unique identifier for variable rule_sign_bound
          */
-        public static final int rule_symbol_bound = 0x0044;
+        public static final int rule_sign_bound = 0x0044;
         /**
          * The unique identifier for variable rule_mappings
          */
@@ -194,12 +194,12 @@ class DenotationParser extends LRkParser {
         new Symbol(0x003C, "rule"), 
         new Symbol(0x003D, "rule_represents"), 
         new Symbol(0x003E, "rule_is"), 
-        new Symbol(0x003F, "rule_symbols"), 
-        new Symbol(0x0040, "rule_symbol"), 
-        new Symbol(0x0041, "rule_symbol_properties"), 
-        new Symbol(0x0042, "rule_symbol_relations"), 
-        new Symbol(0x0043, "rule_symbol_relation"), 
-        new Symbol(0x0044, "rule_symbol_bound"), 
+        new Symbol(0x003F, "rule_signs"), 
+        new Symbol(0x0040, "rule_sign"), 
+        new Symbol(0x0041, "rule_sign_properties"), 
+        new Symbol(0x0042, "rule_sign_relations"), 
+        new Symbol(0x0043, "rule_sign_relation"), 
+        new Symbol(0x0044, "rule_sign_bound"), 
         new Symbol(0x0045, "rule_mappings"), 
         new Symbol(0x0046, "rule_mapping"), 
         new Symbol(0x0047, "rule_mapping_alias"), 

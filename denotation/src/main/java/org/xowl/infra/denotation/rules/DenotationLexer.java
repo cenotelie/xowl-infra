@@ -164,6 +164,10 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int WITH = 0x002F;
         /**
+         * The unique identifier for terminal SIGN
+         */
+        public static final int SIGN = 0x002D;
+        /**
          * The unique identifier for terminal BOUND
          */
         public static final int BOUND = 0x0031;
@@ -175,10 +179,6 @@ class DenotationLexer extends ContextFreeLexer {
          * The unique identifier for terminal PREFIX
          */
         public static final int PREFIX = 0x0027;
-        /**
-         * The unique identifier for terminal SYMBOL
-         */
-        public static final int SYMBOL = 0x002D;
         /**
          * The unique identifier for terminal RELATION
          */
@@ -245,10 +245,10 @@ class DenotationLexer extends ContextFreeLexer {
         new Symbol(0x0028, "TRUE"),
         new Symbol(0x002A, "RULE"),
         new Symbol(0x002F, "WITH"),
+        new Symbol(0x002D, "SIGN"),
         new Symbol(0x0031, "BOUND"),
         new Symbol(0x0029, "FALSE"),
         new Symbol(0x0027, "PREFIX"),
-        new Symbol(0x002D, "SYMBOL"),
         new Symbol(0x0030, "RELATION"),
         new Symbol(0x002B, "REPRESENTS") };
     /**
