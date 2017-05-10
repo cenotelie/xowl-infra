@@ -18,9 +18,33 @@
 package org.xowl.infra.denotation.rules;
 
 /**
- * Represents an expression for a symbol property constraint
+ * A property template for a seme when the value is an IRI
  *
  * @author Laurent Wouters
  */
-public interface Expression {
+public class SemeTemplatePropertyIRI extends SemeTemplateProperty {
+    /**
+     * The IRI for the value
+     */
+    private final String valueIri;
+
+    /**
+     * Initializes this property
+     *
+     * @param propertyIri The property's IRI
+     * @param valueIri    The IRI for the value
+     */
+    public SemeTemplatePropertyIRI(String propertyIri, String valueIri) {
+        super(propertyIri);
+        this.valueIri = valueIri;
+    }
+
+    /**
+     * Gets the IRI for the value
+     *
+     * @return The IRI for the value
+     */
+    public String getValueIri() {
+        return valueIri;
+    }
 }

@@ -17,37 +17,32 @@
 
 package org.xowl.infra.denotation.rules;
 
-import java.util.Collection;
-
 /**
- * An expression for the appearance (or not) in an enumeration
+ * Represents an explicit seme (ontological entity) as a consequent of a denotation rule
  *
  * @author Laurent Wouters
  */
-public class ExpressionIn implements Expression {
+public class SemeExplicit extends DenotationRuleConsequent {
     /**
-     * The value to look for in the enumeration
+     * The seme's IRI
      */
-    private final Expression value;
-    /**
-     * The possible values of the enumeration
-     */
-    private final Collection<Expression> enumeration;
-    /**
-     * Whether this expression is positive
-     */
-    private final boolean isNegative;
+    private final String iri;
 
     /**
-     * Initializes this expression
+     * Initializes this consequent
      *
-     * @param value       The value to look for in the enumeration
-     * @param enumeration The possible values of the enumeration
-     * @param isNegative  Whether this expression is positive
+     * @param iri The seme's IRI
      */
-    public ExpressionIn(Expression value, Collection<Expression> enumeration, boolean isNegative) {
-        this.value = value;
-        this.enumeration = enumeration;
-        this.isNegative = isNegative;
+    public SemeExplicit(String iri) {
+        this.iri = iri;
+    }
+
+    /**
+     * Gets the seme's IRI
+     *
+     * @return The seme's IRI
+     */
+    public String getSemeIri() {
+        return iri;
     }
 }

@@ -17,19 +17,16 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.denotation.phrases.SignRelation;
-import org.xowl.infra.utils.collections.Couple;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a pattern of a sign in a phrase as an antecedent to a denotation rule
  *
  * @author Laurent Wouters
  */
-public class DenotationRuleAntecedentSignPattern implements DenotationRuleAntecedent {
+public class SignPattern implements DenotationRuleAntecedent {
     /**
      * The identifier for this pattern
      */
@@ -37,11 +34,11 @@ public class DenotationRuleAntecedentSignPattern implements DenotationRuleAntece
     /**
      * The constraint on the sign's properties
      */
-    private Expression properties;
+    private List<SignPropertyConstraint> properties;
     /**
      * The constraint on the sign's relations
      */
-    private Collection<Couple<SignRelation, DenotationRuleAntecedentSignPattern>> relations;
+    private List<SignRelationConstraint> relations;
     /**
      * The identifier of the variable for the bound domain element, if any
      */
@@ -52,7 +49,7 @@ public class DenotationRuleAntecedentSignPattern implements DenotationRuleAntece
      *
      * @param identifier The identifier for this pattern
      */
-    public DenotationRuleAntecedentSignPattern(String identifier) {
+    public SignPattern(String identifier) {
         this.identifier = identifier;
         this.properties = null;
         this.relations = null;
@@ -69,21 +66,36 @@ public class DenotationRuleAntecedentSignPattern implements DenotationRuleAntece
     }
 
     /**
-     * Gets the constraint on the sign's properties
+     * Gets the constraints on the sign's properties
      *
-     * @return The constraint on the sign's properties
+     * @return The constraints on the sign's properties
      */
-    public Expression getPropetiesConstraint() {
-        return properties;
+    public List<SignPropertyConstraint> getPropertiesConstraints() {
+        if (properties == null)
+            return Collections.emptyList();
+        return Collections.unmodifiableList(properties);
     }
 
     /**
-     * Sets the constraint on the sign's properties
+     * Adds a property constraint
      *
-     * @param constraint The constraint on the sign's properties
+     * @param constraint The constraint to add
      */
-    public void setPropertiesConstraint(Expression constraint) {
-        this.properties = constraint;
+    public void addPropertiesConstraint(SignPropertyConstraint constraint) {
+        if (properties == null)
+            properties = new ArrayList<>();
+        properties.add(constraint);
+    }
+
+    /**
+     * Removes a property constraint
+     *
+     * @param constraint The constraint to remove
+     */
+    public void removePropertiesConstraint(SignPropertyConstraint constraint) {
+        if (properties == null)
+            return;
+        properties.remove(constraint);
     }
 
     /**
@@ -91,39 +103,32 @@ public class DenotationRuleAntecedentSignPattern implements DenotationRuleAntece
      *
      * @return The constraints on the sign's relations
      */
-    public Collection<Couple<SignRelation, DenotationRuleAntecedentSignPattern>> getRelationsConstraints() {
+    public List<SignRelationConstraint> getRelationsConstraints() {
         if (relations == null)
             return Collections.emptyList();
-        return Collections.unmodifiableCollection(relations);
+        return Collections.unmodifiableList(relations);
     }
 
     /**
      * Adds a relation constraint
      *
-     * @param relation The relation
-     * @param pattern  The pattern of related sign
+     * @param constraint The constraint to add
      */
-    public void addRelationConstraint(SignRelation relation, DenotationRuleAntecedentSignPattern pattern) {
+    public void addRelationConstraint(SignRelationConstraint constraint) {
         if (relations == null)
             relations = new ArrayList<>();
-        relations.add(new Couple<>(relation, pattern));
+        relations.add(constraint);
     }
 
     /**
      * Removes a relation constraint
      *
-     * @param relation The relation
-     * @param pattern  The pattern of related sign
+     * @param constraint The constraint to remove
      */
-    public void removeRelationConstraint(SignRelation relation, DenotationRuleAntecedentSignPattern pattern) {
+    public void removeRelationConstraint(SignRelationConstraint constraint) {
         if (relations == null)
             return;
-        for (Couple<SignRelation, DenotationRuleAntecedentSignPattern> couple : relations) {
-            if (couple.x == relation && couple.y == pattern) {
-                relations.remove(couple);
-                return;
-            }
-        }
+        relations.remove(constraint);
     }
 
     /**

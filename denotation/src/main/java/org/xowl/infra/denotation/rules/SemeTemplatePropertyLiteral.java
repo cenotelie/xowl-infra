@@ -18,43 +18,33 @@
 package org.xowl.infra.denotation.rules;
 
 /**
- * An operator expression
+ * A property template for a seme when the value is a literal
  *
  * @author Laurent Wouters
  */
-public class ExpressionOperator implements Expression {
+public class SemeTemplatePropertyLiteral extends SemeTemplateProperty {
     /**
-     * The possible operators
+     * The value
      */
-    public enum Operator {
-        Plus, Minus, Multiply, Divide,
-        BooleanAnd, BooleanOr, BooleanNot,
-        Equal, Different, Greater, GreaterEqual, Lesser, LesserEqual
+    private final Object value;
+
+    /**
+     * Initializes this property
+     *
+     * @param propertyIri The property's IRI
+     * @param value       The value
+     */
+    public SemeTemplatePropertyLiteral(String propertyIri, Object value) {
+        super(propertyIri);
+        this.value = value;
     }
 
     /**
-     * The operator
-     */
-    private final Operator operator;
-    /**
-     * The first operand
-     */
-    private final Expression operand1;
-    /**
-     * The second operand
-     */
-    private final Expression operand2;
-
-    /**
-     * Initializes this expression
+     * Gets the value
      *
-     * @param operator The operator
-     * @param operand1 The first operand
-     * @param operand2 The second operand
+     * @return The value
      */
-    public ExpressionOperator(Operator operator, Expression operand1, Expression operand2) {
-        this.operator = operator;
-        this.operand1 = operand1;
-        this.operand2 = operand2;
+    public Object getValue() {
+        return value;
     }
 }

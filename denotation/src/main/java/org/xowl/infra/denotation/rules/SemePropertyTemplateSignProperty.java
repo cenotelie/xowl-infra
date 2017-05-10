@@ -20,22 +20,48 @@ package org.xowl.infra.denotation.rules;
 import org.xowl.infra.denotation.phrases.SignProperty;
 
 /**
- * An expression for the value of a symbol property
+ * A property template for a seme when the value is the value of a sign's property
  *
  * @author Laurent Wouters
  */
-public class ExpressionPropertyValue implements Expression {
+public class SemePropertyTemplateSignProperty extends SemeTemplateProperty {
     /**
-     * The symbol property
+     * The referenced sign pattern
      */
-    private SignProperty property;
+    private final SignPattern reference;
+    /**
+     * The sign property
+     */
+    private final SignProperty property;
 
     /**
-     * Initializes this expression
+     * Initializes this property
      *
-     * @param property The symbol property
+     * @param propertyIri The property's IRI
+     * @param reference   The referenced sign pattern
+     * @param property    The sign property
      */
-    public ExpressionPropertyValue(SignProperty property) {
+    public SemePropertyTemplateSignProperty(String propertyIri, SignPattern reference, SignProperty property) {
+        super(propertyIri);
+        this.reference = reference;
         this.property = property;
+    }
+
+    /**
+     * Gets the referenced sign pattern
+     *
+     * @return The referenced sign pattern
+     */
+    public SignPattern getReference() {
+        return reference;
+    }
+
+    /**
+     * Gets the sign property
+     *
+     * @return The sign property
+     */
+    public SignProperty getProperty() {
+        return property;
     }
 }

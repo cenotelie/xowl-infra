@@ -24,181 +24,117 @@ class DenotationLexer extends ContextFreeLexer {
      */
     public static class ID {
         /**
-         * The unique identifier for terminal OP_LESS
-         */
-        public static final int OP_LESS = 0x0020;
-        /**
-         * The unique identifier for terminal OP_PLUS
-         */
-        public static final int OP_PLUS = 0x0017;
-        /**
-         * The unique identifier for terminal OP_MINUS
-         */
-        public static final int OP_MINUS = 0x0018;
-        /**
-         * The unique identifier for terminal OP_MULT
-         */
-        public static final int OP_MULT = 0x0019;
-        /**
-         * The unique identifier for terminal OP_DIV
-         */
-        public static final int OP_DIV = 0x001A;
-        /**
-         * The unique identifier for terminal OP_NOT
-         */
-        public static final int OP_NOT = 0x001D;
-        /**
          * The unique identifier for terminal OP_EQ
          */
-        public static final int OP_EQ = 0x001E;
+        public static final int OP_EQ = 0x0016;
         /**
-         * The unique identifier for terminal OP_GREAT
+         * The unique identifier for terminal OP_MEMBER
          */
-        public static final int OP_GREAT = 0x0022;
-        /**
-         * The unique identifier for terminal OP_COMMA
-         */
-        public static final int OP_COMMA = 0x0024;
-        /**
-         * The unique identifier for terminal OP_DOT
-         */
-        public static final int OP_DOT = 0x0025;
+        public static final int OP_MEMBER = 0x0018;
         /**
          * The unique identifier for terminal A
          */
-        public static final int A = 0x0035;
-        /**
-         * The unique identifier for terminal INTEGER
-         */
-        public static final int INTEGER = 0x0011;
+        public static final int A = 0x0028;
         /**
          * The unique identifier for terminal PNAME_NS
          */
-        public static final int PNAME_NS = 0x000F;
+        public static final int PNAME_NS = 0x000E;
+        /**
+         * The unique identifier for terminal INTEGER
+         */
+        public static final int INTEGER = 0x0010;
         /**
          * The unique identifier for terminal BLANK
          */
         public static final int BLANK = 0x0006;
         /**
-         * The unique identifier for terminal LANGTAG
-         */
-        public static final int LANGTAG = 0x0007;
-        /**
-         * The unique identifier for terminal OP_LEQ
-         */
-        public static final int OP_LEQ = 0x0021;
-        /**
          * The unique identifier for terminal IRIREF
          */
-        public static final int IRIREF = 0x0008;
-        /**
-         * The unique identifier for terminal OP_BOR
-         */
-        public static final int OP_BOR = 0x001B;
-        /**
-         * The unique identifier for terminal OP_BAND
-         */
-        public static final int OP_BAND = 0x001C;
+        public static final int IRIREF = 0x0007;
         /**
          * The unique identifier for terminal OP_NEQ
          */
-        public static final int OP_NEQ = 0x001F;
-        /**
-         * The unique identifier for terminal OP_GEQ
-         */
-        public static final int OP_GEQ = 0x0023;
+        public static final int OP_NEQ = 0x0017;
         /**
          * The unique identifier for terminal DECIMAL
          */
-        public static final int DECIMAL = 0x0012;
+        public static final int DECIMAL = 0x0011;
         /**
          * The unique identifier for terminal VARIABLE
          */
-        public static final int VARIABLE = 0x0026;
+        public static final int VARIABLE = 0x0019;
         /**
          * The unique identifier for terminal TO
          */
-        public static final int TO = 0x0034;
+        public static final int TO = 0x0027;
         /**
          * The unique identifier for terminal IS
          */
-        public static final int IS = 0x002C;
-        /**
-         * The unique identifier for terminal IN
-         */
-        public static final int IN = 0x0037;
+        public static final int IS = 0x001F;
         /**
          * The unique identifier for terminal AS
          */
-        public static final int AS = 0x0036;
-        /**
-         * The unique identifier for terminal STRING
-         */
-        public static final int STRING = 0x0016;
+        public static final int AS = 0x0029;
         /**
          * The unique identifier for terminal PNAME_LN
          */
-        public static final int PNAME_LN = 0x0010;
+        public static final int PNAME_LN = 0x000F;
+        /**
+         * The unique identifier for terminal STRING
+         */
+        public static final int STRING = 0x0015;
         /**
          * The unique identifier for terminal AND
          */
-        public static final int AND = 0x002F;
-        /**
-         * The unique identifier for terminal NOT
-         */
-        public static final int NOT = 0x0038;
+        public static final int AND = 0x0022;
         /**
          * The unique identifier for terminal DOUBLE
          */
-        public static final int DOUBLE = 0x0013;
+        public static final int DOUBLE = 0x0012;
         /**
          * The unique identifier for terminal BASE
          */
-        public static final int BASE = 0x0027;
+        public static final int BASE = 0x001A;
         /**
          * The unique identifier for terminal BIND
          */
-        public static final int BIND = 0x0033;
+        public static final int BIND = 0x0026;
         /**
          * The unique identifier for terminal TRUE
          */
-        public static final int TRUE = 0x0029;
-        /**
-         * The unique identifier for terminal THIS
-         */
-        public static final int THIS = 0x0039;
+        public static final int TRUE = 0x001C;
         /**
          * The unique identifier for terminal RULE
          */
-        public static final int RULE = 0x002B;
+        public static final int RULE = 0x001E;
         /**
          * The unique identifier for terminal SIGN
          */
-        public static final int SIGN = 0x002D;
+        public static final int SIGN = 0x0020;
         /**
          * The unique identifier for terminal SEME
          */
-        public static final int SEME = 0x002E;
+        public static final int SEME = 0x0021;
         /**
          * The unique identifier for terminal WITH
          */
-        public static final int WITH = 0x0030;
+        public static final int WITH = 0x0023;
         /**
          * The unique identifier for terminal BOUND
          */
-        public static final int BOUND = 0x0032;
+        public static final int BOUND = 0x0025;
         /**
          * The unique identifier for terminal FALSE
          */
-        public static final int FALSE = 0x002A;
+        public static final int FALSE = 0x001D;
         /**
          * The unique identifier for terminal PREFIX
          */
-        public static final int PREFIX = 0x0028;
+        public static final int PREFIX = 0x001B;
         /**
          * The unique identifier for terminal RELATION
          */
-        public static final int RELATION = 0x0031;
+        public static final int RELATION = 0x0024;
     }
     /**
      * Contains the constant IDs for the contexts for this lexer
@@ -218,54 +154,40 @@ class DenotationLexer extends ContextFreeLexer {
     private static final Symbol[] terminals = {
         new Symbol(0x0001, "ε"),
         new Symbol(0x0002, "$"),
-        new Symbol(0x0020, "OP_LESS"),
-        new Symbol(0x0017, "OP_PLUS"),
-        new Symbol(0x0018, "OP_MINUS"),
-        new Symbol(0x0019, "OP_MULT"),
-        new Symbol(0x001A, "OP_DIV"),
-        new Symbol(0x001D, "OP_NOT"),
-        new Symbol(0x001E, "OP_EQ"),
-        new Symbol(0x0022, "OP_GREAT"),
-        new Symbol(0x006B, ","),
-        new Symbol(0x0024, "OP_COMMA"),
-        new Symbol(0x0025, "OP_DOT"),
-        new Symbol(0x0035, "A"),
-        new Symbol(0x006A, "("),
-        new Symbol(0x006D, ")"),
-        new Symbol(0x0011, "INTEGER"),
-        new Symbol(0x000F, "PNAME_NS"),
+        new Symbol(0x0016, "OP_EQ"),
+        new Symbol(0x0018, "OP_MEMBER"),
+        new Symbol(0x0028, "A"),
+        new Symbol(0x0054, "{"),
+        new Symbol(0x0055, ","),
+        new Symbol(0x0057, "}"),
+        new Symbol(0x0058, ":"),
+        new Symbol(0x000E, "PNAME_NS"),
+        new Symbol(0x0059, "["),
+        new Symbol(0x005B, "]"),
+        new Symbol(0x0010, "INTEGER"),
         new Symbol(0x0006, "BLANK"),
-        new Symbol(0x0007, "LANGTAG"),
-        new Symbol(0x0021, "OP_LEQ"),
-        new Symbol(0x0008, "IRIREF"),
-        new Symbol(0x001B, "OP_BOR"),
-        new Symbol(0x001C, "OP_BAND"),
-        new Symbol(0x001F, "OP_NEQ"),
-        new Symbol(0x0023, "OP_GEQ"),
-        new Symbol(0x0012, "DECIMAL"),
-        new Symbol(0x0026, "VARIABLE"),
-        new Symbol(0x0034, "TO"),
-        new Symbol(0x002C, "IS"),
-        new Symbol(0x0037, "IN"),
-        new Symbol(0x0036, "AS"),
-        new Symbol(0x006E, "^^"),
-        new Symbol(0x0016, "STRING"),
-        new Symbol(0x0010, "PNAME_LN"),
-        new Symbol(0x002F, "AND"),
-        new Symbol(0x0038, "NOT"),
-        new Symbol(0x0013, "DOUBLE"),
-        new Symbol(0x0027, "BASE"),
-        new Symbol(0x0033, "BIND"),
-        new Symbol(0x0029, "TRUE"),
-        new Symbol(0x0039, "THIS"),
-        new Symbol(0x002B, "RULE"),
-        new Symbol(0x002D, "SIGN"),
-        new Symbol(0x002E, "SEME"),
-        new Symbol(0x0030, "WITH"),
-        new Symbol(0x0032, "BOUND"),
-        new Symbol(0x002A, "FALSE"),
-        new Symbol(0x0028, "PREFIX"),
-        new Symbol(0x0031, "RELATION") };
+        new Symbol(0x0007, "IRIREF"),
+        new Symbol(0x0017, "OP_NEQ"),
+        new Symbol(0x0011, "DECIMAL"),
+        new Symbol(0x0019, "VARIABLE"),
+        new Symbol(0x0027, "TO"),
+        new Symbol(0x001F, "IS"),
+        new Symbol(0x0029, "AS"),
+        new Symbol(0x000F, "PNAME_LN"),
+        new Symbol(0x0015, "STRING"),
+        new Symbol(0x0022, "AND"),
+        new Symbol(0x0012, "DOUBLE"),
+        new Symbol(0x001A, "BASE"),
+        new Symbol(0x0026, "BIND"),
+        new Symbol(0x001C, "TRUE"),
+        new Symbol(0x001E, "RULE"),
+        new Symbol(0x0020, "SIGN"),
+        new Symbol(0x0021, "SEME"),
+        new Symbol(0x0023, "WITH"),
+        new Symbol(0x0025, "BOUND"),
+        new Symbol(0x001D, "FALSE"),
+        new Symbol(0x001B, "PREFIX"),
+        new Symbol(0x0024, "RELATION") };
     /**
      * Initializes a new instance of the lexer
      *

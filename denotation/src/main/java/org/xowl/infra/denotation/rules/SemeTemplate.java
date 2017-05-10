@@ -17,8 +17,6 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.utils.collections.Couple;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +26,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class DenotationRuleConsequentSemeTemplate extends DenotationRuleConsequent {
+public class SemeTemplate extends DenotationRuleConsequent {
     /**
      * The template's identifier
      */
@@ -40,7 +38,7 @@ public class DenotationRuleConsequentSemeTemplate extends DenotationRuleConseque
     /**
      * The properties for the seme
      */
-    private List<Couple<String, Expression>> properties;
+    private List<SemeTemplateProperty> properties;
 
     /**
      * Initializes this consequent
@@ -48,7 +46,7 @@ public class DenotationRuleConsequentSemeTemplate extends DenotationRuleConseque
      * @param identifier The template's identifier
      * @param typeIri    The IRI of the seme's type
      */
-    public DenotationRuleConsequentSemeTemplate(String identifier, String typeIri) {
+    public SemeTemplate(String identifier, String typeIri) {
         this.identifier = identifier;
         this.typeIri = typeIri;
     }
@@ -76,7 +74,7 @@ public class DenotationRuleConsequentSemeTemplate extends DenotationRuleConseque
      *
      * @return The properties
      */
-    public List<Couple<String, Expression>> getProperties() {
+    public List<SemeTemplateProperty> getProperties() {
         if (properties == null)
             return Collections.emptyList();
         return Collections.unmodifiableList(properties);
@@ -85,29 +83,22 @@ public class DenotationRuleConsequentSemeTemplate extends DenotationRuleConseque
     /**
      * Adds a property to this seme
      *
-     * @param iri        The property's IRI
-     * @param expression The property's value as an expression
+     * @param property The property to add
      */
-    public void addProperty(String iri, Expression expression) {
+    public void addProperty(SemeTemplateProperty property) {
         if (properties == null)
             properties = new ArrayList<>();
-        properties.add(new Couple<>(iri, expression));
+        properties.add(property);
     }
 
     /**
      * Remove a property from this seme
      *
-     * @param iri        The property's IRI
-     * @param expression The property's value
+     * @param property The property to remove
      */
-    public void removeProperty(String iri, Expression expression) {
+    public void removeProperty(SemeTemplateProperty property) {
         if (properties == null)
             return;
-        for (Couple<String, Expression> couple : properties) {
-            if (couple.x.equals(iri) && couple.y == expression) {
-                properties.remove(couple);
-                return;
-            }
-        }
+        properties.remove(property);
     }
 }

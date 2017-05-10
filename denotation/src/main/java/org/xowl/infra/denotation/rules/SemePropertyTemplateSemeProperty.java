@@ -18,31 +18,33 @@
 package org.xowl.infra.denotation.rules;
 
 /**
- * Represents an explicit seme (ontological entity) as a consequent of a denotation rule
+ * A property template for a seme when the value is another seme template
  *
  * @author Laurent Wouters
  */
-public class DenotationRuleConsequentSemeExplicit extends DenotationRuleConsequent {
+public class SemePropertyTemplateSemeProperty extends SemeTemplateProperty {
     /**
-     * The seme's IRI
+     * The referenced seme template
      */
-    private final String iri;
+    private final SemeTemplate reference;
 
     /**
-     * Initializes this consequent
+     * Initializes this property
      *
-     * @param iri The seme's IRI
+     * @param propertyIri The property's IRI
+     * @param reference   The referenced seme template
      */
-    public DenotationRuleConsequentSemeExplicit(String iri) {
-        this.iri = iri;
+    public SemePropertyTemplateSemeProperty(String propertyIri, SemeTemplate reference) {
+        super(propertyIri);
+        this.reference = reference;
     }
 
     /**
-     * Gets the seme's IRI
+     * Gets the referenced seme template
      *
-     * @return The seme's IRI
+     * @return The referenced seme template
      */
-    public String getSemeIri() {
-        return iri;
+    public SemeTemplate getReference() {
+        return reference;
     }
 }

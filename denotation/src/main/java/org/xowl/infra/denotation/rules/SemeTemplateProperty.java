@@ -18,22 +18,31 @@
 package org.xowl.infra.denotation.rules;
 
 /**
- * Represents a constant expression
+ * Represents a template for a seme's property
  *
  * @author Laurent Wouters
  */
-public class ExpressionConstant implements Expression {
+public abstract class SemeTemplateProperty {
     /**
-     * The value for this expression
+     * The property's IRI
      */
-    private final Object value;
+    protected final String propertyIri;
 
     /**
-     * Initializes this expression
+     * Initializes this property
      *
-     * @param value The value for this expression
+     * @param propertyIri The property's IRI
      */
-    public ExpressionConstant(Object value) {
-        this.value = value;
+    public SemeTemplateProperty(String propertyIri) {
+        this.propertyIri = propertyIri;
+    }
+
+    /**
+     * Gets the property's IRI
+     *
+     * @return The property's IRI
+     */
+    public String getPropertyIri() {
+        return propertyIri;
     }
 }

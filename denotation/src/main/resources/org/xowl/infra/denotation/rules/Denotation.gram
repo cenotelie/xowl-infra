@@ -34,7 +34,6 @@ grammar Denotation
         fragment COMMENT        -> '#' (.* - (.* NEW_LINE .*)) NEW_LINE ;
         BLANK                   -> NEW_LINE | WHITE_SPACE | COMMENT ;
 
-        LANGTAG					-> '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ;
         IRIREF                  -> '<' (
                                     . - (U+0000 .. U+0020 | [<>"{}|^`\\])
                                     | '\\u' [a-fA-F0-9]{4}
@@ -74,21 +73,9 @@ grammar Denotation
                                         )* '\'' ;
         STRING                          -> STRING_DOUBLE_QUOTE | STRING_SINGLE_QUOTE ;
 
-        OP_PLUS         -> '+' ;
-        OP_MINUS        -> '-' ;
-        OP_MULT         -> '*' ;
-        OP_DIV          -> '/' ;
-        OP_BOR          -> '||' ;
-        OP_BAND         -> '&&' ;
-        OP_NOT          -> '!' ;
-        OP_EQ           -> '=' ;
-        OP_NEQ          -> '!=' ;
-        OP_LESS         -> '<' ;
-        OP_LEQ          -> '<=' ;
-        OP_GREAT        -> '>' ;
-        OP_GEQ          -> '>=' ;
-        OP_COMMA        -> ',';
-        OP_DOT          -> '.';
+        OP_EQ           -> '=';
+        OP_NEQ          -> '!=';
+        OP_MEMBER       -> '.';
 
         VARIABLE        -> '?' [a-zA-Z_] [a-zA-Z_0-9]* ;
 
@@ -108,9 +95,6 @@ grammar Denotation
         TO              -> ~'to';
         A               -> ~'a';
         AS              -> ~'as';
-        IN              -> ~'in';
-        NOT             -> ~'not';
-        THIS            -> ~'this';
     }
     rules
     {
@@ -126,60 +110,37 @@ grammar Denotation
         sign_specific           -> SIGN! STRING ;
         sign_patterns           -> sign_pattern (AND! sign_pattern)* ;
         sign_pattern            -> SIGN! VARIABLE sign_pattern_properties sign_pattern_relations sign_pattern_binding ;
-        sign_pattern_properties -> (WITH! expression)? ;
+        sign_pattern_properties -> sign_pattern_property* ;
+        sign_pattern_property   -> WITH! iri (OP_EQ | OP_NEQ) sign_property_value ;
         sign_pattern_relations  -> sign_pattern_relation* ;
         sign_pattern_relation   -> RELATION! iri VARIABLE ;
         sign_pattern_binding    -> (BOUND! TO! SEME! VARIABLE)? ;
+        sign_property_value     -> iri^
+                                |  literal^
+                                |  json_object^ ;
 
         semes                   -> seme (AND! seme)* ;
         seme                    -> seme_explicit^ | seme_pattern^ ;
-        seme_explicit           -> iri seme_bindings ;
-        seme_pattern            -> A! iri seme_alias seme_properties seme_bindings ;
+        seme_explicit           -> SEME! iri seme_bindings ;
+        seme_pattern            -> A! SEME! iri seme_alias seme_properties seme_bindings ;
         seme_alias              -> (AS! VARIABLE)? ;
         seme_properties         -> seme_property* ;
-        seme_property           -> WITH! iri OP_EQ expression ;
+        seme_property           -> WITH! iri OP_EQ seme_property_value ;
+        seme_property_value     -> iri^
+                                |  literal^
+                                |  VARIABLE^ // expecting alias of a seme
+                                |  VARIABLE OP_MEMBER^ iri; // expecting the identifier of a sign as variable
         seme_bindings           -> seme_binding* ;
         seme_binding            -> BIND! TO! SIGN! seme_binding_target^ ;
         seme_binding_target     -> VARIABLE^ | STRING^ ;
 
-        expression_list         -> '('! (expression (','! expression)*)? ')'! ;
-        expression              -> exp_or^ ;
-        exp_or                  -> exp_and^
-                                |  exp_or OP_BOR^ exp_and ;
-        exp_and                 -> exp_logical^
-                                |  exp_and OP_BAND^ exp_logical ;
-        exp_logical             -> exp_relational^ ;
-        exp_relational          -> exp_numeric^
-                                |  exp_numeric OP_EQ^ exp_numeric
-                                |  exp_numeric OP_NEQ^ exp_numeric
-                                |  exp_numeric OP_LESS^ exp_numeric
-                                |  exp_numeric OP_LEQ^ exp_numeric
-                                |  exp_numeric OP_GREAT^ exp_numeric
-                                |  exp_numeric OP_GEQ^ exp_numeric
-                                |  exp_numeric IN^ expression_list
-                                |  exp_numeric NOT^ IN! expression_list ;
-        exp_numeric             -> exp_add^ ;
-        exp_add                 -> exp_mult^
-                                |  exp_add OP_PLUS^ exp_mult
-                                |  exp_add OP_MINUS^ exp_mult ;
-        exp_mult                -> exp_unary^
-                                |  exp_mult OP_MULT^ exp_unary
-                                |  exp_mult OP_DIV^ exp_unary ;
-        exp_unary               -> exp_primary^
-                                |  OP_NOT^ exp_primary
-                                |  OP_PLUS^ exp_primary
-                                |  OP_MINUS^ exp_primary ;
-        exp_member_access       -> exp_primary^
-                                |  exp_member_access OP_DOT^ iri ;
-        exp_primary             -> exp_bracketted^
-                                |  iri^
-                                |  literal^
-                                |  VARIABLE^ ;
-        exp_bracketted          -> '('! expression^ ')'! ;
-
         iri                     -> IRIREF^ | prefixedName^ ;
         prefixedName            -> PNAME_LN^ | PNAME_NS^ ;
-        literal                 -> TRUE^ | FALSE^ | INTEGER^ | DECIMAL^ | DOUBLE^ | literal_rdf ;
-        literal_rdf             -> STRING (LANGTAG | '^^'! iri)? ;
+        literal                 -> TRUE^ | FALSE^ | INTEGER^ | DECIMAL^ | DOUBLE^ | STRING^ ;
+        json_object             -> '{'! (json_object_member (','! json_object_member)*)? '}'! ;
+        json_object_member      -> STRING ':'! json_value ;
+        json_array              -> '['! (json_value (','! json_value)*)? ']'! ;
+        json_value              -> json_object^ | json_array^
+                                |  TRUE^ | FALSE^ | INTEGER^ | DECIMAL^ | DOUBLE^ | STRING^ ;
     }
 }

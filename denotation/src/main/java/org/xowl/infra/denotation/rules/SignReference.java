@@ -22,7 +22,7 @@ package org.xowl.infra.denotation.rules;
  *
  * @author Laurent Wouters
  */
-public class DenotationRuleAntecedentSignReference implements DenotationRuleAntecedent {
+public class SignReference implements DenotationRuleAntecedent {
     /**
      * The identifier of the referenced sign
      */
@@ -33,7 +33,7 @@ public class DenotationRuleAntecedentSignReference implements DenotationRuleAnte
      *
      * @param signId The identifier of the referenced sign
      */
-    public DenotationRuleAntecedentSignReference(String signId) {
+    public SignReference(String signId) {
         this.signId = signId;
     }
 
