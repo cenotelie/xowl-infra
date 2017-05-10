@@ -22,7 +22,7 @@ package org.xowl.infra.denotation.rules;
  *
  * @author Laurent Wouters
  */
-public class SemePropertyTemplateSemeProperty extends SemeTemplateProperty {
+public class SemeTemplatePropertyTemplate extends SemeTemplateProperty {
     /**
      * The referenced seme template
      */
@@ -34,7 +34,7 @@ public class SemePropertyTemplateSemeProperty extends SemeTemplateProperty {
      * @param propertyIri The property's IRI
      * @param reference   The referenced seme template
      */
-    public SemePropertyTemplateSemeProperty(String propertyIri, SemeTemplate reference) {
+    public SemeTemplatePropertyTemplate(String propertyIri, SemeTemplate reference) {
         super(propertyIri);
         this.reference = reference;
     }

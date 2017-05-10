@@ -57,6 +57,10 @@ public class DenotationRuleLoader {
      * The parsed input
      */
     private Text input;
+    /**
+     * The counter of explicit seme
+     */
+    private int semeCounter;
 
     /**
      * Initializes this loader
@@ -108,6 +112,7 @@ public class DenotationRuleLoader {
         if (!result.getErrors().isEmpty())
             return Collections.emptyList();
         this.input = result.getInput();
+        this.semeCounter = 0;
 
         Collection<DenotationRule> rules = new ArrayList<>();
         ASTNode root = result.getRoot();
@@ -193,6 +198,27 @@ public class DenotationRuleLoader {
                 loadSignPatternContent(nodePattern, pattern, signPatterns);
                 if (pattern.getBoundSeme() != null)
                     semeTemplates.put(pattern.getBoundSeme(), new SemeTemplate(pattern.getBoundSeme(), Vocabulary.owlThing));
+            }
+        }
+
+        SemeTemplate[] templates = new SemeTemplate[node.getChildren().get(2).getChildren().size()];
+        int i = 0;
+        for (ASTNode nodeSeme : node.getChildren().get(2).getChildren()) {
+            DenotationRuleConsequent consequent = loadSemeInitial(nodeSeme, signPatterns);
+            rule.addConsequent(consequent);
+            if (consequent instanceof SemeTemplate) {
+                SemeTemplate template = (SemeTemplate) consequent;
+                templates[i++] = template;
+                semeTemplates.put(template.getIdentifier(), template);
+            }
+        }
+        i = 0;
+        for (ASTNode nodeSeme : node.getChildren().get(2).getChildren()) {
+            if (nodeSeme.getSymbol().getID() == DenotationParser.ID.seme_pattern) {
+                SemeTemplate template = templates[i++];
+                for (ASTNode nodeProperty : nodeSeme.getChildren().get(2).getChildren()) {
+                    loadSemeTemplateProperty(nodeProperty, template, signPatterns, semeTemplates);
+                }
             }
         }
 
@@ -345,6 +371,141 @@ public class DenotationRuleLoader {
         pattern.addRelationConstraint(new SignRelationConstraint(relation, related));
     }
 
+    /**
+     * Loads the initial definition of a seme
+     *
+     * @param node         An AST node
+     * @param signPatterns The current sign patterns
+     * @return The seme
+     */
+    private DenotationRuleConsequent loadSemeInitial(ASTNode node, Map<String, SignPattern> signPatterns) {
+        DenotationRuleConsequent result;
+
+        if (node.getSymbol().getID() == DenotationParser.ID.seme_explicit) {
+            String iri = getIri(node.getChildren().get(0));
+            result = new SemeExplicit(iri);
+        } else {
+            // a seme template
+            String typeIri = getIri(node.getChildren().get(0));
+            String alias;
+            if (!node.getChildren().get(1).getChildren().isEmpty())
+                alias = node.getChildren().get(1).getChildren().get(0).getValue().substring(1);
+            else {
+                alias = "__seme" + semeCounter;
+                semeCounter++;
+            }
+            result = new SemeTemplate(alias, typeIri);
+        }
+
+        for (ASTNode nodeBinding : node.getChildren().get(node.getChildren().size() - 1).getChildren()) {
+            if (nodeBinding.getSymbol().getID() == DenotationLexer.ID.VARIABLE) {
+                String signId = node.getValue().substring(1);
+                SignPattern pattern = signPatterns.get(signId);
+                if (pattern == null) {
+                    logger.error("Sign pattern " + signId + " is unknown.");
+                    TextContext context = input.getContext(node.getChildren().get(1).getSpan());
+                    logger.error(context.getContent());
+                    logger.error(context.getPointer());
+                }
+                result.addBindings(pattern);
+            } else if (nodeBinding.getSymbol().getID() == DenotationLexer.ID.STRING) {
+                // an explicit sign
+                String signId = node.getValue().substring(1, node.getValue().length() - 1);
+                signId = TextUtils.unescape(signId);
+                result.addBindings(new SignReference(signId));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Loads the property of a seme template
+     *
+     * @param node          An AST node
+     * @param template      The seme template to load
+     * @param signPatterns  The dictionary of known sign patterns
+     * @param semeTemplates The dictionary of seme templates
+     */
+    private void loadSemeTemplateProperty(ASTNode node, SemeTemplate template, Map<String, SignPattern> signPatterns, Map<String, SemeTemplate> semeTemplates) {
+        String propertyIri = getIri(node.getChildren().get(0));
+        SemeTemplateProperty property = loadSemeTemplatePropertyValue(node.getChildren().get(2), propertyIri, signPatterns, semeTemplates);
+        if (property != null)
+            template.addProperty(property);
+    }
+
+    /**
+     * Loads the value of a property of a seme template
+     *
+     * @param node          An AST node
+     * @param propertyIri   The iri for the property
+     * @param signPatterns  The dictionary of known sign patterns
+     * @param semeTemplates The dictionary of seme templates
+     */
+    private SemeTemplateProperty loadSemeTemplatePropertyValue(ASTNode node, String propertyIri, Map<String, SignPattern> signPatterns, Map<String, SemeTemplate> semeTemplates) {
+        switch (node.getSymbol().getID()) {
+            case DenotationLexer.ID.IRIREF: {
+                String value = getIriRef(node);
+                return new SemeTemplatePropertyIRI(propertyIri, value);
+            }
+            case DenotationLexer.ID.PNAME_LN: {
+                String value = getIriPNameLN(node);
+                return new SemeTemplatePropertyIRI(propertyIri, value);
+            }
+            case DenotationLexer.ID.PNAME_NS: {
+                String value = getIriPNameNS(node);
+                return new SemeTemplatePropertyIRI(propertyIri, value);
+            }
+            case DenotationLexer.ID.TRUE:
+                return new SemeTemplatePropertyLiteral(propertyIri, true);
+            case DenotationLexer.ID.FALSE:
+                return new SemeTemplatePropertyLiteral(propertyIri, false);
+            case DenotationLexer.ID.INTEGER:
+                return new SemeTemplatePropertyLiteral(propertyIri, Integer.parseInt(node.getValue()));
+            case DenotationLexer.ID.DECIMAL:
+                return new SemeTemplatePropertyLiteral(propertyIri, Double.parseDouble(node.getValue()));
+            case DenotationLexer.ID.DOUBLE:
+                return new SemeTemplatePropertyLiteral(propertyIri, Double.parseDouble(node.getValue()));
+            case DenotationLexer.ID.STRING: {
+                String value = TextUtils.unescape(node.getValue());
+                value = value.substring(1, value.length() - 1);
+                return new SemeTemplatePropertyLiteral(propertyIri, value);
+            }
+            case DenotationLexer.ID.VARIABLE: {
+                String templateId = node.getValue().substring(1);
+                SemeTemplate referenced = semeTemplates.get(templateId);
+                if (referenced == null) {
+                    logger.error("Seme template " + templateId + " is unknown.");
+                    TextContext context = input.getContext(node.getSpan());
+                    logger.error(context.getContent());
+                    logger.error(context.getPointer());
+                    return null;
+                }
+                return new SemeTemplatePropertyTemplate(propertyIri, referenced);
+            }
+            case DenotationLexer.ID.OP_MEMBER: {
+                String signId = node.getChildren().get(0).getValue().substring(1);
+                SignPattern sign = signPatterns.get(signId);
+                if (sign == null) {
+                    logger.error("Sign pattern " + signId + " is unknown.");
+                    TextContext context = input.getContext(node.getChildren().get(1).getSpan());
+                    logger.error(context.getContent());
+                    logger.error(context.getPointer());
+                    return null;
+                }
+                String signProperty = getIri(node.getChildren().get(1));
+                SignProperty property = PhraseVocabulary.REGISTER.getProperty(signProperty);
+                if (property == null) {
+                    logger.error("Sign property " + signProperty + " is unknown.");
+                    TextContext context = input.getContext(node.getChildren().get(1).getSpan());
+                    logger.error(context.getContent());
+                    logger.error(context.getPointer());
+                    return null;
+                }
+                return new SemeTemplatePropertySignProperty(propertyIri, sign, property);
+            }
+        }
+        return null;
+    }
 
     /**
      * Loads an IRI

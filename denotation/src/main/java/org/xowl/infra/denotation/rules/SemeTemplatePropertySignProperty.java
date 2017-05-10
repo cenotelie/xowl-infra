@@ -24,7 +24,7 @@ import org.xowl.infra.denotation.phrases.SignProperty;
  *
  * @author Laurent Wouters
  */
-public class SemePropertyTemplateSignProperty extends SemeTemplateProperty {
+public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
     /**
      * The referenced sign pattern
      */
@@ -41,7 +41,7 @@ public class SemePropertyTemplateSignProperty extends SemeTemplateProperty {
      * @param reference   The referenced sign pattern
      * @param property    The sign property
      */
-    public SemePropertyTemplateSignProperty(String propertyIri, SignPattern reference, SignProperty property) {
+    public SemeTemplatePropertySignProperty(String propertyIri, SignPattern reference, SignProperty property) {
         super(propertyIri);
         this.reference = reference;
         this.property = property;
