@@ -61,6 +61,25 @@ public class DenotationRule {
     }
 
     /**
+     * Gets whether this rule can be reused
+     *
+     * @return Whether this rule can be reused
+     */
+    public boolean isReusable() {
+        for (DenotationRuleAntecedent antecedent : antecedents) {
+            if (antecedent instanceof SignReference)
+                return false;
+        }
+        for (DenotationRuleConsequent consequent : consequents) {
+            for (DenotationRuleAntecedent bound : consequent.getBindings()) {
+                if (bound instanceof SignReference)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Gets the rule's antecedents
      *
      * @return The rule's antecedents
