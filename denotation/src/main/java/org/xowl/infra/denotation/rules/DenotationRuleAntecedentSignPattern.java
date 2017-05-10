@@ -25,11 +25,11 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Represents a pattern of a sign in a phrase
+ * Represents a pattern of a sign in a phrase as an antecedent to a denotation rule
  *
  * @author Laurent Wouters
  */
-public class SignPattern {
+public class DenotationRuleAntecedentSignPattern implements DenotationRuleAntecedent {
     /**
      * The identifier for this pattern
      */
@@ -41,22 +41,22 @@ public class SignPattern {
     /**
      * The constraint on the sign's relations
      */
-    private Collection<Couple<SignRelation, SignPattern>> relations;
+    private Collection<Couple<SignRelation, DenotationRuleAntecedentSignPattern>> relations;
     /**
      * The identifier of the variable for the bound domain element, if any
      */
-    private String domain;
+    private String seme;
 
     /**
      * Initializes this pattern
      *
      * @param identifier The identifier for this pattern
      */
-    public SignPattern(String identifier) {
+    public DenotationRuleAntecedentSignPattern(String identifier) {
         this.identifier = identifier;
         this.properties = null;
         this.relations = null;
-        this.domain = null;
+        this.seme = null;
     }
 
     /**
@@ -91,7 +91,7 @@ public class SignPattern {
      *
      * @return The constraints on the sign's relations
      */
-    public Collection<Couple<SignRelation, SignPattern>> getRelationsConstraints() {
+    public Collection<Couple<SignRelation, DenotationRuleAntecedentSignPattern>> getRelationsConstraints() {
         if (relations == null)
             return Collections.emptyList();
         return Collections.unmodifiableCollection(relations);
@@ -103,7 +103,7 @@ public class SignPattern {
      * @param relation The relation
      * @param pattern  The pattern of related sign
      */
-    public void addRelationConstraint(SignRelation relation, SignPattern pattern) {
+    public void addRelationConstraint(SignRelation relation, DenotationRuleAntecedentSignPattern pattern) {
         if (relations == null)
             relations = new ArrayList<>();
         relations.add(new Couple<>(relation, pattern));
@@ -115,10 +115,10 @@ public class SignPattern {
      * @param relation The relation
      * @param pattern  The pattern of related sign
      */
-    public void removeRelationConstraint(SignRelation relation, SignPattern pattern) {
+    public void removeRelationConstraint(SignRelation relation, DenotationRuleAntecedentSignPattern pattern) {
         if (relations == null)
             return;
-        for (Couple<SignRelation, SignPattern> couple : relations) {
+        for (Couple<SignRelation, DenotationRuleAntecedentSignPattern> couple : relations) {
             if (couple.x == relation && couple.y == pattern) {
                 relations.remove(couple);
                 return;
@@ -131,8 +131,8 @@ public class SignPattern {
      *
      * @return The identifier of the variable for the bound domain element, if any
      */
-    public String getBoundDomain() {
-        return domain;
+    public String getBoundSeme() {
+        return seme;
     }
 
     /**
@@ -140,7 +140,7 @@ public class SignPattern {
      *
      * @param identifier The identifier of the variable for the bound domain element, if any
      */
-    public void setBoundDomain(String identifier) {
-        this.domain = identifier;
+    public void setBoundSeme(String identifier) {
+        this.seme = identifier;
     }
 }
