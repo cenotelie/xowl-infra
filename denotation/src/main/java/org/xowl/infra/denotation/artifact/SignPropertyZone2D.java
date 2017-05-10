@@ -23,7 +23,7 @@ package org.xowl.infra.denotation.artifact;
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyZone2D extends SymbolProperty {
+public class SignPropertyZone2D extends SignProperty {
     /**
      * The URI for this property
      */
@@ -32,12 +32,12 @@ public class SymbolPropertyZone2D extends SymbolProperty {
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyZone2D();
+    public static final SignProperty INSTANCE = new SignPropertyZone2D();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyZone2D() {
+    private SignPropertyZone2D() {
         super(URI, "zone2d", false);
     }
 

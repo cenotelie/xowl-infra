@@ -26,27 +26,27 @@ import org.xowl.infra.utils.TextUtils;
  *
  * @author Laurent Wouters
  */
-public class SymbolRelation implements Identifiable, Serializable {
+public class SignRelation implements Identifiable, Serializable {
     /**
      * The standard contains relation
      */
-    public static final SymbolRelation RELATION_CONTAINS = new SymbolRelation("http://xowl.org/infra/denotation/relation/contains", "contains");
+    public static final SignRelation RELATION_CONTAINS = new SignRelation("http://xowl.org/infra/denotation/relation/contains", "contains");
     /**
      * The standard contained by relation
      */
-    public static final SymbolRelation RELATION_CONTAINED_BY = new SymbolRelation("http://xowl.org/infra/denotation/relation/containedBy", "containedBy");
+    public static final SignRelation RELATION_CONTAINED_BY = new SignRelation("http://xowl.org/infra/denotation/relation/containedBy", "containedBy");
     /**
      * The standard overlaps relation
      */
-    public static final SymbolRelation RELATION_OVERLAPS = new SymbolRelation("http://xowl.org/infra/denotation/relation/overlaps", "overlaps");
+    public static final SignRelation RELATION_OVERLAPS = new SignRelation("http://xowl.org/infra/denotation/relation/overlaps", "overlaps");
     /**
      * The standard links relation
      */
-    public static final SymbolRelation RELATION_LINKS = new SymbolRelation("http://xowl.org/infra/denotation/relation/links", "links");
+    public static final SignRelation RELATION_LINKS = new SignRelation("http://xowl.org/infra/denotation/relation/links", "links");
     /**
      * The standard linked by relation
      */
-    public static final SymbolRelation RELATION_LINKED_BY = new SymbolRelation("http://xowl.org/infra/denotation/relation/linkedBy", "linkedBy");
+    public static final SignRelation RELATION_LINKED_BY = new SignRelation("http://xowl.org/infra/denotation/relation/linkedBy", "linkedBy");
 
 
     /**
@@ -64,7 +64,7 @@ public class SymbolRelation implements Identifiable, Serializable {
      * @param uri  The uri of this relation
      * @param name The human-readable name of this relation
      */
-    public SymbolRelation(String uri, String name) {
+    public SignRelation(String uri, String name) {
         this.uri = uri;
         this.name = name;
     }
@@ -87,7 +87,7 @@ public class SymbolRelation implements Identifiable, Serializable {
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                SymbolRelation.class.getCanonicalName() +
+                SignRelation.class.getCanonicalName() +
                 "\", \"identifier\": \"" +
                 TextUtils.escapeStringJSON(uri) +
                 "\", \"name\": \"" +

@@ -22,32 +22,32 @@ import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 
 /**
- * Represents the "orientation" property for a symbol
- * The orientation is expected to be represented by an angle as a double value between -2*PI and 2*PI
+ * Represents the "size" property for a symbol
+ * The size is expected to be represented as a double value
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyOrientation extends SymbolProperty {
+public class SignPropertySize extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/orientation";
+    public static final String URI = "http://xowl.org/infra/denotation/property/size";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyOrientation();
+    public static final SignProperty INSTANCE = new SignPropertySize();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyOrientation() {
-        super(URI, "orientation", true);
+    private SignPropertySize() {
+        super(URI, "size", true);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Double) && (((double) value) >= -2 * Math.PI) && (((double) value) <= 2 * Math.PI);
+        return value != null && (value instanceof Double);
     }
 
     @Override

@@ -17,7 +17,7 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.denotation.artifact.SymbolProperty;
+import org.xowl.infra.denotation.artifact.SignProperty;
 
 /**
  * An expression for the value of a symbol property
@@ -28,14 +28,14 @@ public class ExpressionPropertyValue implements Expression {
     /**
      * The symbol property
      */
-    private SymbolProperty property;
+    private SignProperty property;
 
     /**
      * Initializes this expression
      *
      * @param property The symbol property
      */
-    public ExpressionPropertyValue(SymbolProperty property) {
+    public ExpressionPropertyValue(SignProperty property) {
         this.property = property;
     }
 }

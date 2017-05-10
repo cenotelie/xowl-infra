@@ -33,11 +33,11 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class Symbol implements Identifiable, Serializable {
+public class Sign implements Identifiable, Serializable {
     /**
-     * The URI for the Symbol type
+     * The URI for the Sign type
      */
-    public static final String TYPE_SYMBOL = "http://xowl.org/infra/denotation/Symbol";
+    public static final String TYPE_SYMBOL = "http://xowl.org/infra/denotation/Sign";
 
     /**
      * The symbol's identifier that can be traced back in the original's artifact
@@ -50,11 +50,11 @@ public class Symbol implements Identifiable, Serializable {
     /**
      * The symbol's properties
      */
-    private Map<SymbolProperty, Object> properties;
+    private Map<SignProperty, Object> properties;
     /**
      * The relations of this symbols with other symbols
      */
-    private Map<SymbolRelation, List<Symbol>> relations;
+    private Map<SignRelation, List<Sign>> relations;
     /**
      * The IRI node for the RDF representation of this symbol
      */
@@ -66,7 +66,7 @@ public class Symbol implements Identifiable, Serializable {
      * @param identifier The symbol's identifier that can be traced back in the original's artifact
      * @param name       The symbol's name, if any
      */
-    public Symbol(String identifier, String name) {
+    public Sign(String identifier, String name) {
         this.identifier = identifier;
         this.name = name;
     }
@@ -76,7 +76,7 @@ public class Symbol implements Identifiable, Serializable {
      *
      * @return The properties of this symbol
      */
-    public Collection<SymbolProperty> getProperties() {
+    public Collection<SignProperty> getProperties() {
         if (properties == null)
             return Collections.emptyList();
         return properties.keySet();
@@ -88,7 +88,7 @@ public class Symbol implements Identifiable, Serializable {
      * @param property A symbol property
      * @return The associated value, or null if there is none
      */
-    public Object getPropertyValue(SymbolProperty property) {
+    public Object getPropertyValue(SignProperty property) {
         if (properties == null)
             return null;
         return properties.get(property);
@@ -100,7 +100,7 @@ public class Symbol implements Identifiable, Serializable {
      * @param property The property to set
      * @param value    The value to be associated
      */
-    public void addPropertyValue(SymbolProperty property, Object value) {
+    public void addPropertyValue(SignProperty property, Object value) {
         if (!property.isValidValue(value))
             return;
         if (properties == null)
@@ -113,7 +113,7 @@ public class Symbol implements Identifiable, Serializable {
      *
      * @return The relations of this symbol
      */
-    public Collection<SymbolRelation> getRelations() {
+    public Collection<SignRelation> getRelations() {
         if (relations == null)
             return Collections.emptyList();
         return relations.keySet();
@@ -125,10 +125,10 @@ public class Symbol implements Identifiable, Serializable {
      * @param relation A relation
      * @return The first related symbol
      */
-    public Symbol getRelationSymbol(SymbolRelation relation) {
+    public Sign getRelationSymbol(SignRelation relation) {
         if (relations == null)
             return null;
-        List<Symbol> result = relations.get(relation);
+        List<Sign> result = relations.get(relation);
         if (result == null || result.isEmpty())
             return null;
         return result.get(0);
@@ -140,30 +140,30 @@ public class Symbol implements Identifiable, Serializable {
      * @param relation A relation
      * @return The related symbols
      */
-    public List<Symbol> getRelationSymbols(SymbolRelation relation) {
+    public List<Sign> getRelationSymbols(SignRelation relation) {
         if (relations == null)
             return Collections.emptyList();
-        List<Symbol> result = relations.get(relation);
+        List<Sign> result = relations.get(relation);
         if (result == null || result.isEmpty())
             return Collections.emptyList();
         return Collections.unmodifiableList(result);
     }
 
     /**
-     * Adds a related symbol
+     * Adds a related sign
      *
      * @param relation The relation
-     * @param symbol   The related symbol
+     * @param sign   The related sign
      */
-    public void addRelationSymbol(SymbolRelation relation, Symbol symbol) {
+    public void addRelationSymbol(SignRelation relation, Sign sign) {
         if (relations == null)
             relations = new HashMap<>();
-        List<Symbol> result = relations.get(relation);
+        List<Sign> result = relations.get(relation);
         if (result == null) {
             result = new ArrayList<>();
             relations.put(relation, result);
         }
-        result.add(symbol);
+        result.add(sign);
     }
 
     /**
@@ -190,16 +190,16 @@ public class Symbol implements Identifiable, Serializable {
         IRINode subject = getRdfNode(nodes);
         buffer.add(new Quad(graph, subject, nodes.getIRINode(Vocabulary.rdfType), nodes.getIRINode(TYPE_SYMBOL)));
         if (name != null)
-            buffer.add(new Quad(graph, subject, nodes.getIRINode(SymbolPropertyName.URI), nodes.getLiteralNode(name, Vocabulary.xsdString, null)));
+            buffer.add(new Quad(graph, subject, nodes.getIRINode(SignPropertyName.URI), nodes.getLiteralNode(name, Vocabulary.xsdString, null)));
         if (properties != null) {
-            for (Map.Entry<SymbolProperty, Object> property : properties.entrySet()) {
+            for (Map.Entry<SignProperty, Object> property : properties.entrySet()) {
                 if (property.getKey().isRdfSerialized())
                     buffer.add(new Quad(graph, subject, nodes.getIRINode(property.getKey().getIdentifier()), property.getKey().serializeValueRdf(nodes, property.getValue())));
             }
         }
         if (relations != null) {
-            for (Map.Entry<SymbolRelation, List<Symbol>> relation : relations.entrySet()) {
-                for (Symbol target : relation.getValue()) {
+            for (Map.Entry<SignRelation, List<Sign>> relation : relations.entrySet()) {
+                for (Sign target : relation.getValue()) {
                     buffer.add(new Quad(graph, subject, nodes.getIRINode(relation.getKey().getIdentifier()), target.getRdfNode(nodes)));
                 }
             }
@@ -225,7 +225,7 @@ public class Symbol implements Identifiable, Serializable {
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\"type\": \"");
-        builder.append(Symbol.class.getCanonicalName());
+        builder.append(Sign.class.getCanonicalName());
         builder.append("\", \"identifier\": \"");
         builder.append(TextUtils.serializeJSON(identifier));
         builder.append("\", \"name\": \"");
@@ -234,7 +234,7 @@ public class Symbol implements Identifiable, Serializable {
         builder.append("\", \"properties\": {");
         if (properties != null) {
             boolean first = true;
-            for (Map.Entry<SymbolProperty, Object> property : properties.entrySet()) {
+            for (Map.Entry<SignProperty, Object> property : properties.entrySet()) {
                 if (!first)
                     builder.append(", ");
                 first = false;
@@ -247,7 +247,7 @@ public class Symbol implements Identifiable, Serializable {
         builder.append("}, \"relations\": {");
         if (relations != null) {
             boolean first = true;
-            for (Map.Entry<SymbolRelation, List<Symbol>> relation : relations.entrySet()) {
+            for (Map.Entry<SignRelation, List<Sign>> relation : relations.entrySet()) {
                 if (!first)
                     builder.append(", ");
                 first = false;

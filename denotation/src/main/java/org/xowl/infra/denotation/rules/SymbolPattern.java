@@ -17,7 +17,7 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.denotation.artifact.SymbolRelation;
+import org.xowl.infra.denotation.artifact.SignRelation;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.Collection;
@@ -39,7 +39,7 @@ public class SymbolPattern {
     /**
      * The constraint on the symbol's relations
      */
-    private Collection<Couple<SymbolRelation, SymbolPattern>> relations;
+    private Collection<Couple<SignRelation, SymbolPattern>> relations;
     /**
      * The identifier of the variable for the bound domain element, if any
      */

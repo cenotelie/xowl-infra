@@ -21,44 +21,48 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
 
+import java.awt.*;
+
 /**
- * Represents the "position" property for a textual symbol
- * The position is expected to be represented as a positive integer corresponding to the index of the symbol in its context text
+ * Represents the "color" property for a symbol
+ * The color is expected to be an instance of the AWT Color class
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyPositionText extends SymbolProperty {
+public class SignPropertyColor extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/positionText";
+    public static final String URI = "http://xowl.org/infra/denotation/property/color";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyPositionText();
+    public static final SignProperty INSTANCE = new SignPropertyColor();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyPositionText() {
-        super(URI, "positionText", true);
+    private SignPropertyColor() {
+        super(URI, "color", true);
     }
 
     @Override
     public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Integer) && (((int) value) >= 0);
+        return value != null && (value instanceof Color);
     }
 
     @Override
     public void serializeValueJson(StringBuilder builder, Object value) {
+        Color color = (Color) value;
         builder.append("\"");
-        builder.append(Integer.toString((int) value));
+        builder.append(Integer.toString(color.getRGB()));
         builder.append("\"");
     }
 
     @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
-        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdInt, null);
+        Color color = (Color) value;
+        return nodes.getLiteralNode(Integer.toString(color.getRGB()), Vocabulary.xsdString, null);
     }
 }

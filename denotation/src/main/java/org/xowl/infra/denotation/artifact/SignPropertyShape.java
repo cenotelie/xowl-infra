@@ -17,48 +17,26 @@
 
 package org.xowl.infra.denotation.artifact;
 
-import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.NodeManager;
-
 /**
- * Represents the "brightness" property for a symbol
- * The brightness is expected to be a double between 0 and 1
+ * Represents the "shape" property for a symbol
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyBrightness extends SymbolProperty {
+public class SignPropertyShape extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/brightness";
+    public static final String URI = "http://xowl.org/infra/denotation/property/shape";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyBrightness();
+    public static final SignProperty INSTANCE = new SignPropertyShape();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyBrightness() {
-        super(URI, "brightness", true);
-    }
-
-    @Override
-    public boolean isValidValue(Object value) {
-        return value != null && (value instanceof Double) && (((double) value) >= 0) && (((double) value) <= 0);
-    }
-
-    @Override
-    public void serializeValueJson(StringBuilder builder, Object value) {
-        builder.append("\"");
-        builder.append(Double.toString((double) value));
-        builder.append("\"");
-    }
-
-    @Override
-    public Node serializeValueRdf(NodeManager nodes, Object value) {
-        return nodes.getLiteralNode(value.toString(), Vocabulary.xsdDouble, null);
+    private SignPropertyShape() {
+        super(URI, "shape", true);
     }
 }

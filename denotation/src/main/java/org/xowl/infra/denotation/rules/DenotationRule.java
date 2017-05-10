@@ -26,7 +26,11 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public interface DenotationRule extends Serializable {
+public abstract class DenotationRule {
+
+    private final String title;
+
+
     /**
      * Gets whether this rule can be reused in another denotation
      *

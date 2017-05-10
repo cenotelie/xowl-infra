@@ -18,25 +18,25 @@
 package org.xowl.infra.denotation.artifact;
 
 /**
- * Represents the "shape" property for a symbol
+ * Represents the "name" property for a symbol
  *
  * @author Laurent Wouters
  */
-public class SymbolPropertyShape extends SymbolProperty {
+public class SignPropertyName extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/shape";
+    public static final String URI = "http://xowl.org/infra/denotation/property/name";
 
     /**
      * The singleton instance
      */
-    public static final SymbolProperty INSTANCE = new SymbolPropertyShape();
+    public static final SignProperty INSTANCE = new SignPropertyName();
 
     /**
      * Initializes this property
      */
-    private SymbolPropertyShape() {
-        super(URI, "shape", true);
+    private SignPropertyName() {
+        super(URI, "name", true);
     }
 }

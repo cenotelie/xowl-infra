@@ -29,7 +29,7 @@ import org.xowl.infra.utils.TextUtils;
  *
  * @author Laurent Wouters
  */
-public class SymbolProperty implements Identifiable, Serializable {
+public class SignProperty implements Identifiable, Serializable {
     /**
      * The uri of this property
      */
@@ -50,7 +50,7 @@ public class SymbolProperty implements Identifiable, Serializable {
      * @param name            The human-readable name of this property
      * @param isRdfSerialized Whether this property is relevant for RDF serialization
      */
-    public SymbolProperty(String uri, String name, boolean isRdfSerialized) {
+    public SignProperty(String uri, String name, boolean isRdfSerialized) {
         this.uri = uri;
         this.name = name;
         this.isRdfSerialized = isRdfSerialized;
@@ -116,7 +116,7 @@ public class SymbolProperty implements Identifiable, Serializable {
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                SymbolProperty.class.getCanonicalName() +
+                SignProperty.class.getCanonicalName() +
                 "\", \"identifier\": \"" +
                 TextUtils.escapeStringJSON(uri) +
                 "\", \"name\": \"" +

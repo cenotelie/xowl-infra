@@ -39,9 +39,9 @@ public class Artifact implements Identifiable, Serializable {
      */
     private final String name;
     /**
-     * The symbols found in the artifact
+     * The signs found in the artifact
      */
-    private final Collection<Symbol> symbols;
+    private final Collection<Sign> signs;
     /**
      * The representation of this artifact
      */
@@ -56,25 +56,25 @@ public class Artifact implements Identifiable, Serializable {
      *
      * @param identifier            The identifier of this artifact
      * @param name                  The human-readable name of this artifact
-     * @param symbols               The symbols found in the artifact
+     * @param signs               The signs found in the artifact
      * @param representationContent The representation of this artifact
      * @param representationMime    The MIME type for the representation
      */
-    public Artifact(String identifier, String name, Collection<Symbol> symbols, byte[] representationContent, String representationMime) {
+    public Artifact(String identifier, String name, Collection<Sign> signs, byte[] representationContent, String representationMime) {
         this.identifier = identifier;
         this.name = name;
-        this.symbols = Collections.unmodifiableCollection(symbols);
+        this.signs = Collections.unmodifiableCollection(signs);
         this.representationContent = representationContent;
         this.representationMime = representationMime;
     }
 
     /**
-     * Gets the symbols found in the artifact
+     * Gets the signs found in the artifact
      *
-     * @return The symbols found in the artifact
+     * @return The signs found in the artifact
      */
-    public Collection<Symbol> getSymbols() {
-        return symbols;
+    public Collection<Sign> getSigns() {
+        return signs;
     }
 
     /**
@@ -119,13 +119,13 @@ public class Artifact implements Identifiable, Serializable {
         builder.append(TextUtils.serializeJSON(identifier));
         builder.append("\", \"name\": \"");
         builder.append(TextUtils.serializeJSON(name));
-        builder.append("\", \"symbols\": [");
+        builder.append("\", \"signs\": [");
         boolean first = true;
-        for (Symbol symbol : symbols) {
+        for (Sign sign : signs) {
             if (!first)
                 builder.append(", ");
             first = false;
-            builder.append(symbol.serializedJSON());
+            builder.append(sign.serializedJSON());
         }
         builder.append("], \"representationMime\": \"");
         if (representationMime != null)
