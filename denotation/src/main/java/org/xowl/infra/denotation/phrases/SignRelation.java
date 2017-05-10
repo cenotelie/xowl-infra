@@ -31,23 +31,23 @@ public class SignRelation implements Identifiable, Serializable {
     /**
      * The standard contains relation
      */
-    public static final SignRelation RELATION_CONTAINS = new SignRelation("http://xowl.org/infra/denotation/relation/contains", "contains");
+    public static final SignRelation RELATION_CONTAINS = new SignRelation("http://xowl.org/infra/denotation/schema#contains", "contains");
     /**
      * The standard contained by relation
      */
-    public static final SignRelation RELATION_CONTAINED_BY = new SignRelation("http://xowl.org/infra/denotation/relation/containedBy", "containedBy");
+    public static final SignRelation RELATION_CONTAINED_BY = new SignRelation("http://xowl.org/infra/denotation/schema#containedBy", "containedBy");
     /**
      * The standard overlaps relation
      */
-    public static final SignRelation RELATION_OVERLAPS = new SignRelation("http://xowl.org/infra/denotation/relation/overlaps", "overlaps");
+    public static final SignRelation RELATION_OVERLAPS = new SignRelation("http://xowl.org/infra/denotation/schema#overlaps", "overlaps");
     /**
      * The standard links relation
      */
-    public static final SignRelation RELATION_LINKS = new SignRelation("http://xowl.org/infra/denotation/relation/links", "links");
+    public static final SignRelation RELATION_LINKS = new SignRelation("http://xowl.org/infra/denotation/schema#links", "links");
     /**
      * The standard linked by relation
      */
-    public static final SignRelation RELATION_LINKED_BY = new SignRelation("http://xowl.org/infra/denotation/relation/linkedBy", "linkedBy");
+    public static final SignRelation RELATION_LINKED_BY = new SignRelation("http://xowl.org/infra/denotation/schema#linkedBy", "linkedBy");
 
 
     /**

@@ -26,7 +26,7 @@ public class SignPropertyShape extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/shape";
+    public static final String URI = "http://xowl.org/infra/denotation/schema#shape";
 
     /**
      * The singleton instance

@@ -26,7 +26,7 @@ public class SignPropertyTexture extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/texture";
+    public static final String URI = "http://xowl.org/infra/denotation/schema#texture";
 
     /**
      * The singleton instance

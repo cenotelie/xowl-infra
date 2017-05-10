@@ -33,7 +33,7 @@ public class SignPropertyPositionText extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/positionText";
+    public static final String URI = "http://xowl.org/infra/denotation/schema#positionText";
 
     /**
      * The singleton instance

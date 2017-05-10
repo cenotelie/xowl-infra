@@ -1,0 +1,45 @@
+######################################################################
+# Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General
+# Public License along with this program.
+# If not, see <http://www.gnu.org/licenses/>.
+######################################################################
+
+BASE <http://xowl.org/infra/denotation/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xowl: <http://xowl.org/infra/denotation/schema#>
+PREFIX domain: <http://xowl.org/my/little/domain#>
+
+
+RULE "Specific sign to specific seme"
+    SIGN "http://xowl.org/this/sign"
+IS
+    SEME domain:Something
+        BIND TO SIGN "http://xowl.org/this/sign"
+
+
+RULE "Sign pattern mapped to seme templates"
+    SIGN ?s1
+        WITH xowl:color         = 15
+        WITH xowl:position2d    = {"x": "10.0", "y": "10.0"}
+        RELATION xowl:containedBy ?sp
+    AND SIGN ?sp
+        BOUND TO SEME ?parent
+IS
+    A SEME domain:Component AS ?child
+        WITH domain:theParent   = ?parent
+        WITH domain:name        = ?s1 . xowl:name
+        BIND TO SIGN ?s1

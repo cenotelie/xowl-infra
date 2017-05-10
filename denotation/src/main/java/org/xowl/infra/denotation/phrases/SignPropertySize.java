@@ -33,7 +33,7 @@ public class SignPropertySize extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/size";
+    public static final String URI = "http://xowl.org/infra/denotation/schema#size";
 
     /**
      * The singleton instance

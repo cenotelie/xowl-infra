@@ -35,7 +35,7 @@ public class SignPropertyColor extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/color";
+    public static final String URI = "http://xowl.org/infra/denotation/schema#color";
 
     /**
      * The singleton instance

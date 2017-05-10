@@ -27,7 +27,7 @@ public class SignPropertyZone2D extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/zone2d";
+    public static final String URI = "http://xowl.org/infra/denotation/schema#zone2d";
 
     /**
      * The singleton instance

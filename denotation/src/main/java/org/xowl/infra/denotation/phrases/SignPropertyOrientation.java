@@ -33,7 +33,7 @@ public class SignPropertyOrientation extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/property/orientation";
+    public static final String URI = "http://xowl.org/infra/denotation/schema#orientation";
 
     /**
      * The singleton instance

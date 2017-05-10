@@ -38,7 +38,7 @@ public class Sign implements Identifiable, Serializable {
     /**
      * The URI for the Sign type
      */
-    public static final String TYPE_SYMBOL = "http://xowl.org/infra/denotation/Sign";
+    public static final String TYPE_SYMBOL = "http://xowl.org/infra/denotation/schema#Sign";
 
     /**
      * The sign's identifier that can be traced back in the original's input

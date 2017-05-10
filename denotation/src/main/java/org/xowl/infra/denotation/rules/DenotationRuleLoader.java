@@ -24,8 +24,6 @@ import org.xowl.infra.denotation.phrases.SignRelation;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Owl2Factory;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.loaders.NQuadsLexer;
-import org.xowl.infra.store.loaders.NQuadsParser;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
@@ -80,8 +78,8 @@ public class DenotationRuleLoader {
         ParseResult result;
         try {
             String content = IOUtils.read(reader);
-            NQuadsLexer lexer = new NQuadsLexer(content);
-            NQuadsParser parser = new NQuadsParser(lexer);
+            DenotationLexer lexer = new DenotationLexer(content);
+            DenotationParser parser = new DenotationParser(lexer);
             parser.setModeRecoverErrors(false);
             result = parser.parse();
         } catch (IOException ex) {
@@ -399,7 +397,7 @@ public class DenotationRuleLoader {
 
         for (ASTNode nodeBinding : node.getChildren().get(node.getChildren().size() - 1).getChildren()) {
             if (nodeBinding.getSymbol().getID() == DenotationLexer.ID.VARIABLE) {
-                String signId = node.getValue().substring(1);
+                String signId = nodeBinding.getValue().substring(1);
                 SignPattern pattern = signPatterns.get(signId);
                 if (pattern == null) {
                     logger.error("Sign pattern " + signId + " is unknown.");
@@ -410,7 +408,7 @@ public class DenotationRuleLoader {
                 result.addBindings(pattern);
             } else if (nodeBinding.getSymbol().getID() == DenotationLexer.ID.STRING) {
                 // an explicit sign
-                String signId = node.getValue().substring(1, node.getValue().length() - 1);
+                String signId = nodeBinding.getValue().substring(1, nodeBinding.getValue().length() - 1);
                 signId = TextUtils.unescape(signId);
                 result.addBindings(new SignReference(signId));
             }
