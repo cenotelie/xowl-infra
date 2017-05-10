@@ -18,7 +18,6 @@
 package org.xowl.infra.denotation;
 
 import org.xowl.infra.denotation.rules.DenotationRule;
-import org.xowl.infra.utils.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,7 +28,7 @@ import java.util.Collections;
  *
  * @author Laurent Wouters
  */
-public class Denotation implements Serializable {
+public class Denotation {
     /**
      * The denotation rules for this denotation
      */
@@ -67,27 +66,5 @@ public class Denotation implements Serializable {
      */
     public void removeRule(DenotationRule rule) {
         rules.remove(rule);
-    }
-
-    @Override
-    public String serializedString() {
-        return serializedJSON();
-    }
-
-    @Override
-    public String serializedJSON() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\"type\": \"");
-        builder.append(Denotation.class.getCanonicalName());
-        builder.append("\", \"rules\": [");
-        boolean first = true;
-        for (DenotationRule rule : rules) {
-            if (!first)
-                builder.append(", ");
-            first = false;
-            builder.append(rule.serializedJSON());
-        }
-        builder.append("]}");
-        return builder.toString();
     }
 }
