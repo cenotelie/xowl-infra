@@ -17,6 +17,11 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.rdf.SubjectNode;
+import org.xowl.infra.store.storage.NodeManager;
+
 /**
  * A property template for a seme when the value is an IRI
  *
@@ -46,5 +51,14 @@ public class SemeTemplatePropertyIRI extends SemeTemplateProperty {
      */
     public String getValueIri() {
         return valueIri;
+    }
+
+    @Override
+    public void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
+        context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
+                parent,
+                nodes.getIRINode(propertyIri),
+                nodes.getIRINode(valueIri)
+        ));
     }
 }

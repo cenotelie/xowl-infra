@@ -17,6 +17,11 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.denotation.Denotation;
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.storage.NodeManager;
+
 /**
  * Represents a reference to a specific sign as an antecedent to a denotation rule
  *
@@ -44,5 +49,14 @@ public class SignReference implements DenotationRuleAntecedent {
      */
     public String getSignId() {
         return signId;
+    }
+
+    @Override
+    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
+        context.getRdfRule().addConsequentPositive(new Quad(graphMeta,
+                nodes.getIRINode(signId),
+                nodes.getIRINode(Denotation.META_MATCHED_BY),
+                nodes.getIRINode(context.getRdfRule().getIRI())
+        ));
     }
 }

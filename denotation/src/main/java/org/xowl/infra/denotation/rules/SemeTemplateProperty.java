@@ -17,6 +17,10 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.SubjectNode;
+import org.xowl.infra.store.storage.NodeManager;
+
 /**
  * Represents a template for a seme's property
  *
@@ -45,4 +49,16 @@ public abstract class SemeTemplateProperty {
     public String getPropertyIri() {
         return propertyIri;
     }
+
+    /**
+     * Builds the RDF rule for this property
+     *
+     * @param graphSigns The graph for the signs
+     * @param graphSemes The graph for the semes
+     * @param graphMeta  The graph for the metadata
+     * @param nodes      The node manager to use
+     * @param parent     The node representing this consequent
+     * @param context    The current context
+     */
+    public abstract void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context);
 }

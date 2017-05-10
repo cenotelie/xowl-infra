@@ -17,6 +17,14 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.denotation.Denotation;
+import org.xowl.infra.denotation.phrases.Sign;
+import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.store.storage.NodeManager;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -147,5 +155,44 @@ public class SignPattern implements DenotationRuleAntecedent {
      */
     public void setBoundSeme(String identifier) {
         this.seme = identifier;
+    }
+
+    @Override
+    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
+        VariableNode variable = context.getVariable(identifier);
+        // basic type matching
+        context.getRdfRule().addAntecedentPositive(new Quad(graphSigns,
+                variable,
+                nodes.getIRINode(Vocabulary.rdfType),
+                nodes.getIRINode(Sign.TYPE_SIGN)
+        ));
+
+        // properties
+        if (properties != null) {
+            for (SignPropertyConstraint constraint : properties)
+                constraint.buildRdf(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+        }
+
+        // relations
+        if (relations != null) {
+            for (SignRelationConstraint constraint : relations)
+                constraint.buildRdf(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+        }
+
+        // binding
+        if (seme != null) {
+            context.getRdfRule().addAntecedentPositive(new Quad(graphMeta,
+                    variable,
+                    nodes.getIRINode(Denotation.META_TRACE),
+                    context.getVariable(seme)
+            ));
+        }
+
+        // matched by
+        context.getRdfRule().addConsequentPositive(new Quad(graphMeta,
+                nodes.getIRINode(variable),
+                nodes.getIRINode(Denotation.META_MATCHED_BY),
+                nodes.getIRINode(context.getRdfRule().getIRI())
+        ));
     }
 }

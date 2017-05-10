@@ -17,6 +17,13 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.rdf.SubjectNode;
+import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.store.storage.NodeManager;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -100,5 +107,29 @@ public class SemeTemplate extends DenotationRuleConsequent {
         if (properties == null)
             return;
         properties.remove(property);
+    }
+
+    @Override
+    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
+        VariableNode variable = context.getVariable(identifier);
+
+        context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
+                variable,
+                nodes.getIRINode(Vocabulary.rdfType),
+                nodes.getIRINode(typeIri)
+        ));
+
+        // properties
+        if (properties != null) {
+            for (SemeTemplateProperty property : properties)
+                property.buildRdfProperty(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+        }
+
+        buildRdfBindings(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+    }
+
+    @Override
+    protected SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
+        return context.getVariable(identifier);
     }
 }

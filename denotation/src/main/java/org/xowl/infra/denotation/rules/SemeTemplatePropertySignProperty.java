@@ -18,6 +18,8 @@
 package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.denotation.phrases.SignProperty;
+import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.store.storage.NodeManager;
 
 /**
  * A property template for a seme when the value is the value of a sign's property
@@ -63,5 +65,40 @@ public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
      */
     public SignProperty getProperty() {
         return property;
+    }
+
+    @Override
+    public void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
+        VariableNode referencedSign = context.getVariable(reference.getIdentifier());
+        Node foundObject = null;
+        for (Quad quad : context.getRdfRule().getPatterns().get(0).getPositives()) {
+            if (quad.getSubject() == referencedSign
+                    && quad.getProperty().getNodeType() == Node.TYPE_IRI
+                    && ((IRINode) quad.getProperty()).getIRIValue().equals(property.getIdentifier())) {
+                foundObject = quad.getObject();
+                break;
+            }
+        }
+
+        if (foundObject == null) {
+            // the value for the property is not in the antecedents => add it
+            VariableNode variableValue = context.getVariable();
+            context.getRdfRule().addAntecedentPositive(new Quad(graphSigns,
+                    referencedSign,
+                    nodes.getIRINode(property.getIdentifier()),
+                    variableValue
+            ));
+            context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
+                    parent,
+                    nodes.getIRINode(propertyIri),
+                    variableValue
+            ));
+        } else {
+            context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
+                    parent,
+                    nodes.getIRINode(propertyIri),
+                    foundObject
+            ));
+        }
     }
 }

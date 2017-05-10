@@ -17,6 +17,13 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.denotation.Denotation;
+import org.xowl.infra.denotation.phrases.SignProperty;
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.rdf.SubjectNode;
+import org.xowl.infra.store.storage.NodeManager;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,5 +70,55 @@ public abstract class DenotationRuleConsequent {
         if (bindings == null)
             return;
         bindings.remove(antecedent);
+    }
+
+    /**
+     * Builds the RDF rule with this consequent
+     *
+     * @param graphSigns The graph for the signs
+     * @param graphSemes The graph for the semes
+     * @param graphMeta  The graph for the metadata
+     * @param nodes      The node manager to use
+     * @param context    The current context
+     */
+    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
+        buildRdfBindings(graphSigns, graphSemes, graphMeta, nodes, getSubject(nodes, context), context);
+    }
+
+    /**
+     * Gets the subject for this consequent
+     *
+     * @param nodes   The node manager to use
+     * @param context The current context
+     * @return The subject
+     */
+    protected abstract SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context);
+
+    /**
+     * Builds the RDF rule with this antecedent
+     *
+     * @param graphSigns The graph for the signs
+     * @param graphSemes The graph for the semes
+     * @param graphMeta  The graph for the metadata
+     * @param nodes      The node manager to use
+     * @param parent     The node representing this consequent
+     * @param context    The current context
+     */
+    protected void buildRdfBindings(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
+        if (bindings != null) {
+            for (DenotationRuleAntecedent antecedent : bindings) {
+                SubjectNode subject;
+                if (antecedent instanceof SignReference) {
+                    subject = nodes.getIRINode(((SignReference) antecedent).getSignId());
+                } else {
+                    subject = context.getVariable(((SignProperty) antecedent).getIdentifier());
+                }
+                context.getRdfRule().addConsequentPositive(new Quad(graphMeta,
+                        subject,
+                        nodes.getIRINode(Denotation.META_TRACE),
+                        parent
+                ));
+            }
+        }
     }
 }

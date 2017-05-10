@@ -17,10 +17,23 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.storage.NodeManager;
+
 /**
  * Represent a sign antecedent to a denotation rule
  *
  * @author Laurent Wouters
  */
 public interface DenotationRuleAntecedent {
+    /**
+     * Builds the RDF rule with this antecedent
+     *
+     * @param graphSigns The graph for the signs
+     * @param graphSemes The graph for the semes
+     * @param graphMeta  The graph for the metadata
+     * @param nodes      The node manager to use
+     * @param context    The current context
+     */
+    void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context);
 }

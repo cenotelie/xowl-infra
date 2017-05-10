@@ -19,6 +19,7 @@ package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.RDFRule;
+import org.xowl.infra.store.rdf.RDFRuleSimple;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Identifiable;
 
@@ -150,10 +151,17 @@ public class DenotationRule implements Identifiable {
      *
      * @param graphSigns The graph for the signs
      * @param graphSemes The graph for the semes
+     * @param graphMeta  The graph for the metadata
      * @param nodes      The node manager to use
      * @return The RDF rule
      */
-    public RDFRule buildRdfRule(GraphNode graphSigns, GraphNode graphSemes, NodeManager nodes) {
-        return null;
+    public RDFRule buildRdfRule(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes) {
+        RDFRuleSimple result = new RDFRuleSimple(uri, true, null);
+        DenotationRuleContext context = new DenotationRuleContext(result);
+        for (DenotationRuleAntecedent antecedent : antecedents)
+            antecedent.buildRdf(graphSigns, graphSemes, graphMeta, nodes, context);
+        for (DenotationRuleConsequent consequent : consequents)
+            consequent.buildRdf(graphSigns, graphSemes, graphMeta, nodes, context);
+        return result;
     }
 }

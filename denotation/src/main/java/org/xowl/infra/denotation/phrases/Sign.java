@@ -38,7 +38,7 @@ public class Sign implements Identifiable, Serializable {
     /**
      * The URI for the Sign type
      */
-    public static final String TYPE_SYMBOL = "http://xowl.org/infra/denotation/schema#Sign";
+    public static final String TYPE_SIGN = "http://xowl.org/infra/denotation/schema#Sign";
 
     /**
      * The sign's identifier that can be traced back in the original's input
@@ -269,7 +269,7 @@ public class Sign implements Identifiable, Serializable {
      */
     public void serializeRdf(NodeManager nodes, GraphNode graph, Collection<Quad> buffer) {
         IRINode subject = getRdfNode(nodes);
-        buffer.add(new Quad(graph, subject, nodes.getIRINode(Vocabulary.rdfType), nodes.getIRINode(TYPE_SYMBOL)));
+        buffer.add(new Quad(graph, subject, nodes.getIRINode(Vocabulary.rdfType), nodes.getIRINode(TYPE_SIGN)));
         if (name != null)
             buffer.add(new Quad(graph, subject, nodes.getIRINode(SignPropertyName.URI), nodes.getLiteralNode(name, Vocabulary.xsdString, null)));
         if (properties != null) {

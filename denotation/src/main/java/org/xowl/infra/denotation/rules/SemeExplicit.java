@@ -17,6 +17,9 @@
 
 package org.xowl.infra.denotation.rules;
 
+import org.xowl.infra.store.rdf.SubjectNode;
+import org.xowl.infra.store.storage.NodeManager;
+
 /**
  * Represents an explicit seme (ontological entity) as a consequent of a denotation rule
  *
@@ -44,5 +47,10 @@ public class SemeExplicit extends DenotationRuleConsequent {
      */
     public String getSemeIri() {
         return iri;
+    }
+
+    @Override
+    protected SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
+        return nodes.getIRINode(iri);
     }
 }

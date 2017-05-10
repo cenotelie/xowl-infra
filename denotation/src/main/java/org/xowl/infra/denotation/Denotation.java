@@ -20,6 +20,7 @@ package org.xowl.infra.denotation;
 import org.xowl.infra.denotation.phrases.Phrase;
 import org.xowl.infra.denotation.phrases.Sign;
 import org.xowl.infra.denotation.rules.DenotationRule;
+import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.GraphNode;
@@ -40,11 +41,19 @@ public class Denotation {
     /**
      * The default graphs for the signs
      */
-    private static final String GRAPH_SIGNS = "http://xowl.org/infra/denotation/signs";
+    public static final String GRAPH_SIGNS = "http://xowl.org/infra/denotation/signs";
     /**
      * The default graphs for the semes
      */
-    private static final String GRAPH_SEMES = "http://xowl.org/infra/denotation/semes";
+    public static final String GRAPH_SEMES = "http://xowl.org/infra/denotation/semes";
+    /**
+     * The trace relation from a sign to a seme
+     */
+    public static final String META_TRACE = "http://xowl.org/infra/denotation/schema#trace";
+    /**
+     * The matchedBy relation from a sign to a matching rule
+     */
+    public static final String META_MATCHED_BY = "http://xowl.org/infra/denotation/schema#matchedBy";
 
     /**
      * The input phrase
@@ -70,6 +79,10 @@ public class Denotation {
      * The graph for the semes
      */
     private final GraphNode graphSemes;
+    /**
+     * The graph for the metadata
+     */
+    private final GraphNode graphMetadata;
 
     /**
      * Initializes an empty denotation
@@ -93,6 +106,7 @@ public class Denotation {
         this.repository = new RepositoryRDF(StoreFactory.create().inMemory().withReasoning().make());
         this.graphSigns = repository.getStore().getIRINode(GRAPH_SIGNS);
         this.graphSemes = repository.getStore().getIRINode(graphSemes);
+        this.graphMetadata = repository.getStore().getIRINode(IRIs.GRAPH_META);
         try {
             Collection<Quad> buffer = new ArrayList<>();
             phrase.serializeRdf(repository.getStore(), graphSigns, buffer);
@@ -138,7 +152,7 @@ public class Denotation {
      */
     public void addRule(DenotationRule rule) {
         rules.put(rule.getIdentifier(), rule);
-        RDFRule rdfRule = rule.buildRdfRule(graphSigns, graphSemes, repository.getStore());
+        RDFRule rdfRule = rule.buildRdfRule(graphSigns, graphSemes, graphMetadata, repository.getStore());
         if (rdfRule != null) {
             rdfRules.put(rule, rdfRule);
             repository.getRDFRuleEngine().add(rdfRule);
