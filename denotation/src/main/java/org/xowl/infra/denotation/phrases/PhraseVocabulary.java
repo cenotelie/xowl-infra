@@ -33,31 +33,24 @@ public class PhraseVocabulary implements Serializable {
     /**
      * The global register of vocabulary elements
      */
-    public static final PhraseVocabulary REGISTER = newRegister();
+    public static final PhraseVocabulary REGISTER = new PhraseVocabulary();
 
-    /**
-     * Produces the register vocabulary
-     *
-     * @return The register vocabulary
-     */
-    private static PhraseVocabulary newRegister() {
-        PhraseVocabulary result = new PhraseVocabulary();
-        result.properties.put(SignPropertyBrightness.URI, SignPropertyBrightness.INSTANCE);
-        result.properties.put(SignPropertyColor.URI, SignPropertyColor.INSTANCE);
-        result.properties.put(SignPropertyName.URI, SignPropertyName.INSTANCE);
-        result.properties.put(SignPropertyOrientation.URI, SignPropertyOrientation.INSTANCE);
-        result.properties.put(SignPropertyPosition2D.URI, SignPropertyPosition2D.INSTANCE);
-        result.properties.put(SignPropertyPositionText.URI, SignPropertyPositionText.INSTANCE);
-        result.properties.put(SignPropertyShape.URI, SignPropertyShape.INSTANCE);
-        result.properties.put(SignPropertySize.URI, SignPropertySize.INSTANCE);
-        result.properties.put(SignPropertyTexture.URI, SignPropertyTexture.INSTANCE);
-        result.properties.put(SignPropertyZone2D.URI, SignPropertyZone2D.INSTANCE);
-        result.relations.put(SignRelation.RELATION_CONTAINED_BY.getIdentifier(), SignRelation.RELATION_CONTAINED_BY);
-        result.relations.put(SignRelation.RELATION_CONTAINS.getIdentifier(), SignRelation.RELATION_CONTAINS);
-        result.relations.put(SignRelation.RELATION_LINKED_BY.getIdentifier(), SignRelation.RELATION_LINKED_BY);
-        result.relations.put(SignRelation.RELATION_LINKS.getIdentifier(), SignRelation.RELATION_LINKS);
-        result.relations.put(SignRelation.RELATION_OVERLAPS.getIdentifier(), SignRelation.RELATION_OVERLAPS);
-        return result;
+    static {
+        REGISTER.addProperty(SignPropertyBrightness.INSTANCE);
+        REGISTER.addProperty(SignPropertyColor.INSTANCE);
+        REGISTER.addProperty(SignPropertyName.INSTANCE);
+        REGISTER.addProperty(SignPropertyOrientation.INSTANCE);
+        REGISTER.addProperty(SignPropertyPosition2D.INSTANCE);
+        REGISTER.addProperty(SignPropertyPositionText.INSTANCE);
+        REGISTER.addProperty(SignPropertyShape.INSTANCE);
+        REGISTER.addProperty(SignPropertySize.INSTANCE);
+        REGISTER.addProperty(SignPropertyTexture.INSTANCE);
+        REGISTER.addProperty(SignPropertyZone2D.INSTANCE);
+        REGISTER.addRelation(SignRelation.RELATION_CONTAINED_BY);
+        REGISTER.addRelation(SignRelation.RELATION_CONTAINS);
+        REGISTER.addRelation(SignRelation.RELATION_LINKED_BY);
+        REGISTER.addRelation(SignRelation.RELATION_LINKS);
+        REGISTER.addRelation(SignRelation.RELATION_OVERLAPS);
     }
 
     /**
