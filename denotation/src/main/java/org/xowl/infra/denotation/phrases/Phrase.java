@@ -17,13 +17,13 @@
 
 package org.xowl.infra.denotation.phrases;
 
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.collections.Couple;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a phrase produced by a parser from an input artifact
@@ -43,30 +43,63 @@ public class Phrase implements Identifiable, Serializable {
      * The signs found in the phrase
      */
     private final List<Sign> signs;
-    /**
-     * The original input parsed to produce this phrase
-     */
-    private final byte[] inputContent;
-    /**
-     * The MIME type for the original input
-     */
-    private final String inputMime;
 
     /**
      * Initializes this phrase
      *
-     * @param identifier   The identifier of this phrase
-     * @param name         The human-readable name of this phrase
-     * @param signs        The signs found in the phrase
-     * @param inputContent The original input parsed to produce this phrase
-     * @param inputMime    The MIME type for the original input
+     * @param identifier The identifier of this phrase
+     * @param name       The human-readable name of this phrase
+     * @param signs      The signs found in the phrase
      */
-    public Phrase(String identifier, String name, List<Sign> signs, byte[] inputContent, String inputMime) {
+    public Phrase(String identifier, String name, List<Sign> signs) {
         this.identifier = identifier;
         this.name = name;
         this.signs = Collections.unmodifiableList(signs);
-        this.inputContent = inputContent;
-        this.inputMime = inputMime;
+    }
+
+    /**
+     * Initializes this phrase
+     *
+     * @param definition The serialized definition
+     */
+    public Phrase(ASTNode definition) {
+        String identifier = null;
+        String name = null;
+        Map<String, Sign> signs = new HashMap<>();
+        List<Couple<Sign, ASTNode>> signDefinitions = new ArrayList<>();
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeHeader = child.getChildren().get(0);
+            String memberName = TextUtils.unescape(nodeHeader.getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            switch (memberName) {
+                case "identifier": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    identifier = TextUtils.unescape(nodeValue.getValue());
+                    identifier = identifier.substring(1, identifier.length() - 1);
+                    break;
+                }
+                case "name": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    name = TextUtils.unescape(nodeValue.getValue());
+                    name = name.substring(1, name.length() - 1);
+                    break;
+                }
+                case "signs": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    for (ASTNode sub : nodeValue.getChildren()) {
+                        Sign sign = new Sign(sub);
+                        signs.put(sign.getIdentifier(), sign);
+                        signDefinitions.add(new Couple<>(sign, sub));
+                    }
+                    break;
+                }
+            }
+        }
+        this.identifier = identifier;
+        this.name = name;
+        this.signs = Collections.unmodifiableList(new ArrayList<>(signs.values()));
+        for (Couple<Sign, ASTNode> couple : signDefinitions)
+            couple.x.loadRelations(couple.y, signs);
     }
 
     /**
@@ -76,24 +109,6 @@ public class Phrase implements Identifiable, Serializable {
      */
     public Collection<Sign> getSigns() {
         return signs;
-    }
-
-    /**
-     * Gets the original input parsed to produce this phrase
-     *
-     * @return The original input parsed to produce this phrase
-     */
-    public byte[] getInputContent() {
-        return inputContent;
-    }
-
-    /**
-     * Gets the MIME type for the original input
-     *
-     * @return The MIME type for the original input
-     */
-    public String getInputMime() {
-        return inputMime;
     }
 
     @Override
@@ -128,10 +143,7 @@ public class Phrase implements Identifiable, Serializable {
             first = false;
             builder.append(sign.serializedJSON());
         }
-        builder.append("], \"inputMime\": \"");
-        if (inputMime != null)
-            builder.append(TextUtils.escapeStringJSON(inputMime));
-        builder.append("\"}");
+        builder.append("]}");
         return builder.toString();
     }
 }

@@ -28,6 +28,13 @@ import org.xowl.infra.utils.Identifiable;
  */
 public interface Parser<T> extends Identifiable {
     /**
+     * Gets the vocabulary used by this parser
+     *
+     * @return The vocabulary used by this parser
+     */
+    PhraseVocabulary getVocabulary();
+
+    /**
      * Parses the specified input
      *
      * @param input The input to parse

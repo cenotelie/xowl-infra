@@ -17,6 +17,7 @@
 
 package org.xowl.infra.denotation.phrases;
 
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
@@ -69,6 +70,86 @@ public class Sign implements Identifiable, Serializable {
     public Sign(String identifier, String name) {
         this.identifier = identifier;
         this.name = name;
+    }
+
+    /**
+     * Initializes this sign
+     *
+     * @param definition The serialized definition
+     */
+    public Sign(ASTNode definition) {
+        String identifier = null;
+        String name = null;
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeHeader = child.getChildren().get(0);
+            String memberName = TextUtils.unescape(nodeHeader.getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            switch (memberName) {
+                case "identifier": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    identifier = TextUtils.unescape(nodeValue.getValue());
+                    identifier = identifier.substring(1, identifier.length() - 1);
+                    break;
+                }
+                case "name": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    name = TextUtils.unescape(nodeValue.getValue());
+                    name = name.substring(1, name.length() - 1);
+                    break;
+                }
+                case "properties": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    for (ASTNode sub : nodeValue.getChildren()) {
+                        ASTNode subHeader = sub.getChildren().get(0);
+                        ASTNode subValue = sub.getChildren().get(1);
+                        String propertyUri = TextUtils.unescape(subHeader.getValue());
+                        propertyUri = propertyUri.substring(1, propertyUri.length() - 1);
+                        SignProperty property = PhraseVocabulary.REGISTER.getProperty(propertyUri);
+                        if (property != null)
+                            addPropertyValue(property, property.deserializeValueJson(subValue));
+                    }
+                    break;
+                }
+            }
+        }
+        this.identifier = identifier;
+        this.name = name;
+    }
+
+    /**
+     * Loads the sign's relations
+     *
+     * @param definition The serialized definition
+     * @param signs      The dictionary of signs
+     */
+    void loadRelations(ASTNode definition, Map<String, Sign> signs) {
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeHeader = child.getChildren().get(0);
+            String memberName = TextUtils.unescape(nodeHeader.getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            switch (memberName) {
+                case "relations": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    for (ASTNode sub : nodeValue.getChildren()) {
+                        ASTNode subHeader = sub.getChildren().get(0);
+                        ASTNode subValue = sub.getChildren().get(1);
+                        String relationUri = TextUtils.unescape(subHeader.getValue());
+                        relationUri = relationUri.substring(1, relationUri.length() - 1);
+                        SignRelation relation = PhraseVocabulary.REGISTER.getRelation(relationUri);
+                        if (relation != null) {
+                            for (ASTNode nodeSign : subValue.getChildren()) {
+                                String signId = TextUtils.unescape(nodeSign.getValue());
+                                signId = signId.substring(1, signId.length() - 1);
+                                Sign related = signs.get(signId);
+                                if (related != null)
+                                    addRelationSign(relation, related);
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     /**

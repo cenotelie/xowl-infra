@@ -17,6 +17,7 @@
 
 package org.xowl.infra.denotation.phrases;
 
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
@@ -52,6 +53,46 @@ public class SignProperty implements Identifiable, Serializable {
      */
     public SignProperty(String uri, String name, boolean isRdfSerialized) {
         this.uri = uri;
+        this.name = name;
+        this.isRdfSerialized = isRdfSerialized;
+    }
+
+    /**
+     * Initializes this property
+     *
+     * @param definition The serialized definition
+     */
+    public SignProperty(ASTNode definition) {
+        String identifier = null;
+        String name = null;
+        boolean isRdfSerialized = false;
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeHeader = child.getChildren().get(0);
+            String memberName = TextUtils.unescape(nodeHeader.getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            switch (memberName) {
+                case "identifier": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    identifier = TextUtils.unescape(nodeValue.getValue());
+                    identifier = identifier.substring(1, identifier.length() - 1);
+                    break;
+                }
+                case "name": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    name = TextUtils.unescape(nodeValue.getValue());
+                    name = name.substring(1, name.length() - 1);
+                    break;
+                }
+                case "isRdfSerialized": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    String value = TextUtils.unescape(nodeValue.getValue());
+                    value = value.substring(1, value.length() - 1);
+                    isRdfSerialized = value.equalsIgnoreCase("true");
+                    break;
+                }
+            }
+        }
+        this.uri = identifier;
         this.name = name;
         this.isRdfSerialized = isRdfSerialized;
     }
@@ -96,6 +137,18 @@ public class SignProperty implements Identifiable, Serializable {
      */
     public Node serializeValueRdf(NodeManager nodes, Object value) {
         return nodes.getLiteralNode(value.toString(), Vocabulary.xsdString, null);
+    }
+
+    /**
+     * De-serializes a value of this property from the JSON definition
+     *
+     * @param definition The serialized definition
+     * @return The original value
+     */
+    public Object deserializeValueJson(ASTNode definition) {
+        String value = TextUtils.unescape(definition.getValue());
+        value = value.substring(1, value.length() - 1);
+        return value;
     }
 
     @Override

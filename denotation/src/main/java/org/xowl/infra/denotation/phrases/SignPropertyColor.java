@@ -17,9 +17,11 @@
 
 package org.xowl.infra.denotation.phrases;
 
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.TextUtils;
 
 import java.awt.*;
 
@@ -64,5 +66,12 @@ public class SignPropertyColor extends SignProperty {
     public Node serializeValueRdf(NodeManager nodes, Object value) {
         Color color = (Color) value;
         return nodes.getLiteralNode(Integer.toString(color.getRGB()), Vocabulary.xsdString, null);
+    }
+
+    @Override
+    public Object deserializeValueJson(ASTNode definition) {
+        String value = TextUtils.unescape(definition.getValue());
+        value = value.substring(1, value.length() - 1);
+        return Integer.parseInt(value);
     }
 }

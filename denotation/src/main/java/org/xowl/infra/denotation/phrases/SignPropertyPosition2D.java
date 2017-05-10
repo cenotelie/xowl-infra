@@ -17,9 +17,11 @@
 
 package org.xowl.infra.denotation.phrases;
 
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.TextUtils;
 
 import java.awt.geom.Point2D;
 
@@ -66,5 +68,31 @@ public class SignPropertyPosition2D extends SignProperty {
     public Node serializeValueRdf(NodeManager nodes, Object value) {
         Point2D point = (Point2D) value;
         return nodes.getLiteralNode(Double.toString(point.getX()) + " " + Double.toString(point.getX()), Vocabulary.xsdString, null);
+    }
+
+    @Override
+    public Object deserializeValueJson(ASTNode definition) {
+        String x = "0.0";
+        String y = "0.0";
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeHeader = child.getChildren().get(0);
+            String memberName = TextUtils.unescape(nodeHeader.getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            switch (memberName) {
+                case "x": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    x = TextUtils.unescape(nodeValue.getValue());
+                    x = x.substring(1, x.length() - 1);
+                    break;
+                }
+                case "y": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    y = TextUtils.unescape(nodeValue.getValue());
+                    y = y.substring(1, y.length() - 1);
+                    break;
+                }
+            }
+        }
+        return new Point2D.Double(Double.parseDouble(x), Double.parseDouble(y));
     }
 }

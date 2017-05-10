@@ -17,6 +17,7 @@
 
 package org.xowl.infra.denotation.phrases;
 
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
@@ -66,6 +67,37 @@ public class SignRelation implements Identifiable, Serializable {
      */
     public SignRelation(String uri, String name) {
         this.uri = uri;
+        this.name = name;
+    }
+
+    /**
+     * Initializes this relation
+     *
+     * @param definition The serialized definition
+     */
+    public SignRelation(ASTNode definition) {
+        String identifier = null;
+        String name = null;
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeHeader = child.getChildren().get(0);
+            String memberName = TextUtils.unescape(nodeHeader.getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            switch (memberName) {
+                case "identifier": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    identifier = TextUtils.unescape(nodeValue.getValue());
+                    identifier = identifier.substring(1, identifier.length() - 1);
+                    break;
+                }
+                case "name": {
+                    ASTNode nodeValue = child.getChildren().get(1);
+                    name = TextUtils.unescape(nodeValue.getValue());
+                    name = name.substring(1, name.length() - 1);
+                    break;
+                }
+            }
+        }
+        this.uri = identifier;
         this.name = name;
     }
 

@@ -17,9 +17,11 @@
 
 package org.xowl.infra.denotation.phrases;
 
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.TextUtils;
 
 /**
  * Represents the "position" property for a textual sign
@@ -60,5 +62,12 @@ public class SignPropertyPositionText extends SignProperty {
     @Override
     public Node serializeValueRdf(NodeManager nodes, Object value) {
         return nodes.getLiteralNode(value.toString(), Vocabulary.xsdInt, null);
+    }
+
+    @Override
+    public Object deserializeValueJson(ASTNode definition) {
+        String value = TextUtils.unescape(definition.getValue());
+        value = value.substring(1, value.length() - 1);
+        return Integer.parseInt(value);
     }
 }
