@@ -22,6 +22,7 @@ import org.xowl.infra.denotation.phrases.Sign;
 import org.xowl.infra.denotation.rules.DenotationRule;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -273,12 +274,51 @@ public class Denotation {
                 return Collections.emptyList();
             Collection<Quad> result = new ArrayList<>();
             for (SubjectNode seme : semes) {
-                iterator = repository.getStore().getAll(graphSemes,
+                iterator = repository.getStore().getAll(null,
                         seme,
                         null,
                         null);
                 while (iterator.hasNext())
                     result.add(iterator.next());
+            }
+            return result;
+        } catch (UnsupportedNodeType exception) {
+            // should not happen
+            Logging.get().error(exception);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Gets the semantic types (ontological classes) of the semes denoted by the specified sign
+     *
+     * @param sign A sign
+     * @return The semantic types
+     */
+    public Collection<String> getSemeTypesOf(Sign sign) {
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(graphMetadata,
+                    repository.getStore().getIRINode(sign.getIdentifier()),
+                    repository.getStore().getIRINode(META_TRACE),
+                    null);
+            if (!iterator.hasNext())
+                return Collections.emptyList();
+            Collection<SubjectNode> semes = new ArrayList<>();
+            while (iterator.hasNext())
+                semes.add((SubjectNode) iterator.next().getObject());
+            if (semes.isEmpty())
+                return Collections.emptyList();
+            Collection<String> result = new ArrayList<>();
+            for (SubjectNode seme : semes) {
+                iterator = repository.getStore().getAll(null,
+                        seme,
+                        repository.getStore().getIRINode(Vocabulary.rdfType),
+                        null);
+                while (iterator.hasNext()) {
+                    Node node = iterator.next().getObject();
+                    if (node.getNodeType() == Node.TYPE_IRI)
+                        result.add(((IRINode) node).getIRIValue());
+                }
             }
             return result;
         } catch (UnsupportedNodeType exception) {
