@@ -29,7 +29,7 @@ import org.xowl.infra.utils.TextUtils;
 import java.util.*;
 
 /**
- * Represents a sign in a user's phrases
+ * Represents a sign in a user's phrase
  *
  * @author Laurent Wouters
  */
@@ -40,7 +40,7 @@ public class Sign implements Identifiable, Serializable {
     public static final String TYPE_SYMBOL = "http://xowl.org/infra/denotation/Sign";
 
     /**
-     * The sign's identifier that can be traced back in the original's phrases
+     * The sign's identifier that can be traced back in the original's input
      */
     private final String identifier;
     /**
@@ -63,7 +63,7 @@ public class Sign implements Identifiable, Serializable {
     /**
      * Initializes this sign
      *
-     * @param identifier The sign's identifier that can be traced back in the original's phrases
+     * @param identifier The sign's identifier that can be traced back in the original's phrase
      * @param name       The sign's name, if any
      */
     public Sign(String identifier, String name) {

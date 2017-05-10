@@ -26,74 +26,74 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents an phrases produced by a user, as read by a parser
+ * Represents a phrase produced by a parser from an input artifact
  *
  * @author Laurent Wouters
  */
 public class Phrase implements Identifiable, Serializable {
     /**
-     * The identifier of this phrases
+     * The identifier of this phrase
      */
     private final String identifier;
     /**
-     * The human-readable name of this phrases
+     * The human-readable name of this phrase
      */
     private final String name;
     /**
-     * The signs found in the phrases
+     * The signs found in the phrase
      */
     private final List<Sign> signs;
     /**
-     * The representation of this phrases
+     * The original input parsed to produce this phrase
      */
-    private final byte[] representationContent;
+    private final byte[] inputContent;
     /**
-     * The MIME type for the representation
+     * The MIME type for the original input
      */
-    private final String representationMime;
+    private final String inputMime;
 
     /**
-     * Initializes this phrases
+     * Initializes this phrase
      *
-     * @param identifier            The identifier of this phrases
-     * @param name                  The human-readable name of this phrases
-     * @param signs                 The signs found in the phrases
-     * @param representationContent The representation of this phrases
-     * @param representationMime    The MIME type for the representation
+     * @param identifier   The identifier of this phrase
+     * @param name         The human-readable name of this phrase
+     * @param signs        The signs found in the phrase
+     * @param inputContent The original input parsed to produce this phrase
+     * @param inputMime    The MIME type for the original input
      */
-    public Phrase(String identifier, String name, List<Sign> signs, byte[] representationContent, String representationMime) {
+    public Phrase(String identifier, String name, List<Sign> signs, byte[] inputContent, String inputMime) {
         this.identifier = identifier;
         this.name = name;
         this.signs = Collections.unmodifiableList(signs);
-        this.representationContent = representationContent;
-        this.representationMime = representationMime;
+        this.inputContent = inputContent;
+        this.inputMime = inputMime;
     }
 
     /**
-     * Gets the signs found in the phrases
+     * Gets the signs found in the phrase
      *
-     * @return The signs found in the phrases
+     * @return The signs found in the phrase
      */
     public Collection<Sign> getSigns() {
         return signs;
     }
 
     /**
-     * Gets the content of the phrases's representation
+     * Gets the original input parsed to produce this phrase
      *
-     * @return The phrases's representation
+     * @return The original input parsed to produce this phrase
      */
-    public byte[] getRepresentationContent() {
-        return representationContent;
+    public byte[] getInputContent() {
+        return inputContent;
     }
 
     /**
-     * Gets the MIME type of the phrases's representation
+     * Gets the MIME type for the original input
      *
-     * @return The MIME type of the phrases's representation
+     * @return The MIME type for the original input
      */
-    public String getRepresentationMime() {
-        return representationMime;
+    public String getInputMime() {
+        return inputMime;
     }
 
     @Override
@@ -128,9 +128,9 @@ public class Phrase implements Identifiable, Serializable {
             first = false;
             builder.append(sign.serializedJSON());
         }
-        builder.append("], \"representationMime\": \"");
-        if (representationMime != null)
-            builder.append(TextUtils.escapeStringJSON(representationMime));
+        builder.append("], \"inputMime\": \"");
+        if (inputMime != null)
+            builder.append(TextUtils.escapeStringJSON(inputMime));
         builder.append("\"}");
         return builder.toString();
     }

@@ -20,8 +20,8 @@ package org.xowl.infra.denotation.phrases;
 import org.xowl.infra.utils.Identifiable;
 
 /**
- * Represents a parser for phrases produced by users
- * A parser reads an input phrases and produces a phrase, i.e. a list of signs.
+ * Represents a parser for phrase produced by users
+ * A parser reads an input phrase and produces a phrase, i.e. a list of signs.
  *
  * @param <T> The type of input for the parser
  * @author Laurent Wouters
@@ -31,7 +31,7 @@ public interface Parser<T> extends Identifiable {
      * Parses the specified input
      *
      * @param input The input to parse
-     * @return The resulting phrases
+     * @return The resulting phrase
      */
     Phrase parse(T input);
 }

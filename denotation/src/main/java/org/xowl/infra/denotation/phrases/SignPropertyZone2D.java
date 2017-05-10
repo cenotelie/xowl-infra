@@ -19,7 +19,7 @@ package org.xowl.infra.denotation.phrases;
 
 /**
  * Represents the "zone2d" property for a visual sign in a 2D graph
- * The zone is expected to be an identifier that corresponds to an element in the original phrases's representation
+ * The zone is expected to be an identifier that corresponds to an element in the original phrase's representation
  *
  * @author Laurent Wouters
  */
