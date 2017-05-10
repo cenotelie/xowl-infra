@@ -22,10 +22,7 @@ import org.xowl.infra.denotation.phrases.Sign;
 import org.xowl.infra.denotation.rules.DenotationRule;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
-import org.xowl.infra.store.rdf.Changeset;
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.RDFRule;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.logging.Logging;
@@ -181,7 +178,27 @@ public class Denotation {
      * @return The rules matching the specified sign
      */
     public Collection<DenotationRule> getRulesMatching(Sign sign) {
-        return Collections.emptyList();
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(graphMetadata,
+                    repository.getStore().getIRINode(sign.getIdentifier()),
+                    repository.getStore().getIRINode(META_MATCHED_BY),
+                    null);
+            if (!iterator.hasNext())
+                return Collections.emptyList();
+            Collection<DenotationRule> result = new ArrayList<>();
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                String ruleIri = ((IRINode) quad.getObject()).getIRIValue();
+                DenotationRule rule = rules.get(ruleIri);
+                if (rule != null)
+                    result.add(rule);
+            }
+            return result;
+        } catch (UnsupportedNodeType exception) {
+            // should not happen
+            Logging.get().error(exception);
+            return Collections.emptyList();
+        }
     }
 
     /**
@@ -191,7 +208,27 @@ public class Denotation {
      * @return The signs matched by the specified rule
      */
     public Collection<Sign> getSignsMatchedBy(DenotationRule rule) {
-        return Collections.emptyList();
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(graphMetadata,
+                    null,
+                    repository.getStore().getIRINode(META_MATCHED_BY),
+                    repository.getStore().getIRINode(rule.getIdentifier()));
+            if (!iterator.hasNext())
+                return Collections.emptyList();
+            Collection<Sign> result = new ArrayList<>();
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                String signIri = ((IRINode) quad.getSubject()).getIRIValue();
+                Sign sign = phrase.getSign(signIri);
+                if (sign != null)
+                    result.add(sign);
+            }
+            return result;
+        } catch (UnsupportedNodeType exception) {
+            // should not happen
+            Logging.get().error(exception);
+            return Collections.emptyList();
+        }
     }
 
     /**
@@ -200,7 +237,19 @@ public class Denotation {
      * @return The quads representing the semantics of the input phrase
      */
     public Collection<Quad> getSemantic() {
-        return Collections.emptyList();
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(graphSemes);
+            if (!iterator.hasNext())
+                return Collections.emptyList();
+            Collection<Quad> quads = new ArrayList<>();
+            while (iterator.hasNext())
+                quads.add(iterator.next());
+            return quads;
+        } catch (UnsupportedNodeType exception) {
+            // should not happen
+            Logging.get().error(exception);
+            return Collections.emptyList();
+        }
     }
 
     /**
@@ -210,6 +259,32 @@ public class Denotation {
      * @return The quads representing the semantics of the sign
      */
     public Collection<Quad> getSemanticsOf(Sign sign) {
-        return Collections.emptyList();
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(graphMetadata,
+                    repository.getStore().getIRINode(sign.getIdentifier()),
+                    repository.getStore().getIRINode(META_TRACE),
+                    null);
+            if (!iterator.hasNext())
+                return Collections.emptyList();
+            Collection<SubjectNode> semes = new ArrayList<>();
+            while (iterator.hasNext())
+                semes.add((SubjectNode) iterator.next().getObject());
+            if (semes.isEmpty())
+                return Collections.emptyList();
+            Collection<Quad> result = new ArrayList<>();
+            for (SubjectNode seme : semes) {
+                iterator = repository.getStore().getAll(graphSemes,
+                        seme,
+                        null,
+                        null);
+                while (iterator.hasNext())
+                    result.add(iterator.next());
+            }
+            return result;
+        } catch (UnsupportedNodeType exception) {
+            // should not happen
+            Logging.get().error(exception);
+            return Collections.emptyList();
+        }
     }
 }
