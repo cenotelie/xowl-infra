@@ -101,7 +101,7 @@ public class Denotation {
         this.phrase = phrase;
         this.rules = new HashMap<>();
         this.rdfRules = new HashMap<>();
-        this.repository = new RepositoryRDF(StoreFactory.create().inMemory().withReasoning().make());
+        this.repository = new RepositoryRDF(StoreFactory.create().inMemory().make());
         this.graphSigns = repository.getStore().getIRINode(GRAPH_SIGNS);
         this.graphSemes = repository.getStore().getIRINode(graphSemes);
         this.graphMetadata = repository.getStore().getIRINode(IRIs.GRAPH_META);
