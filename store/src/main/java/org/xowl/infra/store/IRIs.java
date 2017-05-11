@@ -39,6 +39,10 @@ public class IRIs {
      * The IRI of the OWL2 schema
      */
     public static final String OWL2 = "http://www.w3.org/2002/07/owl";
+    /**
+     * The IRI of the Dublin Core schema
+     */
+    public static final String DC = "http://purl.org/dc/elements/1.1/";
 
     /**
      * The base IRI of the XOWL schema

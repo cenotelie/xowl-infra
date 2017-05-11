@@ -23,6 +23,9 @@ package org.xowl.infra.store;
  * @author Laurent Wouters
  */
 public class Vocabulary {
+    public static final String dcTitle = IRIs.DC + "title";
+    public static final String dcDescription = IRIs.DC + "description";
+
     public static final String rdf = IRIs.RDF + "#";
     public static final String rdfLangString = rdf + "langString";
     public static final String rdfPlainLiteral = rdf + "PlainLiteral";
@@ -53,6 +56,8 @@ public class Vocabulary {
     public static final String rdfsSubPropertyOf = rdfs + "subPropertyOf";
     public static final String rdfsDomain = rdfs + "domain";
     public static final String rdfsRange = rdfs + "range";
+    public static final String rdfsLabel = rdfs + "label";
+    public static final String rdfsComment = rdfs + "comment";
 
     public static final String xsd = IRIs.XSD + "#";
     public static final String xsdString = xsd + "string";
