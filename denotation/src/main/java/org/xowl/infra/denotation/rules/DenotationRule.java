@@ -82,6 +82,13 @@ public class DenotationRule implements Identifiable {
         for (SignAntecedent antecedent : antecedents) {
             if (antecedent instanceof SignReference)
                 return false;
+            if (antecedent instanceof SignPattern) {
+                SignPattern pattern = (SignPattern) antecedent;
+                for (SignRelationConstraint constraint : pattern.getRelationsConstraints()) {
+                    if (constraint.getRelatedSign() instanceof SignReference)
+                        return false;
+                }
+            }
         }
         for (SemeConsequent consequent : consequents) {
             for (SignAntecedent bound : consequent.getBindings()) {
