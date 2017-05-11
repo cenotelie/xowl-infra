@@ -29,6 +29,9 @@ import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.logging.Logging;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -182,12 +185,50 @@ public class Domain implements Identifiable {
     }
 
     /**
+     * Gets the entities in this schema
+     *
+     * @return The entities in this schema
+     */
+    public Collection<DomainEntity> getEntities() {
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(null,
+                    null,
+                    repository.getStore().getIRINode(Vocabulary.rdfsIsDefinedBy),
+                    schemaNode);
+            if (!iterator.hasNext())
+                return Collections.emptyList();
+            Collection<DomainEntity> result = new ArrayList<>();
+            while (iterator.hasNext()) {
+                result.add(getEntity(((IRINode) iterator.next().getSubject()).getIRIValue()));
+            }
+            return result;
+        } catch (UnsupportedNodeType exception) {
+            Logging.get().error(exception);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * Gets the domain entity for the specified IRI
      *
      * @param iri An IRI
      * @return The corresponding domain entity
      */
     public DomainEntity getEntity(String iri) {
-        return null;
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(null,
+                    repository.getStore().getIRINode(iri),
+                    null,
+                    null);
+            if (!iterator.hasNext())
+                return null;
+            Collection<Quad> quads = new ArrayList<>();
+            while (iterator.hasNext())
+                quads.add(iterator.next());
+            return new DomainEntity(quads);
+        } catch (UnsupportedNodeType exception) {
+            Logging.get().error(exception);
+            return null;
+        }
     }
 }

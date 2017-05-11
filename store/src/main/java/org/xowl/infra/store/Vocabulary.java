@@ -58,6 +58,7 @@ public class Vocabulary {
     public static final String rdfsRange = rdfs + "range";
     public static final String rdfsLabel = rdfs + "label";
     public static final String rdfsComment = rdfs + "comment";
+    public static final String rdfsIsDefinedBy = rdfs + "isDefinedBy";
 
     public static final String xsd = IRIs.XSD + "#";
     public static final String xsdString = xsd + "string";
