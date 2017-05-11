@@ -34,19 +34,19 @@ public class SignRelationConstraint {
      */
     private final SignRelation relation;
     /**
-     * The related sign pattern
+     * The related sign antecedent
      */
-    private final SignPattern signPattern;
+    private final SignAntecedent relatedSign;
 
     /**
      * Initializes this constraint
      *
      * @param relation    The subject sign relation
-     * @param signPattern The related sign pattern
+     * @param relatedSign The related sign antecedent
      */
-    public SignRelationConstraint(SignRelation relation, SignPattern signPattern) {
+    public SignRelationConstraint(SignRelation relation, SignAntecedent relatedSign) {
         this.relation = relation;
-        this.signPattern = signPattern;
+        this.relatedSign = relatedSign;
     }
 
     /**
@@ -59,12 +59,12 @@ public class SignRelationConstraint {
     }
 
     /**
-     * Gets the related sign pattern
+     * Gets the related sign antecedent
      *
-     * @return The related sign pattern
+     * @return The related sign antecedent
      */
-    public SignPattern getSignPattern() {
-        return signPattern;
+    public SignAntecedent getRelatedSign() {
+        return relatedSign;
     }
 
     /**
@@ -81,7 +81,7 @@ public class SignRelationConstraint {
         context.getRdfRule().addAntecedentPositive(new Quad(graphSigns,
                 parent,
                 nodes.getIRINode(relation.getIdentifier()),
-                context.getVariable(signPattern.getIdentifier())
+                relatedSign.getSubject(nodes, context)
         ));
     }
 }

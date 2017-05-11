@@ -36,6 +36,30 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int A = 0x0028;
         /**
+         * The unique identifier for terminal LCB
+         */
+        public static final int LCB = 0x002A;
+        /**
+         * The unique identifier for terminal RCB
+         */
+        public static final int RCB = 0x002B;
+        /**
+         * The unique identifier for terminal LB
+         */
+        public static final int LB = 0x002C;
+        /**
+         * The unique identifier for terminal RB
+         */
+        public static final int RB = 0x002D;
+        /**
+         * The unique identifier for terminal COMMA
+         */
+        public static final int COMMA = 0x002E;
+        /**
+         * The unique identifier for terminal COLON
+         */
+        public static final int COLON = 0x002F;
+        /**
          * The unique identifier for terminal PNAME_NS
          */
         public static final int PNAME_NS = 0x000E;
@@ -157,13 +181,13 @@ class DenotationLexer extends ContextFreeLexer {
         new Symbol(0x0016, "OP_EQ"),
         new Symbol(0x0018, "OP_MEMBER"),
         new Symbol(0x0028, "A"),
-        new Symbol(0x0054, "{"),
-        new Symbol(0x0055, ","),
-        new Symbol(0x0057, "}"),
-        new Symbol(0x0058, ":"),
+        new Symbol(0x002A, "LCB"),
+        new Symbol(0x002B, "RCB"),
+        new Symbol(0x002C, "LB"),
+        new Symbol(0x002D, "RB"),
+        new Symbol(0x002E, "COMMA"),
+        new Symbol(0x002F, "COLON"),
         new Symbol(0x000E, "PNAME_NS"),
-        new Symbol(0x0059, "["),
-        new Symbol(0x005B, "]"),
         new Symbol(0x0010, "INTEGER"),
         new Symbol(0x0006, "BLANK"),
         new Symbol(0x0007, "IRIREF"),

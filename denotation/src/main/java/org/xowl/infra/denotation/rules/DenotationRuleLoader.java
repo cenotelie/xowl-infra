@@ -23,7 +23,6 @@ import org.xowl.infra.denotation.phrases.SignProperty;
 import org.xowl.infra.denotation.phrases.SignRelation;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Owl2Factory;
-import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
@@ -186,10 +185,10 @@ public class DenotationRuleLoader {
         title = TextUtils.unescape(title.substring(1, title.length() - 1));
         DenotationRule rule = new DenotationRule(RULE_URI + ruleCounter, title);
         ruleCounter++;
-        Map<String, SignPattern> signPatterns = new HashMap<>();
-        Map<String, SemeTemplate> semeTemplates = new HashMap<>();
+        Map<String, SignAntecedent> mapAntecedents = new HashMap<>();
+        Map<String, SemeConsequent> mapConsequents = new HashMap<>();
 
-        if (node.getChildren().get(1).getSymbol().getID() == DenotationParser.ID.sign_specific) {
+        if (node.getChildren().get(1).getSymbol().getID() == DenotationParser.ID.sign_static) {
             rule.addAntecedent(loadSignSpecificReference(node.getChildren().get(1)));
         } else {
             // sign patterns
@@ -199,36 +198,31 @@ public class DenotationRuleLoader {
                 SignPattern pattern = loadSignPatternInitial(nodePattern);
                 patterns[i++] = pattern;
                 rule.addAntecedent(pattern);
-                signPatterns.put(pattern.getIdentifier(), pattern);
+                mapAntecedents.put(pattern.getIdentifier(), pattern);
             }
             i = 0;
             for (ASTNode nodePattern : node.getChildren().get(1).getChildren()) {
                 SignPattern pattern = patterns[i++];
-                loadSignPatternContent(nodePattern, pattern, signPatterns);
-                if (pattern.getBoundSeme() != null)
-                    semeTemplates.put(pattern.getBoundSeme(), new SemeTemplate(pattern.getBoundSeme(), Vocabulary.owlThing));
+                loadSignPatternContent(nodePattern, pattern, mapAntecedents, mapConsequents);
             }
         }
 
-        SemeTemplate[] templates = new SemeTemplate[node.getChildren().get(2).getChildren().size()];
+        SemeConsequent[] consequents = new SemeConsequent[node.getChildren().get(2).getChildren().size()];
         int i = 0;
         for (ASTNode nodeSeme : node.getChildren().get(2).getChildren()) {
-            DenotationRuleConsequent consequent = loadSemeInitial(nodeSeme, signPatterns);
+            SemeConsequent consequent = loadSemeInitial(nodeSeme, mapConsequents);
+            consequents[i++] = consequent;
+            if (consequent == null)
+                return null;
             rule.addConsequent(consequent);
-            if (consequent instanceof SemeTemplate) {
-                SemeTemplate template = (SemeTemplate) consequent;
-                templates[i++] = template;
-                semeTemplates.put(template.getIdentifier(), template);
-            }
         }
         i = 0;
         for (ASTNode nodeSeme : node.getChildren().get(2).getChildren()) {
-            if (nodeSeme.getSymbol().getID() == DenotationParser.ID.seme_pattern) {
-                SemeTemplate template = templates[i++];
-                for (ASTNode nodeProperty : nodeSeme.getChildren().get(2).getChildren()) {
-                    loadSemeTemplateProperty(nodeProperty, template, signPatterns, semeTemplates);
-                }
-            }
+            SemeConsequent consequent = consequents[i++];
+            if (consequent == null)
+                continue;
+            loadSemeConsequentProperties(nodeSeme, consequent, mapAntecedents, mapConsequents);
+            loadSemeConsequentBindings(nodeSeme, consequent, mapAntecedents);
         }
 
         return rule;
@@ -260,21 +254,19 @@ public class DenotationRuleLoader {
     /**
      * Loads the content of sign pattern
      *
-     * @param node         An AST node
-     * @param pattern      The pattern to load
-     * @param signPatterns The dictionary of sign patterns
+     * @param node           An AST node
+     * @param pattern        The pattern to load
+     * @param mapAntecedents The current antecedents
+     * @param mapConsequents The current consequents
      */
-    private void loadSignPatternContent(ASTNode node, SignPattern pattern, Map<String, SignPattern> signPatterns) {
+    private void loadSignPatternContent(ASTNode node, SignPattern pattern, Map<String, SignAntecedent> mapAntecedents, Map<String, SemeConsequent> mapConsequents) {
         for (ASTNode nodeProperty : node.getChildren().get(1).getChildren()) {
             loadSignPatternProperty(nodeProperty, pattern);
         }
         for (ASTNode nodeRelation : node.getChildren().get(2).getChildren()) {
-            loadSignPatternRelation(nodeRelation, pattern, signPatterns);
+            loadSignPatternRelation(nodeRelation, pattern, mapAntecedents);
         }
-        if (!node.getChildren().get(3).getChildren().isEmpty()) {
-            String semeId = node.getChildren().get(3).getChildren().get(0).getValue().substring(1);
-            pattern.setBoundSeme(semeId);
-        }
+        loadSignPatternBinding(node.getChildren().get(3), pattern, mapConsequents);
     }
 
     /**
@@ -291,6 +283,7 @@ public class DenotationRuleLoader {
             TextContext context = input.getContext(node.getChildren().get(0).getSpan());
             logger.error(context.getContent());
             logger.error(context.getPointer());
+            return;
         }
         boolean isPositive = node.getChildren().get(1).getSymbol().getID() == DenotationLexer.ID.OP_EQ;
         Object value = loadSignPropertyValue(node.getChildren().get(2), property);
@@ -299,6 +292,7 @@ public class DenotationRuleLoader {
             TextContext context = input.getContext(node.getChildren().get(2).getSpan());
             logger.error(context.getContent());
             logger.error(context.getPointer());
+            return;
         }
         pattern.addPropertiesConstraint(new SignPropertyConstraint(property, value, isPositive));
     }
@@ -356,43 +350,110 @@ public class DenotationRuleLoader {
     /**
      * Loads the relation constraint for a sign pattern
      *
-     * @param node         An AST node
-     * @param pattern      The pattern to load
-     * @param signPatterns The dictionary of sign patterns
+     * @param node           An AST node
+     * @param pattern        The pattern to load
+     * @param mapAntecedents The current antecedents
      */
-    private void loadSignPatternRelation(ASTNode node, SignPattern pattern, Map<String, SignPattern> signPatterns) {
+    private void loadSignPatternRelation(ASTNode node, SignPattern pattern, Map<String, SignAntecedent> mapAntecedents) {
         String relationIri = getIri(node.getChildren().get(0));
-        String signId = node.getChildren().get(1).getValue().substring(1);
         SignRelation relation = PhraseVocabulary.REGISTER.getRelation(relationIri);
-        SignPattern related = signPatterns.get(signId);
         if (relation == null) {
             logger.error("Sign relation " + relationIri + " is unknown.");
             TextContext context = input.getContext(node.getChildren().get(0).getSpan());
             logger.error(context.getContent());
             logger.error(context.getPointer());
+            return;
         }
-        if (related == null) {
-            logger.error("Sign pattern " + signId + " is unknown.");
-            TextContext context = input.getContext(node.getChildren().get(1).getSpan());
-            logger.error(context.getContent());
-            logger.error(context.getPointer());
+
+        if (node.getChildren().get(1).getSymbol().getID() == DenotationLexer.ID.VARIABLE) {
+            // a sign pattern
+            String signId = node.getChildren().get(1).getValue().substring(1);
+            SignAntecedent related = mapAntecedents.get(signId);
+            if (related == null) {
+                logger.error("Sign pattern " + signId + " is unknown.");
+                TextContext context = input.getContext(node.getChildren().get(1).getSpan());
+                logger.error(context.getContent());
+                logger.error(context.getPointer());
+                return;
+            }
+            pattern.addRelationConstraint(new SignRelationConstraint(relation, related));
+        } else {
+            // an explicit sign
+            String signIri = getIri(node.getChildren().get(1));
+            SignAntecedent related = mapAntecedents.get(signIri);
+            if (related == null) {
+                related = new SignReference(signIri);
+                mapAntecedents.put(signIri, related);
+            }
+            pattern.addRelationConstraint(new SignRelationConstraint(relation, related));
         }
-        pattern.addRelationConstraint(new SignRelationConstraint(relation, related));
+    }
+
+    /**
+     * Loads the binding of sign pattern
+     *
+     * @param node           An AST node
+     * @param pattern        The pattern to load
+     * @param mapConsequents The current consequents
+     */
+    private void loadSignPatternBinding(ASTNode node, SignPattern pattern, Map<String, SemeConsequent> mapConsequents) {
+        if (node.getChildren().isEmpty())
+            return;
+        ASTNode nodeChild = node.getChildren().get(0);
+        if (node.getSymbol().getID() == DenotationLexer.ID.VARIABLE) {
+            // bound to seme to match
+            String semeId = nodeChild.getValue().substring(1);
+            SemeConsequent consequent = mapConsequents.get(semeId);
+            SemeMatched matched;
+            if (consequent == null) {
+                matched = new SemeMatched(semeId);
+                mapConsequents.put(semeId, matched);
+            } else {
+                matched = (SemeMatched) consequent;
+            }
+            pattern.setBoundSeme(matched);
+        } else {
+            // bound to a static seme
+            String semeIri = getIri(nodeChild);
+            SemeConsequent consequent = mapConsequents.get(semeIri);
+            SemeStatic semeStatic;
+            if (consequent == null) {
+                semeStatic = new SemeStatic(semeIri);
+                mapConsequents.put(semeIri, semeStatic);
+            } else {
+                semeStatic = (SemeStatic) consequent;
+            }
+            pattern.setBoundSeme(semeStatic);
+        }
     }
 
     /**
      * Loads the initial definition of a seme
      *
-     * @param node         An AST node
-     * @param signPatterns The current sign patterns
+     * @param node           An AST node
+     * @param mapConsequents The current consequents
      * @return The seme
      */
-    private DenotationRuleConsequent loadSemeInitial(ASTNode node, Map<String, SignPattern> signPatterns) {
-        DenotationRuleConsequent result;
-
-        if (node.getSymbol().getID() == DenotationParser.ID.seme_explicit) {
+    private SemeConsequent loadSemeInitial(ASTNode node, Map<String, SemeConsequent> mapConsequents) {
+        if (node.getSymbol().getID() == DenotationParser.ID.seme_static) {
             String iri = getIri(node.getChildren().get(0));
-            result = new SemeExplicit(iri);
+            SemeConsequent result = mapConsequents.get(iri);
+            if (result != null)
+                return result;
+            result = new SemeStatic(iri);
+            mapConsequents.put(iri, result);
+            return result;
+        } else if (node.getSymbol().getID() == DenotationParser.ID.seme_matched) {
+            String identifier = node.getChildren().get(0).getValue().substring(1);
+            SemeConsequent result = mapConsequents.get(identifier);
+            if (result == null || !(result instanceof SemeMatched)) {
+                logger.error("Matched seme " + identifier + " is unknown.");
+                TextContext context = input.getContext(node.getChildren().get(1).getSpan());
+                logger.error(context.getContent());
+                logger.error(context.getPointer());
+                return null;
+            }
+            return result;
         } else {
             // a seme template
             String typeIri = getIri(node.getChildren().get(0));
@@ -403,54 +464,50 @@ public class DenotationRuleLoader {
                 alias = "__seme" + semeCounter;
                 semeCounter++;
             }
-            result = new SemeTemplate(alias, typeIri);
+            SemeConsequent result = new SemeTemplate(alias, typeIri);
+            mapConsequents.put(alias, result);
+            return result;
         }
-
-        for (ASTNode nodeBinding : node.getChildren().get(node.getChildren().size() - 1).getChildren()) {
-            if (nodeBinding.getSymbol().getID() == DenotationLexer.ID.VARIABLE) {
-                String signId = nodeBinding.getValue().substring(1);
-                SignPattern pattern = signPatterns.get(signId);
-                if (pattern == null) {
-                    logger.error("Sign pattern " + signId + " is unknown.");
-                    TextContext context = input.getContext(node.getChildren().get(1).getSpan());
-                    logger.error(context.getContent());
-                    logger.error(context.getPointer());
-                }
-                result.addBindings(pattern);
-            } else if (nodeBinding.getSymbol().getID() == DenotationLexer.ID.STRING) {
-                // an explicit sign
-                String signId = nodeBinding.getValue().substring(1, nodeBinding.getValue().length() - 1);
-                signId = TextUtils.unescape(signId);
-                result.addBindings(new SignReference(signId));
-            }
-        }
-        return result;
     }
 
     /**
-     * Loads the property of a seme template
+     * Loads the property of a seme consequent
      *
-     * @param node          An AST node
-     * @param template      The seme template to load
-     * @param signPatterns  The dictionary of known sign patterns
-     * @param semeTemplates The dictionary of seme templates
+     * @param node           An AST node
+     * @param consequent     The seme consequent to load
+     * @param mapAntecedents The current antecedents
+     * @param mapConsequents The current consequents
      */
-    private void loadSemeTemplateProperty(ASTNode node, SemeTemplate template, Map<String, SignPattern> signPatterns, Map<String, SemeTemplate> semeTemplates) {
+    private void loadSemeConsequentProperties(ASTNode node, SemeConsequent consequent, Map<String, SignAntecedent> mapAntecedents, Map<String, SemeConsequent> mapConsequents) {
+        for (ASTNode nodeProperty : node.getChildren().get(node.getChildren().size() - 2).getChildren()) {
+            loadSemeConsequentProperty(nodeProperty, consequent, mapAntecedents, mapConsequents);
+        }
+    }
+
+    /**
+     * Loads the property of a seme consequent
+     *
+     * @param node           An AST node
+     * @param consequent     The seme consequent to load
+     * @param mapAntecedents The current antecedents
+     * @param mapConsequents The current consequents
+     */
+    private void loadSemeConsequentProperty(ASTNode node, SemeConsequent consequent, Map<String, SignAntecedent> mapAntecedents, Map<String, SemeConsequent> mapConsequents) {
         String propertyIri = getIri(node.getChildren().get(0));
-        SemeTemplateProperty property = loadSemeTemplatePropertyValue(node.getChildren().get(2), propertyIri, signPatterns, semeTemplates);
+        SemeTemplateProperty property = loadSemeConsequentPropertyValue(node.getChildren().get(1), propertyIri, mapAntecedents, mapConsequents);
         if (property != null)
-            template.addProperty(property);
+            consequent.addProperty(property);
     }
 
     /**
-     * Loads the value of a property of a seme template
+     * Loads the value of a property of a seme consequent
      *
-     * @param node          An AST node
-     * @param propertyIri   The iri for the property
-     * @param signPatterns  The dictionary of known sign patterns
-     * @param semeTemplates The dictionary of seme templates
+     * @param node           An AST node
+     * @param propertyIri    The iri for the property
+     * @param mapAntecedents The current antecedents
+     * @param mapConsequents The current consequents
      */
-    private SemeTemplateProperty loadSemeTemplatePropertyValue(ASTNode node, String propertyIri, Map<String, SignPattern> signPatterns, Map<String, SemeTemplate> semeTemplates) {
+    private SemeTemplateProperty loadSemeConsequentPropertyValue(ASTNode node, String propertyIri, Map<String, SignAntecedent> mapAntecedents, Map<String, SemeConsequent> mapConsequents) {
         switch (node.getSymbol().getID()) {
             case DenotationLexer.ID.IRIREF: {
                 String value = getIriRef(node);
@@ -481,7 +538,7 @@ public class DenotationRuleLoader {
             }
             case DenotationLexer.ID.VARIABLE: {
                 String templateId = node.getValue().substring(1);
-                SemeTemplate referenced = semeTemplates.get(templateId);
+                SemeConsequent referenced = mapConsequents.get(templateId);
                 if (referenced == null) {
                     logger.error("Seme template " + templateId + " is unknown.");
                     TextContext context = input.getContext(node.getSpan());
@@ -489,11 +546,11 @@ public class DenotationRuleLoader {
                     logger.error(context.getPointer());
                     return null;
                 }
-                return new SemeTemplatePropertyTemplate(propertyIri, referenced);
+                return new SemeTemplatePropertySemeRef(propertyIri, referenced);
             }
             case DenotationLexer.ID.OP_MEMBER: {
                 String signId = node.getChildren().get(0).getValue().substring(1);
-                SignPattern sign = signPatterns.get(signId);
+                SignAntecedent sign = mapAntecedents.get(signId);
                 if (sign == null) {
                     logger.error("Sign pattern " + signId + " is unknown.");
                     TextContext context = input.getContext(node.getChildren().get(1).getSpan());
@@ -514,6 +571,49 @@ public class DenotationRuleLoader {
             }
         }
         return null;
+    }
+
+    /**
+     * Loads the bindings of a seme consequent
+     *
+     * @param node           An AST node
+     * @param consequent     The seme consequent to load
+     * @param mapAntecedents The current antecedents
+     */
+    private void loadSemeConsequentBindings(ASTNode node, SemeConsequent consequent, Map<String, SignAntecedent> mapAntecedents) {
+        for (ASTNode nodeBinding : node.getChildren().get(node.getChildren().size() - 1).getChildren()) {
+            loadSemeConsequentBinding(nodeBinding, consequent, mapAntecedents);
+        }
+    }
+
+    /**
+     * Loads the binding of a seme consequent
+     *
+     * @param node           An AST node
+     * @param consequent     The seme consequent to load
+     * @param mapAntecedents The current antecedents
+     */
+    private void loadSemeConsequentBinding(ASTNode node, SemeConsequent consequent, Map<String, SignAntecedent> mapAntecedents) {
+        if (node.getSymbol().getID() == DenotationLexer.ID.VARIABLE) {
+            String signId = node.getValue().substring(1);
+            SignAntecedent pattern = mapAntecedents.get(signId);
+            if (pattern == null) {
+                logger.error("Sign pattern " + signId + " is unknown.");
+                TextContext context = input.getContext(node.getChildren().get(1).getSpan());
+                logger.error(context.getContent());
+                logger.error(context.getPointer());
+            }
+            consequent.addBindings(pattern);
+        } else {
+            // an explicit iri
+            String signId = getIri(node);
+            SignAntecedent antecedent = mapAntecedents.get(signId);
+            if (antecedent == null) {
+                antecedent = new SignReference(signId);
+                mapAntecedents.put(signId, antecedent);
+            }
+            consequent.addBindings(antecedent);
+        }
     }
 
     /**

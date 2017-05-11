@@ -18,6 +18,7 @@
 package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.store.storage.NodeManager;
 
 /**
@@ -25,7 +26,16 @@ import org.xowl.infra.store.storage.NodeManager;
  *
  * @author Laurent Wouters
  */
-public interface DenotationRuleAntecedent {
+public interface SignAntecedent {
+    /**
+     * Gets the subject for this antecedent
+     *
+     * @param nodes   The node manager to use
+     * @param context The current context
+     * @return The subject
+     */
+    SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context);
+
     /**
      * Builds the RDF rule with this antecedent
      *

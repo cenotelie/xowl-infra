@@ -95,6 +95,13 @@ grammar Denotation
         TO              -> ~'to';
         A               -> ~'a';
         AS              -> ~'as';
+
+        LCB             -> '{';
+        RCB             -> '}';
+        LB              -> '[';
+        RB              -> ']';
+        COMMA           -> ',';
+        COLON           -> ':';
     }
     rules
     {
@@ -106,40 +113,43 @@ grammar Denotation
         denotation_rules        -> rule* ;
         rule                    -> RULE! STRING signs IS! semes ;
 
-        signs                   -> sign_specific^ | sign_patterns^ ;
-        sign_specific           -> SIGN! STRING ;
+        signs                   -> sign_static^ | sign_patterns^ ;
+        sign_static             -> SIGN! iri ;
         sign_patterns           -> sign_pattern (AND! sign_pattern)* ;
         sign_pattern            -> SIGN! VARIABLE sign_pattern_properties sign_pattern_relations sign_pattern_binding ;
         sign_pattern_properties -> sign_pattern_property* ;
         sign_pattern_property   -> WITH! iri (OP_EQ | OP_NEQ) sign_property_value ;
         sign_pattern_relations  -> sign_pattern_relation* ;
-        sign_pattern_relation   -> RELATION! iri VARIABLE ;
-        sign_pattern_binding    -> (BOUND! TO! SEME! VARIABLE)? ;
+        sign_pattern_relation   -> RELATION! iri (VARIABLE | iri) ;
+        sign_pattern_binding    -> (BOUND! TO! SEME! (VARIABLE | iri))? ;
         sign_property_value     -> iri^
                                 |  literal^
                                 |  json_object^ ;
 
         semes                   -> seme (AND! seme)* ;
-        seme                    -> seme_explicit^ | seme_pattern^ ;
-        seme_explicit           -> SEME! iri seme_bindings ;
+        seme                    -> seme_static^
+                                |  seme_matched^
+                                |  seme_pattern^ ;
+        seme_static             -> SEME!    iri            seme_properties seme_bindings ;
+        seme_matched            -> SEME!    VARIABLE       seme_properties seme_bindings ;
         seme_pattern            -> A! SEME! iri seme_alias seme_properties seme_bindings ;
         seme_alias              -> (AS! VARIABLE)? ;
         seme_properties         -> seme_property* ;
-        seme_property           -> WITH! iri OP_EQ seme_property_value ;
+        seme_property           -> WITH! iri OP_EQ! seme_property_value ;
         seme_property_value     -> iri^
                                 |  literal^
                                 |  VARIABLE^ // expecting alias of a seme
                                 |  VARIABLE OP_MEMBER^ iri; // expecting the identifier of a sign as variable
         seme_bindings           -> seme_binding* ;
         seme_binding            -> BIND! TO! SIGN! seme_binding_target^ ;
-        seme_binding_target     -> VARIABLE^ | STRING^ ;
+        seme_binding_target     -> VARIABLE^ | iri^ ;
 
         iri                     -> IRIREF^ | prefixedName^ ;
         prefixedName            -> PNAME_LN^ | PNAME_NS^ ;
         literal                 -> TRUE^ | FALSE^ | INTEGER^ | DECIMAL^ | DOUBLE^ | STRING^ ;
-        json_object             -> '{'! (json_object_member (','! json_object_member)*)? '}'! ;
-        json_object_member      -> STRING ':'! json_value ;
-        json_array              -> '['! (json_value (','! json_value)*)? ']'! ;
+        json_object             -> LCB! (json_object_member (COMMA! json_object_member)*)? RCB! ;
+        json_object_member      -> STRING COLON! json_value ;
+        json_array              -> LB! (json_value (COMMA! json_value)*)? RB! ;
         json_value              -> json_object^ | json_array^
                                 |  TRUE^ | FALSE^ | INTEGER^ | DECIMAL^ | DOUBLE^ | STRING^ ;
     }

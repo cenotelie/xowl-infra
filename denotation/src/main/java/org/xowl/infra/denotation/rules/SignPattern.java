@@ -22,6 +22,7 @@ import org.xowl.infra.denotation.phrases.Sign;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.store.storage.NodeManager;
 
@@ -34,7 +35,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class SignPattern implements DenotationRuleAntecedent {
+public class SignPattern implements SignAntecedent {
     /**
      * The identifier for this pattern
      */
@@ -48,9 +49,9 @@ public class SignPattern implements DenotationRuleAntecedent {
      */
     private List<SignRelationConstraint> relations;
     /**
-     * The identifier of the variable for the bound domain element, if any
+     * The bounded seme required to match this pattern
      */
-    private String seme;
+    private SemeConsequent seme;
 
     /**
      * Initializes this pattern
@@ -140,21 +141,26 @@ public class SignPattern implements DenotationRuleAntecedent {
     }
 
     /**
-     * Gets the identifier of the variable for the bound domain element, if any
+     * Gets the bounded seme required to match this pattern, if any
      *
-     * @return The identifier of the variable for the bound domain element, if any
+     * @return The bounded seme required to match this pattern, if any
      */
-    public String getBoundSeme() {
+    public SemeConsequent getBoundSeme() {
         return seme;
     }
 
     /**
-     * Sets the identifier of the variable for the bound domain element, if any
+     * Sets the bounded seme required to match this pattern
      *
-     * @param identifier The identifier of the variable for the bound domain element, if any
+     * @param seme The bounded seme required to match this pattern
      */
-    public void setBoundSeme(String identifier) {
-        this.seme = identifier;
+    public void setBoundSeme(SemeConsequent seme) {
+        this.seme = seme;
+    }
+
+    @Override
+    public SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
+        return context.getVariable(identifier);
     }
 
     @Override
@@ -184,7 +190,7 @@ public class SignPattern implements DenotationRuleAntecedent {
             context.getRdfRule().addAntecedentPositive(new Quad(graphMeta,
                     variable,
                     nodes.getIRINode(Denotation.META_TRACE),
-                    context.getVariable(seme)
+                    seme.getSubject(nodes, context)
             ));
         }
 

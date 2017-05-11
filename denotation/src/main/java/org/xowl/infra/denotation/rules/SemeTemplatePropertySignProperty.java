@@ -28,9 +28,9 @@ import org.xowl.infra.store.storage.NodeManager;
  */
 public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
     /**
-     * The referenced sign pattern
+     * The referenced sign antecedent
      */
-    private final SignPattern reference;
+    private final SignAntecedent reference;
     /**
      * The sign property
      */
@@ -40,21 +40,21 @@ public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
      * Initializes this property
      *
      * @param propertyIri The property's IRI
-     * @param reference   The referenced sign pattern
+     * @param reference   The referenced sign antecedent
      * @param property    The sign property
      */
-    public SemeTemplatePropertySignProperty(String propertyIri, SignPattern reference, SignProperty property) {
+    public SemeTemplatePropertySignProperty(String propertyIri, SignAntecedent reference, SignProperty property) {
         super(propertyIri);
         this.reference = reference;
         this.property = property;
     }
 
     /**
-     * Gets the referenced sign pattern
+     * Gets the referenced sign antecedent
      *
-     * @return The referenced sign pattern
+     * @return The referenced sign antecedent
      */
-    public SignPattern getReference() {
+    public SignAntecedent getReference() {
         return reference;
     }
 
@@ -69,10 +69,10 @@ public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
 
     @Override
     public void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
-        VariableNode referencedSign = context.getVariable(reference.getIdentifier());
+        SubjectNode nodeSign = reference.getSubject(nodes, context);
         Node foundObject = null;
         for (Quad quad : context.getRdfRule().getPatterns().get(0).getPositives()) {
-            if (quad.getSubject() == referencedSign
+            if (quad.getSubject() == nodeSign
                     && quad.getProperty().getNodeType() == Node.TYPE_IRI
                     && ((IRINode) quad.getProperty()).getIRIValue().equals(property.getIdentifier())) {
                 foundObject = quad.getObject();
@@ -84,7 +84,7 @@ public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
             // the value for the property is not in the antecedents => add it
             VariableNode variableValue = context.getVariable();
             context.getRdfRule().addAntecedentPositive(new Quad(graphSigns,
-                    referencedSign,
+                    nodeSign,
                     nodes.getIRINode(property.getIdentifier()),
                     variableValue
             ));

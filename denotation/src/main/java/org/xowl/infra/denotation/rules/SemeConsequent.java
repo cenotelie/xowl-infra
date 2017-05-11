@@ -18,7 +18,6 @@
 package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.denotation.Denotation;
-import org.xowl.infra.denotation.phrases.SignProperty;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.SubjectNode;
@@ -27,24 +26,62 @@ import org.xowl.infra.store.storage.NodeManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a consequent in a denotation rule
  *
  * @author Laurent Wouters
  */
-public abstract class DenotationRuleConsequent {
+public abstract class SemeConsequent {
+    /**
+     * The properties for the seme
+     */
+    protected List<SemeTemplateProperty> properties;
     /**
      * The antecedent elements to bind to this consequent
      */
-    protected Collection<DenotationRuleAntecedent> bindings;
+    protected Collection<SignAntecedent> bindings;
+
+    /**
+     * Gets the properties for this seme
+     *
+     * @return The properties
+     */
+    public List<SemeTemplateProperty> getProperties() {
+        if (properties == null)
+            return Collections.emptyList();
+        return Collections.unmodifiableList(properties);
+    }
+
+    /**
+     * Adds a property to this seme
+     *
+     * @param property The property to add
+     */
+    public void addProperty(SemeTemplateProperty property) {
+        if (properties == null)
+            properties = new ArrayList<>();
+        properties.add(property);
+    }
+
+    /**
+     * Remove a property from this seme
+     *
+     * @param property The property to remove
+     */
+    public void removeProperty(SemeTemplateProperty property) {
+        if (properties == null)
+            return;
+        properties.remove(property);
+    }
 
     /**
      * Gets the antecedent elements to bind to this consequent
      *
      * @return The antecedent elements to bind to this consequent
      */
-    public Collection<DenotationRuleAntecedent> getBindings() {
+    public Collection<SignAntecedent> getBindings() {
         if (bindings == null)
             return Collections.emptyList();
         return Collections.unmodifiableCollection(bindings);
@@ -55,7 +92,7 @@ public abstract class DenotationRuleConsequent {
      *
      * @param antecedent The antecedent to bind
      */
-    public void addBindings(DenotationRuleAntecedent antecedent) {
+    public void addBindings(SignAntecedent antecedent) {
         if (bindings == null)
             bindings = new ArrayList<>();
         bindings.add(antecedent);
@@ -66,7 +103,7 @@ public abstract class DenotationRuleConsequent {
      *
      * @param antecedent The antecedent to un-bind
      */
-    public void removeBinding(DenotationRuleAntecedent antecedent) {
+    public void removeBinding(SignAntecedent antecedent) {
         if (bindings == null)
             return;
         bindings.remove(antecedent);
@@ -82,6 +119,7 @@ public abstract class DenotationRuleConsequent {
      * @param context    The current context
      */
     public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
+        buildRdfProperties(graphSigns, graphSemes, graphMeta, nodes, getSubject(nodes, context), context);
         buildRdfBindings(graphSigns, graphSemes, graphMeta, nodes, getSubject(nodes, context), context);
     }
 
@@ -95,7 +133,24 @@ public abstract class DenotationRuleConsequent {
     protected abstract SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context);
 
     /**
-     * Builds the RDF rule with this antecedent
+     * Builds the RDF rule with this consequent
+     *
+     * @param graphSigns The graph for the signs
+     * @param graphSemes The graph for the semes
+     * @param graphMeta  The graph for the metadata
+     * @param nodes      The node manager to use
+     * @param parent     The node representing this consequent
+     * @param context    The current context
+     */
+    protected void buildRdfProperties(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
+        if (properties != null) {
+            for (SemeTemplateProperty property : properties)
+                property.buildRdfProperty(graphSigns, graphSemes, graphMeta, nodes, parent, context);
+        }
+    }
+
+    /**
+     * Builds the RDF rule with this consequent
      *
      * @param graphSigns The graph for the signs
      * @param graphSemes The graph for the semes
@@ -106,15 +161,10 @@ public abstract class DenotationRuleConsequent {
      */
     protected void buildRdfBindings(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
         if (bindings != null) {
-            for (DenotationRuleAntecedent antecedent : bindings) {
-                SubjectNode subject;
-                if (antecedent instanceof SignReference) {
-                    subject = nodes.getIRINode(((SignReference) antecedent).getSignId());
-                } else {
-                    subject = context.getVariable(((SignProperty) antecedent).getIdentifier());
-                }
+            for (SignAntecedent antecedent : bindings) {
+                SubjectNode sign = antecedent.getSubject(nodes, context);
                 context.getRdfRule().addConsequentPositive(new Quad(graphMeta,
-                        subject,
+                        sign,
                         nodes.getIRINode(Denotation.META_TRACE),
                         parent
                 ));

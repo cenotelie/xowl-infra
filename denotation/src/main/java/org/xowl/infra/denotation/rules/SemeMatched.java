@@ -21,36 +21,36 @@ import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.store.storage.NodeManager;
 
 /**
- * Represents an explicit seme (ontological entity) as a consequent of a denotation rule
+ * Represents a previously matched seme (ontological entity) as a consequent of a denotation rule
  *
  * @author Laurent Wouters
  */
-public class SemeExplicit extends DenotationRuleConsequent {
+public class SemeMatched extends SemeConsequent {
     /**
-     * The seme's IRI
+     * The seme's identifier
      */
-    private final String iri;
+    private final String identifier;
 
     /**
      * Initializes this consequent
      *
-     * @param iri The seme's IRI
+     * @param identifier The seme's identifier
      */
-    public SemeExplicit(String iri) {
-        this.iri = iri;
+    public SemeMatched(String identifier) {
+        this.identifier = identifier;
     }
 
     /**
-     * Gets the seme's IRI
+     * Gets the seme's identifier
      *
-     * @return The seme's IRI
+     * @return The seme's identifier
      */
-    public String getSemeIri() {
-        return iri;
+    public String getIdentifier() {
+        return identifier;
     }
 
     @Override
     protected SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
-        return nodes.getIRINode(iri);
+        return context.getVariable(identifier);
     }
 }

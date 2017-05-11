@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class SemeTemplate extends DenotationRuleConsequent {
+public class SemeTemplate extends SemeConsequent {
     /**
      * The template's identifier
      */
@@ -42,10 +42,6 @@ public class SemeTemplate extends DenotationRuleConsequent {
      * The IRI of the seme's type
      */
     private final String typeIri;
-    /**
-     * The properties for the seme
-     */
-    private List<SemeTemplateProperty> properties;
 
     /**
      * Initializes this consequent
@@ -76,38 +72,7 @@ public class SemeTemplate extends DenotationRuleConsequent {
         return typeIri;
     }
 
-    /**
-     * Gets the properties for this seme
-     *
-     * @return The properties
-     */
-    public List<SemeTemplateProperty> getProperties() {
-        if (properties == null)
-            return Collections.emptyList();
-        return Collections.unmodifiableList(properties);
-    }
 
-    /**
-     * Adds a property to this seme
-     *
-     * @param property The property to add
-     */
-    public void addProperty(SemeTemplateProperty property) {
-        if (properties == null)
-            properties = new ArrayList<>();
-        properties.add(property);
-    }
-
-    /**
-     * Remove a property from this seme
-     *
-     * @param property The property to remove
-     */
-    public void removeProperty(SemeTemplateProperty property) {
-        if (properties == null)
-            return;
-        properties.remove(property);
-    }
 
     @Override
     public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {

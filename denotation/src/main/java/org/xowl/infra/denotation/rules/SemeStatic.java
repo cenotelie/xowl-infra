@@ -17,48 +17,40 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.store.storage.NodeManager;
 
 /**
- * A property template for a seme when the value is another seme template
+ * Represents an explicit static seme (ontological entity) as a consequent of a denotation rule
  *
  * @author Laurent Wouters
  */
-public class SemeTemplatePropertyTemplate extends SemeTemplateProperty {
+public class SemeStatic extends SemeConsequent {
     /**
-     * The referenced seme template
+     * The seme's IRI
      */
-    private final SemeTemplate reference;
+    private final String iri;
 
     /**
-     * Initializes this property
+     * Initializes this consequent
      *
-     * @param propertyIri The property's IRI
-     * @param reference   The referenced seme template
+     * @param iri The seme's IRI
      */
-    public SemeTemplatePropertyTemplate(String propertyIri, SemeTemplate reference) {
-        super(propertyIri);
-        this.reference = reference;
+    public SemeStatic(String iri) {
+        this.iri = iri;
     }
 
     /**
-     * Gets the referenced seme template
+     * Gets the seme's IRI
      *
-     * @return The referenced seme template
+     * @return The seme's IRI
      */
-    public SemeTemplate getReference() {
-        return reference;
+    public String getSemeIri() {
+        return iri;
     }
 
     @Override
-    public void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
-        context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
-                parent,
-                nodes.getIRINode(propertyIri),
-                reference.getSubject(nodes, context)
-        ));
+    protected SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
+        return nodes.getIRINode(iri);
     }
 }

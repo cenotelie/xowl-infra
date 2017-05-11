@@ -17,52 +17,48 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.denotation.Denotation;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.store.storage.NodeManager;
 
 /**
- * Represents a reference to a specific sign as an antecedent to a denotation rule
+ * A property template for a seme when the value is another seme
  *
  * @author Laurent Wouters
  */
-public class SignReference implements SignAntecedent {
+public class SemeTemplatePropertySemeRef extends SemeTemplateProperty {
     /**
-     * The identifier of the referenced sign
+     * The referenced seme consequent
      */
-    private final String signId;
+    private final SemeConsequent reference;
 
     /**
-     * Initializes this reference
+     * Initializes this property
      *
-     * @param signId The identifier of the referenced sign
+     * @param propertyIri The property's IRI
+     * @param reference   The referenced seme consequent
      */
-    public SignReference(String signId) {
-        this.signId = signId;
+    public SemeTemplatePropertySemeRef(String propertyIri, SemeConsequent reference) {
+        super(propertyIri);
+        this.reference = reference;
     }
 
     /**
-     * Gets the identifier of the referenced sign
+     * Gets the referenced seme consequent
      *
-     * @return The identifier of the referenced sign
+     * @return The referenced seme consequent
      */
-    public String getSignId() {
-        return signId;
+    public SemeConsequent getReference() {
+        return reference;
     }
 
     @Override
-    public SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
-        return nodes.getIRINode(signId);
-    }
-
-    @Override
-    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
-        context.getRdfRule().addConsequentPositive(new Quad(graphMeta,
-                nodes.getIRINode(signId),
-                nodes.getIRINode(Denotation.META_MATCHED_BY),
-                nodes.getIRINode(context.getRdfRule().getIRI())
+    public void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
+        context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
+                parent,
+                nodes.getIRINode(propertyIri),
+                reference.getSubject(nodes, context)
         ));
     }
 }

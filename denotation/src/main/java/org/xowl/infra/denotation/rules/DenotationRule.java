@@ -44,11 +44,11 @@ public class DenotationRule implements Identifiable {
     /**
      * The rule's antecedents
      */
-    private final List<DenotationRuleAntecedent> antecedents;
+    private final List<SignAntecedent> antecedents;
     /**
      * The rule's consequents
      */
-    private final List<DenotationRuleConsequent> consequents;
+    private final List<SemeConsequent> consequents;
 
     /**
      * Initializes this rule
@@ -79,12 +79,12 @@ public class DenotationRule implements Identifiable {
      * @return Whether this rule can be reused
      */
     public boolean isReusable() {
-        for (DenotationRuleAntecedent antecedent : antecedents) {
+        for (SignAntecedent antecedent : antecedents) {
             if (antecedent instanceof SignReference)
                 return false;
         }
-        for (DenotationRuleConsequent consequent : consequents) {
-            for (DenotationRuleAntecedent bound : consequent.getBindings()) {
+        for (SemeConsequent consequent : consequents) {
+            for (SignAntecedent bound : consequent.getBindings()) {
                 if (bound instanceof SignReference)
                     return false;
             }
@@ -97,7 +97,7 @@ public class DenotationRule implements Identifiable {
      *
      * @return The rule's antecedents
      */
-    public List<DenotationRuleAntecedent> getAntecedents() {
+    public List<SignAntecedent> getAntecedents() {
         return Collections.unmodifiableList(antecedents);
     }
 
@@ -106,7 +106,7 @@ public class DenotationRule implements Identifiable {
      *
      * @param antecedent The antecedent to add
      */
-    public void addAntecedent(DenotationRuleAntecedent antecedent) {
+    public void addAntecedent(SignAntecedent antecedent) {
         antecedents.add(antecedent);
     }
 
@@ -115,7 +115,7 @@ public class DenotationRule implements Identifiable {
      *
      * @param antecedent The antecedent to remove
      */
-    public void removeAntecedent(DenotationRuleAntecedent antecedent) {
+    public void removeAntecedent(SignAntecedent antecedent) {
         antecedents.remove(antecedent);
     }
 
@@ -124,7 +124,7 @@ public class DenotationRule implements Identifiable {
      *
      * @return The rule's consequents
      */
-    public List<DenotationRuleConsequent> getConsequents() {
+    public List<SemeConsequent> getConsequents() {
         return Collections.unmodifiableList(consequents);
     }
 
@@ -133,7 +133,7 @@ public class DenotationRule implements Identifiable {
      *
      * @param consequent The consequent to add
      */
-    public void addConsequent(DenotationRuleConsequent consequent) {
+    public void addConsequent(SemeConsequent consequent) {
         consequents.add(consequent);
     }
 
@@ -142,7 +142,7 @@ public class DenotationRule implements Identifiable {
      *
      * @param consequent The consequent to remove
      */
-    public void removeConsequent(DenotationRuleConsequent consequent) {
+    public void removeConsequent(SemeConsequent consequent) {
         consequents.remove(consequent);
     }
 
@@ -158,9 +158,9 @@ public class DenotationRule implements Identifiable {
     public RDFRule buildRdfRule(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes) {
         RDFRuleSimple result = new RDFRuleSimple(uri, true, null);
         DenotationRuleContext context = new DenotationRuleContext(result);
-        for (DenotationRuleAntecedent antecedent : antecedents)
+        for (SignAntecedent antecedent : antecedents)
             antecedent.buildRdf(graphSigns, graphSemes, graphMeta, nodes, context);
-        for (DenotationRuleConsequent consequent : consequents)
+        for (SemeConsequent consequent : consequents)
             consequent.buildRdf(graphSigns, graphSemes, graphMeta, nodes, context);
         return result;
     }
