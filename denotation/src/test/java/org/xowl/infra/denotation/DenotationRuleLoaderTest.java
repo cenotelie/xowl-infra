@@ -47,7 +47,7 @@ public class DenotationRuleLoaderTest {
             BufferedLogger logger = new BufferedLogger();
             Collection<DenotationRule> rules = loader.load(reader, logger);
             Assert.assertTrue("Errors while loading the rules", logger.getErrorMessages().isEmpty());
-            Assert.assertTrue("Failed to load the rules", rules.size() == 2);
+            Assert.assertTrue("Failed to load the rules", rules.size() == 3);
         }
     }
 }

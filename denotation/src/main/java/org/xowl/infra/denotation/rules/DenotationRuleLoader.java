@@ -400,7 +400,7 @@ public class DenotationRuleLoader {
         if (node.getChildren().isEmpty())
             return;
         ASTNode nodeChild = node.getChildren().get(0);
-        if (node.getSymbol().getID() == DenotationLexer.ID.VARIABLE) {
+        if (nodeChild.getSymbol().getID() == DenotationLexer.ID.VARIABLE) {
             // bound to seme to match
             String semeId = nodeChild.getValue().substring(1);
             SemeConsequent consequent = mapConsequents.get(semeId);

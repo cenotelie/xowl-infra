@@ -25,10 +25,11 @@ PREFIX domain: <http://xowl.org/my/little/domain#>
 
 
 RULE "Specific sign to specific seme"
-    SIGN "http://xowl.org/this/sign"
+    SIGN <http://xowl.org/this/sign>
 IS
     SEME domain:Something
-        BIND TO SIGN "http://xowl.org/this/sign"
+        WITH domain:property = "test value"
+        BIND TO SIGN <http://xowl.org/this/sign>
 
 
 RULE "Sign pattern mapped to seme templates"
@@ -43,3 +44,12 @@ IS
         WITH domain:theParent   = ?parent
         WITH domain:name        = ?s1 . xowl:name
         BIND TO SIGN ?s1
+
+RULE "Sign pattern mapped to seme templates"
+    SIGN ?s1
+        RELATION xowl:containedBy <http://xowl.org/this/sign>
+    AND SIGN ?sp
+        BOUND TO SEME domain:MyElement
+IS
+    A SEME domain:Component AS ?child
+        BIND TO SIGN <http://xowl.org/this/sign>
