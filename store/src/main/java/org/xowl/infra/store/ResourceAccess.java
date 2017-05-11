@@ -98,7 +98,7 @@ public abstract class ResourceAccess {
                 return null;
             }
         });
-        REGISTRY.add(new ResourceAccess(SCHEME_JAR) {
+        REGISTRY.add(new ResourceAccess(SCHEME_FILE) {
             @Override
             public Reader getReader(String resource) throws IOException {
                 return IOUtils.getReader(resource.substring(SCHEME_FILE.length()));
