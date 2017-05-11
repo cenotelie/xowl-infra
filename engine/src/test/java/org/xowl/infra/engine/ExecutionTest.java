@@ -22,8 +22,8 @@ import org.junit.Test;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Owl2Factory;
 import org.xowl.infra.store.ProxyObject;
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.ResourceAccess;
 import org.xowl.infra.store.loaders.SPARQLLoader;
 import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.Node;
@@ -54,7 +54,7 @@ public class ExecutionTest {
     public void testSimpleExecution() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testSimpleExecution.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/engine/testSimpleExecution.xowl");
         try {
             repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
@@ -71,7 +71,7 @@ public class ExecutionTest {
         Path p = Files.createTempDirectory("testXOWLSerialization");
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF(StoreFactory.create().onDisk(p.toFile()).make());
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testSimpleExecution.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/engine/testSimpleExecution.xowl");
         try {
             repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
@@ -91,7 +91,7 @@ public class ExecutionTest {
     public void testCallOtherXOWL() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testCallOtherXOWL.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/engine/testCallOtherXOWL.xowl");
         try {
             repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
@@ -107,7 +107,7 @@ public class ExecutionTest {
     public void testDynExpInRuleConsequent() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testDynExpInRuleConsequent.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/engine/testDynExpInRuleConsequent.xowl");
         try {
             repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
@@ -124,7 +124,7 @@ public class ExecutionTest {
     public void testCallInSPARQL() throws IOException {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testCallInSPARQL.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/engine/testCallInSPARQL.xowl");
         try {
             repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
@@ -155,7 +155,7 @@ public class ExecutionTest {
     public void testStateMachine() throws IOException {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/testStateMachine.xowl");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/engine/testStateMachine.xowl");
         try {
             repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {

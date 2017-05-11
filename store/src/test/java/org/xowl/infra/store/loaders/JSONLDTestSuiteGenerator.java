@@ -18,8 +18,8 @@
 package org.xowl.infra.store.loaders;
 
 import org.xowl.infra.store.ProxyObject;
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.ResourceAccess;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 /**
@@ -33,7 +33,7 @@ public class JSONLDTestSuiteGenerator {
     public void generateToRdfTests() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + BaseJSONLDTest.PHYSICAL + "\\1");
+        repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", ResourceAccess.SCHEME_RESOURCE + BaseJSONLDTest.PHYSICAL + "\\1");
         try {
             repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld");
         } catch (Exception exception) {
@@ -54,7 +54,7 @@ public class JSONLDTestSuiteGenerator {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
 
-        repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + BaseJSONLDTest.PHYSICAL + "\\1");
+        repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", ResourceAccess.SCHEME_RESOURCE + BaseJSONLDTest.PHYSICAL + "\\1");
         try {
             repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/fromRdf-manifest.jsonld");
         } catch (Exception exception) {

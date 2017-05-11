@@ -19,8 +19,8 @@ package org.xowl.infra.store.entailment;
 import org.junit.Assert;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.store.EntailmentRegime;
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.ResourceAccess;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.logging.SinkLogger;
@@ -45,8 +45,8 @@ public class BaseOWLReasoningTest {
         // load the conclusion ontology at get all the quads in it
         RepositoryRDF repository = new RepositoryRDF();
         // add mapping for imported remote ontologies
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/conclusion", Repository.SCHEME_RESOURCE + "/org/w3c/entailment/" + conclusionResource);
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/conclusion", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + conclusionResource);
         Ontology ontologyConclusion;
         try {
             ontologyConclusion = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/conclusion");
@@ -66,7 +66,7 @@ public class BaseOWLReasoningTest {
         }
 
         // load the premise ontology and the default ontologies
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", Repository.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
         try {
             repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
             repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
@@ -118,8 +118,8 @@ public class BaseOWLReasoningTest {
         // load the conclusion ontology at get all the quads in it
         RepositoryRDF repository = new RepositoryRDF();
         // add mapping for imported remote ontologies
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/conclusion", Repository.SCHEME_RESOURCE + "/org/w3c/entailment/" + conclusionResource);
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/conclusion", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + conclusionResource);
         Ontology ontologyConclusion;
         try {
             ontologyConclusion = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/conclusion");
@@ -139,7 +139,7 @@ public class BaseOWLReasoningTest {
         }
 
         // load the premise ontology and the default ontologies
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", Repository.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
         try {
             repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
             repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
@@ -188,8 +188,8 @@ public class BaseOWLReasoningTest {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
         // add mapping for imported remote ontologies
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", Repository.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
 
         // activate the default reasoning rules
         try {
@@ -230,7 +230,7 @@ public class BaseOWLReasoningTest {
     protected void testInconsistency(String premiseResource) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", Repository.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
 
         // activate the default reasoning rules
         try {

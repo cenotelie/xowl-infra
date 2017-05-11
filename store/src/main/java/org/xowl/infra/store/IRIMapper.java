@@ -398,13 +398,13 @@ public class IRIMapper {
     public static IRIMapper getDefault() {
         IRIMapper mapper = new IRIMapper();
         // map the owl2, rdf and rdfs ontologies to the embarked one
-        mapper.addSimpleMap(IRIs.RDF, Repository.SCHEME_RESOURCE + "/org/w3c/www/1999/02/22-rdf-syntax-ns.ttl");
-        mapper.addSimpleMap(IRIs.RDFS, Repository.SCHEME_RESOURCE + "/org/w3c/www/2000/01/rdf-schema.ttl");
-        mapper.addSimpleMap(IRIs.OWL2, Repository.SCHEME_RESOURCE + "/org/w3c/www/2002/07/owl.ttl");
+        mapper.addSimpleMap(IRIs.RDF, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/1999/02/22-rdf-syntax-ns.ttl");
+        mapper.addSimpleMap(IRIs.RDFS, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2000/01/rdf-schema.ttl");
+        mapper.addSimpleMap(IRIs.OWL2, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2002/07/owl.ttl");
         // map the xOWL abstract syntax
-        mapper.addRegexpMap(IRIs.XOWL_LANG + "(.*)", Repository.SCHEME_RESOURCE + "/org/xowl/infra/lang/defs/\\1.fs");
+        mapper.addRegexpMap(IRIs.XOWL_LANG + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/lang/defs/\\1.fs");
         // map the OWL2 RL reasoning rules
-        mapper.addRegexpMap(IRIs.XOWL_RULES + "(.*)", Repository.SCHEME_RESOURCE + "/org/xowl/infra/store/rules/\\1.xrdf");
+        mapper.addRegexpMap(IRIs.XOWL_RULES + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/store/rules/\\1.xrdf");
         return mapper;
     }
 }

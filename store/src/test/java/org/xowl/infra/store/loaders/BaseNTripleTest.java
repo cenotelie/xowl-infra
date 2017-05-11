@@ -16,7 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.ResourceAccess;
 
 /**
  * Base class for the NTriple loader tests
@@ -35,7 +35,7 @@ public abstract class BaseNTripleTest extends W3CTestSuite {
      * @param resource A NTriples resource
      */
     protected void testNTriplesPositiveSyntax(String resource) {
-        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/org/w3c/ntriples/" + resource, BASE_LOCATION + resource);
+        testPositiveSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/ntriples/" + resource, BASE_LOCATION + resource);
     }
 
     /**
@@ -44,6 +44,6 @@ public abstract class BaseNTripleTest extends W3CTestSuite {
      * @param resource A NTriples resource
      */
     protected void testNTriplesNegativeSyntax(String resource) {
-        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/org/w3c/ntriples/" + resource, BASE_LOCATION + resource);
+        testNegativeSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/ntriples/" + resource, BASE_LOCATION + resource);
     }
 }

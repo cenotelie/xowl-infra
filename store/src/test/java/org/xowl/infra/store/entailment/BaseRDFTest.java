@@ -19,8 +19,8 @@ package org.xowl.infra.store.entailment;
 
 import org.junit.Assert;
 import org.xowl.infra.store.EntailmentRegime;
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.ResourceAccess;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
@@ -47,7 +47,7 @@ public class BaseRDFTest {
     protected void testPositiveEntailment(String input, EntailmentRegime regime, String result) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/rdf-mt/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdf-mt/\\1");
         try {
             repository.setEntailmentRegime(regime);
         } catch (Exception exception) {
@@ -94,7 +94,7 @@ public class BaseRDFTest {
     protected void testNegativeEntailment(String input, EntailmentRegime regime, String result) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/rdf-mt/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdf-mt/\\1");
         try {
             repository.setEntailmentRegime(regime);
         } catch (Exception exception) {
@@ -140,7 +140,7 @@ public class BaseRDFTest {
     private List<Quad> load(String resource) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/rdf-mt/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdf-mt/\\1");
         Assert.assertFalse("Failed to activate the entailment regime", logger.isOnError());
         try {
             repository.load(logger, resource);

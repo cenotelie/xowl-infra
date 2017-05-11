@@ -33,15 +33,13 @@ import org.xowl.infra.store.rdf.RDFQueryEngine;
 import org.xowl.infra.store.rdf.RDFRuleEngine;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.writers.*;
-import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.Logger;
 
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.*;
-import java.util.jar.JarFile;
 
 /**
  * Represents a repository of xOWL ontologies
@@ -53,23 +51,6 @@ import java.util.jar.JarFile;
  * @author Stephen Creff
  */
 public abstract class Repository {
-    /**
-     * Supported http scheme for the physical resources to load
-     */
-    public static final String SCHEME_HTTP = "http://";
-    /**
-     * Supported resource scheme for the physical resources to load
-     */
-    public static final String SCHEME_RESOURCE = "resource://";
-    /**
-     * Supported jar scheme for the physical resources to load
-     */
-    public static final String SCHEME_JAR = "jar://";
-    /**
-     * Supported file scheme for the physical resources to load
-     */
-    public static final String SCHEME_FILE = "file://";
-
     /**
      * Supported N-Triples syntax
      */
@@ -803,21 +784,9 @@ public abstract class Repository {
      * @throws IOException When the reader cannot be created
      */
     public static Reader getReaderFor(String resource) throws IOException {
-        if (resource.startsWith(SCHEME_HTTP)) {
-            URL url = new URL(resource);
-            URLConnection connection = url.openConnection();
-            return new InputStreamReader(connection.getInputStream(), IOUtils.CHARSET);
-        } else if (resource.startsWith(SCHEME_RESOURCE)) {
-            InputStream stream = Repository.class.getResourceAsStream(resource.substring(SCHEME_RESOURCE.length()));
-            return new InputStreamReader(stream, IOUtils.CHARSET);
-        } else if (resource.startsWith(SCHEME_JAR)) {
-            String parts[] = resource.substring(SCHEME_JAR.length()).split("!");
-            JarFile jar = new JarFile(parts[0]);
-            InputStream stream = jar.getInputStream(jar.getEntry(parts[1]));
-            return new InputStreamReader(stream, IOUtils.CHARSET);
-        } else if (resource.startsWith(SCHEME_FILE)) {
-            return IOUtils.getReader(resource.substring(SCHEME_FILE.length()));
-        }
+        ResourceAccess access = ResourceAccess.getAccessFor(resource);
+        if (access != null)
+            return access.getReader(resource);
         throw new IOException("Cannot read from resource " + resource);
     }
 
@@ -829,19 +798,9 @@ public abstract class Repository {
      * @throws IOException When the writer cannot be created
      */
     public static Writer getWriterFor(String resource) throws IOException {
-        if (resource.startsWith(SCHEME_HTTP)) {
-            URL url = new URL(resource);
-            URLConnection connection = url.openConnection();
-            return new OutputStreamWriter(connection.getOutputStream(), IOUtils.CHARSET);
-        } else if (resource.startsWith(SCHEME_RESOURCE)) {
-            // cannot write to resources
-            return null;
-        } else if (resource.startsWith(SCHEME_JAR)) {
-            // cannot write to jar
-            return null;
-        } else if (resource.startsWith(SCHEME_FILE)) {
-            return IOUtils.getWriter(resource.substring(SCHEME_FILE.length()));
-        }
+        ResourceAccess access = ResourceAccess.getAccessFor(resource);
+        if (access != null)
+            return access.getWriter(resource);
         throw new IOException("Cannot write to resource " + resource);
     }
 }

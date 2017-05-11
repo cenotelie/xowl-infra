@@ -20,6 +20,7 @@ package org.xowl.infra.store.loaders;
 import org.junit.Assert;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.ResourceAccess;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +49,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
      * @param testedURI   The URI of the tested JSON-LD document
      */
     protected void toRdfTest(String expectedURI, String testedURI) {
-        mapper.addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
+        mapper.addRegexpMap(NAMESPACE + "(.*)", ResourceAccess.SCHEME_RESOURCE + PHYSICAL + "\\1");
         testEval(mapper.get(expectedURI), expectedURI, mapper.get(testedURI), testedURI);
     }
 
@@ -73,8 +74,8 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
             // cannot happen due to the assertion failure, but get rid of the null warning
             return;
         }
-        mapper.addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
-        mapper.addSimpleMap(generatedURI, Repository.SCHEME_FILE + generated.getAbsolutePath());
+        mapper.addRegexpMap(NAMESPACE + "(.*)", ResourceAccess.SCHEME_RESOURCE + PHYSICAL + "\\1");
+        mapper.addSimpleMap(generatedURI, ResourceAccess.SCHEME_FILE + generated.getAbsolutePath());
         testEval(mapper.get(expectedURI), expectedURI, mapper.get(generatedURI), testedURI);
     }
 
@@ -97,8 +98,8 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
 
         // loads the tested file
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
-        repository.getIRIMapper().addSimpleMap(generatedURI, Repository.SCHEME_FILE + file.getAbsolutePath());
+        repository.getIRIMapper().addRegexpMap(NAMESPACE + "(.*)", ResourceAccess.SCHEME_RESOURCE + PHYSICAL + "\\1");
+        repository.getIRIMapper().addSimpleMap(generatedURI, ResourceAccess.SCHEME_FILE + file.getAbsolutePath());
         try {
             repository.load(logger, testedURI);
         } catch (Exception exception) {

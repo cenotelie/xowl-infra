@@ -16,7 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.ResourceAccess;
 
 /**
  * Base class for the RDF/XML loader tests
@@ -36,7 +36,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param triplesResource A NTriple resource
      */
     protected void testXMLEval(String rdfResource, String triplesResource) {
-        testEval(Repository.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + triplesResource, BASE_LOCATION + triplesResource, Repository.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + rdfResource, BASE_LOCATION + rdfResource);
+        testEval(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + triplesResource, BASE_LOCATION + triplesResource, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + rdfResource, BASE_LOCATION + rdfResource);
     }
 
     /**
@@ -45,7 +45,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param resource A RDF/XML resource
      */
     protected void testXMLPositiveSyntax(String resource) {
-        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + resource, BASE_LOCATION + resource);
+        testPositiveSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 
     /**
@@ -54,6 +54,6 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param resource A RDF/XML resource
      */
     protected void testXMLNegativeSyntax(String resource) {
-        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + resource, BASE_LOCATION + resource);
+        testNegativeSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 }
