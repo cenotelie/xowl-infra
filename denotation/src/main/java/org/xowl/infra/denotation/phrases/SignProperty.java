@@ -124,7 +124,7 @@ public class SignProperty implements Identifiable, Serializable {
      */
     public void serializeValueJson(StringBuilder builder, Object value) {
         builder.append("\"");
-        builder.append(TextUtils.serializeJSON(value.toString()));
+        builder.append(TextUtils.escapeStringJSON(value.toString()));
         builder.append("\"");
     }
 

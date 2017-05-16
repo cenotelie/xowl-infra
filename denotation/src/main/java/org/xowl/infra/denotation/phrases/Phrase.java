@@ -167,9 +167,9 @@ public class Phrase implements Identifiable, Serializable {
         builder.append("{\"type\": \"");
         builder.append(Phrase.class.getCanonicalName());
         builder.append("\", \"identifier\": \"");
-        builder.append(TextUtils.serializeJSON(identifier));
+        builder.append(TextUtils.escapeStringJSON(identifier));
         builder.append("\", \"name\": \"");
-        builder.append(TextUtils.serializeJSON(name));
+        builder.append(TextUtils.escapeStringJSON(name));
         builder.append("\", \"signs\": [");
         boolean first = true;
         for (Sign sign : signs) {

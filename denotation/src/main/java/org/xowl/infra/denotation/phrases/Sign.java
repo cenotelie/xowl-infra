@@ -308,10 +308,10 @@ public class Sign implements Identifiable, Serializable {
         builder.append("{\"type\": \"");
         builder.append(Sign.class.getCanonicalName());
         builder.append("\", \"identifier\": \"");
-        builder.append(TextUtils.serializeJSON(identifier));
+        builder.append(TextUtils.escapeStringJSON(identifier));
         builder.append("\", \"name\": \"");
         if (name != null)
-            builder.append(TextUtils.serializeJSON(name));
+            builder.append(TextUtils.escapeStringJSON(name));
         builder.append("\", \"properties\": {");
         if (properties != null) {
             boolean first = true;
