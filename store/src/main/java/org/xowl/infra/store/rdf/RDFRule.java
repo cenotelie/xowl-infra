@@ -47,6 +47,11 @@ public abstract class RDFRule {
      * The source for this rule
      */
     protected final String source;
+    /**
+     * The target graph for the consequents.
+     * If this value is set, unbound variables in the consequents will be mapped to IRIs resolved against this graph
+     */
+    protected GraphNode target;
 
     /**
      * Gets the rule's identifying IRI
@@ -64,6 +69,26 @@ public abstract class RDFRule {
      */
     public String getSource() {
         return source;
+    }
+
+    /**
+     * Gets the target graph for the consequents.
+     * If this value is set, unbound variables in the consequents will be mapped to IRIs resolved against this graph.
+     *
+     * @return The target graph for the consequents
+     */
+    public GraphNode getTarget() {
+        return target;
+    }
+
+    /**
+     * Sets the target graph for the consequents.
+     * If this value is set, unbound variables in the consequents will be mapped to IRIs resolved against this graph.
+     *
+     * @param target The target graph for the consequents
+     */
+    public void setTarget(GraphNode target) {
+        this.target = target;
     }
 
     /**
@@ -87,6 +112,7 @@ public abstract class RDFRule {
         this.iri = iri;
         this.guard = guard;
         this.source = source;
+        this.target = null;
     }
 
     /**
@@ -250,15 +276,15 @@ public abstract class RDFRule {
      * @param nodes     The node manager for producing the changeset
      * @param evaluator The current evaluator
      * @param node      The node to process
-     * @param createIRI Whether to create an IRI node or a blank node in the case of an unbound variable
+     * @param isGraph   Whether the node to resolve is a graph
      * @return The processed node
      */
-    private Node produceResolveNode(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, Node node, boolean createIRI) {
+    private Node produceResolveNode(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, Node node, boolean isGraph) {
         if (node == null)
-            return produceResolveVariable(execution, nodes, null, createIRI);
+            return produceResolveVariable(execution, nodes, null, isGraph);
         switch (node.getNodeType()) {
             case Node.TYPE_VARIABLE:
-                return produceResolveVariable(execution, nodes, (VariableNode) node, createIRI);
+                return produceResolveVariable(execution, nodes, (VariableNode) node, isGraph);
             case Node.TYPE_DYNAMIC:
                 return produceResolveDynamic(execution, nodes, evaluator, (DynamicNode) node);
             default:
@@ -272,18 +298,20 @@ public abstract class RDFRule {
      * @param execution The execution data
      * @param nodes     The node manager for producing the changeset
      * @param variable  A variable node
-     * @param createIRI Whether to create an IRI node or a blank node in the case of an unbound variable
+     * @param isGraph   Whether the node to resolve is a graph
      * @return The variable value
      */
-    protected Node produceResolveVariable(RDFRuleExecution execution, NodeManager nodes, VariableNode variable, boolean createIRI) {
+    protected Node produceResolveVariable(RDFRuleExecution execution, NodeManager nodes, VariableNode variable, boolean isGraph) {
         Node result = execution.getBinding(variable);
         if (result != null)
             return result;
         result = execution.getSpecial(variable);
         if (result != null)
             return result;
-        if (createIRI)
+        if (isGraph)
             result = nodes.getIRINode((GraphNode) null);
+        else if (target != null)
+            result = nodes.getIRINode(target);
         else
             result = nodes.getBlankNode();
         execution.bindSpecial(variable, result);
