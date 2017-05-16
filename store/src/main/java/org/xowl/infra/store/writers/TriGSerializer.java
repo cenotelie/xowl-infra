@@ -21,6 +21,7 @@ import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Property;
 import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.io.IOException;
@@ -54,7 +55,7 @@ public class TriGSerializer extends TurtleSerializer {
     protected void serializeGraph(GraphNode graph, Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
         writer.write("GRAPH ");
         serializeNode(graph);
-        writer.write(" {");
+        writer.write(" {" + IOUtils.LINE_SEPARATOR);
         serializeGraphContent(content);
         writer.write("}");
     }
