@@ -20,8 +20,8 @@ package org.xowl.infra.store.writers;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
@@ -459,11 +459,20 @@ public abstract class StructuredSerializer implements RDFSerializer {
     protected String getShortName(String iri) {
         int index = iri.lastIndexOf("#");
         if (index > -1) {
-            return namespaces.get(iri.substring(0, index + 1)) + ":" + TextUtils.escapeAbsoluteURIW3C(iri.substring(index + 1));
+            String prefix = iri.substring(0, index + 1);
+            String rest = iri.substring(index + 1);
+            if (rest.equals(URIUtils.encodeComponent(rest)))
+                return namespaces.get(prefix) + ":" + rest;
+            return null;
         }
         index = iri.lastIndexOf("/");
-        if (index == -1)
+        if (index > -1) {
+            String prefix = iri.substring(0, index + 1);
+            String rest = iri.substring(index + 1);
+            if (rest.equals(URIUtils.encodeComponent(rest)))
+                return namespaces.get(prefix) + ":" + rest;
             return null;
-        return namespaces.get(iri.substring(0, index + 1)) + ":" + TextUtils.escapeAbsoluteURIW3C(iri.substring(index + 1));
+        }
+        return null;
     }
 }
