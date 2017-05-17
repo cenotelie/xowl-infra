@@ -18,7 +18,6 @@
 package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.TextUtils;
 
 /**
  * A variable resolver that resolves variable with:
@@ -58,12 +57,12 @@ public class VariableResolverIriTemplate extends VariableResolver {
                             builder.append(((IRINode) node).getIRIValue());
                             break;
                         case Node.TYPE_LITERAL:
-                            builder.append(TextUtils.escapeAbsoluteURIW3C(((LiteralNode) node).getLexicalValue()));
+                            builder.append(((LiteralNode) node).getLexicalValue());
                             break;
                     }
                 }
             } else {
-                builder.append(TextUtils.escapeAbsoluteURIW3C(templateParts[i].toString()));
+                builder.append(templateParts[i].toString());
             }
         }
         return nodes.getIRINode(builder.toString());

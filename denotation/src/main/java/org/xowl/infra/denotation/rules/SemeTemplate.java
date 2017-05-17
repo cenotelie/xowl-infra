@@ -100,10 +100,17 @@ public class SemeTemplate extends SemeConsequent {
             Object[] template = new Object[iriTemplate.length];
             for (int i = 0; i != template.length; i++) {
                 Node node = iriTemplate[i].getRdfNode(context);
-                if (node instanceof VariableNode)
-                    template[i] = node;
-                else
-                    template[i] = node.toString();
+                switch (node.getNodeType()) {
+                    case Node.TYPE_IRI:
+                        template[i] = ((IRINode) node).getIRIValue();
+                        break;
+                    case Node.TYPE_LITERAL:
+                        template[i] = ((LiteralNode) node).getLexicalValue();
+                        break;
+                    case Node.TYPE_VARIABLE:
+                        template[i] = node;
+                        break;
+                }
             }
             context.addResolver(variable, new VariableResolverIriTemplate(template));
         }

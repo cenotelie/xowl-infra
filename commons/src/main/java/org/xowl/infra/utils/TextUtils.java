@@ -119,7 +119,7 @@ public class TextUtils {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i != value.length(); i++) {
             char c = value.charAt(i);
-            if (c < 0x20 || ESCAPED_GLYPHS_ABSOLUTE_URIS.contains(Character.toString(c))) {
+            if (c <= 0x20 || ESCAPED_GLYPHS_ABSOLUTE_URIS.contains(Character.toString(c))) {
                 String s = Integer.toHexString(c);
                 while (s.length() < 4)
                     s = "0" + s;
