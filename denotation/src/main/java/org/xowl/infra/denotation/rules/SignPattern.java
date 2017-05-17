@@ -20,11 +20,9 @@ package org.xowl.infra.denotation.rules;
 import org.xowl.infra.denotation.Denotation;
 import org.xowl.infra.denotation.phrases.Sign;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -159,46 +157,46 @@ public class SignPattern implements SignAntecedent {
     }
 
     @Override
-    public SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
+    public SubjectNode getSubject(DenotationRuleContext context) {
         return context.getVariable(identifier);
     }
 
     @Override
-    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
+    public void buildRdf(DenotationRuleContext context) {
         VariableNode variable = context.getVariable(identifier);
         // basic type matching
-        context.getRdfRule().addAntecedentPositive(new Quad(graphSigns,
+        context.getRdfRule().addAntecedentPositive(new Quad(context.getGraphSigns(),
                 variable,
-                nodes.getIRINode(Vocabulary.rdfType),
-                nodes.getIRINode(Sign.TYPE_SIGN)
+                context.getNodes().getIRINode(Vocabulary.rdfType),
+                context.getNodes().getIRINode(Sign.TYPE_SIGN)
         ));
 
         // properties
         if (properties != null) {
             for (SignPropertyConstraint constraint : properties)
-                constraint.buildRdf(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+                constraint.buildRdf(variable, context);
         }
 
         // relations
         if (relations != null) {
             for (SignRelationConstraint constraint : relations)
-                constraint.buildRdf(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+                constraint.buildRdf(variable, context);
         }
 
         // binding
         if (seme != null) {
-            context.getRdfRule().addAntecedentPositive(new Quad(graphMeta,
+            context.getRdfRule().addAntecedentPositive(new Quad(context.getGraphMeta(),
                     variable,
-                    nodes.getIRINode(Denotation.META_TRACE),
-                    seme.getSubject(nodes, context)
+                    context.getNodes().getIRINode(Denotation.META_TRACE),
+                    seme.getSubject(context)
             ));
         }
 
         // matched by
-        context.getRdfRule().addConsequentPositive(new Quad(graphMeta,
-                nodes.getIRINode(variable),
-                nodes.getIRINode(Denotation.META_MATCHED_BY),
-                nodes.getIRINode(context.getRdfRule().getIRI())
+        context.getRdfRule().addConsequentPositive(new Quad(context.getGraphMeta(),
+                context.getNodes().getIRINode(variable),
+                context.getNodes().getIRINode(Denotation.META_MATCHED_BY),
+                context.getNodes().getIRINode(context.getRdfRule().getIRI())
         ));
     }
 }

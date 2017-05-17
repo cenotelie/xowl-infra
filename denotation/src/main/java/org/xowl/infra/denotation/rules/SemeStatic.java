@@ -18,7 +18,6 @@
 package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.store.rdf.SubjectNode;
-import org.xowl.infra.store.storage.NodeManager;
 
 /**
  * Represents an explicit static seme (ontological entity) as a consequent of a denotation rule
@@ -50,7 +49,7 @@ public class SemeStatic extends SemeConsequent {
     }
 
     @Override
-    protected SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
-        return nodes.getIRINode(iri);
+    protected SubjectNode getSubject(DenotationRuleContext context) {
+        return context.getNodes().getIRINode(iri);
     }
 }

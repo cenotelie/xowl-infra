@@ -18,10 +18,8 @@
 package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.denotation.phrases.SignRelation;
-import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.store.storage.NodeManager;
 
 /**
  * Represents a constraint on a sign relation
@@ -70,18 +68,14 @@ public class SignRelationConstraint {
     /**
      * Builds the RDF rule with this antecedent
      *
-     * @param graphSigns The graph for the signs
-     * @param graphSemes The graph for the semes
-     * @param graphMeta  The graph for the metadata
-     * @param nodes      The node manager to use
-     * @param parent     The variable for the parent pattern
-     * @param context    The current context
+     * @param parent  The variable for the parent pattern
+     * @param context The current context
      */
-    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, VariableNode parent, DenotationRuleContext context) {
-        context.getRdfRule().addAntecedentPositive(new Quad(graphSigns,
+    public void buildRdf(VariableNode parent, DenotationRuleContext context) {
+        context.getRdfRule().addAntecedentPositive(new Quad(context.getGraphSigns(),
                 parent,
-                nodes.getIRINode(relation.getIdentifier()),
-                relatedSign.getSubject(nodes, context)
+                context.getNodes().getIRINode(relation.getIdentifier()),
+                relatedSign.getSubject(context)
         ));
     }
 }

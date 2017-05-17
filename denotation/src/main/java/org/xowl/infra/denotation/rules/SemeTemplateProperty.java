@@ -17,28 +17,33 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.SubjectNode;
-import org.xowl.infra.store.storage.NodeManager;
 
 /**
  * Represents a template for a seme's property
  *
  * @author Laurent Wouters
  */
-public abstract class SemeTemplateProperty {
+public class SemeTemplateProperty {
     /**
      * The property's IRI
      */
-    protected final String propertyIri;
+    private final String propertyIri;
+    /**
+     * The expression for the value
+     */
+    private final SemeTemplateExpression expression;
 
     /**
      * Initializes this property
      *
      * @param propertyIri The property's IRI
+     * @param expression  The expression for the value
      */
-    public SemeTemplateProperty(String propertyIri) {
+    public SemeTemplateProperty(String propertyIri, SemeTemplateExpression expression) {
         this.propertyIri = propertyIri;
+        this.expression = expression;
     }
 
     /**
@@ -53,12 +58,14 @@ public abstract class SemeTemplateProperty {
     /**
      * Builds the RDF rule for this property
      *
-     * @param graphSigns The graph for the signs
-     * @param graphSemes The graph for the semes
-     * @param graphMeta  The graph for the metadata
-     * @param nodes      The node manager to use
-     * @param parent     The node representing this consequent
-     * @param context    The current context
+     * @param parent  The node representing this consequent
+     * @param context The current context
      */
-    public abstract void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context);
+    public void buildRdfProperty(SubjectNode parent, DenotationRuleContext context) {
+        context.getRdfRule().addConsequentPositive(new Quad(context.getGraphSemes(),
+                parent,
+                context.getNodes().getIRINode(propertyIri),
+                expression.getRdfNode(context)
+        ));
+    }
 }

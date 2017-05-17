@@ -31,17 +31,33 @@ import java.util.Map;
  */
 public class DenotationRuleContext {
     /**
+     * The current node manager
+     */
+    private final NodeManager nodes;
+    /**
+     * The graph for the signs
+     */
+    private final GraphNode graphSigns;
+    /**
+     * The graph for the semes
+     */
+    private final GraphNode graphSemes;
+    /**
+     * The graph for the metadata
+     */
+    private final GraphNode graphMeta;
+    /**
      * The variable nodes
      */
     private final Map<String, VariableNode> variables;
     /**
-     * The RDF rule
-     */
-    private final RDFRuleSimple rule;
-    /**
      * The counter for generated variables
      */
     private int counter;
+    /**
+     * The RDF rule
+     */
+    private final RDFRuleSimple rule;
     /**
      * Special resolvers to use for the rule
      */
@@ -50,13 +66,57 @@ public class DenotationRuleContext {
     /**
      * Initializes this context
      *
-     * @param rule The RDF rule
+     * @param nodes      The node manager to use
+     *                   param graphSigns The graph for the signs
+     * @param graphSemes The graph for the semes
+     * @param graphMeta  The graph for the metadata
+     * @param rule       The RDF rule
      */
-    public DenotationRuleContext(RDFRuleSimple rule) {
+    public DenotationRuleContext(NodeManager nodes, GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, RDFRuleSimple rule) {
+        this.nodes = nodes;
+        this.graphSigns = graphSigns;
+        this.graphSemes = graphSemes;
+        this.graphMeta = graphMeta;
         this.variables = new HashMap<>();
-        this.rule = rule;
         this.counter = 0;
+        this.rule = rule;
         this.resolvers = new HashMap<>();
+    }
+
+    /**
+     * Gets the current node manager
+     *
+     * @return The current node manager
+     */
+    public NodeManager getNodes() {
+        return nodes;
+    }
+
+    /**
+     * Gets the graph for the signs
+     *
+     * @return The graph for the signs
+     */
+    public GraphNode getGraphSigns() {
+        return graphSigns;
+    }
+
+    /**
+     * Gets the graph for the semes
+     *
+     * @return The graph for the semes
+     */
+    public GraphNode getGraphSemes() {
+        return graphSemes;
+    }
+
+    /**
+     * Gets the graph for the metadata
+     *
+     * @return The graph for the metadata
+     */
+    public GraphNode getGraphMeta() {
+        return graphMeta;
     }
 
     /**
@@ -106,10 +166,8 @@ public class DenotationRuleContext {
 
     /**
      * Attaches the special resolvers to the rule
-     *
-     * @param nodes The current node manager
      */
-    public void attachResolvers(NodeManager nodes) {
+    public void attachResolvers() {
         VariableResolver iriResolver = new VariableResolverIrisOf(nodes.getIRINode(Denotation.GRAPH_SEMES));
         if (resolvers.isEmpty())
             rule.setResolver(iriResolver);

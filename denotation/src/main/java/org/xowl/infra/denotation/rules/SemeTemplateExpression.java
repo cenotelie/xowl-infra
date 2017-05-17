@@ -17,39 +17,18 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.store.rdf.SubjectNode;
+import org.xowl.infra.store.rdf.Node;
 
 /**
- * Represents a previously matched seme (ontological entity) as a consequent of a denotation rule
+ * Represents an expression of a seme template
  *
  * @author Laurent Wouters
  */
-public class SemeMatched extends SemeConsequent {
+public interface SemeTemplateExpression {
     /**
-     * The seme's identifier
-     */
-    private final String identifier;
-
-    /**
-     * Initializes this consequent
+     * Gets the RDF node for this expression
      *
-     * @param identifier The seme's identifier
+     * @param context The current context
      */
-    public SemeMatched(String identifier) {
-        this.identifier = identifier;
-    }
-
-    /**
-     * Gets the seme's identifier
-     *
-     * @return The seme's identifier
-     */
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    protected SubjectNode getSubject(DenotationRuleContext context) {
-        return context.getVariable(identifier);
-    }
+    Node getRdfNode(DenotationRuleContext context);
 }

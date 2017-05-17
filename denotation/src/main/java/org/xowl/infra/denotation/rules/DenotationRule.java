@@ -164,12 +164,12 @@ public class DenotationRule implements Identifiable {
      */
     public RDFRule buildRdfRule(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes) {
         RDFRuleSimple result = new RDFRuleSimple(uri, true, null);
-        DenotationRuleContext context = new DenotationRuleContext(result);
+        DenotationRuleContext context = new DenotationRuleContext(nodes, graphSigns, graphSemes, graphMeta, result);
         for (SignAntecedent antecedent : antecedents)
-            antecedent.buildRdf(graphSigns, graphSemes, graphMeta, nodes, context);
+            antecedent.buildRdf(context);
         for (SemeConsequent consequent : consequents)
-            consequent.buildRdf(graphSigns, graphSemes, graphMeta, nodes, context);
-        context.attachResolvers(nodes);
+            consequent.buildRdf(context);
+        context.attachResolvers();
         return result;
     }
 }

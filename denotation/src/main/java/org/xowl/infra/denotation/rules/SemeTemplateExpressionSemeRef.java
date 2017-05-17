@@ -17,49 +17,39 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.SubjectNode;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.Node;
 
 /**
- * A property template for a seme when the value is a literal
+ * Represents a reference to a seme as an expression
  *
  * @author Laurent Wouters
  */
-public class SemeTemplatePropertyLiteral extends SemeTemplateProperty {
+public class SemeTemplateExpressionSemeRef implements SemeTemplateExpression {
     /**
-     * The value
+     * The referenced seme consequent
      */
-    private final Object value;
+    private final SemeConsequent reference;
 
     /**
      * Initializes this property
      *
-     * @param propertyIri The property's IRI
-     * @param value       The value
+     * @param reference The referenced seme consequent
      */
-    public SemeTemplatePropertyLiteral(String propertyIri, Object value) {
-        super(propertyIri);
-        this.value = value;
+    public SemeTemplateExpressionSemeRef(SemeConsequent reference) {
+        this.reference = reference;
     }
 
     /**
-     * Gets the value
+     * Gets the referenced seme consequent
      *
-     * @return The value
+     * @return The referenced seme consequent
      */
-    public Object getValue() {
-        return value;
+    public SemeConsequent getReference() {
+        return reference;
     }
 
     @Override
-    public void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
-        context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
-                parent,
-                nodes.getIRINode(propertyIri),
-                RDFUtils.getRDF(nodes, value)
-        ));
+    public Node getRdfNode(DenotationRuleContext context) {
+        return reference.getSubject(context);
     }
 }

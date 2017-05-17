@@ -137,7 +137,9 @@ grammar Denotation
         seme_matched            -> SEME!    VARIABLE       seme_properties seme_bindings ;
         seme_template           -> A! SEME! iri seme_id seme_alias seme_properties seme_bindings ;
         seme_id                 -> ( ID! LP! seme_id_part* RP! )? ;
-        seme_id_part            -> iri^ | STRING^ | VARIABLE^ ;
+        seme_id_part            -> iri^
+                                |  STRING^
+                                |  VARIABLE OP_MEMBER^ iri; // expecting the identifier of a sign as variable
         seme_alias              -> ( AS! VARIABLE )? ;
         seme_properties         -> seme_property* ;
         seme_property           -> WITH! iri OP_EQ! seme_property_value ;

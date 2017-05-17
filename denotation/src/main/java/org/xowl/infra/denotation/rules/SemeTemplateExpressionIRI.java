@@ -17,30 +17,25 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.SubjectNode;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.Node;
 
 /**
- * A property template for a seme when the value is an IRI
+ * Represents an IRI as an expression
  *
  * @author Laurent Wouters
  */
-public class SemeTemplatePropertyIRI extends SemeTemplateProperty {
+public class SemeTemplateExpressionIRI implements SemeTemplateExpression {
     /**
      * The IRI for the value
      */
     private final String valueIri;
 
     /**
-     * Initializes this property
+     * Initializes this expression
      *
-     * @param propertyIri The property's IRI
-     * @param valueIri    The IRI for the value
+     * @param valueIri The IRI for the value
      */
-    public SemeTemplatePropertyIRI(String propertyIri, String valueIri) {
-        super(propertyIri);
+    public SemeTemplateExpressionIRI(String valueIri) {
         this.valueIri = valueIri;
     }
 
@@ -54,11 +49,7 @@ public class SemeTemplatePropertyIRI extends SemeTemplateProperty {
     }
 
     @Override
-    public void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
-        context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
-                parent,
-                nodes.getIRINode(propertyIri),
-                nodes.getIRINode(valueIri)
-        ));
+    public Node getRdfNode(DenotationRuleContext context) {
+        return context.getNodes().getIRINode(valueIri);
     }
 }

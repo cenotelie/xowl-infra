@@ -21,7 +21,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xowl: <http://xowl.org/infra/denotation/schema#>
-PREFIX domain: <http://xowl.org/my/little/domain#>
+PREFIX domain: <http://xowl.org/my/little/domain/>
 
 
 RULE "Specific sign to specific seme"
@@ -40,7 +40,7 @@ RULE "Sign pattern mapped to seme templates"
     AND SIGN ?sp
         BOUND TO SEME ?parent
 IS
-    A SEME domain:Component AS ?child
+    A SEME domain:Component ID (domain:Component "#" ?s1.xowl:name) AS ?child
         WITH domain:theParent   = ?parent
         WITH domain:name        = ?s1 . xowl:name
         BIND TO SIGN ?s1

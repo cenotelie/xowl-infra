@@ -18,10 +18,8 @@
 package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.denotation.Denotation;
-import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.SubjectNode;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -112,60 +110,47 @@ public abstract class SemeConsequent {
     /**
      * Builds the RDF rule with this consequent
      *
-     * @param graphSigns The graph for the signs
-     * @param graphSemes The graph for the semes
-     * @param graphMeta  The graph for the metadata
-     * @param nodes      The node manager to use
-     * @param context    The current context
+     * @param context The current context
      */
-    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
-        buildRdfProperties(graphSigns, graphSemes, graphMeta, nodes, getSubject(nodes, context), context);
-        buildRdfBindings(graphSigns, graphSemes, graphMeta, nodes, getSubject(nodes, context), context);
+    public void buildRdf(DenotationRuleContext context) {
+        buildRdfProperties(getSubject(context), context);
+        buildRdfBindings(getSubject(context), context);
     }
 
     /**
      * Gets the subject for this consequent
      *
-     * @param nodes   The node manager to use
      * @param context The current context
      * @return The subject
      */
-    protected abstract SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context);
+    protected abstract SubjectNode getSubject(DenotationRuleContext context);
 
     /**
      * Builds the RDF rule with this consequent
      *
-     * @param graphSigns The graph for the signs
-     * @param graphSemes The graph for the semes
-     * @param graphMeta  The graph for the metadata
-     * @param nodes      The node manager to use
-     * @param parent     The node representing this consequent
-     * @param context    The current context
+     * @param parent  The node representing this consequent
+     * @param context The current context
      */
-    protected void buildRdfProperties(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
+    protected void buildRdfProperties(SubjectNode parent, DenotationRuleContext context) {
         if (properties != null) {
             for (SemeTemplateProperty property : properties)
-                property.buildRdfProperty(graphSigns, graphSemes, graphMeta, nodes, parent, context);
+                property.buildRdfProperty(parent, context);
         }
     }
 
     /**
      * Builds the RDF rule with this consequent
      *
-     * @param graphSigns The graph for the signs
-     * @param graphSemes The graph for the semes
-     * @param graphMeta  The graph for the metadata
-     * @param nodes      The node manager to use
-     * @param parent     The node representing this consequent
-     * @param context    The current context
+     * @param parent  The node representing this consequent
+     * @param context The current context
      */
-    protected void buildRdfBindings(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
+    protected void buildRdfBindings(SubjectNode parent, DenotationRuleContext context) {
         if (bindings != null) {
             for (SignAntecedent antecedent : bindings) {
-                SubjectNode sign = antecedent.getSubject(nodes, context);
-                context.getRdfRule().addConsequentPositive(new Quad(graphMeta,
+                SubjectNode sign = antecedent.getSubject(context);
+                context.getRdfRule().addConsequentPositive(new Quad(context.getGraphMeta(),
                         sign,
-                        nodes.getIRINode(Denotation.META_TRACE),
+                        context.getNodes().getIRINode(Denotation.META_TRACE),
                         parent
                 ));
             }

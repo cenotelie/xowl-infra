@@ -211,7 +211,7 @@ public class DenotationRuleLoader {
         SemeConsequent[] consequents = new SemeConsequent[node.getChildren().get(2).getChildren().size()];
         int i = 0;
         for (ASTNode nodeSeme : node.getChildren().get(2).getChildren()) {
-            SemeConsequent consequent = loadSemeInitial(nodeSeme, mapConsequents);
+            SemeConsequent consequent = loadSemeInitial(nodeSeme, mapAntecedents, mapConsequents);
             consequents[i++] = consequent;
             if (consequent == null)
                 return null;
@@ -432,10 +432,11 @@ public class DenotationRuleLoader {
      * Loads the initial definition of a seme
      *
      * @param node           An AST node
+     * @param mapAntecedents The current antecedents
      * @param mapConsequents The current consequents
      * @return The seme
      */
-    private SemeConsequent loadSemeInitial(ASTNode node, Map<String, SemeConsequent> mapConsequents) {
+    private SemeConsequent loadSemeInitial(ASTNode node, Map<String, SignAntecedent> mapAntecedents, Map<String, SemeConsequent> mapConsequents) {
         if (node.getSymbol().getID() == DenotationParser.ID.seme_static) {
             String iri = getIri(node.getChildren().get(0));
             SemeConsequent result = mapConsequents.get(iri);
@@ -459,7 +460,7 @@ public class DenotationRuleLoader {
             // a seme template
             String typeIri = getIri(node.getChildren().get(0));
             String alias;
-            Object[] iriTemplate = null;
+            SemeTemplateExpression[] iriTemplate = null;
             if (!node.getChildren().get(2).getChildren().isEmpty())
                 alias = node.getChildren().get(2).getChildren().get(0).getValue().substring(1);
             else {
@@ -467,10 +468,10 @@ public class DenotationRuleLoader {
                 semeCounter++;
             }
             if (!node.getChildren().get(1).getChildren().isEmpty()) {
-                iriTemplate = new Object[node.getChildren().get(1).getChildren().size()];
+                iriTemplate = new SemeTemplateExpression[node.getChildren().get(1).getChildren().size()];
                 int index = 0;
                 for (ASTNode child : node.getChildren().get(1).getChildren()) {
-                    iriTemplate[index++] = loadSemeIdPart(child);
+                    iriTemplate[index++] = loadSemeTemplateExpression(child, mapAntecedents, mapConsequents);
                 }
             }
             SemeConsequent result = new SemeTemplate(alias, typeIri, iriTemplate);
@@ -522,47 +523,46 @@ public class DenotationRuleLoader {
      */
     private void loadSemeConsequentProperty(ASTNode node, SemeConsequent consequent, Map<String, SignAntecedent> mapAntecedents, Map<String, SemeConsequent> mapConsequents) {
         String propertyIri = getIri(node.getChildren().get(0));
-        SemeTemplateProperty property = loadSemeConsequentPropertyValue(node.getChildren().get(1), propertyIri, mapAntecedents, mapConsequents);
-        if (property != null)
-            consequent.addProperty(property);
+        SemeTemplateExpression expression = loadSemeTemplateExpression(node.getChildren().get(1), mapAntecedents, mapConsequents);
+        if (expression != null)
+            consequent.addProperty(new SemeTemplateProperty(propertyIri, expression));
     }
 
     /**
-     * Loads the value of a property of a seme consequent
+     * Loads an expression in a seme template
      *
      * @param node           An AST node
-     * @param propertyIri    The iri for the property
      * @param mapAntecedents The current antecedents
      * @param mapConsequents The current consequents
      */
-    private SemeTemplateProperty loadSemeConsequentPropertyValue(ASTNode node, String propertyIri, Map<String, SignAntecedent> mapAntecedents, Map<String, SemeConsequent> mapConsequents) {
+    private SemeTemplateExpression loadSemeTemplateExpression(ASTNode node, Map<String, SignAntecedent> mapAntecedents, Map<String, SemeConsequent> mapConsequents) {
         switch (node.getSymbol().getID()) {
             case DenotationLexer.ID.IRIREF: {
                 String value = getIriRef(node);
-                return new SemeTemplatePropertyIRI(propertyIri, value);
+                return new SemeTemplateExpressionIRI(value);
             }
             case DenotationLexer.ID.PNAME_LN: {
                 String value = getIriPNameLN(node);
-                return new SemeTemplatePropertyIRI(propertyIri, value);
+                return new SemeTemplateExpressionIRI(value);
             }
             case DenotationLexer.ID.PNAME_NS: {
                 String value = getIriPNameNS(node);
-                return new SemeTemplatePropertyIRI(propertyIri, value);
+                return new SemeTemplateExpressionIRI(value);
             }
             case DenotationLexer.ID.TRUE:
-                return new SemeTemplatePropertyLiteral(propertyIri, true);
+                return new SemeTemplateExpressionLiteral(true);
             case DenotationLexer.ID.FALSE:
-                return new SemeTemplatePropertyLiteral(propertyIri, false);
+                return new SemeTemplateExpressionLiteral(false);
             case DenotationLexer.ID.INTEGER:
-                return new SemeTemplatePropertyLiteral(propertyIri, Integer.parseInt(node.getValue()));
+                return new SemeTemplateExpressionLiteral(Integer.parseInt(node.getValue()));
             case DenotationLexer.ID.DECIMAL:
-                return new SemeTemplatePropertyLiteral(propertyIri, Double.parseDouble(node.getValue()));
+                return new SemeTemplateExpressionLiteral(Double.parseDouble(node.getValue()));
             case DenotationLexer.ID.DOUBLE:
-                return new SemeTemplatePropertyLiteral(propertyIri, Double.parseDouble(node.getValue()));
+                return new SemeTemplateExpressionLiteral(Double.parseDouble(node.getValue()));
             case DenotationLexer.ID.STRING: {
                 String value = TextUtils.unescape(node.getValue());
                 value = value.substring(1, value.length() - 1);
-                return new SemeTemplatePropertyLiteral(propertyIri, value);
+                return new SemeTemplateExpressionLiteral(value);
             }
             case DenotationLexer.ID.VARIABLE: {
                 String templateId = node.getValue().substring(1);
@@ -574,7 +574,7 @@ public class DenotationRuleLoader {
                     logger.error(context.getPointer());
                     return null;
                 }
-                return new SemeTemplatePropertySemeRef(propertyIri, referenced);
+                return new SemeTemplateExpressionSemeRef(referenced);
             }
             case DenotationLexer.ID.OP_MEMBER: {
                 String signId = node.getChildren().get(0).getValue().substring(1);
@@ -595,7 +595,7 @@ public class DenotationRuleLoader {
                     logger.error(context.getPointer());
                     return null;
                 }
-                return new SemeTemplatePropertySignProperty(propertyIri, sign, property);
+                return new SemeTemplateExpressionSignProperty(sign, property);
             }
         }
         return null;

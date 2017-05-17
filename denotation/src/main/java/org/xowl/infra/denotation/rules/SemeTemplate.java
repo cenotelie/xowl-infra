@@ -19,7 +19,6 @@ package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
 
 /**
  * Represents a template of seme (ontological entity) as a consequent to a denotation rule
@@ -38,7 +37,7 @@ public class SemeTemplate extends SemeConsequent {
     /**
      * The parts of the template IRI, if any for the seme to produce
      */
-    private final Object[] iriTemplate;
+    private final SemeTemplateExpression[] iriTemplate;
 
     /**
      * Initializes this consequent
@@ -47,7 +46,7 @@ public class SemeTemplate extends SemeConsequent {
      * @param typeIri     The IRI of the seme's type
      * @param iriTemplate The parts of the template IRI, if any for the seme to produce
      */
-    public SemeTemplate(String identifier, String typeIri, Object[] iriTemplate) {
+    public SemeTemplate(String identifier, String typeIri, SemeTemplateExpression[] iriTemplate) {
         this.identifier = identifier;
         this.typeIri = typeIri;
         this.iriTemplate = iriTemplate;
@@ -81,38 +80,39 @@ public class SemeTemplate extends SemeConsequent {
     }
 
     @Override
-    public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
+    public void buildRdf(DenotationRuleContext context) {
         VariableNode variable = context.getVariable(identifier);
 
-        context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
+        context.getRdfRule().addConsequentPositive(new Quad(context.getGraphSemes(),
                 variable,
-                nodes.getIRINode(Vocabulary.rdfType),
-                nodes.getIRINode(typeIri)
+                context.getNodes().getIRINode(Vocabulary.rdfType),
+                context.getNodes().getIRINode(typeIri)
         ));
 
         // properties
         if (properties != null) {
             for (SemeTemplateProperty property : properties)
-                property.buildRdfProperty(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+                property.buildRdfProperty(variable, context);
         }
 
         // iri template
         if (iriTemplate != null && iriTemplate.length > 0) {
             Object[] template = new Object[iriTemplate.length];
             for (int i = 0; i != template.length; i++) {
-                if (iriTemplate[i] instanceof VariableNode)
-                    template[i] = context.getVariable(((VariableNode) iriTemplate[i]).getName());
+                Node node = iriTemplate[i].getRdfNode(context);
+                if (node instanceof VariableNode)
+                    template[i] = node;
                 else
-                    template[i] = iriTemplate[i].toString();
+                    template[i] = node.toString();
             }
             context.addResolver(variable, new VariableResolverIriTemplate(template));
         }
 
-        buildRdfBindings(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+        buildRdfBindings(variable, context);
     }
 
     @Override
-    protected SubjectNode getSubject(NodeManager nodes, DenotationRuleContext context) {
+    protected SubjectNode getSubject(DenotationRuleContext context) {
         return context.getVariable(identifier);
     }
 }

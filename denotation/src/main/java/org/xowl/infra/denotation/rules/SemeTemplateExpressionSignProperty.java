@@ -19,14 +19,13 @@ package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.denotation.phrases.SignProperty;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
 
 /**
- * A property template for a seme when the value is the value of a sign's property
+ * An expression for a seme when the value is the value of a sign's property
  *
  * @author Laurent Wouters
  */
-public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
+public class SemeTemplateExpressionSignProperty implements SemeTemplateExpression {
     /**
      * The referenced sign antecedent
      */
@@ -39,12 +38,10 @@ public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
     /**
      * Initializes this property
      *
-     * @param propertyIri The property's IRI
-     * @param reference   The referenced sign antecedent
-     * @param property    The sign property
+     * @param reference The referenced sign antecedent
+     * @param property  The sign property
      */
-    public SemeTemplatePropertySignProperty(String propertyIri, SignAntecedent reference, SignProperty property) {
-        super(propertyIri);
+    public SemeTemplateExpressionSignProperty(SignAntecedent reference, SignProperty property) {
         this.reference = reference;
         this.property = property;
     }
@@ -68,37 +65,22 @@ public class SemeTemplatePropertySignProperty extends SemeTemplateProperty {
     }
 
     @Override
-    public void buildRdfProperty(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, SubjectNode parent, DenotationRuleContext context) {
-        SubjectNode nodeSign = reference.getSubject(nodes, context);
-        Node foundObject = null;
+    public Node getRdfNode(DenotationRuleContext context) {
+        SubjectNode nodeSign = reference.getSubject(context);
         for (Quad quad : context.getRdfRule().getPatterns().get(0).getPositives()) {
             if (quad.getSubject() == nodeSign
                     && quad.getProperty().getNodeType() == Node.TYPE_IRI
                     && ((IRINode) quad.getProperty()).getIRIValue().equals(property.getIdentifier())) {
-                foundObject = quad.getObject();
-                break;
+                return quad.getObject();
             }
         }
 
-        if (foundObject == null) {
-            // the value for the property is not in the antecedents => add it
-            VariableNode variableValue = context.getVariable();
-            context.getRdfRule().addAntecedentPositive(new Quad(graphSigns,
-                    nodeSign,
-                    nodes.getIRINode(property.getIdentifier()),
-                    variableValue
-            ));
-            context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
-                    parent,
-                    nodes.getIRINode(propertyIri),
-                    variableValue
-            ));
-        } else {
-            context.getRdfRule().addConsequentPositive(new Quad(graphSemes,
-                    parent,
-                    nodes.getIRINode(propertyIri),
-                    foundObject
-            ));
-        }
+        VariableNode variableValue = context.getVariable();
+        context.getRdfRule().addAntecedentPositive(new Quad(context.getGraphSigns(),
+                nodeSign,
+                context.getNodes().getIRINode(property.getIdentifier()),
+                variableValue
+        ));
+        return variableValue;
     }
 }
