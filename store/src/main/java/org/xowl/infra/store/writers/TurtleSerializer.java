@@ -142,12 +142,13 @@ public class TurtleSerializer extends StructuredSerializer {
             if (i != 0)
                 writer.write(" ; ");
             bufferProperties.add(property);
-            serializeProperty(property, properties.get(i).y);
+            serializePropertyName(property);
+            serializePropertyValue(properties.get(i).y);
             for (int j = i + 1; j != properties.size(); j++) {
                 Couple<Property, Object> data = properties.get(j);
                 if (RDFUtils.same(data.x, property)) {
                     writer.write(" , ");
-                    serializeProperty(property, data.y);
+                    serializePropertyValue(data.y);
                 }
             }
         }
@@ -155,14 +156,13 @@ public class TurtleSerializer extends StructuredSerializer {
     }
 
     /**
-     * Serializes a property from a node
+     * Serializes a property
      *
      * @param property The RDF property
-     * @param value    The value for the property
      * @throws IOException         When an IO error occurs
      * @throws UnsupportedNodeType When the specified node is not supported
      */
-    protected void serializeProperty(Property property, Object value) throws IOException, UnsupportedNodeType {
+    protected void serializePropertyName(Property property) throws IOException, UnsupportedNodeType {
         String iri = ((IRINode) property).getIRIValue();
         if (Vocabulary.rdfType.equals(iri)) {
             writer.write("a");
@@ -177,7 +177,16 @@ public class TurtleSerializer extends StructuredSerializer {
             }
         }
         writer.write(" ");
+    }
 
+    /**
+     * Serializes a property value from a node
+     *
+     * @param value The value for the property
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
+     */
+    protected void serializePropertyValue(Object value) throws IOException, UnsupportedNodeType {
         if (value instanceof List) {
             List<Node> list = (List<Node>) value;
             writer.write("(");
