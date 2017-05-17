@@ -20,6 +20,7 @@ package org.xowl.infra.store.writers;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -458,11 +459,11 @@ public abstract class StructuredSerializer implements RDFSerializer {
     protected String getShortName(String iri) {
         int index = iri.lastIndexOf("#");
         if (index > -1) {
-            return namespaces.get(iri.substring(0, index + 1)) + ":" + iri.substring(index + 1);
+            return namespaces.get(iri.substring(0, index + 1)) + ":" + TextUtils.escapeAbsoluteURIW3C(iri.substring(index + 1));
         }
         index = iri.lastIndexOf("/");
         if (index == -1)
             return null;
-        return namespaces.get(iri.substring(0, index + 1)) + ":" + iri.substring(index + 1);
+        return namespaces.get(iri.substring(0, index + 1)) + ":" + TextUtils.escapeAbsoluteURIW3C(iri.substring(index + 1));
     }
 }
