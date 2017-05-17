@@ -169,6 +169,7 @@ public class DenotationRule implements Identifiable {
             antecedent.buildRdf(graphSigns, graphSemes, graphMeta, nodes, context);
         for (SemeConsequent consequent : consequents)
             consequent.buildRdf(graphSigns, graphSemes, graphMeta, nodes, context);
+        context.attachResolvers(nodes);
         return result;
     }
 }

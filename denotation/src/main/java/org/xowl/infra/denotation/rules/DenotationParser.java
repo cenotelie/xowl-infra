@@ -29,147 +29,155 @@ class DenotationParser extends LRkParser {
         /**
          * The unique identifier for variable denotation
          */
-        public static final int denotation = 0x0030;
+        public static final int denotation = 0x0033;
         /**
          * The unique identifier for variable prologue
          */
-        public static final int prologue = 0x0031;
+        public static final int prologue = 0x0034;
         /**
          * The unique identifier for variable decl_base
          */
-        public static final int decl_base = 0x0032;
+        public static final int decl_base = 0x0035;
         /**
          * The unique identifier for variable decl_prefix
          */
-        public static final int decl_prefix = 0x0033;
+        public static final int decl_prefix = 0x0036;
         /**
          * The unique identifier for variable denotation_rules
          */
-        public static final int denotation_rules = 0x0034;
+        public static final int denotation_rules = 0x0037;
         /**
          * The unique identifier for variable rule
          */
-        public static final int rule = 0x0035;
+        public static final int rule = 0x0038;
         /**
          * The unique identifier for variable signs
          */
-        public static final int signs = 0x0036;
+        public static final int signs = 0x0039;
         /**
          * The unique identifier for variable sign_static
          */
-        public static final int sign_static = 0x0037;
+        public static final int sign_static = 0x003A;
         /**
          * The unique identifier for variable sign_patterns
          */
-        public static final int sign_patterns = 0x0038;
+        public static final int sign_patterns = 0x003B;
         /**
          * The unique identifier for variable sign_pattern
          */
-        public static final int sign_pattern = 0x0039;
+        public static final int sign_pattern = 0x003C;
         /**
          * The unique identifier for variable sign_pattern_properties
          */
-        public static final int sign_pattern_properties = 0x003A;
+        public static final int sign_pattern_properties = 0x003D;
         /**
          * The unique identifier for variable sign_pattern_property
          */
-        public static final int sign_pattern_property = 0x003B;
+        public static final int sign_pattern_property = 0x003E;
         /**
          * The unique identifier for variable sign_pattern_relations
          */
-        public static final int sign_pattern_relations = 0x003C;
+        public static final int sign_pattern_relations = 0x003F;
         /**
          * The unique identifier for variable sign_pattern_relation
          */
-        public static final int sign_pattern_relation = 0x003D;
+        public static final int sign_pattern_relation = 0x0040;
         /**
          * The unique identifier for variable sign_pattern_binding
          */
-        public static final int sign_pattern_binding = 0x003E;
+        public static final int sign_pattern_binding = 0x0041;
         /**
          * The unique identifier for variable sign_property_value
          */
-        public static final int sign_property_value = 0x003F;
+        public static final int sign_property_value = 0x0042;
         /**
          * The unique identifier for variable semes
          */
-        public static final int semes = 0x0040;
+        public static final int semes = 0x0043;
         /**
          * The unique identifier for variable seme
          */
-        public static final int seme = 0x0041;
+        public static final int seme = 0x0044;
         /**
          * The unique identifier for variable seme_static
          */
-        public static final int seme_static = 0x0042;
+        public static final int seme_static = 0x0045;
         /**
          * The unique identifier for variable seme_matched
          */
-        public static final int seme_matched = 0x0043;
+        public static final int seme_matched = 0x0046;
         /**
-         * The unique identifier for variable seme_pattern
+         * The unique identifier for variable seme_template
          */
-        public static final int seme_pattern = 0x0044;
+        public static final int seme_template = 0x0047;
+        /**
+         * The unique identifier for variable seme_id
+         */
+        public static final int seme_id = 0x0048;
+        /**
+         * The unique identifier for variable seme_id_part
+         */
+        public static final int seme_id_part = 0x0049;
         /**
          * The unique identifier for variable seme_alias
          */
-        public static final int seme_alias = 0x0045;
+        public static final int seme_alias = 0x004A;
         /**
          * The unique identifier for variable seme_properties
          */
-        public static final int seme_properties = 0x0046;
+        public static final int seme_properties = 0x004B;
         /**
          * The unique identifier for variable seme_property
          */
-        public static final int seme_property = 0x0047;
+        public static final int seme_property = 0x004C;
         /**
          * The unique identifier for variable seme_property_value
          */
-        public static final int seme_property_value = 0x0048;
+        public static final int seme_property_value = 0x004D;
         /**
          * The unique identifier for variable seme_bindings
          */
-        public static final int seme_bindings = 0x0049;
+        public static final int seme_bindings = 0x004E;
         /**
          * The unique identifier for variable seme_binding
          */
-        public static final int seme_binding = 0x004A;
+        public static final int seme_binding = 0x004F;
         /**
          * The unique identifier for variable seme_binding_target
          */
-        public static final int seme_binding_target = 0x004B;
+        public static final int seme_binding_target = 0x0050;
         /**
          * The unique identifier for variable iri
          */
-        public static final int iri = 0x004C;
+        public static final int iri = 0x0051;
         /**
          * The unique identifier for variable prefixedName
          */
-        public static final int prefixedName = 0x004D;
+        public static final int prefixedName = 0x0052;
         /**
          * The unique identifier for variable literal
          */
-        public static final int literal = 0x004E;
+        public static final int literal = 0x0053;
         /**
          * The unique identifier for variable json_object
          */
-        public static final int json_object = 0x004F;
+        public static final int json_object = 0x0054;
         /**
          * The unique identifier for variable json_object_member
          */
-        public static final int json_object_member = 0x0050;
+        public static final int json_object_member = 0x0055;
         /**
          * The unique identifier for variable json_array
          */
-        public static final int json_array = 0x0051;
+        public static final int json_array = 0x0056;
         /**
          * The unique identifier for variable json_value
          */
-        public static final int json_value = 0x0052;
+        public static final int json_value = 0x0057;
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x005D;
+        public static final int __axiom = 0x0063;
     }
     /**
      * The collection of variables matched by this parser
@@ -178,52 +186,55 @@ class DenotationParser extends LRkParser {
      * so that variable indices in the automaton can be used to retrieve the variables in this table
      */
     private static final Symbol[] variables = {
-        new Symbol(0x0030, "denotation"), 
-        new Symbol(0x0031, "prologue"), 
-        new Symbol(0x0032, "decl_base"), 
-        new Symbol(0x0033, "decl_prefix"), 
-        new Symbol(0x0034, "denotation_rules"), 
-        new Symbol(0x0035, "rule"), 
-        new Symbol(0x0036, "signs"), 
-        new Symbol(0x0037, "sign_static"), 
-        new Symbol(0x0038, "sign_patterns"), 
-        new Symbol(0x0039, "sign_pattern"), 
-        new Symbol(0x003A, "sign_pattern_properties"), 
-        new Symbol(0x003B, "sign_pattern_property"), 
-        new Symbol(0x003C, "sign_pattern_relations"), 
-        new Symbol(0x003D, "sign_pattern_relation"), 
-        new Symbol(0x003E, "sign_pattern_binding"), 
-        new Symbol(0x003F, "sign_property_value"), 
-        new Symbol(0x0040, "semes"), 
-        new Symbol(0x0041, "seme"), 
-        new Symbol(0x0042, "seme_static"), 
-        new Symbol(0x0043, "seme_matched"), 
-        new Symbol(0x0044, "seme_pattern"), 
-        new Symbol(0x0045, "seme_alias"), 
-        new Symbol(0x0046, "seme_properties"), 
-        new Symbol(0x0047, "seme_property"), 
-        new Symbol(0x0048, "seme_property_value"), 
-        new Symbol(0x0049, "seme_bindings"), 
-        new Symbol(0x004A, "seme_binding"), 
-        new Symbol(0x004B, "seme_binding_target"), 
-        new Symbol(0x004C, "iri"), 
-        new Symbol(0x004D, "prefixedName"), 
-        new Symbol(0x004E, "literal"), 
-        new Symbol(0x004F, "json_object"), 
-        new Symbol(0x0050, "json_object_member"), 
-        new Symbol(0x0051, "json_array"), 
-        new Symbol(0x0052, "json_value"), 
-        new Symbol(0x0053, "__V83"), 
-        new Symbol(0x0054, "__V84"), 
-        new Symbol(0x0055, "__V85"), 
-        new Symbol(0x0056, "__V86"), 
-        new Symbol(0x0057, "__V87"), 
+        new Symbol(0x0033, "denotation"), 
+        new Symbol(0x0034, "prologue"), 
+        new Symbol(0x0035, "decl_base"), 
+        new Symbol(0x0036, "decl_prefix"), 
+        new Symbol(0x0037, "denotation_rules"), 
+        new Symbol(0x0038, "rule"), 
+        new Symbol(0x0039, "signs"), 
+        new Symbol(0x003A, "sign_static"), 
+        new Symbol(0x003B, "sign_patterns"), 
+        new Symbol(0x003C, "sign_pattern"), 
+        new Symbol(0x003D, "sign_pattern_properties"), 
+        new Symbol(0x003E, "sign_pattern_property"), 
+        new Symbol(0x003F, "sign_pattern_relations"), 
+        new Symbol(0x0040, "sign_pattern_relation"), 
+        new Symbol(0x0041, "sign_pattern_binding"), 
+        new Symbol(0x0042, "sign_property_value"), 
+        new Symbol(0x0043, "semes"), 
+        new Symbol(0x0044, "seme"), 
+        new Symbol(0x0045, "seme_static"), 
+        new Symbol(0x0046, "seme_matched"), 
+        new Symbol(0x0047, "seme_template"), 
+        new Symbol(0x0048, "seme_id"), 
+        new Symbol(0x0049, "seme_id_part"), 
+        new Symbol(0x004A, "seme_alias"), 
+        new Symbol(0x004B, "seme_properties"), 
+        new Symbol(0x004C, "seme_property"), 
+        new Symbol(0x004D, "seme_property_value"), 
+        new Symbol(0x004E, "seme_bindings"), 
+        new Symbol(0x004F, "seme_binding"), 
+        new Symbol(0x0050, "seme_binding_target"), 
+        new Symbol(0x0051, "iri"), 
+        new Symbol(0x0052, "prefixedName"), 
+        new Symbol(0x0053, "literal"), 
+        new Symbol(0x0054, "json_object"), 
+        new Symbol(0x0055, "json_object_member"), 
+        new Symbol(0x0056, "json_array"), 
+        new Symbol(0x0057, "json_value"), 
         new Symbol(0x0058, "__V88"), 
         new Symbol(0x0059, "__V89"), 
         new Symbol(0x005A, "__V90"), 
         new Symbol(0x005B, "__V91"), 
         new Symbol(0x005C, "__V92"), 
-        new Symbol(0x005D, "__axiom") };
+        new Symbol(0x005D, "__V93"), 
+        new Symbol(0x005E, "__V94"), 
+        new Symbol(0x005F, "__V95"), 
+        new Symbol(0x0060, "__V96"), 
+        new Symbol(0x0061, "__V97"), 
+        new Symbol(0x0062, "__V98"), 
+        new Symbol(0x0063, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *

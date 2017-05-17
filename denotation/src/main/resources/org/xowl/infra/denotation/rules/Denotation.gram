@@ -94,8 +94,11 @@ grammar Denotation
         BIND            -> ~'bind';
         TO              -> ~'to';
         A               -> ~'a';
+        ID              -> ~'id';
         AS              -> ~'as';
 
+        LP              -> '(';
+        RP              -> ')';
         LCB             -> '{';
         RCB             -> '}';
         LB              -> '[';
@@ -129,11 +132,13 @@ grammar Denotation
         semes                   -> seme (AND! seme)* ;
         seme                    -> seme_static^
                                 |  seme_matched^
-                                |  seme_pattern^ ;
+                                |  seme_template^ ;
         seme_static             -> SEME!    iri            seme_properties seme_bindings ;
         seme_matched            -> SEME!    VARIABLE       seme_properties seme_bindings ;
-        seme_pattern            -> A! SEME! iri seme_alias seme_properties seme_bindings ;
-        seme_alias              -> (AS! VARIABLE)? ;
+        seme_template           -> A! SEME! iri seme_id seme_alias seme_properties seme_bindings ;
+        seme_id                 -> ( ID! LP! seme_id_part* RP! )? ;
+        seme_id_part            -> iri^ | STRING^ | VARIABLE^ ;
+        seme_alias              -> ( AS! VARIABLE )? ;
         seme_properties         -> seme_property* ;
         seme_property           -> WITH! iri OP_EQ! seme_property_value ;
         seme_property_value     -> iri^

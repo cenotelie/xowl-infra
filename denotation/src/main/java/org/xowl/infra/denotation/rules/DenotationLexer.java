@@ -36,29 +36,37 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int A = 0x0028;
         /**
+         * The unique identifier for terminal LP
+         */
+        public static final int LP = 0x002B;
+        /**
+         * The unique identifier for terminal RP
+         */
+        public static final int RP = 0x002C;
+        /**
          * The unique identifier for terminal LCB
          */
-        public static final int LCB = 0x002A;
+        public static final int LCB = 0x002D;
         /**
          * The unique identifier for terminal RCB
          */
-        public static final int RCB = 0x002B;
+        public static final int RCB = 0x002E;
         /**
          * The unique identifier for terminal LB
          */
-        public static final int LB = 0x002C;
+        public static final int LB = 0x002F;
         /**
          * The unique identifier for terminal RB
          */
-        public static final int RB = 0x002D;
+        public static final int RB = 0x0030;
         /**
          * The unique identifier for terminal COMMA
          */
-        public static final int COMMA = 0x002E;
+        public static final int COMMA = 0x0031;
         /**
          * The unique identifier for terminal COLON
          */
-        public static final int COLON = 0x002F;
+        public static final int COLON = 0x0032;
         /**
          * The unique identifier for terminal PNAME_NS
          */
@@ -96,9 +104,13 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int IS = 0x001F;
         /**
+         * The unique identifier for terminal ID
+         */
+        public static final int ID = 0x0029;
+        /**
          * The unique identifier for terminal AS
          */
-        public static final int AS = 0x0029;
+        public static final int AS = 0x002A;
         /**
          * The unique identifier for terminal PNAME_LN
          */
@@ -181,12 +193,14 @@ class DenotationLexer extends ContextFreeLexer {
         new Symbol(0x0016, "OP_EQ"),
         new Symbol(0x0018, "OP_MEMBER"),
         new Symbol(0x0028, "A"),
-        new Symbol(0x002A, "LCB"),
-        new Symbol(0x002B, "RCB"),
-        new Symbol(0x002C, "LB"),
-        new Symbol(0x002D, "RB"),
-        new Symbol(0x002E, "COMMA"),
-        new Symbol(0x002F, "COLON"),
+        new Symbol(0x002B, "LP"),
+        new Symbol(0x002C, "RP"),
+        new Symbol(0x002D, "LCB"),
+        new Symbol(0x002E, "RCB"),
+        new Symbol(0x002F, "LB"),
+        new Symbol(0x0030, "RB"),
+        new Symbol(0x0031, "COMMA"),
+        new Symbol(0x0032, "COLON"),
         new Symbol(0x000E, "PNAME_NS"),
         new Symbol(0x0010, "INTEGER"),
         new Symbol(0x0006, "BLANK"),
@@ -196,7 +210,8 @@ class DenotationLexer extends ContextFreeLexer {
         new Symbol(0x0019, "VARIABLE"),
         new Symbol(0x0027, "TO"),
         new Symbol(0x001F, "IS"),
-        new Symbol(0x0029, "AS"),
+        new Symbol(0x0029, "ID"),
+        new Symbol(0x002A, "AS"),
         new Symbol(0x000F, "PNAME_LN"),
         new Symbol(0x0015, "STRING"),
         new Symbol(0x0022, "AND"),

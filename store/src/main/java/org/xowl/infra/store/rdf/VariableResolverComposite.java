@@ -31,7 +31,7 @@ public class VariableResolverComposite extends VariableResolver {
     /**
      * The resolvers composing this one
      */
-    private final Map<String, VariableResolver> parts;
+    private final Map<VariableNode, VariableResolver> parts;
     /**
      * The fallback resolver
      */
@@ -57,16 +57,16 @@ public class VariableResolverComposite extends VariableResolver {
     /**
      * Adds a partial resolver
      *
-     * @param variableName The name of the variable
-     * @param resolver     The associated resolver
+     * @param variable The variable
+     * @param resolver The associated resolver
      */
-    public void addResolver(String variableName, VariableResolver resolver) {
-        parts.put(variableName, resolver);
+    public void addResolver(VariableNode variable, VariableResolver resolver) {
+        parts.put(variable, resolver);
     }
 
     @Override
     public Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph) {
-        VariableResolver resolver = parts.get(variable.getName());
+        VariableResolver resolver = parts.get(variable);
         if (resolver == null)
             resolver = fallback;
         return resolver.resolve(variable, execution, nodes, isGraph);

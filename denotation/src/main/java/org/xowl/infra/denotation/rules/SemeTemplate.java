@@ -18,15 +18,8 @@
 package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.SubjectNode;
-import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Represents a template of seme (ontological entity) as a consequent to a denotation rule
@@ -42,16 +35,22 @@ public class SemeTemplate extends SemeConsequent {
      * The IRI of the seme's type
      */
     private final String typeIri;
+    /**
+     * The parts of the template IRI, if any for the seme to produce
+     */
+    private final Object[] iriTemplate;
 
     /**
      * Initializes this consequent
      *
-     * @param identifier The template's identifier
-     * @param typeIri    The IRI of the seme's type
+     * @param identifier  The template's identifier
+     * @param typeIri     The IRI of the seme's type
+     * @param iriTemplate The parts of the template IRI, if any for the seme to produce
      */
-    public SemeTemplate(String identifier, String typeIri) {
+    public SemeTemplate(String identifier, String typeIri, Object[] iriTemplate) {
         this.identifier = identifier;
         this.typeIri = typeIri;
+        this.iriTemplate = iriTemplate;
     }
 
     /**
@@ -72,7 +71,14 @@ public class SemeTemplate extends SemeConsequent {
         return typeIri;
     }
 
-
+    /**
+     * Gets the parts of the template IRI, if any for the seme to produce
+     *
+     * @return The parts of the template IRI, if any for the seme to produce
+     */
+    public Object[] getIriTemplate() {
+        return iriTemplate;
+    }
 
     @Override
     public void buildRdf(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes, DenotationRuleContext context) {
@@ -88,6 +94,18 @@ public class SemeTemplate extends SemeConsequent {
         if (properties != null) {
             for (SemeTemplateProperty property : properties)
                 property.buildRdfProperty(graphSigns, graphSemes, graphMeta, nodes, variable, context);
+        }
+
+        // iri template
+        if (iriTemplate != null && iriTemplate.length > 0) {
+            Object[] template = new Object[iriTemplate.length];
+            for (int i = 0; i != template.length; i++) {
+                if (iriTemplate[i] instanceof VariableNode)
+                    template[i] = context.getVariable(((VariableNode) iriTemplate[i]).getName());
+                else
+                    template[i] = iriTemplate[i].toString();
+            }
+            context.addResolver(variable, new VariableResolverIriTemplate(template));
         }
 
         buildRdfBindings(graphSigns, graphSemes, graphMeta, nodes, variable, context);

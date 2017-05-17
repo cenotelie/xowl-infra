@@ -17,8 +17,9 @@
 
 package org.xowl.infra.denotation.rules;
 
-import org.xowl.infra.store.rdf.RDFRuleSimple;
-import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.denotation.Denotation;
+import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,10 @@ public class DenotationRuleContext {
      * The counter for generated variables
      */
     private int counter;
+    /**
+     * Special resolvers to use for the rule
+     */
+    private final Map<VariableNode, VariableResolver> resolvers;
 
     /**
      * Initializes this context
@@ -51,6 +56,7 @@ public class DenotationRuleContext {
         this.variables = new HashMap<>();
         this.rule = rule;
         this.counter = 0;
+        this.resolvers = new HashMap<>();
     }
 
     /**
@@ -86,5 +92,32 @@ public class DenotationRuleContext {
         VariableNode variable = new VariableNode("__gen_" + counter);
         counter++;
         return variable;
+    }
+
+    /**
+     * Adds a special variable resolver to be attached to the RDF rule
+     *
+     * @param variable The target variable node
+     * @param resolver The associated resolver
+     */
+    public void addResolver(VariableNode variable, VariableResolver resolver) {
+        resolvers.put(variable, resolver);
+    }
+
+    /**
+     * Attaches the special resolvers to the rule
+     *
+     * @param nodes The current node manager
+     */
+    public void attachResolvers(NodeManager nodes) {
+        VariableResolver iriResolver = new VariableResolverIrisOf(nodes.getIRINode(Denotation.GRAPH_SEMES));
+        if (resolvers.isEmpty())
+            rule.setResolver(iriResolver);
+        else {
+            VariableResolverComposite composite = new VariableResolverComposite(iriResolver);
+            for (Map.Entry<VariableNode, VariableResolver> entry : resolvers.entrySet()) {
+                composite.addResolver(entry.getKey(), entry.getValue());
+            }
+        }
     }
 }
