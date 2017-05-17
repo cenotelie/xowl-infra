@@ -176,6 +176,7 @@ public class DenotationRuleContext {
             for (Map.Entry<VariableNode, VariableResolver> entry : resolvers.entrySet()) {
                 composite.addResolver(entry.getKey(), entry.getValue());
             }
+            rule.setResolver(composite);
         }
     }
 }
