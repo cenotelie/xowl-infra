@@ -48,10 +48,9 @@ public abstract class RDFRule {
      */
     protected final String source;
     /**
-     * The target graph for the consequents.
-     * If this value is set, unbound variables in the consequents will be mapped to IRIs resolved against this graph
+     * The variable resolver to use for the consequents
      */
-    protected GraphNode target;
+    protected VariableResolver resolver;
 
     /**
      * Gets the rule's identifying IRI
@@ -72,23 +71,21 @@ public abstract class RDFRule {
     }
 
     /**
-     * Gets the target graph for the consequents.
-     * If this value is set, unbound variables in the consequents will be mapped to IRIs resolved against this graph.
+     * Gets the associated variable resolver for the consequents
      *
-     * @return The target graph for the consequents
+     * @return The associated variable resolver for the consequents
      */
-    public GraphNode getTarget() {
-        return target;
+    public VariableResolver getResolver() {
+        return resolver;
     }
 
     /**
-     * Sets the target graph for the consequents.
-     * If this value is set, unbound variables in the consequents will be mapped to IRIs resolved against this graph.
+     * Sets the associated variable resolver for the consequents
      *
-     * @param target The target graph for the consequents
+     * @param resolver The resolver for the consequents
      */
-    public void setTarget(GraphNode target) {
-        this.target = target;
+    public void setResolver(VariableResolver resolver) {
+        this.resolver = resolver;
     }
 
     /**
@@ -112,7 +109,7 @@ public abstract class RDFRule {
         this.iri = iri;
         this.guard = guard;
         this.source = source;
-        this.target = null;
+        this.resolver = VariableResolveStandard.INSTANCE;
     }
 
     /**
@@ -308,12 +305,7 @@ public abstract class RDFRule {
         result = execution.getSpecial(variable);
         if (result != null)
             return result;
-        if (isGraph)
-            result = nodes.getIRINode((GraphNode) null);
-        else if (target != null)
-            result = nodes.getIRINode(target);
-        else
-            result = nodes.getBlankNode();
+        result = resolver.resolve(variable, execution, nodes, isGraph);
         execution.bindSpecial(variable, result);
         return result;
     }

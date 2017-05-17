@@ -152,7 +152,6 @@ public class Denotation {
         rules.put(rule.getIdentifier(), rule);
         RDFRule rdfRule = rule.buildRdfRule(graphSigns, graphSemes, graphMetadata, repository.getStore());
         if (rdfRule != null) {
-            rdfRule.setTarget(graphSemes);
             rdfRules.put(rule, rdfRule);
             repository.getRDFRuleEngine().add(rdfRule);
             repository.getRDFRuleEngine().flush();
