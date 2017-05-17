@@ -393,7 +393,7 @@ public class URIUtils {
      * @param uri An URI
      * @return true if the URI only contains valid characters
      */
-    private static boolean allLegalCharacters(String uri) {
+    public static boolean allLegalCharacters(String uri) {
         for (int i = 0; i != uri.length(); i++)
             if (!isLegalCharacter(uri.charAt(i)))
                 return false;

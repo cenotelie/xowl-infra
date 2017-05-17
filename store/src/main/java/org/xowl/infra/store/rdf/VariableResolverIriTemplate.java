@@ -57,13 +57,20 @@ public class VariableResolverIriTemplate extends VariableResolver {
                         case Node.TYPE_IRI:
                             builder.append(((IRINode) node).getIRIValue());
                             break;
-                        case Node.TYPE_LITERAL:
-                            builder.append(URIUtils.encodeComponent(((LiteralNode) node).getLexicalValue()));
+                        case Node.TYPE_LITERAL: {
+                            String value = ((LiteralNode) node).getLexicalValue();
+                            if (!URIUtils.allLegalCharacters(value))
+                                value = URIUtils.encodeComponent(value);
+                            builder.append(value);
                             break;
+                        }
                     }
                 }
             } else {
-                builder.append(URIUtils.encodeComponent(templateParts[i].toString()));
+                String value = templateParts[i].toString();
+                if (!URIUtils.allLegalCharacters(value))
+                    value = URIUtils.encodeComponent(value);
+                builder.append(value);
             }
         }
         return nodes.getIRINode(builder.toString());
