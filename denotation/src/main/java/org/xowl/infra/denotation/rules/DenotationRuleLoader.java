@@ -23,7 +23,6 @@ import org.xowl.infra.denotation.phrases.SignProperty;
 import org.xowl.infra.denotation.phrases.SignRelation;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Owl2Factory;
-import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
@@ -477,25 +476,6 @@ public class DenotationRuleLoader {
             SemeConsequent result = new SemeTemplate(alias, typeIri, iriTemplate);
             mapConsequents.put(alias, result);
             return result;
-        }
-    }
-
-    /**
-     * Loads a part of a the template for a seme identifier
-     *
-     * @param node The ASt node
-     * @return The part
-     */
-    private Object loadSemeIdPart(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case DenotationLexer.ID.VARIABLE:
-                return new VariableNode(node.getValue().substring(1));
-            case DenotationLexer.ID.STRING: {
-                String value = TextUtils.unescape(node.getValue());
-                return value.substring(1, value.length() - 1);
-            }
-            default:
-                return getIri(node);
         }
     }
 
