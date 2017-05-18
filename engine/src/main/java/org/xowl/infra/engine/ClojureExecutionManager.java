@@ -19,6 +19,7 @@ package org.xowl.infra.engine;
 
 import clojure.lang.Compiler;
 import clojure.lang.*;
+import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.EvaluationUtils;
@@ -131,7 +132,11 @@ public class ClojureExecutionManager implements ExecutionManager {
                 Object value = binding.getValue();
                 if (EvaluationUtils.isNumDecimal(value) || EvaluationUtils.isNumInteger(value) || value instanceof Boolean)
                     builder.append(value.toString());
-                else {
+                else if (value instanceof IRI) {
+                    builder.append("\"");
+                    builder.append(TextUtils.escapeStringBaseDoubleQuote(((IRI) value).getHasValue()));
+                    builder.append("\"");
+                } else {
                     builder.append("\"");
                     builder.append(TextUtils.escapeStringBaseDoubleQuote(value.toString()));
                     builder.append("\"");
