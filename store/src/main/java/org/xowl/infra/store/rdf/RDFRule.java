@@ -165,7 +165,7 @@ public abstract class RDFRule {
         if (guard != null && evaluator != null) {
             try {
                 Object value = evaluator.eval(execution.getEvaluatorBindings(), guard);
-                return !EvaluationUtils.bool(value);
+                return EvaluationUtils.bool(value);
             } catch (EvaluationException exception) {
                 Logging.get().error(exception);
                 return false;
