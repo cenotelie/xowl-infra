@@ -178,7 +178,7 @@ public class IRIMapper {
 
         @Override
         public String getLocationFor(String iri) {
-            return physical + iri.substring(physical.length());
+            return physical + iri.substring(prefix.length());
         }
     }
 
