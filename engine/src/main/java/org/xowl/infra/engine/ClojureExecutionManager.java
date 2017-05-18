@@ -19,12 +19,13 @@ package org.xowl.infra.engine;
 
 import clojure.lang.Compiler;
 import clojure.lang.*;
-import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.execution.ExecutableFunction;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -118,23 +119,28 @@ public class ClojureExecutionManager implements ExecutionManager {
             return null;
         try {
             context.push(bindings);
-            List clojureContext = new ArrayList();
+            StringBuilder builder = new StringBuilder();
+            builder.append("(ns ");
+            builder.append(cljNamespace);
+            builder.append(" (:require [org.xowl.infra.engine.ClojureBindings :as xowl]))");
+            builder.append(IOUtils.LINE_SEPARATOR);
+            builder.append("(let [");
             for (Map.Entry<String, Object> binding : context.getAllBindings().entrySet()) {
-                if (binding.getValue() instanceof IRI)
-                    continue;
-                clojureContext.add(Symbol.create(binding.getKey()));
-                clojureContext.add(binding.getValue());
+                builder.append(binding.getKey());
+                builder.append(" ");
+                Object value = binding.getValue();
+                if (EvaluationUtils.isNumDecimal(value) || EvaluationUtils.isNumInteger(value) || value instanceof Boolean)
+                    builder.append(value.toString());
+                else {
+                    builder.append("\"");
+                    builder.append(TextUtils.escapeStringBaseDoubleQuote(value.toString()));
+                    builder.append("\"");
+                }
             }
-            IPersistentList top = PersistentList.create(Arrays.asList(
-                    Symbol.create("clojure.core", "let"),
-                    PersistentVector.create(clojureContext.toArray()),
-                    // require bindings
-                    PersistentList.create(Arrays.asList(
-                            Symbol.create("clojure.core", "eval"),
-                            expression.getClojure()
-                    ))
-            ));
-            return Compiler.eval(top);
+            builder.append("] ");
+            builder.append(expression.getSource());
+            builder.append(")");
+            return Compiler.load(new StringReader(builder.toString()));
         } finally {
             context.pop();
         }
