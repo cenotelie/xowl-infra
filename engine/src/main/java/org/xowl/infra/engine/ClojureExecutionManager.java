@@ -145,7 +145,12 @@ public class ClojureExecutionManager implements ExecutionManager {
             builder.append("] ");
             builder.append(expression.getSource());
             builder.append(")");
-            return Compiler.load(new StringReader(builder.toString()));
+            try {
+                Var.pushThreadBindings(RT.map(Compiler.LOADER, ClojureInit.getClassLoader()));
+                return Compiler.load(new StringReader(builder.toString()));
+            } finally {
+                Var.popThreadBindings();
+            }
         } finally {
             context.pop();
         }
@@ -174,31 +179,36 @@ public class ClojureExecutionManager implements ExecutionManager {
     private Object execute(ClojureFunction function, Object... parameters) {
         ClojureExecutionContext.get(this);
         compile();
-        if (parameters == null || parameters.length == 0)
-            return function.getClojure().invoke();
-        switch (parameters.length) {
-            case 1:
-                return function.getClojure().invoke(parameters[0]);
-            case 2:
-                return function.getClojure().invoke(parameters[0], parameters[1]);
-            case 3:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2]);
-            case 4:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3]);
-            case 5:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]);
-            case 6:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5]);
-            case 7:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6]);
-            case 8:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
-            case 9:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9]);
-            case 10:
-                return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9], parameters[10]);
+        try {
+            Var.pushThreadBindings(RT.map(Compiler.LOADER, ClojureInit.getClassLoader()));
+            if (parameters == null || parameters.length == 0)
+                return function.getClojure().invoke();
+            switch (parameters.length) {
+                case 1:
+                    return function.getClojure().invoke(parameters[0]);
+                case 2:
+                    return function.getClojure().invoke(parameters[0], parameters[1]);
+                case 3:
+                    return function.getClojure().invoke(parameters[0], parameters[1], parameters[2]);
+                case 4:
+                    return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3]);
+                case 5:
+                    return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]);
+                case 6:
+                    return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5]);
+                case 7:
+                    return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6]);
+                case 8:
+                    return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
+                case 9:
+                    return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9]);
+                case 10:
+                    return function.getClojure().invoke(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[9], parameters[10]);
+            }
+            return function.getClojure().invoke(parameters);
+        } finally {
+            Var.popThreadBindings();
         }
-        return function.getClojure().invoke(parameters);
     }
 
     @Override
@@ -269,11 +279,16 @@ public class ClojureExecutionManager implements ExecutionManager {
             }
             builder.append(" ]");
             try (Reader reader = new StringReader(builder.toString())) {
-                Iterator iterator = ((Iterable) Compiler.load(reader)).iterator();
-                for (ClojureFunction function : cljToBuild) {
-                    IFn definition = (IFn) iterator.next();
-                    Var.intern(cljNamespaceRoot, Symbol.intern(function.getName()), definition);
-                    function.setClojure(definition);
+                try {
+                    Var.pushThreadBindings(RT.map(Compiler.LOADER, ClojureInit.getClassLoader()));
+                    Iterator iterator = ((Iterable) Compiler.load(reader)).iterator();
+                    for (ClojureFunction function : cljToBuild) {
+                        IFn definition = (IFn) iterator.next();
+                        Var.intern(cljNamespaceRoot, Symbol.intern(function.getName()), definition);
+                        function.setClojure(definition);
+                    }
+                } finally {
+                    Var.popThreadBindings();
                 }
             } catch (IOException exception) {
                 // do nothing

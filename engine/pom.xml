@@ -69,6 +69,7 @@
                     <instructions>
                         <Import-Package>!sun.*,*</Import-Package>
                         <Bundle-Activator>org.xowl.infra.engine.Activator</Bundle-Activator>
+                        <Embed-Dependency>clojure;inline=true</Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>

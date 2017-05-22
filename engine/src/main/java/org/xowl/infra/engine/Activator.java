@@ -29,6 +29,14 @@ import org.xowl.infra.store.execution.ExecutionManagerProvider;
 public class Activator implements BundleActivator {
     @Override
     public void start(BundleContext bundleContext) throws Exception {
+        ClassLoader clojureClassLoader = new ClojureClassLoader(bundleContext.getBundle());
+        ClassLoader priorClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(clojureClassLoader);
+            ClojureInit.initialize(clojureClassLoader);
+        } finally {
+            Thread.currentThread().setContextClassLoader(priorClassLoader);
+        }
         bundleContext.registerService(ExecutionManagerProvider.class, new ClojureExecutionManagerProvider(), null);
     }
 
