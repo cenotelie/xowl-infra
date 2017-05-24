@@ -26,27 +26,27 @@ import org.xowl.infra.utils.TextUtils;
 import java.awt.geom.Point2D;
 
 /**
- * Represents the "position2d" property for a visual sign in a 2D graph
+ * Represents the "size2d" property for a visual sign in a 2D graph
  * The position is expected to be represented as a instance of the AWT Point2D class
  *
  * @author Laurent Wouters
  */
-public class SignPropertyPosition2D extends SignProperty {
+public class SignPropertySize2D extends SignProperty {
     /**
      * The URI for this property
      */
-    public static final String URI = "http://xowl.org/infra/denotation/schema#position2d";
+    public static final String URI = "http://xowl.org/infra/denotation/schema#size2d";
 
     /**
      * The singleton instance
      */
-    public static final SignProperty INSTANCE = new SignPropertyPosition2D();
+    public static final SignProperty INSTANCE = new SignPropertySize2D();
 
     /**
      * Initializes this property
      */
-    private SignPropertyPosition2D() {
-        super(URI, "position2d", true);
+    private SignPropertySize2D() {
+        super(URI, "size2d", true);
     }
 
     @Override

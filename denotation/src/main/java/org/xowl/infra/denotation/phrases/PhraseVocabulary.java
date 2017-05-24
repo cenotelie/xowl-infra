@@ -38,12 +38,14 @@ public class PhraseVocabulary implements Serializable {
     static {
         REGISTER.addProperty(SignPropertyBrightness.INSTANCE);
         REGISTER.addProperty(SignPropertyColor.INSTANCE);
+        REGISTER.addProperty(SignPropertyLength.INSTANCE);
         REGISTER.addProperty(SignPropertyName.INSTANCE);
         REGISTER.addProperty(SignPropertyOrientation.INSTANCE);
         REGISTER.addProperty(SignPropertyPosition2D.INSTANCE);
         REGISTER.addProperty(SignPropertyPositionText.INSTANCE);
         REGISTER.addProperty(SignPropertyShape.INSTANCE);
         REGISTER.addProperty(SignPropertySize.INSTANCE);
+        REGISTER.addProperty(SignPropertySize2D.INSTANCE);
         REGISTER.addProperty(SignPropertyTexture.INSTANCE);
         REGISTER.addProperty(SignPropertyZone2D.INSTANCE);
         REGISTER.addRelation(SignRelation.RELATION_CONTAINED_BY);
