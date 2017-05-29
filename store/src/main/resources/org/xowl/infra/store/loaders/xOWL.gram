@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -32,7 +32,8 @@ grammar xOWL
 		fragment WHITE_SPACE	-> U+0020 | U+0009 | U+000B | U+000C ;
 		fragment COMMENT_OWL	-> '#' (.* - (.* NEW_LINE .*)) NEW_LINE ;
 		fragment COMMENT_CLJ	-> (';' | '#!') (.* - (.* NEW_LINE .*)) NEW_LINE ;
-		BLANK					-> NEW_LINE | WHITE_SPACE | COMMENT_OWL | COMMENT_CLJ ;
+		fragment COMMENT		-> COMMENT_OWL | COMMENT_CLJ ;
+		BLANK					-> NEW_LINE | WHITE_SPACE | COMMENT ;
 
 
 		fragment PLX			-> '%' [a-fA-F0-9] [a-fA-F0-9]
@@ -143,8 +144,6 @@ grammar xOWL
 			CLJ_UNQUOTE			-> '~' ;
 			CLJ_UNQUOTE_SPLICE	-> '~@' ;
 			CLJ_CONDITIONAL		-> '#?' '@'? ;
-			CLJ_XOWL_QUERY		-> 'xowl-query' ;
-			CLJ_XOWL_INSERT		-> 'xowl-insert' ;
 		}
 	}
 	rules
@@ -404,14 +403,5 @@ grammar xOWL
 		// Adds the FunctionDefinition axiom
 		axiom						-> axiomFunctionDefinition^ ;
 		axiomFunctionDefinition		-> 'FunctionDefinition'! OWL2_LP! annotations entity #clojure{ form } OWL2_RP! ;
-
-		// Adds expression xOWL-specific syntax to clojure
-		form						-> xowl_query^ | xowl_insert^ ;
-		xowl_query					-> CLJ_XOWL_QUERY! CLJ_LP! xowl_query_vars xowl_query_assertions CLJ_RP! ;
-		xowl_query_vars				-> CLJ_LP! #xowl{ XOWL_QVAR* } CLJ_RP! ;
-		xowl_query_assertions		-> #owl2{ #xowl{ xowl_query_assertion+ } };
-		xowl_query_assertion		-> axiomPattern
-									|  RULE_ELEMENT_NOT OWL2_LP! axiomPattern+ OWL2_RP! ;
-		xowl_insert					-> CLJ_XOWL_INSERT! CLJ_LP! xowl_query_assertions CLJ_RP! ;
 	}
 }
