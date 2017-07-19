@@ -1,5 +1,5 @@
 FROM openjdk:8u131-jre-alpine
-LABEL maintainer="Laurent Wouters <lwouters@xowl.org>" vendor="Association Cénotélie" description="Docker image for the xOWL server."
+LABEL maintainer="Laurent Wouters <lwouters@cenotelie.fr>" vendor="Association Cénotélie" description="xOWL Triple Store Server"
 EXPOSE 3443
 ENTRYPOINT ["sh", "do-run.sh", "/xowl-data"]
 VOLUME ["/xowl-data"]
