@@ -44,7 +44,7 @@ cp "$RELENG/xowl-server.manifest" "$RELENG/server-docker/xowl-server.manifest"
 cp "$RELENG/server-linux/xowl-server.ini" "$RELENG/server-docker/xowl-server.ini"
 cp "$RELENG/server-linux/do-run.sh" "$RELENG/server-docker/do-run.sh"
 docker rmi "xowl/xowl-server:$VERSION" || true
-docker build --tag "xowl/xowl-server:$VERSION" --rm "$RELENG/server-docker"
+docker build --tag "xowl/xowl-server:$VERSION" --rm --label version="$VERSION" --label changeset="$HASH" "$RELENG/server-docker"
 
 # Cleanup
 rm "$RELENG/server-docker/xowl-server.jar"
