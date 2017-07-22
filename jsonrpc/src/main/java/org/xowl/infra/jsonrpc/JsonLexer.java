@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -20,7 +20,7 @@
  * Hime Parser Generator 2.0.0.0
  */
 
-package org.xowl.infra.store.loaders;
+package org.xowl.infra.jsonrpc;
 
 import fr.cenotelie.hime.redist.Symbol;
 import fr.cenotelie.hime.redist.lexer.Automaton;

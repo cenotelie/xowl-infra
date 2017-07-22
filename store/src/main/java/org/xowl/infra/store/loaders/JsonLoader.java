@@ -18,21 +18,18 @@
 package org.xowl.infra.store.loaders;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import fr.cenotelie.hime.redist.ParseError;
 import fr.cenotelie.hime.redist.ParseResult;
-import fr.cenotelie.hime.redist.TextContext;
+import org.xowl.infra.jsonrpc.Json;
+import org.xowl.infra.jsonrpc.JsonParser;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.logging.Logger;
 
-import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,63 +40,6 @@ import java.util.List;
  * @author Laurent Wouters
  */
 public class JsonLoader implements Loader {
-    /**
-     * Parses the JSON content
-     *
-     * @param logger  The logger to use
-     * @param content The content to parse
-     * @return The AST root node, or null of the parsing failed
-     */
-    public static ASTNode parseJson(Logger logger, String content) {
-        return parseJson(logger, new StringReader(content));
-    }
-
-    /**
-     * Parses the JSON content
-     *
-     * @param logger The logger to use
-     * @param reader The reader with the content to parse
-     * @return The AST root node, or null of the parsing failed
-     */
-    public static ASTNode parseJson(Logger logger, Reader reader) {
-        ParseResult result = doParseJson(logger, reader);
-        if (result == null)
-            return null;
-        if (!result.getErrors().isEmpty()) {
-            for (ParseError error : result.getErrors())
-                logger.error(error);
-            return null;
-        }
-        return result.getRoot();
-    }
-
-    /**
-     * Parses the JSON content
-     *
-     * @param logger The logger to use
-     * @param reader The reader with the content to parse
-     * @return The parse result
-     */
-    private static ParseResult doParseJson(Logger logger, Reader reader) {
-        ParseResult result;
-        try {
-            String content = IOUtils.read(reader);
-            JsonLexer lexer = new JsonLexer(content);
-            JsonParser parser = new JsonParser(lexer);
-            parser.setModeRecoverErrors(false);
-            result = parser.parse();
-        } catch (IOException ex) {
-            logger.error(ex);
-            return null;
-        }
-        for (ParseError error : result.getErrors()) {
-            logger.error(error);
-            TextContext context = result.getInput().getContext(error.getPosition(), error.getLength());
-            logger.error(context.getContent());
-            logger.error(context.getPointer());
-        }
-        return result;
-    }
 
     /**
      * The repository to use
@@ -139,7 +79,7 @@ public class JsonLoader implements Loader {
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
-        return doParseJson(logger, reader);
+        return Json.doParse(logger, reader);
     }
 
     @Override

@@ -18,6 +18,7 @@
 package org.xowl.infra.server.impl;
 
 import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.jsonrpc.Json;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
@@ -683,7 +684,7 @@ public class ControllerDatabase implements Closeable {
         BufferedLogger logger = new BufferedLogger();
         File file = new File(folder, SHA1.hashSHA1(name));
         try (Reader reader = IOUtils.getReader(file)) {
-            ASTNode root = JsonLoader.parseJson(logger, reader);
+            ASTNode root = Json.parse(logger, reader);
             if (root == null || !logger.getErrorMessages().isEmpty())
                 throw new IOException("Failed to read procedure " + name + ": " + logger.getErrorsAsString());
             BaseStoredProcedure procedure = new BaseStoredProcedure(root, repository.getStore(), logger);
@@ -796,7 +797,7 @@ public class ControllerDatabase implements Closeable {
      */
     public Result executeStoredProcedure(String iri, String contextDefinition, boolean isReadonly) throws IOException, IllegalArgumentException {
         BufferedLogger bufferedLogger = new BufferedLogger();
-        ASTNode root = JsonLoader.parseJson(bufferedLogger, contextDefinition);
+        ASTNode root = Json.parse(bufferedLogger, contextDefinition);
         if (!bufferedLogger.getErrorMessages().isEmpty())
             throw new IllegalArgumentException(bufferedLogger.getErrorsAsString());
         BaseStoredProcedureContext context = new BaseStoredProcedureContext(root, repository);

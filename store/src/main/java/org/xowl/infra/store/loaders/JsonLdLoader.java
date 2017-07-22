@@ -18,20 +18,20 @@
 package org.xowl.infra.store.loaders;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import fr.cenotelie.hime.redist.ParseError;
 import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.TextContext;
+import org.xowl.infra.jsonrpc.Json;
+import org.xowl.infra.jsonrpc.JsonLexer;
+import org.xowl.infra.jsonrpc.JsonParser;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
-import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 
@@ -197,24 +197,7 @@ public class JsonLdLoader implements Loader {
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
-        ParseResult result;
-        try {
-            String content = IOUtils.read(reader);
-            JsonLexer lexer = new JsonLexer(content);
-            JsonParser parser = new JsonParser(lexer);
-            parser.setModeRecoverErrors(false);
-            result = parser.parse();
-        } catch (IOException ex) {
-            logger.error(ex);
-            return null;
-        }
-        for (ParseError error : result.getErrors()) {
-            logger.error(error);
-            TextContext context = result.getInput().getContext(error.getPosition(), error.getLength());
-            logger.error(context.getContent());
-            logger.error(context.getPointer());
-        }
-        return result;
+        return Json.doParse(logger, reader);
     }
 
     @Override

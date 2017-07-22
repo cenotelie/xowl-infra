@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.jsonrpc.Json;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
@@ -161,7 +162,7 @@ public class ResultUtils {
     private static Result parseResponseJSON(String content) {
         Repository repository = null;
         BufferedLogger bufferedLogger = new BufferedLogger();
-        ASTNode nodeRoot = JsonLoader.parseJson(bufferedLogger, content);
+        ASTNode nodeRoot = Json.parse(bufferedLogger, content);
         if (nodeRoot == null)
             return new ResultFailure(bufferedLogger.getErrorsAsString());
         if ("array".equals(nodeRoot.getSymbol().getName()))
