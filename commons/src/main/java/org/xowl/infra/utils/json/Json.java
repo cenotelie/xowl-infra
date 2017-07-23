@@ -37,10 +37,6 @@ import java.util.Collection;
  * @author Laurent Wouters
  */
 public class Json {
-
-
-
-
     /**
      * Parses the JSON content
      *
