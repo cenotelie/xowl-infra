@@ -98,7 +98,7 @@ public class ReplyUtils {
     /**
      * Translates an HTTP response to an reply
      *
-     * @param response The response
+     * @param response     The response
      * @param deserializer the deserializer to use
      * @return The reply
      */
@@ -164,7 +164,7 @@ public class ReplyUtils {
     /**
      * Translates an HTTP response to an reply when the content type is JSON
      *
-     * @param response The response
+     * @param response     The response
      * @param deserializer The deserializer to use
      * @return The reply
      */
@@ -211,7 +211,7 @@ public class ReplyUtils {
     /**
      * Parses a reply serialized in JSON
      *
-     * @param content The content
+     * @param content      The content
      * @param deserializer The deserializer to use
      * @return The result
      */
@@ -228,7 +228,7 @@ public class ReplyUtils {
     /**
      * Parses a result serialized in JSON
      *
-     * @param root    The content
+     * @param root         The content
      * @param deserializer The deserializer to use
      * @return The result
      */

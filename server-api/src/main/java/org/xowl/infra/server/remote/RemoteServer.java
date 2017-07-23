@@ -17,12 +17,8 @@
 
 package org.xowl.infra.server.remote;
 
-import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
-import org.xowl.infra.server.base.BaseDatabasePrivileges;
-import org.xowl.infra.server.base.BaseRule;
 import org.xowl.infra.server.base.BaseStoredProcedure;
-import org.xowl.infra.server.base.BaseUserPrivileges;
 import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.Repository;
@@ -52,7 +48,11 @@ import java.util.zip.GZIPOutputStream;
  *
  * @author Laurent Wouters
  */
-public class RemoteServer implements XOWLServer, ApiFactory {
+public class RemoteServer implements XOWLServer {
+    /**
+     * The deserializer to use
+     */
+    private final ApiDeserializer deserializer;
     /**
      * The connection to the remote host, if any
      */
@@ -82,6 +82,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         } else if (result.endsWith("/")) {
             result = result.substring(0, result.length() - 1) + ApiV1.URI_PREFIX;
         }
+        this.deserializer = new ApiDeserializer(new RemoteFactory(this));
         this.connection = new HttpConnection(result);
         this.currentUser = null;
         this.currentLogin = null;
@@ -107,7 +108,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_TEXT_PLAIN
         );
-        Reply reply = XSPReplyUtils.fromHttpResponse(response, this);
+        Reply reply = XSPReplyUtils.fromHttpResponse(response, deserializer);
         if (reply.isSuccess()) {
             currentUser = new RemoteUser(this, login);
             currentLogin = login;
@@ -128,7 +129,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN
         );
-        Reply reply = XSPReplyUtils.fromHttpResponse(response, this);
+        Reply reply = XSPReplyUtils.fromHttpResponse(response, deserializer);
         currentUser = null;
         currentLogin = null;
         currentPassword = null;
@@ -144,7 +145,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/shutdown",
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_TEXT_PLAIN), this);
+                HttpConstants.MIME_TEXT_PLAIN), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -157,7 +158,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/shutdown",
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_TEXT_PLAIN), this);
+                HttpConstants.MIME_TEXT_PLAIN), deserializer);
     }
 
     @Override
@@ -169,7 +170,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/restart",
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_TEXT_PLAIN), this);
+                HttpConstants.MIME_TEXT_PLAIN), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -182,7 +183,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/restart",
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_TEXT_PLAIN), this);
+                HttpConstants.MIME_TEXT_PLAIN), deserializer);
     }
 
     @Override
@@ -199,7 +200,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/grantAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -212,7 +213,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/grantAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     @Override
@@ -229,7 +230,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/revokeAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -242,7 +243,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/revokeAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     @Override
@@ -254,7 +255,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -267,7 +268,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     @Override
@@ -279,7 +280,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -292,7 +293,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
 
@@ -305,7 +306,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -318,7 +319,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     @Override
@@ -335,7 +336,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_DELETE,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -348,7 +349,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_DELETE,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     @Override
@@ -360,7 +361,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -373,7 +374,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     @Override
@@ -385,7 +386,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -398,7 +399,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     @Override
@@ -412,7 +413,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_GET,
                 password,
                 HttpConstants.MIME_TEXT_PLAIN,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -427,7 +428,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_GET,
                 password,
                 HttpConstants.MIME_TEXT_PLAIN,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -444,7 +445,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/metric",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -457,7 +458,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/metric",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -474,7 +475,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/statistics",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -487,7 +488,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/statistics",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -513,7 +514,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 sparql,
                 Command.MIME_SPARQL_QUERY,
-                Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
+                Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -528,7 +529,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 sparql,
                 Command.MIME_SPARQL_QUERY,
-                Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
+                Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), deserializer);
     }
 
     /**
@@ -545,7 +546,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -558,7 +559,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -578,7 +579,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 regime.toString(),
                 HttpConstants.MIME_TEXT_PLAIN,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -593,7 +594,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 regime.toString(),
                 HttpConstants.MIME_TEXT_PLAIN,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -610,7 +611,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -623,7 +624,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -645,7 +646,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -660,7 +661,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -682,7 +683,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -697,7 +698,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -714,7 +715,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -727,7 +728,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -745,7 +746,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -758,7 +759,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -779,7 +780,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_PUT,
                 content,
                 Repository.SYNTAX_XRDF,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -794,7 +795,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_PUT,
                 content,
                 Repository.SYNTAX_XRDF,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -812,7 +813,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
                 HttpConstants.METHOD_DELETE,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -825,7 +826,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
                 HttpConstants.METHOD_DELETE,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -843,7 +844,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -856,7 +857,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -874,7 +875,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -887,7 +888,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
                 HttpConstants.METHOD_POST,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -905,7 +906,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -918,7 +919,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -935,7 +936,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -948,7 +949,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -966,7 +967,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -979,7 +980,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -1002,7 +1003,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_PUT,
                 procedure.serializedJSON(),
                 HttpConstants.MIME_JSON,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -1017,7 +1018,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_PUT,
                 procedure.serializedJSON(),
                 HttpConstants.MIME_JSON,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -1035,7 +1036,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_DELETE,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -1048,7 +1049,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_DELETE,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -1069,7 +1070,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 context.serializedJSON(),
                 HttpConstants.MIME_JSON,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -1084,7 +1085,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 context.serializedJSON(),
                 HttpConstants.MIME_JSON,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -1117,7 +1118,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 input,
                 syntax,
                 true,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -1133,7 +1134,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 input,
                 syntax,
                 true,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -1169,7 +1170,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(toDelete),
                 HttpConstants.METHOD_DELETE,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -1182,7 +1183,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(toDelete),
                 HttpConstants.METHOD_DELETE,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -1202,7 +1203,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 password,
                 HttpConstants.MIME_TEXT_PLAIN,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -1217,7 +1218,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
                 HttpConstants.METHOD_POST,
                 password,
                 HttpConstants.MIME_TEXT_PLAIN,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     /**
@@ -1234,7 +1235,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/privileges",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
+                HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
@@ -1247,23 +1248,7 @@ public class RemoteServer implements XOWLServer, ApiFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/privileges",
                 HttpConstants.METHOD_GET,
-                HttpConstants.MIME_JSON), this);
-    }
-
-    @Override
-    public Object newObject(String type, ASTNode definition) {
-        if (XOWLDatabase.class.getCanonicalName().equals(type)) {
-            return new RemoteDatabase(this, definition);
-        } else if (XOWLDatabasePrivileges.class.getCanonicalName().equals(type)) {
-            return new BaseDatabasePrivileges(definition);
-        } else if (XOWLRule.class.getCanonicalName().equals(type)) {
-            return new BaseRule(definition);
-        } else if (XOWLUser.class.getCanonicalName().equals(type)) {
-            return new RemoteUser(this, definition);
-        } else if (XOWLUserPrivileges.class.getCanonicalName().equals(type)) {
-            return new BaseUserPrivileges(definition);
-        }
-        return null;
+                HttpConstants.MIME_JSON), deserializer);
     }
 
     @Override

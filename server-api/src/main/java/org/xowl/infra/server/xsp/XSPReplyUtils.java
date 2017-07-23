@@ -4,12 +4,12 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- *  
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
@@ -69,11 +69,11 @@ public class XSPReplyUtils {
     /**
      * Translates an HTTP response to an XSP reply
      *
-     * @param response The response
-     * @param factory  The factory to use
+     * @param response     The response
+     * @param deserializer The deserializer to use
      * @return The XSP reply
      */
-    public static Reply fromHttpResponse(HttpResponse response, ApiFactory factory) {
+    public static Reply fromHttpResponse(HttpResponse response, ApiDeserializer deserializer) {
         // XSP replies mapped to HTTP error codes
         if (response == null)
             return ReplyNetworkError.instance();
@@ -125,7 +125,7 @@ public class XSPReplyUtils {
                 case Result.SYNTAX_XML:
                     return fromHttpResponseSPARQL(response);
                 case HttpConstants.MIME_JSON:
-                    return ReplyUtils.fromHttpResponseJSON(response, factory);
+                    return ReplyUtils.fromHttpResponseJSON(response, deserializer);
                 case HttpConstants.MIME_OCTET_STREAM:
                     return ReplyUtils.fromHttpResponseBinary(response);
                 default:
