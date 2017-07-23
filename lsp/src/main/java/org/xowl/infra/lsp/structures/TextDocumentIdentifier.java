@@ -22,19 +22,15 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Represents a location inside a resource, such as a line inside a text file.
+ * Text documents are identified using a URI. On the protocol level, URIs are passed as strings.
  *
  * @author Laurent Wouters
  */
-public class Location implements Serializable {
+public class TextDocumentIdentifier implements Serializable {
     /**
      * The document's URI
      */
     private final String uri;
-    /**
-     * The range in the document
-     */
-    private final Range range;
 
     /**
      * Gets the document's URI
@@ -46,23 +42,12 @@ public class Location implements Serializable {
     }
 
     /**
-     * Gets the range in the document
-     *
-     * @return The range in the document
-     */
-    public Range getRange() {
-        return range;
-    }
-
-    /**
      * Initializes this structure
      *
-     * @param uri   The document's URI
-     * @param range The range in the document
+     * @param uri The document's URI
      */
-    public Location(String uri, Range range) {
+    public TextDocumentIdentifier(String uri) {
         this.uri = uri;
-        this.range = range;
     }
 
     /**
@@ -70,9 +55,8 @@ public class Location implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public Location(ASTNode definition) {
+    public TextDocumentIdentifier(ASTNode definition) {
         String uri = "";
-        Range range = null;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
@@ -84,14 +68,9 @@ public class Location implements Serializable {
                     uri = uri.substring(1, uri.length() - 1);
                     break;
                 }
-                case "range": {
-                    range = new Range(nodeValue);
-                    break;
-                }
             }
         }
         this.uri = uri;
-        this.range = range != null ? range : new Range(new Position(0, 0), new Position(0, 0));
     }
 
     @Override
@@ -103,8 +82,6 @@ public class Location implements Serializable {
     public String serializedJSON() {
         return "{\"uri\": \"" +
                 TextUtils.escapeStringJSON(uri) +
-                "\", \"range\": " +
-                range.serializedJSON() +
-                "}";
+                "\"}";
     }
 }

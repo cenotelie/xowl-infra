@@ -22,47 +22,32 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Represents a location inside a resource, such as a line inside a text file.
+ * An identifier to denote a specific version of a text document.
  *
  * @author Laurent Wouters
  */
-public class Location implements Serializable {
+public class VersionedTextDocumentIdentifier implements Serializable {
     /**
-     * The document's URI
+     * The version number of this document.
      */
-    private final String uri;
-    /**
-     * The range in the document
-     */
-    private final Range range;
+    private final int version;
 
     /**
-     * Gets the document's URI
+     * Gets the version number of this document
      *
-     * @return The document's URI
+     * @return The version number of this document
      */
-    public String getUri() {
-        return uri;
-    }
-
-    /**
-     * Gets the range in the document
-     *
-     * @return The range in the document
-     */
-    public Range getRange() {
-        return range;
+    public int getVersion() {
+        return version;
     }
 
     /**
      * Initializes this structure
      *
-     * @param uri   The document's URI
-     * @param range The range in the document
+     * @param version The version number of this document
      */
-    public Location(String uri, Range range) {
-        this.uri = uri;
-        this.range = range;
+    public VersionedTextDocumentIdentifier(int version) {
+        this.version = version;
     }
 
     /**
@@ -70,28 +55,21 @@ public class Location implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public Location(ASTNode definition) {
-        String uri = "";
-        Range range = null;
+    public VersionedTextDocumentIdentifier(ASTNode definition) {
+        int version = 0;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "uri": {
-                    uri = TextUtils.unescape(nodeValue.getValue());
-                    uri = uri.substring(1, uri.length() - 1);
-                    break;
-                }
-                case "range": {
-                    range = new Range(nodeValue);
+                case "version": {
+                    version = Integer.parseInt(nodeValue.getValue());
                     break;
                 }
             }
         }
-        this.uri = uri;
-        this.range = range != null ? range : new Range(new Position(0, 0), new Position(0, 0));
+        this.version = version;
     }
 
     @Override
@@ -101,10 +79,8 @@ public class Location implements Serializable {
 
     @Override
     public String serializedJSON() {
-        return "{\"uri\": \"" +
-                TextUtils.escapeStringJSON(uri) +
-                "\", \"range\": " +
-                range.serializedJSON() +
+        return "{\"version\": " +
+                Integer.toString(version) +
                 "}";
     }
 }

@@ -22,47 +22,47 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Represents a location inside a resource, such as a line inside a text file.
+ * A parameter literal used in requests to pass a text document and a position inside that document.
  *
  * @author Laurent Wouters
  */
-public class Location implements Serializable {
+public class TextDocumentPositionParams implements Serializable {
     /**
-     * The document's URI
+     * The text document.
      */
-    private final String uri;
+    private final TextDocumentIdentifier textDocument;
     /**
-     * The range in the document
+     * The position inside the text document.
      */
-    private final Range range;
+    private final Position position;
 
     /**
-     * Gets the document's URI
+     * Gets the text document
      *
-     * @return The document's URI
+     * @return The text document
      */
-    public String getUri() {
-        return uri;
+    public TextDocumentIdentifier getTextDocument() {
+        return textDocument;
     }
 
     /**
-     * Gets the range in the document
+     * Gets the position inside the text document.
      *
-     * @return The range in the document
+     * @return The position inside the text document.
      */
-    public Range getRange() {
-        return range;
+    public Position getPosition() {
+        return position;
     }
 
     /**
      * Initializes this structure
      *
-     * @param uri   The document's URI
-     * @param range The range in the document
+     * @param textDocument The text document
+     * @param position     The position inside the text document.
      */
-    public Location(String uri, Range range) {
-        this.uri = uri;
-        this.range = range;
+    public TextDocumentPositionParams(TextDocumentIdentifier textDocument, Position position) {
+        this.textDocument = textDocument;
+        this.position = position;
     }
 
     /**
@@ -70,28 +70,27 @@ public class Location implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public Location(ASTNode definition) {
-        String uri = "";
-        Range range = null;
+    public TextDocumentPositionParams(ASTNode definition) {
+        TextDocumentIdentifier textDocument = null;
+        Position position = null;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "uri": {
-                    uri = TextUtils.unescape(nodeValue.getValue());
-                    uri = uri.substring(1, uri.length() - 1);
+                case "textDocument": {
+                    textDocument = new TextDocumentIdentifier(nodeValue);
                     break;
                 }
-                case "range": {
-                    range = new Range(nodeValue);
+                case "position": {
+                    position = new Position(nodeValue);
                     break;
                 }
             }
         }
-        this.uri = uri;
-        this.range = range != null ? range : new Range(new Position(0, 0), new Position(0, 0));
+        this.textDocument = textDocument != null ? textDocument : new TextDocumentIdentifier("");
+        this.position = position != null ? position : new Position(0, 0);
     }
 
     @Override
@@ -101,10 +100,10 @@ public class Location implements Serializable {
 
     @Override
     public String serializedJSON() {
-        return "{\"uri\": \"" +
-                TextUtils.escapeStringJSON(uri) +
-                "\", \"range\": " +
-                range.serializedJSON() +
+        return "{\"textDocument\": " +
+                textDocument.serializedJSON() +
+                ", \"position\": " +
+                position.serializedJSON() +
                 "}";
     }
 }

@@ -22,47 +22,50 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Represents a location inside a resource, such as a line inside a text file.
+ * A textual edit applicable to a text document.
  *
  * @author Laurent Wouters
  */
-public class Location implements Serializable {
+public class TextEdit implements Serializable {
+
     /**
-     * The document's URI
-     */
-    private final String uri;
-    /**
-     * The range in the document
+     * The range of the text document to be manipulated.
+     * To insert text into a document create a range where start === end.
      */
     private final Range range;
 
     /**
-     * Gets the document's URI
-     *
-     * @return The document's URI
+     * The string to be inserted. For delete operations use an empty string.
      */
-    public String getUri() {
-        return uri;
-    }
+    private final String newText;
 
     /**
-     * Gets the range in the document
+     * Gets the range of the text document to be manipulated.
      *
-     * @return The range in the document
+     * @return The range of the text document to be manipulated.
      */
     public Range getRange() {
         return range;
     }
 
     /**
+     * Gets the string to be inserted.
+     *
+     * @return The string to be inserted.
+     */
+    public String getNewText() {
+        return newText;
+    }
+
+    /**
      * Initializes this structure
      *
-     * @param uri   The document's URI
-     * @param range The range in the document
+     * @param range   The range of the text document to be manipulated.
+     * @param newText The string to be inserted.
      */
-    public Location(String uri, Range range) {
-        this.uri = uri;
+    public TextEdit(Range range, String newText) {
         this.range = range;
+        this.newText = newText;
     }
 
     /**
@@ -70,27 +73,27 @@ public class Location implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public Location(ASTNode definition) {
-        String uri = "";
+    public TextEdit(ASTNode definition) {
         Range range = null;
+        String newText = "";
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "uri": {
-                    uri = TextUtils.unescape(nodeValue.getValue());
-                    uri = uri.substring(1, uri.length() - 1);
+                case "newText": {
+                    newText = TextUtils.unescape(nodeValue.getValue());
+                    newText = newText.substring(1, newText.length() - 1);
                     break;
                 }
-                case "range": {
+                case "character": {
                     range = new Range(nodeValue);
                     break;
                 }
             }
         }
-        this.uri = uri;
+        this.newText = newText;
         this.range = range != null ? range : new Range(new Position(0, 0), new Position(0, 0));
     }
 
@@ -101,10 +104,10 @@ public class Location implements Serializable {
 
     @Override
     public String serializedJSON() {
-        return "{\"uri\": \"" +
-                TextUtils.escapeStringJSON(uri) +
-                "\", \"range\": " +
+        return "{\"range\": " +
                 range.serializedJSON() +
-                "}";
+                ", \"newText\": \"" +
+                TextUtils.escapeStringJSON(newText) +
+                "\"}";
     }
 }
