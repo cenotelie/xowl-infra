@@ -17,9 +17,9 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
+import org.xowl.infra.utils.api.Reply;
 
 /**
  * Represents a user on this server
@@ -33,12 +33,12 @@ public interface XOWLUser extends Identifiable, Serializable {
      * @param password The new password
      * @return The protocol reply
      */
-    XSPReply updatePassword(String password);
+    Reply updatePassword(String password);
 
     /**
      * Gets the privileges assigned to a user
      *
      * @return The protocol reply
      */
-    XSPReply getPrivileges();
+    Reply getPrivileges();
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,18 +15,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a successful reply to a xOWL server request with an object of type T as a response
+ * Implements a successful reply to a request with an object of type T as a response
  *
  * @param <T> The type of return data
  * @author Laurent Wouters
  */
-public class XSPReplyResult<T> implements XSPReply {
+public class ReplyResult<T> implements Reply {
     /**
      * The payload
      */
@@ -46,7 +46,7 @@ public class XSPReplyResult<T> implements XSPReply {
      *
      * @param data The payload
      */
-    public XSPReplyResult(T data) {
+    public ReplyResult(T data) {
         this.data = data;
     }
 
@@ -69,9 +69,9 @@ public class XSPReplyResult<T> implements XSPReply {
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\"type\": \"");
-        builder.append(TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()));
+        builder.append(TextUtils.escapeStringJSON(Reply.class.getCanonicalName()));
         builder.append("\", \"kind\": \"");
-        builder.append(TextUtils.escapeStringJSON(XSPReplyResult.class.getSimpleName()));
+        builder.append(TextUtils.escapeStringJSON(ReplyResult.class.getSimpleName()));
         builder.append("\", \"isSuccess\": true, \"message\": \"\", \"payload\": ");
         if (data == null)
             builder.append("\"\"");

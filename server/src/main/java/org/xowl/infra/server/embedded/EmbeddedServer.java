@@ -22,9 +22,9 @@ import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.*;
-import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplySuccess;
-import org.xowl.infra.server.xsp.XSPReplyUnsupported;
+import org.xowl.infra.utils.api.Reply;
+import org.xowl.infra.utils.api.ReplySuccess;
+import org.xowl.infra.utils.api.ReplyUnsupported;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Closeable;
@@ -84,95 +84,95 @@ public class EmbeddedServer implements XOWLServer, Closeable {
     }
 
     @Override
-    public XSPReply login(String login, String password) {
-        XSPReply reply = controller.login(InetAddress.getLoopbackAddress(), login, password);
+    public Reply login(String login, String password) {
+        Reply reply = controller.login(InetAddress.getLoopbackAddress(), login, password);
         if (reply.isSuccess())
-            return XSPReplySuccess.instance();
+            return ReplySuccess.instance();
         return reply;
     }
 
     @Override
-    public XSPReply logout() {
-        return XSPReplyUnsupported.instance();
+    public Reply logout() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply serverShutdown() {
-        return XSPReplyUnsupported.instance();
+    public Reply serverShutdown() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply serverRestart() {
-        return XSPReplyUnsupported.instance();
+    public Reply serverRestart() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getUser(String login) {
+    public Reply getUser(String login) {
         return controller.getUser(admin, login);
     }
 
     @Override
-    public XSPReply getUsers() {
+    public Reply getUsers() {
         return controller.getUsers(admin);
     }
 
     @Override
-    public XSPReply createUser(String login, String password) {
+    public Reply createUser(String login, String password) {
         return controller.createUser(admin, login, password);
     }
 
     @Override
-    public XSPReply deleteUser(XOWLUser toDelete) {
+    public Reply deleteUser(XOWLUser toDelete) {
         return controller.deleteUser(admin, toDelete.getIdentifier());
     }
 
     @Override
-    public XSPReply deleteUser(String toDelete) {
+    public Reply deleteUser(String toDelete) {
         return controller.deleteUser(admin, toDelete);
     }
 
     @Override
-    public XSPReply serverGrantAdmin(XOWLUser target) {
+    public Reply serverGrantAdmin(XOWLUser target) {
         return controller.serverGrantAdmin(admin, target.getIdentifier());
     }
 
     @Override
-    public XSPReply serverGrantAdmin(String target) {
+    public Reply serverGrantAdmin(String target) {
         return controller.serverGrantAdmin(admin, target);
     }
 
     @Override
-    public XSPReply serverRevokeAdmin(XOWLUser target) {
+    public Reply serverRevokeAdmin(XOWLUser target) {
         return controller.serverRevokeAdmin(admin, target.getIdentifier());
     }
 
     @Override
-    public XSPReply serverRevokeAdmin(String target) {
+    public Reply serverRevokeAdmin(String target) {
         return controller.serverRevokeAdmin(admin, target);
     }
 
     @Override
-    public XSPReply getDatabase(String identifier) {
+    public Reply getDatabase(String identifier) {
         return controller.getDatabase(admin, identifier);
     }
 
     @Override
-    public XSPReply getDatabases() {
+    public Reply getDatabases() {
         return controller.getDatabases(admin);
     }
 
     @Override
-    public XSPReply createDatabase(String identifier) {
+    public Reply createDatabase(String identifier) {
         return controller.createDatabase(admin, identifier);
     }
 
     @Override
-    public XSPReply dropDatabase(XOWLDatabase database) {
+    public Reply dropDatabase(XOWLDatabase database) {
         return controller.dropDatabase(admin, database.getIdentifier());
     }
 
     @Override
-    public XSPReply dropDatabase(String database) {
+    public Reply dropDatabase(String database) {
         return controller.dropDatabase(admin, database);
     }
 

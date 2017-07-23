@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.json.Json;
@@ -24,12 +24,12 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Implements a successful reply to a xOWL server request with a collection of objects of type T as a response
+ * Implements a successful reply to a request with a collection of objects of type T as a response
  *
  * @param <T> The type of return data
  * @author Laurent Wouters
  */
-public class XSPReplyResultCollection<T> implements XSPReply {
+public class ReplyResultCollection<T> implements Reply {
     /**
      * The payload
      */
@@ -49,7 +49,7 @@ public class XSPReplyResultCollection<T> implements XSPReply {
      *
      * @param data The payload
      */
-    public XSPReplyResultCollection(Collection<T> data) {
+    public ReplyResultCollection(Collection<T> data) {
         this.data = Collections.unmodifiableCollection(data);
     }
 
@@ -81,9 +81,9 @@ public class XSPReplyResultCollection<T> implements XSPReply {
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\"type\": \"");
-        builder.append(TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()));
+        builder.append(TextUtils.escapeStringJSON(Reply.class.getCanonicalName()));
         builder.append("\", \"kind\": \"");
-        builder.append(TextUtils.escapeStringJSON(XSPReplyResultCollection.class.getSimpleName()));
+        builder.append(TextUtils.escapeStringJSON(ReplyResultCollection.class.getSimpleName()));
         builder.append("\", \"isSuccess\": true, \"message\": \"\", \"payload\": [");
         boolean first = true;
         for (T obj : data) {

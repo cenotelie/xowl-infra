@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,29 +15,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when a network error occurred (for any reason)
+ * Implements a reply to a request when a network error occurred (for any reason)
  *
  * @author Laurent Wouters
  */
-public class XSPReplyNetworkError implements XSPReply {
+public class ReplyNetworkError implements Reply {
     /**
      * The singleton instance
      */
-    private static XSPReplyNetworkError INSTANCE = null;
+    private static ReplyNetworkError INSTANCE = null;
 
     /**
      * Gets the singleton instance
      *
      * @return The singleton instance
      */
-    public synchronized static XSPReplyNetworkError instance() {
+    public synchronized static ReplyNetworkError instance() {
         if (INSTANCE == null)
-            INSTANCE = new XSPReplyNetworkError("Connection failure");
+            INSTANCE = new ReplyNetworkError("Connection failure");
         return INSTANCE;
     }
 
@@ -51,7 +51,7 @@ public class XSPReplyNetworkError implements XSPReply {
      *
      * @param message The message associated to the failure
      */
-    public XSPReplyNetworkError(String message) {
+    public ReplyNetworkError(String message) {
         this.message = message;
     }
 
@@ -73,9 +73,9 @@ public class XSPReplyNetworkError implements XSPReply {
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(Reply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyNetworkError.class.getSimpleName()) +
+                TextUtils.escapeStringJSON(ReplyNetworkError.class.getSimpleName()) +
                 "\", \"isSuccess\": false," +
                 "\"message\": \"" + TextUtils.escapeStringJSON(message != null ? message : "Connection failure") + "\"}";
     }

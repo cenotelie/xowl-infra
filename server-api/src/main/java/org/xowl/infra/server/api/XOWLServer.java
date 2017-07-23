@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.utils.api.Reply;
 
 import java.io.Closeable;
 
@@ -48,28 +48,28 @@ public interface XOWLServer extends Closeable {
      * @param password The user password
      * @return The protocol reply, or null if the client is banned
      */
-    XSPReply login(String login, String password);
+    Reply login(String login, String password);
 
     /**
      * Logout the current user
      *
      * @return The protocol reply
      */
-    XSPReply logout();
+    Reply logout();
 
     /**
      * Requests the shutdown of the server
      *
      * @return The protocol reply
      */
-    XSPReply serverShutdown();
+    Reply serverShutdown();
 
     /**
      * Requests the restart of the server
      *
      * @return The protocol reply
      */
-    XSPReply serverRestart();
+    Reply serverRestart();
 
     /**
      * Grants server administrative privilege to a target user
@@ -77,7 +77,7 @@ public interface XOWLServer extends Closeable {
      * @param target The target user
      * @return The protocol reply
      */
-    XSPReply serverGrantAdmin(XOWLUser target);
+    Reply serverGrantAdmin(XOWLUser target);
 
     /**
      * Grants server administrative privilege to a target user
@@ -85,7 +85,7 @@ public interface XOWLServer extends Closeable {
      * @param target The target user
      * @return The protocol reply
      */
-    XSPReply serverGrantAdmin(String target);
+    Reply serverGrantAdmin(String target);
 
     /**
      * Revokes server administrative privilege to a target user
@@ -93,7 +93,7 @@ public interface XOWLServer extends Closeable {
      * @param target The target user
      * @return The protocol reply
      */
-    XSPReply serverRevokeAdmin(XOWLUser target);
+    Reply serverRevokeAdmin(XOWLUser target);
 
     /**
      * Revokes server administrative privilege to a target user
@@ -101,14 +101,14 @@ public interface XOWLServer extends Closeable {
      * @param target The target user
      * @return The protocol reply
      */
-    XSPReply serverRevokeAdmin(String target);
+    Reply serverRevokeAdmin(String target);
 
     /**
      * Gets the databases on this server
      *
      * @return The protocol reply
      */
-    XSPReply getDatabases();
+    Reply getDatabases();
 
     /**
      * Gets the database for the specified identifier
@@ -116,7 +116,7 @@ public interface XOWLServer extends Closeable {
      * @param identifier The identifier of a database
      * @return The protocol reply
      */
-    XSPReply getDatabase(String identifier);
+    Reply getDatabase(String identifier);
 
     /**
      * Creates a new database
@@ -124,7 +124,7 @@ public interface XOWLServer extends Closeable {
      * @param identifier The identifier of the database
      * @return The protocol reply
      */
-    XSPReply createDatabase(String identifier);
+    Reply createDatabase(String identifier);
 
     /**
      * Drops a database
@@ -132,7 +132,7 @@ public interface XOWLServer extends Closeable {
      * @param database The database to drop
      * @return The protocol reply
      */
-    XSPReply dropDatabase(XOWLDatabase database);
+    Reply dropDatabase(XOWLDatabase database);
 
     /**
      * Drops a database
@@ -140,14 +140,14 @@ public interface XOWLServer extends Closeable {
      * @param database The database to drop
      * @return The protocol reply
      */
-    XSPReply dropDatabase(String database);
+    Reply dropDatabase(String database);
 
     /**
      * Gets the users on this server
      *
      * @return The protocol reply
      */
-    XSPReply getUsers();
+    Reply getUsers();
 
     /**
      * Gets the user for the specified login
@@ -155,7 +155,7 @@ public interface XOWLServer extends Closeable {
      * @param login The user's login
      * @return The protocol reply
      */
-    XSPReply getUser(String login);
+    Reply getUser(String login);
 
     /**
      * Creates a new user for this server
@@ -164,7 +164,7 @@ public interface XOWLServer extends Closeable {
      * @param password The password
      * @return The protocol reply
      */
-    XSPReply createUser(String login, String password);
+    Reply createUser(String login, String password);
 
     /**
      * Deletes a user from this server
@@ -172,7 +172,7 @@ public interface XOWLServer extends Closeable {
      * @param toDelete The user to delete
      * @return The protocol reply
      */
-    XSPReply deleteUser(XOWLUser toDelete);
+    Reply deleteUser(XOWLUser toDelete);
 
     /**
      * Deletes a user from this server
@@ -180,5 +180,5 @@ public interface XOWLServer extends Closeable {
      * @param toDelete The user to delete
      * @return The protocol reply
      */
-    XSPReply deleteUser(String toDelete);
+    Reply deleteUser(String toDelete);
 }

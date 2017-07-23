@@ -17,12 +17,12 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.Serializable;
+import org.xowl.infra.utils.api.Reply;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,14 +38,14 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      *
      * @return The definition of the metrics for this database
      */
-    XSPReply getMetric();
+    Reply getMetric();
 
     /**
      * Gets a snapshot of the metrics for this database
      *
      * @return A snapshot of the metrics for this database
      */
-    XSPReply getMetricSnapshot();
+    Reply getMetricSnapshot();
 
     /**
      * Executes a SPARQL command
@@ -55,7 +55,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param namedIRIs   The context's named IRIs
      * @return The protocol reply
      */
-    XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs);
+    Reply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs);
 
     /**
      * Executes a SPARQL command
@@ -63,14 +63,14 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param sparql The SPARQL command(s)
      * @return The protocol reply
      */
-    XSPReply sparql(Command sparql);
+    Reply sparql(Command sparql);
 
     /**
      * Gets the entailment regime
      *
      * @return The protocol reply
      */
-    XSPReply getEntailmentRegime();
+    Reply getEntailmentRegime();
 
     /**
      * Sets the entailment regime
@@ -78,14 +78,14 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param regime The entailment regime
      * @return The protocol reply
      */
-    XSPReply setEntailmentRegime(EntailmentRegime regime);
+    Reply setEntailmentRegime(EntailmentRegime regime);
 
     /**
      * Gets the privileges assigned to users on a database
      *
      * @return The protocol reply
      */
-    XSPReply getPrivileges();
+    Reply getPrivileges();
 
     /**
      * Grants a privilege to a user on a database
@@ -94,7 +94,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param privilege The privilege to grant
      * @return The protocol reply
      */
-    XSPReply grant(XOWLUser user, int privilege);
+    Reply grant(XOWLUser user, int privilege);
 
     /**
      * Grants a privilege to a user on a database
@@ -103,7 +103,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param privilege The privilege to grant
      * @return The protocol reply
      */
-    XSPReply grant(String user, int privilege);
+    Reply grant(String user, int privilege);
 
     /**
      * Revokes a privilege from a user on a database
@@ -112,7 +112,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param privilege The privilege to revoke
      * @return The protocol reply
      */
-    XSPReply revoke(XOWLUser user, int privilege);
+    Reply revoke(XOWLUser user, int privilege);
 
     /**
      * Revokes a privilege from a user on a database
@@ -121,14 +121,14 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param privilege The privilege to revoke
      * @return The protocol reply
      */
-    XSPReply revoke(String user, int privilege);
+    Reply revoke(String user, int privilege);
 
     /**
      * Gets the rules in this database
      *
      * @return The protocol reply
      */
-    XSPReply getRules();
+    Reply getRules();
 
     /**
      * Gets the rule for the specified identifier
@@ -136,7 +136,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param ruleId The identifier (IRI) of a rule
      * @return The protocol reply
      */
-    XSPReply getRule(String ruleId);
+    Reply getRule(String ruleId);
 
     /**
      * Adds a new rule to this database
@@ -145,7 +145,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param activate Whether to readily activate the rule
      * @return The protocol reply
      */
-    XSPReply addRule(String content, boolean activate);
+    Reply addRule(String content, boolean activate);
 
     /**
      * Removes a rule from this database
@@ -153,7 +153,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param rule The rule to remove
      * @return The protocol reply
      */
-    XSPReply removeRule(XOWLRule rule);
+    Reply removeRule(XOWLRule rule);
 
     /**
      * Removes a rule from this database
@@ -161,7 +161,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param ruleId The identifier of the rule to remove
      * @return The protocol reply
      */
-    XSPReply removeRule(String ruleId);
+    Reply removeRule(String ruleId);
 
     /**
      * Activates an existing rule in this database
@@ -169,7 +169,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param rule The rule to activate
      * @return The protocol reply
      */
-    XSPReply activateRule(XOWLRule rule);
+    Reply activateRule(XOWLRule rule);
 
     /**
      * Activates an existing rule in this database
@@ -177,7 +177,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param ruleId The identifier of the rule to activate
      * @return The protocol reply
      */
-    XSPReply activateRule(String ruleId);
+    Reply activateRule(String ruleId);
 
     /**
      * Deactivates an existing rule in this database
@@ -185,7 +185,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param rule The rule to deactivate
      * @return The protocol reply
      */
-    XSPReply deactivateRule(XOWLRule rule);
+    Reply deactivateRule(XOWLRule rule);
 
     /**
      * Deactivates an existing rule in this database
@@ -193,7 +193,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param ruleId The identifier of the rule to deactivate
      * @return The protocol reply
      */
-    XSPReply deactivateRule(String ruleId);
+    Reply deactivateRule(String ruleId);
 
     /**
      * Gets the matching status of a rule in this database
@@ -201,7 +201,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param rule The rule to inquire
      * @return The protocol reply
      */
-    XSPReply getRuleStatus(XOWLRule rule);
+    Reply getRuleStatus(XOWLRule rule);
 
     /**
      * Gets the matching status of a rule in this database
@@ -209,14 +209,14 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param ruleId The identifier of the rule to inquire
      * @return The protocol reply
      */
-    XSPReply getRuleStatus(String ruleId);
+    Reply getRuleStatus(String ruleId);
 
     /**
      * Gets the stored procedures for this database
      *
      * @return The protocol reply
      */
-    XSPReply getStoredProcedures();
+    Reply getStoredProcedures();
 
     /**
      * Gets the stored procedure for the specified name (iri)
@@ -224,7 +224,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param iri The identifier (iri) of a stored procedure
      * @return The protocol reply
      */
-    XSPReply getStoreProcedure(String iri);
+    Reply getStoreProcedure(String iri);
 
     /**
      * Adds a stored procedure in the form of a SPARQL command
@@ -234,7 +234,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param parameters The names of the parameters for this procedure
      * @return The protocol reply
      */
-    XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters);
+    Reply addStoredProcedure(String iri, String sparql, Collection<String> parameters);
 
     /**
      * Remove a stored procedure
@@ -242,7 +242,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param procedure The procedure to remove
      * @return The protocol reply
      */
-    XSPReply removeStoredProcedure(XOWLStoredProcedure procedure);
+    Reply removeStoredProcedure(XOWLStoredProcedure procedure);
 
     /**
      * Remove a stored procedure
@@ -250,7 +250,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param procedureId The identifier procedure to remove
      * @return The protocol reply
      */
-    XSPReply removeStoredProcedure(String procedureId);
+    Reply removeStoredProcedure(String procedureId);
 
     /**
      * Executes a stored procedure
@@ -259,7 +259,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param context   The execution context to use
      * @return The protocol reply
      */
-    XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context);
+    Reply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context);
 
     /**
      * Executes a stored procedure
@@ -268,7 +268,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param context     The execution context to use
      * @return The protocol reply
      */
-    XSPReply executeStoredProcedure(String procedureId, XOWLStoredProcedureContext context);
+    Reply executeStoredProcedure(String procedureId, XOWLStoredProcedureContext context);
 
     /**
      * Uploads some content to this database
@@ -277,7 +277,7 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param content The content
      * @return The protocol reply
      */
-    XSPReply upload(String syntax, String content);
+    Reply upload(String syntax, String content);
 
     /**
      * Uploads quads to this database
@@ -285,5 +285,5 @@ public interface XOWLDatabase extends Identifiable, Serializable {
      * @param quads The quads to upload
      * @return The protocol reply
      */
-    XSPReply upload(Collection<Quad> quads);
+    Reply upload(Collection<Quad> quads);
 }

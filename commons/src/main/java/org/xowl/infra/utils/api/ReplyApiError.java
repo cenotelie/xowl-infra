@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,18 +15,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.utils.ApiError;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when the request failed with an API error
+ * Implements a reply to a request when the request failed with an API error
  *
  * @author Laurent Wouters
  */
-public class XSPReplyApiError implements XSPReply {
+public class ReplyApiError implements Reply {
     /**
      * The API error to report
      */
@@ -41,7 +40,7 @@ public class XSPReplyApiError implements XSPReply {
      *
      * @param error The API error to report
      */
-    public XSPReplyApiError(ApiError error) {
+    public ReplyApiError(ApiError error) {
         this.error = error;
         this.message = null;
     }
@@ -52,7 +51,7 @@ public class XSPReplyApiError implements XSPReply {
      * @param error   The API error to report
      * @param message The supplementary message for this error
      */
-    public XSPReplyApiError(ApiError error, String message) {
+    public ReplyApiError(ApiError error, String message) {
         this.error = error;
         this.message = message;
     }
@@ -93,9 +92,9 @@ public class XSPReplyApiError implements XSPReply {
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(Reply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyApiError.class.getSimpleName()) +
+                TextUtils.escapeStringJSON(ReplyApiError.class.getSimpleName()) +
                 "\", \"isSuccess\": false, \"message\": \"" +
                 TextUtils.escapeStringJSON(message != null ? message : "") +
                 "\", \"payload\": " + error.serializedJSON() + "}";

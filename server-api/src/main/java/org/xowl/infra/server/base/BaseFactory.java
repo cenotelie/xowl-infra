@@ -19,13 +19,14 @@ package org.xowl.infra.server.base;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
+import org.xowl.infra.utils.api.ApiFactory;
 
 /**
  * The factory for base objects
  *
  * @author Laurent Wouters
  */
-public class BaseFactory implements XOWLFactory {
+public class BaseFactory implements ApiFactory {
     @Override
     public Object newObject(String type, ASTNode definition) {
         if (XOWLDatabase.class.getCanonicalName().equals(type)) {

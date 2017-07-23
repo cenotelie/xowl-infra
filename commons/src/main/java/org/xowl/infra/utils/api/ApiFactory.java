@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,16 +15,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.api;
+package org.xowl.infra.utils.api;
 
 import fr.cenotelie.hime.redist.ASTNode;
 
 /**
- * Represents a factory of xOWL Server API objects
+ * Represents a factory of serialized API objects
  *
  * @author Laurent Wouters
  */
-public interface XOWLFactory {
+public interface ApiFactory {
     /**
      * Creates a new object
      *

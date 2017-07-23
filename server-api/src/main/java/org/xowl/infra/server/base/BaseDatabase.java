@@ -19,12 +19,12 @@ package org.xowl.infra.server.base;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
-import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.api.Reply;
+import org.xowl.infra.utils.api.ReplyUnsupported;
 
 import java.util.Collection;
 import java.util.List;
@@ -80,158 +80,158 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply getMetric() {
-        return XSPReplyUnsupported.instance();
+    public Reply getMetric() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getMetricSnapshot() {
-        return XSPReplyUnsupported.instance();
+    public Reply getMetricSnapshot() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
-        return XSPReplyUnsupported.instance();
+    public Reply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply sparql(Command sparql) {
-        return XSPReplyUnsupported.instance();
+    public Reply sparql(Command sparql) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getEntailmentRegime() {
-        return XSPReplyUnsupported.instance();
+    public Reply getEntailmentRegime() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply setEntailmentRegime(EntailmentRegime regime) {
-        return XSPReplyUnsupported.instance();
+    public Reply setEntailmentRegime(EntailmentRegime regime) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getPrivileges() {
-        return XSPReplyUnsupported.instance();
+    public Reply getPrivileges() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply grant(XOWLUser user, int privilege) {
-        return XSPReplyUnsupported.instance();
+    public Reply grant(XOWLUser user, int privilege) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply grant(String user, int privilege) {
-        return XSPReplyUnsupported.instance();
+    public Reply grant(String user, int privilege) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply revoke(XOWLUser user, int privilege) {
-        return XSPReplyUnsupported.instance();
+    public Reply revoke(XOWLUser user, int privilege) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply revoke(String user, int privilege) {
-        return XSPReplyUnsupported.instance();
+    public Reply revoke(String user, int privilege) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getRules() {
-        return XSPReplyUnsupported.instance();
+    public Reply getRules() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getRule(String ruleId) {
-        return XSPReplyUnsupported.instance();
+    public Reply getRule(String ruleId) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply addRule(String content, boolean activate) {
-        return XSPReplyUnsupported.instance();
+    public Reply addRule(String content, boolean activate) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply removeRule(XOWLRule rule) {
-        return XSPReplyUnsupported.instance();
+    public Reply removeRule(XOWLRule rule) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply removeRule(String ruleId) {
-        return XSPReplyUnsupported.instance();
+    public Reply removeRule(String ruleId) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply activateRule(XOWLRule rule) {
-        return XSPReplyUnsupported.instance();
+    public Reply activateRule(XOWLRule rule) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply activateRule(String ruleId) {
-        return XSPReplyUnsupported.instance();
+    public Reply activateRule(String ruleId) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply deactivateRule(XOWLRule rule) {
-        return XSPReplyUnsupported.instance();
+    public Reply deactivateRule(XOWLRule rule) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply deactivateRule(String ruleId) {
-        return XSPReplyUnsupported.instance();
+    public Reply deactivateRule(String ruleId) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getRuleStatus(XOWLRule rule) {
-        return XSPReplyUnsupported.instance();
+    public Reply getRuleStatus(XOWLRule rule) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getRuleStatus(String ruleId) {
-        return XSPReplyUnsupported.instance();
+    public Reply getRuleStatus(String ruleId) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getStoredProcedures() {
-        return XSPReplyUnsupported.instance();
+    public Reply getStoredProcedures() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getStoreProcedure(String iri) {
-        return XSPReplyUnsupported.instance();
+    public Reply getStoreProcedure(String iri) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
-        return XSPReplyUnsupported.instance();
+    public Reply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
-        return XSPReplyUnsupported.instance();
+    public Reply removeStoredProcedure(XOWLStoredProcedure procedure) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply removeStoredProcedure(String procedureId) {
-        return XSPReplyUnsupported.instance();
+    public Reply removeStoredProcedure(String procedureId) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
-        return XSPReplyUnsupported.instance();
+    public Reply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply executeStoredProcedure(String procedureId, XOWLStoredProcedureContext context) {
-        return XSPReplyUnsupported.instance();
+    public Reply executeStoredProcedure(String procedureId, XOWLStoredProcedureContext context) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply upload(String syntax, String content) {
-        return XSPReplyUnsupported.instance();
+    public Reply upload(String syntax, String content) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply upload(Collection<Quad> quads) {
-        return XSPReplyUnsupported.instance();
+    public Reply upload(Collection<Quad> quads) {
+        return ReplyUnsupported.instance();
     }
 
     @Override

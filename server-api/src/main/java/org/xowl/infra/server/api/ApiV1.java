@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.infra.utils.ApiError;
+import org.xowl.infra.utils.api.ApiError;
 
 /**
  * Constants for the xOWL Triple Store Server API, version 1

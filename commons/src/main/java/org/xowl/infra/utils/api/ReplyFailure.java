@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,42 +15,44 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when the request failed due to internal exception
+ * Implements a reply to a request when the request failed
  *
  * @author Laurent Wouters
  */
-public class XSPReplyException implements XSPReply {
+public class ReplyFailure implements Reply {
     /**
-     * The standard message for an exception
+     * The singleton instance
      */
-    public static final String MESSAGE = "Internal server error, see log for more details.";
+    private static ReplyFailure INSTANCE = null;
 
     /**
-     * The thrown exception
+     * Gets the default instance
+     *
+     * @return The default instance
      */
-    private final Throwable throwable;
+    public synchronized static ReplyFailure instance() {
+        if (INSTANCE == null)
+            INSTANCE = new ReplyFailure("FAILED");
+        return INSTANCE;
+    }
+
+    /**
+     * The message associated to the failure
+     */
+    private final String message;
 
     /**
      * Initializes this reply
      *
-     * @param throwable The thrown exception
+     * @param message The message associated to the failure
      */
-    public XSPReplyException(Throwable throwable) {
-        this.throwable = throwable;
-    }
-
-    /**
-     * Gets the thrown exception
-     *
-     * @return The thrown exception
-     */
-    public Throwable getThrowable() {
-        return throwable;
+    public ReplyFailure(String message) {
+        this.message = message;
     }
 
     @Override
@@ -60,24 +62,21 @@ public class XSPReplyException implements XSPReply {
 
     @Override
     public String getMessage() {
-        if (throwable == null)
-            return MESSAGE;
-        String message = throwable.getMessage();
-        return message != null ? message : MESSAGE;
+        return message;
     }
 
     @Override
     public String serializedString() {
-        return "ERROR: " + getMessage();
+        return "ERROR: " + message;
     }
 
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(Reply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyException.class.getSimpleName()) +
+                TextUtils.escapeStringJSON(ReplyFailure.class.getSimpleName()) +
                 "\", \"isSuccess\": false," +
-                "\"message\": \"" + TextUtils.escapeStringJSON(getMessage()) + "\"}";
+                "\"message\": \"" + TextUtils.escapeStringJSON(message != null ? message : "FAILED") + "\"}";
     }
 }

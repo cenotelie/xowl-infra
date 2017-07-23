@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,44 +15,37 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when the request failed
+ * Implements a reply to a request when the user's session has expired
  *
  * @author Laurent Wouters
  */
-public class XSPReplyFailure implements XSPReply {
+public class ReplyExpiredSession implements Reply {
     /**
      * The singleton instance
      */
-    private static XSPReplyFailure INSTANCE = null;
+    private static ReplyExpiredSession INSTANCE = null;
 
     /**
-     * Gets the default instance
+     * Gets the singleton instance
      *
-     * @return The default instance
+     * @return The singleton instance
      */
-    public synchronized static XSPReplyFailure instance() {
+    public synchronized static ReplyExpiredSession instance() {
         if (INSTANCE == null)
-            INSTANCE = new XSPReplyFailure("FAILED");
+            INSTANCE = new ReplyExpiredSession();
         return INSTANCE;
     }
 
     /**
-     * The message associated to the failure
+     * Initializes this instance
      */
-    private final String message;
+    private ReplyExpiredSession() {
 
-    /**
-     * Initializes this reply
-     *
-     * @param message The message associated to the failure
-     */
-    public XSPReplyFailure(String message) {
-        this.message = message;
     }
 
     @Override
@@ -62,21 +55,21 @@ public class XSPReplyFailure implements XSPReply {
 
     @Override
     public String getMessage() {
-        return message;
+        return "EXPIRED";
     }
 
     @Override
     public String serializedString() {
-        return "ERROR: " + message;
+        return "EXPIRED";
     }
 
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(Reply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyFailure.class.getSimpleName()) +
+                TextUtils.escapeStringJSON(ReplyExpiredSession.class.getSimpleName()) +
                 "\", \"isSuccess\": false," +
-                "\"message\": \"" + TextUtils.escapeStringJSON(message != null ? message : "FAILED") + "\"}";
+                "\"message\": \"EXPIRED\"}";
     }
 }

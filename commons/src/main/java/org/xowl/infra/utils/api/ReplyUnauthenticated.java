@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,36 +15,36 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user is not authorized to perform the request
+ * Implements a reply to a request when the user is not authenticated
  *
  * @author Laurent Wouters
  */
-public class XSPReplyUnauthorized implements XSPReply {
+public class ReplyUnauthenticated implements Reply {
     /**
      * The singleton instance
      */
-    private static XSPReplyUnauthorized INSTANCE = null;
+    private static ReplyUnauthenticated INSTANCE = null;
 
     /**
      * Gets the singleton instance
      *
      * @return The singleton instance
      */
-    public synchronized static XSPReplyUnauthorized instance() {
+    public synchronized static ReplyUnauthenticated instance() {
         if (INSTANCE == null)
-            INSTANCE = new XSPReplyUnauthorized();
+            INSTANCE = new ReplyUnauthenticated();
         return INSTANCE;
     }
 
     /**
      * Initializes this instance
      */
-    private XSPReplyUnauthorized() {
+    private ReplyUnauthenticated() {
 
     }
 
@@ -55,21 +55,21 @@ public class XSPReplyUnauthorized implements XSPReply {
 
     @Override
     public String getMessage() {
-        return "UNAUTHORIZED";
+        return "UNAUTHENTICATED";
     }
 
     @Override
     public String serializedString() {
-        return "UNAUTHORIZED";
+        return "UNAUTHENTICATED";
     }
 
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(Reply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyUnauthorized.class.getSimpleName()) +
+                TextUtils.escapeStringJSON(ReplyUnauthenticated.class.getSimpleName()) +
                 "\", \"isSuccess\": false," +
-                "\"message\": \"UNAUTHORIZED\"}";
+                "\"message\": \"UNAUTHENTICATED\"}";
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,36 +15,36 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when a requested resource is not found
+ * Implements a reply to a request when a requested resource is not found
  *
  * @author Laurent Wouters
  */
-public class XSPReplyNotFound implements XSPReply {
+public class ReplyNotFound implements Reply {
     /**
      * The singleton instance
      */
-    private static XSPReplyNotFound INSTANCE = null;
+    private static ReplyNotFound INSTANCE = null;
 
     /**
      * Gets the singleton instance
      *
      * @return The singleton instance
      */
-    public synchronized static XSPReplyNotFound instance() {
+    public synchronized static ReplyNotFound instance() {
         if (INSTANCE == null)
-            INSTANCE = new XSPReplyNotFound();
+            INSTANCE = new ReplyNotFound();
         return INSTANCE;
     }
 
     /**
      * Initializes this instance
      */
-    private XSPReplyNotFound() {
+    private ReplyNotFound() {
 
     }
 
@@ -66,9 +66,9 @@ public class XSPReplyNotFound implements XSPReply {
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(Reply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyNotFound.class.getSimpleName()) +
+                TextUtils.escapeStringJSON(ReplyNotFound.class.getSimpleName()) +
                 "\", \"isSuccess\": false," +
                 "\"message\": \"Not Found\"}";
     }

@@ -23,7 +23,7 @@ import org.xowl.infra.server.base.BaseDatabasePrivileges;
 import org.xowl.infra.server.base.BaseRule;
 import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.base.BaseUserPrivileges;
-import org.xowl.infra.server.xsp.*;
+import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
@@ -31,6 +31,7 @@ import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.writers.NQuadsSerializer;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.api.*;
 import org.xowl.infra.utils.http.HttpConnection;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
@@ -51,7 +52,7 @@ import java.util.zip.GZIPOutputStream;
  *
  * @author Laurent Wouters
  */
-public class RemoteServer implements XOWLServer, XOWLFactory {
+public class RemoteServer implements XOWLServer, ApiFactory {
     /**
      * The connection to the remote host, if any
      */
@@ -98,7 +99,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply login(String login, String password) {
+    public Reply login(String login, String password) {
         HttpResponse response = connection.request("/me/login" +
                         "?login=" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_POST,
@@ -106,7 +107,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_TEXT_PLAIN
         );
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(response, this);
+        Reply reply = XSPReplyUtils.fromHttpResponse(response, this);
         if (reply.isSuccess()) {
             currentUser = new RemoteUser(this, login);
             currentLogin = login;
@@ -120,14 +121,14 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply logout() {
+    public Reply logout() {
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         HttpResponse response = connection.request("/me/logout",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN
         );
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(response, this);
+        Reply reply = XSPReplyUtils.fromHttpResponse(response, this);
         currentUser = null;
         currentLogin = null;
         currentPassword = null;
@@ -135,23 +136,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply serverShutdown() {
+    public Reply serverShutdown() {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/shutdown",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/shutdown",
@@ -160,23 +161,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply serverRestart() {
+    public Reply serverRestart() {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/restart",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/restart",
@@ -185,28 +186,28 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply serverGrantAdmin(XOWLUser target) {
+    public Reply serverGrantAdmin(XOWLUser target) {
         return serverGrantAdmin(target.getIdentifier());
     }
 
     @Override
-    public XSPReply serverGrantAdmin(String target) {
+    public Reply serverGrantAdmin(String target) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/grantAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/grantAdmin?user=" + URIUtils.encodeComponent(target),
@@ -215,28 +216,28 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply serverRevokeAdmin(XOWLUser target) {
+    public Reply serverRevokeAdmin(XOWLUser target) {
         return serverRevokeAdmin(target.getIdentifier());
     }
 
     @Override
-    public XSPReply serverRevokeAdmin(String target) {
+    public Reply serverRevokeAdmin(String target) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/revokeAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/server/revokeAdmin?user=" + URIUtils.encodeComponent(target),
@@ -245,23 +246,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply getDatabases() {
+    public Reply getDatabases() {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database",
@@ -270,23 +271,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply getDatabase(String identifier) {
+    public Reply getDatabase(String identifier) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
@@ -296,23 +297,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
 
 
     @Override
-    public XSPReply createDatabase(String identifier) {
+    public Reply createDatabase(String identifier) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
@@ -321,28 +322,28 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply dropDatabase(XOWLDatabase database) {
+    public Reply dropDatabase(XOWLDatabase database) {
         return dropDatabase(database.getIdentifier());
     }
 
     @Override
-    public XSPReply dropDatabase(String database) {
+    public Reply dropDatabase(String database) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
@@ -351,23 +352,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply getUsers() {
+    public Reply getUsers() {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users",
@@ -376,23 +377,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply getUser(String login) {
+    public Reply getUser(String login) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
@@ -401,25 +402,25 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     @Override
-    public XSPReply createUser(String login, String password) {
+    public Reply createUser(String login, String password) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
                 password,
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
@@ -435,23 +436,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param database The target database
      * @return The definition of the metrics for this database
      */
-    XSPReply dbGetMetric(String database) {
+    Reply dbGetMetric(String database) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/metric",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/metric",
@@ -465,23 +466,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param database The target database
      * @return A snapshot of the metrics for this database
      */
-    XSPReply dbGetMetricSnapshot(String database) {
+    Reply dbGetMetricSnapshot(String database) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/statistics",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/statistics",
@@ -498,29 +499,29 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param namedIRIs   The context's named IRIs
      * @return The protocol reply
      */
-    XSPReply dbSPARQL(String database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+    Reply dbSPARQL(String database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         if (defaultIRIs != null && !defaultIRIs.isEmpty())
-            return new XSPReplyApiError(ApiV1.ERROR_DEFAULT_GRAPH_NOT_SUPPORTED);
+            return new ReplyApiError(ApiV1.ERROR_DEFAULT_GRAPH_NOT_SUPPORTED);
         if (namedIRIs != null && !namedIRIs.isEmpty())
-            return new XSPReplyApiError(ApiV1.ERROR_NAMED_GRAPH_NOT_SUPPORTED);
+            return new ReplyApiError(ApiV1.ERROR_NAMED_GRAPH_NOT_SUPPORTED);
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/sparql",
                 HttpConstants.METHOD_POST,
                 sparql,
                 Command.MIME_SPARQL_QUERY,
                 Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/sparql",
@@ -536,23 +537,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param database The target database
      * @return The protocol reply
      */
-    XSPReply dbGetEntailmentRegime(String database) {
+    Reply dbGetEntailmentRegime(String database) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
@@ -567,25 +568,25 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param regime   The entailment regime
      * @return The protocol reply
      */
-    XSPReply dbSetEntailmentRegime(String database, EntailmentRegime regime) {
+    Reply dbSetEntailmentRegime(String database, EntailmentRegime regime) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_POST,
                 regime.toString(),
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
@@ -601,23 +602,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param database The target database
      * @return The protocol reply
      */
-    XSPReply dbGetPrivileges(String database) {
+    Reply dbGetPrivileges(String database) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges",
@@ -633,26 +634,26 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param privilege The privilege to grant
      * @return The protocol reply
      */
-    XSPReply dbGrant(String database, String user, int privilege) {
+    Reply dbGrant(String database, String user, int privilege) {
         String access = privilege == XOWLPrivilege.ADMIN ? "ADMIN" : (privilege == XOWLPrivilege.WRITE ? "WRITE" : (privilege == XOWLPrivilege.READ ? "READ" : "NONE"));
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges/grant" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges/grant" +
@@ -670,26 +671,26 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param privilege The privilege to revoke
      * @return The protocol reply
      */
-    XSPReply dbRevoke(String database, String user, int privilege) {
+    Reply dbRevoke(String database, String user, int privilege) {
         String access = privilege == XOWLPrivilege.ADMIN ? "ADMIN" : (privilege == XOWLPrivilege.WRITE ? "WRITE" : (privilege == XOWLPrivilege.READ ? "READ" : "NONE"));
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges/revoke" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges/revoke" +
@@ -705,23 +706,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param database The target database
      * @return The protocol reply
      */
-    XSPReply dbGetRules(String database) {
+    Reply dbGetRules(String database) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules",
@@ -736,23 +737,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param name     The name (IRI) of a rule
      * @return The protocol reply
      */
-    XSPReply dbGetRule(String database, String name) {
+    Reply dbGetRule(String database, String name) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
@@ -768,25 +769,25 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param activate Whether to readily activate the rule
      * @return The protocol reply
      */
-    XSPReply dbAddRule(String database, String content, boolean activate) {
+    Reply dbAddRule(String database, String content, boolean activate) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + Boolean.toString(activate),
                 HttpConstants.METHOD_PUT,
                 content,
                 Repository.SYNTAX_XRDF,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + Boolean.toString(activate),
@@ -803,23 +804,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param rule     The rule to remove
      * @return The protocol reply
      */
-    XSPReply dbRemoveRule(String database, String rule) {
+    Reply dbRemoveRule(String database, String rule) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
@@ -834,23 +835,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param rule     The rule to activate
      * @return The protocol reply
      */
-    XSPReply dbActivateRule(String database, String rule) {
+    Reply dbActivateRule(String database, String rule) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
@@ -865,23 +866,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param rule     The rule to deactivate
      * @return The protocol reply
      */
-    XSPReply dbDeactivateRule(String database, String rule) {
+    Reply dbDeactivateRule(String database, String rule) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
@@ -896,23 +897,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param rule     The rule to inquire
      * @return The protocol reply
      */
-    XSPReply dbGetRuleStatus(String database, String rule) {
+    Reply dbGetRuleStatus(String database, String rule) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
@@ -926,23 +927,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param database The target database
      * @return The protocol reply
      */
-    XSPReply dbGetStoredProcedures(String database) {
+    Reply dbGetStoredProcedures(String database) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures",
@@ -957,23 +958,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param iri      The name (iri) of a stored procedure
      * @return The protocol reply
      */
-    XSPReply dbGetStoreProcedure(String database, String iri) {
+    Reply dbGetStoreProcedure(String database, String iri) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
@@ -990,26 +991,26 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param parameters The names of the parameters for this procedure
      * @return The protocol reply
      */
-    XSPReply dbAddStoredProcedure(String database, String iri, String sparql, Collection<String> parameters) {
+    Reply dbAddStoredProcedure(String database, String iri, String sparql, Collection<String> parameters) {
         BaseStoredProcedure procedure = new BaseStoredProcedure(iri, sparql, parameters, null);
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_PUT,
                 procedure.serializedJSON(),
                 HttpConstants.MIME_JSON,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
@@ -1026,23 +1027,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param procedure The procedure to remove
      * @return The protocol reply
      */
-    XSPReply dbRemoveStoredProcedure(String database, String procedure) {
+    Reply dbRemoveStoredProcedure(String database, String procedure) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
@@ -1058,25 +1059,25 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param context   The execution context to use
      * @return The protocol reply
      */
-    XSPReply dbExecuteStoredProcedure(String database, String procedure, XOWLStoredProcedureContext context) {
+    Reply dbExecuteStoredProcedure(String database, String procedure, XOWLStoredProcedureContext context) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_POST,
                 context.serializedJSON(),
                 HttpConstants.MIME_JSON,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
@@ -1094,7 +1095,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param content  The content
      * @return The protocol reply
      */
-    XSPReply dbUpload(String database, String syntax, String content) {
+    Reply dbUpload(String database, String syntax, String content) {
         byte[] input;
         try {
             ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
@@ -1104,27 +1105,27 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             compressor.finish();
             input = byteBuffer.toByteArray();
         } catch (IOException exception) {
-            return new XSPReplyException(exception);
+            return new ReplyException(exception);
         }
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_POST,
                 input,
                 syntax,
                 true,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
@@ -1142,41 +1143,41 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param quads    The quads to upload
      * @return The protocol reply
      */
-    XSPReply dbUpload(String database, Collection<Quad> quads) {
+    Reply dbUpload(String database, Collection<Quad> quads) {
         if (connection == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         StringWriter writer = new StringWriter();
         NQuadsSerializer serializer = new NQuadsSerializer(writer);
         BufferedLogger logger = new BufferedLogger();
         serializer.serialize(logger, quads.iterator());
         if (!logger.getErrorMessages().isEmpty())
-            return new XSPReplyApiError(ApiV1.ERROR_SERIALIZATION_FAILED, logger.getErrorsAsString());
+            return new ReplyApiError(ApiV1.ERROR_SERIALIZATION_FAILED, logger.getErrorsAsString());
         return dbUpload(database, writer.toString(), Repository.SYNTAX_NQUADS);
     }
 
     @Override
-    public XSPReply deleteUser(XOWLUser toDelete) {
+    public Reply deleteUser(XOWLUser toDelete) {
         return deleteUser(toDelete.getIdentifier());
     }
 
     @Override
-    public XSPReply deleteUser(String toDelete) {
+    public Reply deleteUser(String toDelete) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(toDelete),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(toDelete),
@@ -1191,25 +1192,25 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param password The new password
      * @return The protocol reply
      */
-    XSPReply userUpdatePassword(String user, String password) {
+    Reply userUpdatePassword(String user, String password) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/password",
                 HttpConstants.METHOD_POST,
                 password,
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/password",
@@ -1225,23 +1226,23 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
      * @param user The target user
      * @return The protocol reply
      */
-    XSPReply userGetPrivileges(String user) {
+    Reply userGetPrivileges(String user) {
         // not logged in
         if (currentUser == null)
-            return XSPReplyNetworkError.instance();
+            return ReplyNetworkError.instance();
         // supposed to be logged-in
-        XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), this);
-        if (reply != XSPReplyExpiredSession.instance())
+        if (reply != ReplyExpiredSession.instance())
             // not an authentication problem => return this reply
             return reply;
         // try to re-login
         reply = login(currentLogin, currentPassword);
         if (!reply.isSuccess())
             // failed => unauthenticated
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XSPReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/privileges",

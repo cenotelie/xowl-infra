@@ -20,7 +20,7 @@ package org.xowl.infra.server.embedded;
 import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.ControllerUser;
 import org.xowl.infra.server.impl.UserImpl;
-import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.utils.api.Reply;
 
 /**
  * Represents a user when embedded within another application
@@ -40,12 +40,12 @@ class EmbeddedUser extends UserImpl {
     }
 
     @Override
-    public XSPReply updatePassword(String password) {
+    public Reply updatePassword(String password) {
         return serverController.updatePassword(this, identifier, password);
     }
 
     @Override
-    public XSPReply getPrivileges() {
+    public Reply getPrivileges() {
         return serverController.getUserPrivileges(this, identifier);
     }
 }

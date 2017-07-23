@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,16 +15,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.Serializable;
 
 /**
- * Represents a reply to a request in the xOWL server protocol
+ * Represents a reply to a request in an API
  *
  * @author Laurent Wouters
  */
-public interface XSPReply extends Serializable {
+public interface Reply extends Serializable {
     /**
      * Gets whether the reply is a success
      *

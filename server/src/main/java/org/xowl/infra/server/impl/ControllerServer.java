@@ -22,13 +22,13 @@ import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.base.BaseDatabasePrivileges;
 import org.xowl.infra.server.base.BaseUserPrivileges;
-import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.utils.Base64;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.api.*;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -249,13 +249,13 @@ public class ControllerServer implements Closeable {
      * @param password The user password
      * @return The protocol reply, or null if the client is banned
      */
-    public XSPReply login(InetAddress client, String login, String password) {
+    public Reply login(InetAddress client, String login, String password) {
         if (isBanned(client))
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
             onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " on initial login with " + login);
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         }
         String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
@@ -268,18 +268,18 @@ public class ControllerServer implements Closeable {
         if (proxy == null) {
             onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " on initial login with " + login);
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         }
         if (!BCrypt.checkpw(password, hash)) {
             onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " on initial login with " + login);
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         } else {
             synchronized (clients) {
                 clients.remove(client);
             }
             logger.info("Authentication success from " + client.toString() + " on initial login with " + login);
-            return new XSPReplyResult<>(buildTokenFor(login));
+            return new ReplyResult<>(buildTokenFor(login));
         }
     }
 
@@ -289,8 +289,8 @@ public class ControllerServer implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply logout(UserImpl client) {
-        return XSPReplySuccess.instance();
+    public Reply logout(UserImpl client) {
+        return ReplySuccess.instance();
     }
 
     /**
@@ -300,11 +300,11 @@ public class ControllerServer implements Closeable {
      * @param token  The provided token
      * @return The protocol reply, or null if the client is banned
      */
-    public XSPReply authenticate(InetAddress client, String token) {
+    public Reply authenticate(InetAddress client, String token) {
         if (isBanned(client))
-            return XSPReplyUnauthenticated.instance();
-        XSPReply reply = checkToken(token);
-        if (reply == XSPReplyUnauthenticated.instance()) {
+            return ReplyUnauthenticated.instance();
+        Reply reply = checkToken(token);
+        if (reply == ReplyUnauthenticated.instance()) {
             // the token is invalid
             onLoginFailure(client);
             logger.info("Authentication failure from " + client.toString() + " with invalid token");
@@ -314,8 +314,8 @@ public class ControllerServer implements Closeable {
             logger.info("Authentication failure from " + client.toString() + " with invalid token");
             return reply;
         }
-        UserImpl user = getPrincipal(((XSPReplyResult<String>) reply).getData());
-        return new XSPReplyResult<>(user);
+        UserImpl user = getPrincipal(((ReplyResult<String>) reply).getData());
+        return new ReplyResult<>(user);
     }
 
     /**
@@ -324,13 +324,13 @@ public class ControllerServer implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply serverShutdown(UserImpl client) {
+    public Reply serverShutdown(UserImpl client) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         onRequestShutdown();
-        return XSPReplySuccess.instance();
+        return ReplySuccess.instance();
     }
 
     /**
@@ -339,13 +339,13 @@ public class ControllerServer implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply serverRestart(UserImpl client) {
+    public Reply serverRestart(UserImpl client) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         onRequestRestart();
-        return XSPReplySuccess.instance();
+        return ReplySuccess.instance();
     }
 
     /**
@@ -355,14 +355,14 @@ public class ControllerServer implements Closeable {
      * @param name   The target user
      * @return The protocol reply
      */
-    public XSPReply serverGrantAdmin(UserImpl client, String name) {
+    public Reply serverGrantAdmin(UserImpl client, String name) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         UserImpl target = doGetUser(name);
         if (target == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         return doChangeUserPrivilege(target, adminDB, Schema.ADMIN_ADMINOF, true);
     }
 
@@ -373,14 +373,14 @@ public class ControllerServer implements Closeable {
      * @param name   The target user
      * @return The protocol reply
      */
-    public XSPReply serverRevokeAdmin(UserImpl client, String name) {
+    public Reply serverRevokeAdmin(UserImpl client, String name) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         UserImpl target = doGetUser(name);
         if (target == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         return doChangeUserPrivilege(target, adminDB, Schema.ADMIN_ADMINOF, false);
     }
 
@@ -390,22 +390,22 @@ public class ControllerServer implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply getDatabases(UserImpl client) {
+    public Reply getDatabases(UserImpl client) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         Collection<XOWLDatabase> result = new ArrayList<>();
         synchronized (databases) {
             if (checkIsServerAdmin(client)) {
                 for (DatabaseImpl db : databases.values())
                     result.add(db);
-                return new XSPReplyResultCollection<>(result);
+                return new ReplyResultCollection<>(result);
             }
             for (DatabaseImpl database : databases.values()) {
                 if (checkCanRead(client, database))
                     result.add(database);
             }
         }
-        return new XSPReplyResultCollection<>(result);
+        return new ReplyResultCollection<>(result);
     }
 
     /**
@@ -415,16 +415,16 @@ public class ControllerServer implements Closeable {
      * @param name   The target database
      * @return The protocol reply
      */
-    public XSPReply getDatabase(UserImpl client, String name) {
+    public Reply getDatabase(UserImpl client, String name) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(name);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanRead(client, db)) {
-            return new XSPReplyResult<>(db);
+            return new ReplyResult<>(db);
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -434,18 +434,18 @@ public class ControllerServer implements Closeable {
      * @param name   The name of the new database
      * @return The protocol reply
      */
-    public XSPReply createDatabase(UserImpl client, String name) {
+    public Reply createDatabase(UserImpl client, String name) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         if (!name.matches("[_a-zA-Z0-9]+"))
-            return new XSPReplyApiError(ApiV1.ERROR_DB_NAME_REQUIREMENT_FAILED);
+            return new ReplyApiError(ApiV1.ERROR_DB_NAME_REQUIREMENT_FAILED);
 
         synchronized (databases) {
             DatabaseImpl result = databases.get(name);
             if (result != null)
-                return new XSPReplyApiError(ApiV1.ERROR_DB_ALREADY_EXIST);
+                return new ReplyApiError(ApiV1.ERROR_DB_ALREADY_EXIST);
             File folder = new File(configuration.getDatabasesFolder(), name);
             try {
                 ProxyObject proxy = adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
@@ -460,9 +460,9 @@ public class ControllerServer implements Closeable {
                 adminDB.dbController.getRepository().getStore().commit();
                 db.dbController.getRepository().getStore().commit();
                 databases.put(name, db);
-                return new XSPReplyResult<>(db);
+                return new ReplyResult<>(db);
             } catch (Exception exception) {
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
     }
@@ -474,15 +474,15 @@ public class ControllerServer implements Closeable {
      * @param name   The target database
      * @return The protocol reply
      */
-    public XSPReply dropDatabase(UserImpl client, String name) {
+    public Reply dropDatabase(UserImpl client, String name) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         synchronized (databases) {
             DatabaseImpl database = databases.remove(name);
             if (database == null)
-                return XSPReplyNotFound.instance();
+                return ReplyNotFound.instance();
             File folder = new File(configuration.getDatabasesFolder(), (String) database.dbController.proxy.getDataValue(Schema.ADMIN_LOCATION));
             try {
                 database.dbController.close();
@@ -495,7 +495,7 @@ public class ControllerServer implements Closeable {
             database.dbController.proxy.delete();
             adminDB.dbController.getRepository().getStore().commit();
         }
-        return XSPReplySuccess.instance();
+        return ReplySuccess.instance();
     }
 
     /**
@@ -505,16 +505,16 @@ public class ControllerServer implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getDatabaseMetric(UserImpl client, String database) {
+    public Reply getDatabaseMetric(UserImpl client, String database) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
-            return new XSPReplyResult<>(db.dbController.getMetric());
+            return new ReplyResult<>(db.dbController.getMetric());
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -524,16 +524,16 @@ public class ControllerServer implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getDatabaseMetricSnapshot(UserImpl client, String database) {
+    public Reply getDatabaseMetricSnapshot(UserImpl client, String database) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
-            return new XSPReplyResult<>(db.dbController.getMetricSnapshot());
+            return new ReplyResult<>(db.dbController.getMetricSnapshot());
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -546,18 +546,18 @@ public class ControllerServer implements Closeable {
      * @param namedIRIs   The context's named IRIs
      * @return The protocol reply
      */
-    public XSPReply sparql(UserImpl client, String database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+    public Reply sparql(UserImpl client, String database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         boolean canWrite = checkCanWrite(client, db);
         if (canWrite || checkCanRead(client, db)) {
             Result result = db.dbController.sparql(sparql, defaultIRIs, namedIRIs, !canWrite);
-            return new XSPReplyResult<>(result);
+            return new ReplyResult<>(result);
         } else {
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         }
     }
 
@@ -568,15 +568,15 @@ public class ControllerServer implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getEntailmentRegime(UserImpl client, String database) {
+    public Reply getEntailmentRegime(UserImpl client, String database) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanRead(client, db))
-            return new XSPReplyResult<>(db.dbController.getEntailmentRegime());
-        return XSPReplyUnauthorized.instance();
+            return new ReplyResult<>(db.dbController.getEntailmentRegime());
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -587,22 +587,22 @@ public class ControllerServer implements Closeable {
      * @param regime   The entailment regime
      * @return The protocol reply
      */
-    public XSPReply setEntailmentRegime(UserImpl client, String database, String regime) {
+    public Reply setEntailmentRegime(UserImpl client, String database, String regime) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
                 db.dbController.setEntailmentRegime(regime);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
-            return XSPReplySuccess.instance();
+            return ReplySuccess.instance();
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -612,12 +612,12 @@ public class ControllerServer implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getDatabasePrivileges(UserImpl client, String database) {
+    public Reply getDatabasePrivileges(UserImpl client, String database) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             BaseDatabasePrivileges result = new BaseDatabasePrivileges();
             for (ProxyObject value : db.dbController.proxy.getObjectsFrom(Schema.ADMIN_ADMINOF)) {
@@ -632,9 +632,9 @@ public class ControllerServer implements Closeable {
                 UserImpl user = doGetUser(value);
                 result.add(user, XOWLPrivilege.READ);
             }
-            return new XSPReplyResult<>(result);
+            return new ReplyResult<>(result);
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -646,22 +646,22 @@ public class ControllerServer implements Closeable {
      * @param privilege The privilege
      * @return The protocol reply
      */
-    public XSPReply grantDatabase(UserImpl client, String user, String database, int privilege) {
+    public Reply grantDatabase(UserImpl client, String user, String database, int privilege) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             UserImpl target = doGetUser(user);
             if (target == null)
-                return XSPReplyNotFound.instance();
+                return ReplyNotFound.instance();
             String priv = (privilege == XOWLPrivilege.ADMIN ? Schema.ADMIN_ADMINOF : (privilege == XOWLPrivilege.WRITE ? Schema.ADMIN_CANWRITE : (privilege == XOWLPrivilege.READ ? Schema.ADMIN_CANREAD : null)));
             if (priv == null)
-                return XSPReplyNotFound.instance();
+                return ReplyNotFound.instance();
             return doChangeUserPrivilege(target, db, priv, true);
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -673,22 +673,22 @@ public class ControllerServer implements Closeable {
      * @param privilege The privilege
      * @return The protocol reply
      */
-    public XSPReply revokeDatabase(UserImpl client, String user, String database, int privilege) {
+    public Reply revokeDatabase(UserImpl client, String user, String database, int privilege) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             UserImpl target = doGetUser(user);
             if (target == null)
-                return XSPReplyNotFound.instance();
+                return ReplyNotFound.instance();
             String priv = (privilege == XOWLPrivilege.ADMIN ? Schema.ADMIN_ADMINOF : (privilege == XOWLPrivilege.WRITE ? Schema.ADMIN_CANWRITE : (privilege == XOWLPrivilege.READ ? Schema.ADMIN_CANREAD : null)));
             if (priv == null)
-                return XSPReplyNotFound.instance();
+                return ReplyNotFound.instance();
             return doChangeUserPrivilege(target, db, priv, false);
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -698,22 +698,22 @@ public class ControllerServer implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getRules(UserImpl client, String database) {
+    public Reply getRules(UserImpl client, String database) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanRead(client, db)) {
             try {
                 Collection<XOWLRule> rules = db.dbController.getRules();
-                return new XSPReplyResultCollection<>(rules);
+                return new ReplyResultCollection<>(rules);
             } catch (IOException exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -724,24 +724,24 @@ public class ControllerServer implements Closeable {
      * @param name     The name (IRI) of a rule
      * @return The protocol reply
      */
-    public XSPReply getRule(UserImpl client, String database, String name) {
+    public Reply getRule(UserImpl client, String database, String name) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanRead(client, db)) {
             try {
                 XOWLRule rule = db.dbController.getRule(name);
                 if (rule == null)
-                    return XSPReplyNotFound.instance();
-                return new XSPReplyResult<>(rule);
+                    return ReplyNotFound.instance();
+                return new ReplyResult<>(rule);
             } catch (IOException exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -753,22 +753,22 @@ public class ControllerServer implements Closeable {
      * @param activate Whether to readily activate the rule
      * @return The protocol reply
      */
-    public XSPReply addRule(UserImpl client, String database, String content, boolean activate) {
+    public Reply addRule(UserImpl client, String database, String content, boolean activate) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
                 XOWLRule rule = db.dbController.addRule(content, activate);
-                return new XSPReplyResult<>(rule);
+                return new ReplyResult<>(rule);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -779,22 +779,22 @@ public class ControllerServer implements Closeable {
      * @param rule     The rule to remove
      * @return The protocol reply
      */
-    public XSPReply removeRule(UserImpl client, String database, String rule) {
+    public Reply removeRule(UserImpl client, String database, String rule) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
                 db.dbController.removeRule(rule);
-                return XSPReplySuccess.instance();
+                return ReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -805,22 +805,22 @@ public class ControllerServer implements Closeable {
      * @param rule     The rule to activate
      * @return The protocol reply
      */
-    public XSPReply activateRule(UserImpl client, String database, String rule) {
+    public Reply activateRule(UserImpl client, String database, String rule) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
                 db.dbController.activateRule(rule);
-                return XSPReplySuccess.instance();
+                return ReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -831,22 +831,22 @@ public class ControllerServer implements Closeable {
      * @param rule     The rule to deactivate
      * @return The protocol reply
      */
-    public XSPReply deactivateRule(UserImpl client, String database, String rule) {
+    public Reply deactivateRule(UserImpl client, String database, String rule) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
                 db.dbController.deactivateRule(rule);
-                return XSPReplySuccess.instance();
+                return ReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -857,24 +857,24 @@ public class ControllerServer implements Closeable {
      * @param rule     The rule to inquire
      * @return The protocol reply
      */
-    public XSPReply getRuleStatus(UserImpl client, String database, String rule) {
+    public Reply getRuleStatus(UserImpl client, String database, String rule) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanRead(client, db)) {
             try {
                 RDFRuleStatus status = db.dbController.getRuleStatus(rule);
                 if (status == null)
-                    return new XSPReplyApiError(ApiV1.ERROR_RULE_NOT_ACTIVE);
-                return new XSPReplyResult<>(status);
+                    return new ReplyApiError(ApiV1.ERROR_RULE_NOT_ACTIVE);
+                return new ReplyResult<>(status);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -884,22 +884,22 @@ public class ControllerServer implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getStoredProcedures(UserImpl client, String database) {
+    public Reply getStoredProcedures(UserImpl client, String database) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanRead(client, db)) {
             try {
                 Collection<XOWLStoredProcedure> procedures = db.dbController.getStoredProcedures();
-                return new XSPReplyResultCollection<>(procedures);
+                return new ReplyResultCollection<>(procedures);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -910,24 +910,24 @@ public class ControllerServer implements Closeable {
      * @param iri      The name (IRI) of a procedure
      * @return The protocol reply
      */
-    public XSPReply getStoreProcedure(UserImpl client, String database, String iri) {
+    public Reply getStoreProcedure(UserImpl client, String database, String iri) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanRead(client, db)) {
             try {
                 XOWLStoredProcedure procedure = db.dbController.getStoredProcedure(iri);
                 if (procedure == null)
-                    return XSPReplyNotFound.instance();
-                return new XSPReplyResult<>(procedure);
+                    return ReplyNotFound.instance();
+                return new ReplyResult<>(procedure);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -940,22 +940,22 @@ public class ControllerServer implements Closeable {
      * @param parameters The parameters for this procedure
      * @return The protocol reply
      */
-    public XSPReply addStoredProcedure(UserImpl client, String database, String iri, String sparql, Collection<String> parameters) {
+    public Reply addStoredProcedure(UserImpl client, String database, String iri, String sparql, Collection<String> parameters) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
                 XOWLStoredProcedure procedure = db.dbController.addStoredProcedure(iri, sparql, parameters);
-                return new XSPReplyResult<>(procedure);
+                return new ReplyResult<>(procedure);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -966,22 +966,22 @@ public class ControllerServer implements Closeable {
      * @param procedure The procedure to remove
      * @return The protocol reply
      */
-    public XSPReply removeStoredProcedure(UserImpl client, String database, String procedure) {
+    public Reply removeStoredProcedure(UserImpl client, String database, String procedure) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanAdmin(client, db)) {
             try {
                 db.dbController.removeStoredProcedure(procedure);
-                return XSPReplySuccess.instance();
+                return ReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -993,23 +993,23 @@ public class ControllerServer implements Closeable {
      * @param contextDefinition The context for the execution
      * @return The protocol reply
      */
-    public XSPReply executeStoredProcedure(UserImpl client, String database, String procedure, String contextDefinition) {
+    public Reply executeStoredProcedure(UserImpl client, String database, String procedure, String contextDefinition) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         boolean canWrite = checkCanWrite(client, db);
         if (canWrite || checkCanRead(client, db)) {
             try {
                 Result result = db.dbController.executeStoredProcedure(procedure, contextDefinition, !canWrite);
-                return new XSPReplyResult<>(result);
+                return new ReplyResult<>(result);
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -1021,25 +1021,25 @@ public class ControllerServer implements Closeable {
      * @param content  The content
      * @return The protocol reply
      */
-    public XSPReply upload(UserImpl client, String database, String syntax, String content) {
+    public Reply upload(UserImpl client, String database, String syntax, String content) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         if (checkCanWrite(client, db)) {
             try {
                 BufferedLogger logger = new BufferedLogger();
                 db.dbController.upload(logger, syntax, content);
                 if (!logger.getErrorMessages().isEmpty())
-                    return new XSPReplyApiError(ApiV1.ERROR_CONTENT_PARSING_FAILED, logger.getErrorsAsString());
-                return XSPReplySuccess.instance();
+                    return new ReplyApiError(ApiV1.ERROR_CONTENT_PARSING_FAILED, logger.getErrorsAsString());
+                return ReplySuccess.instance();
             } catch (Exception exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -1048,9 +1048,9 @@ public class ControllerServer implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply getUsers(UserImpl client) {
+    public Reply getUsers(UserImpl client) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         Collection<UserImpl> result = new ArrayList<>();
         synchronized (adminDB) {
             ProxyObject classUser = adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_USER);
@@ -1066,7 +1066,7 @@ public class ControllerServer implements Closeable {
                 }
             }
         }
-        return new XSPReplyResultCollection<>(result);
+        return new ReplyResultCollection<>(result);
     }
 
     /**
@@ -1076,15 +1076,15 @@ public class ControllerServer implements Closeable {
      * @param login  The requested user name
      * @return The protocol reply
      */
-    public XSPReply getUser(UserImpl client, String login) {
+    public Reply getUser(UserImpl client, String login) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (client.getIdentifier().equals(login))
-            return new XSPReplyResult<>(client);
+            return new ReplyResult<>(client);
         UserImpl user = doGetUser(login);
         if (user == null)
-            return XSPReplyNotFound.instance();
-        return new XSPReplyResult<>(user);
+            return ReplyNotFound.instance();
+        return new ReplyResult<>(user);
     }
 
     /**
@@ -1095,19 +1095,19 @@ public class ControllerServer implements Closeable {
      * @param password The password for the new user
      * @return The protocol reply
      */
-    public XSPReply createUser(UserImpl client, String login, String password) {
+    public Reply createUser(UserImpl client, String login, String password) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         if (!login.matches("[_a-zA-Z0-9]+"))
-            return new XSPReplyApiError(ApiV1.ERROR_USER_NAME_REQUIREMENT_FAILED);
+            return new ReplyApiError(ApiV1.ERROR_USER_NAME_REQUIREMENT_FAILED);
         if (password.length() < configuration.getSecurityMinPasswordLength())
-            return new XSPReplyApiError(ApiV1.ERROR_USER_PASSWORD_REQUIREMENT_FAILED, "Required minimal length: " + configuration.getSecurityMinPasswordLength());
+            return new ReplyApiError(ApiV1.ERROR_USER_PASSWORD_REQUIREMENT_FAILED, "Required minimal length: " + configuration.getSecurityMinPasswordLength());
         UserImpl user = doCreateUser(login, password);
         if (user == null)
-            return new XSPReplyApiError(ApiV1.ERROR_USER_ALREADY_EXIST);
-        return new XSPReplyResult<>(user);
+            return new ReplyApiError(ApiV1.ERROR_USER_ALREADY_EXIST);
+        return new ReplyResult<>(user);
     }
 
     /**
@@ -1117,24 +1117,24 @@ public class ControllerServer implements Closeable {
      * @param toDelete The user to delete
      * @return The protocol reply
      */
-    public XSPReply deleteUser(UserImpl client, String toDelete) {
+    public Reply deleteUser(UserImpl client, String toDelete) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return XSPReplyUnauthorized.instance();
+            return ReplyUnauthorized.instance();
         UserImpl user = doGetUser(toDelete);
         if (user == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         synchronized (users) {
             user = users.remove(toDelete);
         }
         if (user == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         synchronized (adminDB) {
             user.userController.proxy.delete();
             adminDB.dbController.getRepository().getStore().commit();
         }
-        return XSPReplySuccess.instance();
+        return ReplySuccess.instance();
     }
 
     /**
@@ -1145,12 +1145,12 @@ public class ControllerServer implements Closeable {
      * @param password The new password
      * @return The protocol reply
      */
-    public XSPReply updatePassword(UserImpl client, String target, String password) {
+    public Reply updatePassword(UserImpl client, String target, String password) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (client.getIdentifier().equals(target) || checkIsServerAdmin(client))
             return doResetPassword(target, password);
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
     /**
@@ -1160,18 +1160,18 @@ public class ControllerServer implements Closeable {
      * @param password The new password
      * @return The protocol reply
      */
-    private XSPReply doResetPassword(String name, String password) {
+    private Reply doResetPassword(String name, String password) {
         if (password.length() < configuration.getSecurityMinPasswordLength())
-            return new XSPReplyApiError(ApiV1.ERROR_USER_PASSWORD_REQUIREMENT_FAILED, "Required minimal length: " + configuration.getSecurityMinPasswordLength());
+            return new ReplyApiError(ApiV1.ERROR_USER_PASSWORD_REQUIREMENT_FAILED, "Required minimal length: " + configuration.getSecurityMinPasswordLength());
         UserImpl user = doGetUser(name);
         if (user == null)
-            return XSPReplyNotFound.instance();
+            return ReplyNotFound.instance();
         synchronized (adminDB) {
             user.userController.proxy.removeAllValues(Schema.ADMIN_PASSWORD);
             user.userController.proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
             adminDB.dbController.getRepository().getStore().commit();
         }
-        return XSPReplySuccess.instance();
+        return ReplySuccess.instance();
     }
 
     /**
@@ -1181,13 +1181,13 @@ public class ControllerServer implements Closeable {
      * @param name   The target user
      * @return The protocol reply
      */
-    public XSPReply getUserPrivileges(UserImpl client, String name) {
+    public Reply getUserPrivileges(UserImpl client, String name) {
         if (client == null)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         if (client.getIdentifier().equals(name) || checkIsServerAdmin(client)) {
             UserImpl user = doGetUser(name);
             if (user == null)
-                return XSPReplyNotFound.instance();
+                return ReplyNotFound.instance();
             BaseUserPrivileges result = new BaseUserPrivileges(checkIsServerAdmin(user));
             for (ProxyObject value : user.userController.proxy.getObjectValues(Schema.ADMIN_ADMINOF)) {
                 DatabaseImpl database = doGetDatabase(value);
@@ -1201,9 +1201,9 @@ public class ControllerServer implements Closeable {
                 DatabaseImpl database = doGetDatabase(value);
                 result.add(database, XOWLPrivilege.READ);
             }
-            return new XSPReplyResult<>(result);
+            return new ReplyResult<>(result);
         }
-        return XSPReplyUnauthorized.instance();
+        return ReplyUnauthorized.instance();
     }
 
 
@@ -1247,10 +1247,10 @@ public class ControllerServer implements Closeable {
      * @param token The authentication token to check
      * @return The protocol reply, or null if the token is invalid
      */
-    private XSPReply checkToken(String token) {
+    private Reply checkToken(String token) {
         byte[] tokenBytes = Base64.decodeBase64(token);
         if (tokenBytes.length <= 32 + 8)
-            return XSPReplyUnauthenticated.instance();
+            return ReplyUnauthenticated.instance();
         byte[] tokenData = Arrays.copyOf(tokenBytes, tokenBytes.length - 32);
         byte[] hashProvided = new byte[32];
         System.arraycopy(tokenBytes, tokenBytes.length - 32, hashProvided, 0, 32);
@@ -1262,10 +1262,10 @@ public class ControllerServer implements Closeable {
                 byte[] computedHash = securityMAC.doFinal(tokenData);
                 if (!Arrays.equals(hashProvided, computedHash))
                     // the token does not checks out ...
-                    return XSPReplyUnauthenticated.instance();
+                    return ReplyUnauthenticated.instance();
             } catch (InvalidKeyException exception) {
                 logger.error(exception);
-                return new XSPReplyException(exception);
+                return new ReplyException(exception);
             }
         }
 
@@ -1287,8 +1287,8 @@ public class ControllerServer implements Closeable {
                 | ((long) b7 & 0xFFL);
         if (System.currentTimeMillis() > validUntil)
             // the token expired
-            return XSPReplyExpiredSession.instance();
-        return new XSPReplyResult<>(new String(tokenBytes, 0, tokenBytes.length - 32 - 8, IOUtils.CHARSET));
+            return ReplyExpiredSession.instance();
+        return new ReplyResult<>(new String(tokenBytes, 0, tokenBytes.length - 32 - 8, IOUtils.CHARSET));
     }
 
     /**
@@ -1524,20 +1524,20 @@ public class ControllerServer implements Closeable {
      * @param positive  Whether to add or remove the privilege
      * @return The protocol reply
      */
-    private XSPReply doChangeUserPrivilege(UserImpl user, DatabaseImpl database, String privilege, boolean positive) {
+    private Reply doChangeUserPrivilege(UserImpl user, DatabaseImpl database, String privilege, boolean positive) {
         synchronized (adminDB) {
             Collection<ProxyObject> dbs = user.userController.proxy.getObjectValues(privilege);
             if (positive) {
                 if (dbs.contains(database.dbController.proxy))
-                    return new XSPReplyApiError(ApiV1.ERROR_PRIVILEGE_ALREADY_GRANTED);
+                    return new ReplyApiError(ApiV1.ERROR_PRIVILEGE_ALREADY_GRANTED);
                 user.userController.proxy.addValue(privilege, database.dbController.proxy);
             } else {
                 if (!dbs.contains(database.dbController.proxy))
-                    return new XSPReplyApiError(ApiV1.ERROR_PRIVILEGE_NOT_GRANTED);
+                    return new ReplyApiError(ApiV1.ERROR_PRIVILEGE_NOT_GRANTED);
                 user.userController.proxy.removeValue(privilege, database.dbController.proxy);
             }
             adminDB.dbController.getRepository().getStore().commit();
         }
-        return XSPReplySuccess.instance();
+        return ReplySuccess.instance();
     }
 }

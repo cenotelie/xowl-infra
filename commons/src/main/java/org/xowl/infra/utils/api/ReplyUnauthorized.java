@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,36 +15,36 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user's session has expired
+ * Implements a reply to a request when the user is not authorized to perform the request
  *
  * @author Laurent Wouters
  */
-public class XSPReplyExpiredSession implements XSPReply {
+public class ReplyUnauthorized implements Reply {
     /**
      * The singleton instance
      */
-    private static XSPReplyExpiredSession INSTANCE = null;
+    private static ReplyUnauthorized INSTANCE = null;
 
     /**
      * Gets the singleton instance
      *
      * @return The singleton instance
      */
-    public synchronized static XSPReplyExpiredSession instance() {
+    public synchronized static ReplyUnauthorized instance() {
         if (INSTANCE == null)
-            INSTANCE = new XSPReplyExpiredSession();
+            INSTANCE = new ReplyUnauthorized();
         return INSTANCE;
     }
 
     /**
      * Initializes this instance
      */
-    private XSPReplyExpiredSession() {
+    private ReplyUnauthorized() {
 
     }
 
@@ -55,21 +55,21 @@ public class XSPReplyExpiredSession implements XSPReply {
 
     @Override
     public String getMessage() {
-        return "EXPIRED";
+        return "UNAUTHORIZED";
     }
 
     @Override
     public String serializedString() {
-        return "EXPIRED";
+        return "UNAUTHORIZED";
     }
 
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(Reply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyExpiredSession.class.getSimpleName()) +
+                TextUtils.escapeStringJSON(ReplyUnauthorized.class.getSimpleName()) +
                 "\", \"isSuccess\": false," +
-                "\"message\": \"EXPIRED\"}";
+                "\"message\": \"UNAUTHORIZED\"}";
     }
 }

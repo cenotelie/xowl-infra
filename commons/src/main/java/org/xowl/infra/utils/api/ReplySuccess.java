@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,60 +15,68 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
+package org.xowl.infra.utils.api;
 
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Implements a reply to a xOWL server protocol request when the requested operation is not supported
+ * Implements a simple successful reply to a request
  *
  * @author Laurent Wouters
  */
-public class XSPReplyUnsupported implements XSPReply {
+public class ReplySuccess implements Reply {
     /**
      * The singleton instance
      */
-    private static XSPReplyUnsupported INSTANCE = null;
+    private static ReplySuccess INSTANCE = null;
 
     /**
-     * Gets the singleton instance
+     * Gets the default instance
      *
-     * @return The singleton instance
+     * @return The default instance
      */
-    public synchronized static XSPReplyUnsupported instance() {
+    public synchronized static ReplySuccess instance() {
         if (INSTANCE == null)
-            INSTANCE = new XSPReplyUnsupported();
+            INSTANCE = new ReplySuccess("OK");
         return INSTANCE;
     }
 
     /**
-     * Initializes this reply
+     * The associated message
      */
-    private XSPReplyUnsupported() {
+    private final String message;
+
+    /**
+     * Initializes this success
+     *
+     * @param message The associated message
+     */
+    public ReplySuccess(String message) {
+        this.message = message;
     }
 
     @Override
     public boolean isSuccess() {
-        return false;
+        return true;
     }
 
     @Override
     public String getMessage() {
-        return "UNSUPPORTED";
+        return message;
     }
 
     @Override
     public String serializedString() {
-        return "UNSUPPORTED";
+        return message == null ? "OK" : ("OK: " + message);
     }
 
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                TextUtils.escapeStringJSON(XSPReply.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(Reply.class.getCanonicalName()) +
                 "\", \"kind\": \"" +
-                TextUtils.escapeStringJSON(XSPReplyUnsupported.class.getSimpleName()) +
-                "\", \"isSuccess\": false," +
-                "\"message\": \"UNSUPPORTED\"}";
+                TextUtils.escapeStringJSON(ReplySuccess.class.getSimpleName()) +
+                "\", \"isSuccess\": true," +
+                "\"message\": \"" + TextUtils.escapeStringJSON(message != null ? message : "OK") + "\"}";
     }
 }

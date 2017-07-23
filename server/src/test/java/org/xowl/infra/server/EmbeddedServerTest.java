@@ -23,9 +23,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.embedded.EmbeddedServer;
-import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyResult;
-import org.xowl.infra.server.xsp.XSPReplyResultCollection;
+import org.xowl.infra.utils.api.Reply;
+import org.xowl.infra.utils.api.ReplyResult;
+import org.xowl.infra.utils.api.ReplyResultCollection;
 import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.nio.file.Files;
@@ -75,46 +75,46 @@ public class EmbeddedServerTest {
 
     @Test
     public void testLogin() {
-        XSPReply reply = server.login("admin", "admin");
+        Reply reply = server.login("admin", "admin");
         Assert.assertTrue("Expected a successful reply", reply.isSuccess());
     }
 
     @Test
     public void testLogout() {
-        XSPReply reply = server.logout();
+        Reply reply = server.logout();
         Assert.assertTrue("Expected logout to fail", !reply.isSuccess());
     }
 
     @Test
     public void testShutdown() {
-        XSPReply reply = server.serverShutdown();
+        Reply reply = server.serverShutdown();
         Assert.assertTrue("Expected shutdown to fail", !reply.isSuccess());
     }
 
     @Test
     public void testRestart() {
-        XSPReply reply = server.serverRestart();
+        Reply reply = server.serverRestart();
         Assert.assertTrue("Expected restart to fail", !reply.isSuccess());
     }
 
     @Test
     public void testGetUser() {
-        XSPReply reply = server.getUser("admin");
+        Reply reply = server.getUser("admin");
         Assert.assertTrue("Expected a successful reply", reply.isSuccess());
-        XOWLUser user = ((XSPReplyResult<XOWLUser>) reply).getData();
+        XOWLUser user = ((ReplyResult<XOWLUser>) reply).getData();
         Assert.assertTrue("Expected admin as user", user.getIdentifier().equals("admin"));
     }
 
     @Test
     public void testCreateUser() {
-        XSPReply reply = server.createUser("test", "test1234567890");
+        Reply reply = server.createUser("test", "test1234567890");
         Assert.assertTrue("Failed to create the user", reply.isSuccess());
-        XOWLUser user = ((XSPReplyResult<XOWLUser>) reply).getData();
+        XOWLUser user = ((ReplyResult<XOWLUser>) reply).getData();
         Assert.assertTrue("Expected admin as user", user.getIdentifier().equals("test"));
 
         reply = server.getUsers();
         Assert.assertTrue("Failed to get the users", reply.isSuccess());
-        Collection<XOWLUser> users = ((XSPReplyResultCollection<XOWLUser>) reply).getData();
+        Collection<XOWLUser> users = ((ReplyResultCollection<XOWLUser>) reply).getData();
         Assert.assertEquals("Invalid users", 2, users.size());
     }
 }

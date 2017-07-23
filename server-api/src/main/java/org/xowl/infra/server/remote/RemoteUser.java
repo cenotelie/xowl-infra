@@ -19,7 +19,7 @@ package org.xowl.infra.server.remote;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.base.BaseUser;
-import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.utils.api.Reply;
 
 /**
  * Represents a user on a remote xOWL server
@@ -55,12 +55,12 @@ class RemoteUser extends BaseUser {
     }
 
     @Override
-    public XSPReply updatePassword(String password) {
+    public Reply updatePassword(String password) {
         return server.userUpdatePassword(identifier, password);
     }
 
     @Override
-    public XSPReply getPrivileges() {
+    public Reply getPrivileges() {
         return server.userGetPrivileges(identifier);
     }
 }

@@ -19,9 +19,9 @@ package org.xowl.infra.server.base;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLUser;
-import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.api.Reply;
+import org.xowl.infra.utils.api.ReplyUnsupported;
 
 /**
  * Base implementation of a user
@@ -74,13 +74,13 @@ public class BaseUser implements XOWLUser {
     }
 
     @Override
-    public XSPReply updatePassword(String password) {
-        return XSPReplyUnsupported.instance();
+    public Reply updatePassword(String password) {
+        return ReplyUnsupported.instance();
     }
 
     @Override
-    public XSPReply getPrivileges() {
-        return XSPReplyUnsupported.instance();
+    public Reply getPrivileges() {
+        return ReplyUnsupported.instance();
     }
 
     @Override
