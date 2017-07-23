@@ -176,7 +176,7 @@ public class ReplyUtils {
         ASTNode root = Json.parse(bufferedLogger, response.getBodyAsString());
         if (root == null)
             return new ReplyFailure(bufferedLogger.getErrorsAsString());
-        Object data = deserializer.deserializeObject(root);
+        Object data = deserializer.deserialize(root, null);
         if (data instanceof Collection)
             return new ReplyResultCollection<>((Collection) data);
         return new ReplyResult<>(data);
@@ -276,9 +276,9 @@ public class ReplyUtils {
         if (ReplyNetworkError.class.getCanonicalName().equals(kind))
             return new ReplyNetworkError(message);
         if (ReplyResult.class.getCanonicalName().equals(kind))
-            return new ReplyResult<>(deserializer.deserializeObject(nodePayload));
+            return new ReplyResult<>(deserializer.deserialize(nodePayload, null));
         if (ReplyResultCollection.class.getCanonicalName().equals(kind))
-            return new ReplyResultCollection<>((Collection<?>) deserializer.deserializeObject(nodePayload));
+            return new ReplyResultCollection<>((Collection<?>) deserializer.deserialize(nodePayload, null));
         if (ReplySuccess.class.getCanonicalName().equals(kind))
             return new ReplySuccess(message);
         if (ReplyUnauthenticated.class.getCanonicalName().equals(kind))
