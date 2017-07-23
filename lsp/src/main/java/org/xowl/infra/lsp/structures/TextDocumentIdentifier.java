@@ -30,7 +30,7 @@ public class TextDocumentIdentifier implements Serializable {
     /**
      * The document's URI
      */
-    private final String uri;
+    protected final String uri;
 
     /**
      * Gets the document's URI

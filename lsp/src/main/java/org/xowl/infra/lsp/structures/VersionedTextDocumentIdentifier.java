@@ -18,7 +18,6 @@
 package org.xowl.infra.lsp.structures;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
@@ -26,7 +25,7 @@ import org.xowl.infra.utils.TextUtils;
  *
  * @author Laurent Wouters
  */
-public class VersionedTextDocumentIdentifier implements Serializable {
+public class VersionedTextDocumentIdentifier extends TextDocumentIdentifier {
     /**
      * The version number of this document.
      */
@@ -44,9 +43,11 @@ public class VersionedTextDocumentIdentifier implements Serializable {
     /**
      * Initializes this structure
      *
+     * @param uri     The document's URI
      * @param version The version number of this document
      */
-    public VersionedTextDocumentIdentifier(int version) {
+    public VersionedTextDocumentIdentifier(String uri, int version) {
+        super(uri);
         this.version = version;
     }
 
@@ -56,6 +57,7 @@ public class VersionedTextDocumentIdentifier implements Serializable {
      * @param definition The serialized definition
      */
     public VersionedTextDocumentIdentifier(ASTNode definition) {
+        super(definition);
         int version = 0;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
@@ -79,7 +81,9 @@ public class VersionedTextDocumentIdentifier implements Serializable {
 
     @Override
     public String serializedJSON() {
-        return "{\"version\": " +
+        return "{\"uri\": \"" +
+                TextUtils.escapeStringJSON(uri) +
+                "\", \"version\": " +
                 Integer.toString(version) +
                 "}";
     }
