@@ -22,6 +22,7 @@ import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.json.Json;
 import org.xowl.infra.utils.json.JsonLexer;
 import org.xowl.infra.utils.json.JsonParser;
+import org.xowl.infra.utils.json.JsonDeserializer;
 import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.io.Reader;
@@ -38,13 +39,13 @@ public abstract class JsonRpcServer {
     /**
      * The de-serializer to use
      */
-    private final JsonRpcDeserializer deserializer;
+    private final JsonDeserializer deserializer;
 
     /**
      * Initializes this server
      */
     public JsonRpcServer() {
-        this(JsonRpcDeserializer.DEFAULT);
+        this(JsonDeserializer.DEFAULT);
     }
 
     /**
@@ -52,7 +53,7 @@ public abstract class JsonRpcServer {
      *
      * @param deserializer The de-serializer to use
      */
-    public JsonRpcServer(JsonRpcDeserializer deserializer) {
+    public JsonRpcServer(JsonDeserializer deserializer) {
         this.deserializer = deserializer;
     }
 
@@ -172,7 +173,7 @@ public abstract class JsonRpcServer {
             return null;
         if (method == null)
             return null;
-        Object params2 = deserializer.deserialize(params, method);
+        Object params2 = deserializer.deserialize(params);
         return new JsonRpcRequest(identifier, method, params2);
     }
 

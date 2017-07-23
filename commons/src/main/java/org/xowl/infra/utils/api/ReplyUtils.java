@@ -24,13 +24,10 @@ import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
 import org.xowl.infra.utils.json.Json;
 import org.xowl.infra.utils.json.JsonParser;
-import org.xowl.infra.utils.json.SerializedUnknown;
 import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Utility APIs for the management of API replies
@@ -102,10 +99,10 @@ public class ReplyUtils {
      * Translates an HTTP response to an reply
      *
      * @param response The response
-     * @param factory  The factory to use
+     * @param deserializer the deserializer to use
      * @return The reply
      */
-    public static Reply fromHttpResponse(HttpResponse response, ApiFactory factory) {
+    public static Reply fromHttpResponse(HttpResponse response, ApiDeserializer deserializer) {
         // replies mapped to HTTP error codes
         if (response == null)
             return ReplyNetworkError.instance();
@@ -145,7 +142,7 @@ public class ReplyUtils {
                 contentType = contentType.substring(0, index).trim();
             switch (contentType) {
                 case HttpConstants.MIME_JSON:
-                    return fromHttpResponseJSON(response, factory);
+                    return fromHttpResponseJSON(response, deserializer);
                 case HttpConstants.MIME_OCTET_STREAM:
                     return fromHttpResponseBinary(response);
                 default:
@@ -168,10 +165,10 @@ public class ReplyUtils {
      * Translates an HTTP response to an reply when the content type is JSON
      *
      * @param response The response
-     * @param factory  The factory to use
+     * @param deserializer The deserializer to use
      * @return The reply
      */
-    public static Reply fromHttpResponseJSON(HttpResponse response, ApiFactory factory) {
+    public static Reply fromHttpResponseJSON(HttpResponse response, ApiDeserializer deserializer) {
         String content = response.getBodyAsString();
         if (content == null || content.isEmpty())
             return ReplySuccess.instance();
@@ -179,7 +176,7 @@ public class ReplyUtils {
         ASTNode root = Json.parse(bufferedLogger, response.getBodyAsString());
         if (root == null)
             return new ReplyFailure(bufferedLogger.getErrorsAsString());
-        Object data = ReplyUtils.getJsonObject(root, factory);
+        Object data = deserializer.deserializeObject(root);
         if (data instanceof Collection)
             return new ReplyResultCollection<>((Collection) data);
         return new ReplyResult<>(data);
@@ -215,27 +212,27 @@ public class ReplyUtils {
      * Parses a reply serialized in JSON
      *
      * @param content The content
-     * @param factory The factory to use
+     * @param deserializer The deserializer to use
      * @return The result
      */
-    public static Reply parse(String content, ApiFactory factory) {
+    public static Reply parse(String content, ApiDeserializer deserializer) {
         BufferedLogger bufferedLogger = new BufferedLogger();
         ASTNode root = Json.parse(bufferedLogger, content);
         if (root == null)
             return new ReplyFailure(bufferedLogger.getErrorsAsString());
         if (root.getSymbol().getID() == JsonParser.ID.array)
             return new ReplyFailure("Unexpected JSON format");
-        return parse(root, factory);
+        return parse(root, deserializer);
     }
 
     /**
      * Parses a result serialized in JSON
      *
      * @param root    The content
-     * @param factory The factory to use
+     * @param deserializer The deserializer to use
      * @return The result
      */
-    public static Reply parse(ASTNode root, ApiFactory factory) {
+    public static Reply parse(ASTNode root, ApiDeserializer deserializer) {
         String kind = null;
         boolean isSuccess = false;
         String message = null;
@@ -279,9 +276,9 @@ public class ReplyUtils {
         if (ReplyNetworkError.class.getCanonicalName().equals(kind))
             return new ReplyNetworkError(message);
         if (ReplyResult.class.getCanonicalName().equals(kind))
-            return new ReplyResult<>(getJsonObject(nodePayload, factory));
+            return new ReplyResult<>(deserializer.deserializeObject(nodePayload));
         if (ReplyResultCollection.class.getCanonicalName().equals(kind))
-            return new ReplyResultCollection<>((Collection<?>) getJsonObject(nodePayload, factory));
+            return new ReplyResultCollection<>((Collection<?>) deserializer.deserializeObject(nodePayload));
         if (ReplySuccess.class.getCanonicalName().equals(kind))
             return new ReplySuccess(message);
         if (ReplyUnauthenticated.class.getCanonicalName().equals(kind))
@@ -295,61 +292,5 @@ public class ReplyUtils {
             return new ReplySuccess(message);
         else
             return new ReplyFailure(message);
-    }
-
-    /**
-     * Gets an object representing the specified JSON object
-     *
-     * @param node    The root AST for the object
-     * @param factory The factory to use
-     * @return The JSON object
-     */
-    public static Object getJsonObject(ASTNode node, ApiFactory factory) {
-        // is this an array ?
-        if (node.getSymbol().getID() == JsonParser.ID.array) {
-            List<Object> value = new ArrayList<>();
-            for (ASTNode child : node.getChildren()) {
-                value.add(getJsonObject(child, factory));
-            }
-            return value;
-        }
-        // is this a simple value ?
-        String value = node.getValue();
-        if (value != null) {
-            if (value.startsWith("\"")) {
-                value = TextUtils.unescape(value);
-                return value.substring(1, value.length() - 1);
-            }
-            return value;
-        }
-        // this is an object, does it have a type
-        ASTNode nodeType = null;
-        for (ASTNode memberNode : node.getChildren()) {
-            String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
-            memberName = memberName.substring(1, memberName.length() - 1);
-            ASTNode memberValue = memberNode.getChildren().get(1);
-            switch (memberName) {
-                case "type":
-                    nodeType = memberValue;
-                    break;
-            }
-        }
-        if (nodeType != null && factory != null) {
-            // we have a type
-            String type = TextUtils.unescape(nodeType.getValue());
-            type = type.substring(1, type.length() - 1);
-            Object result = factory.newObject(type, node);
-            if (result != null)
-                return result;
-        }
-        // fallback to mapping the properties
-        SerializedUnknown result = new SerializedUnknown();
-        for (ASTNode memberNode : node.getChildren()) {
-            String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
-            memberName = memberName.substring(1, memberName.length() - 1);
-            ASTNode memberValue = memberNode.getChildren().get(1);
-            result.addProperty(memberName, getJsonObject(memberValue, factory));
-        }
-        return result;
     }
 }

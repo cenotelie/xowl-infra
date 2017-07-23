@@ -15,46 +15,42 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.jsonrpc;
+package org.xowl.infra.utils.json;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.json.JsonLexer;
-import org.xowl.infra.utils.json.JsonParser;
-import org.xowl.infra.utils.json.SerializedUnknown;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a de-serializer of JSON-serialized data for the Json-Rpc protocol
+ * Represents a de-serializer of Json-serialized data
  *
  * @author Laurent Wouters
  */
-public class JsonRpcDeserializer {
+public class JsonDeserializer {
     /**
      * The default de-serializer
      */
-    public static final JsonRpcDeserializer DEFAULT = new JsonRpcDeserializer();
+    public static final JsonDeserializer DEFAULT = new JsonDeserializer();
 
     /**
      * De-serializes an object parameters or result related to a request
      *
      * @param definition The serialized parameters
-     * @param method     The requested method
      * @return The de-serialized object
      */
-    public Object deserialize(ASTNode definition, String method) {
+    public Object deserialize(ASTNode definition) {
         switch (definition.getSymbol().getID()) {
             case JsonParser.ID.array: {
                 List<Object> value = new ArrayList<>();
                 for (ASTNode child : definition.getChildren()) {
-                    value.add(deserialize(child, method));
+                    value.add(deserialize(child));
                 }
                 return value;
             }
             case JsonParser.ID.object: {
-                return deserializeObject(definition, method);
+                return deserializeObject(definition);
             }
             case JsonLexer.ID.LITERAL_NULL: {
                 return null;
@@ -86,17 +82,16 @@ public class JsonRpcDeserializer {
      * De-serializes an object related to a request
      *
      * @param definition The serialized parameters
-     * @param method     The requested method
      * @return The de-serialized object
      */
-    public Object deserializeObject(ASTNode definition, String method) {
+    public Object deserializeObject(ASTNode definition) {
         // fallback to mapping the properties
         SerializedUnknown result = new SerializedUnknown();
         for (ASTNode memberNode : definition.getChildren()) {
             String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
-            result.addProperty(memberName, deserialize(memberValue, method));
+            result.addProperty(memberName, deserialize(memberValue));
         }
         return result;
     }
