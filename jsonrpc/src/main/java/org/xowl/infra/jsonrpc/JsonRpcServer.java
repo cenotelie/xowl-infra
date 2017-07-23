@@ -69,10 +69,14 @@ public abstract class JsonRpcServer {
             return JsonRpcResponseError.newInvalidRequest(null).serializedJSON();
         if (object instanceof JsonRpcRequest) {
             JsonRpcResponse response = handle((JsonRpcRequest) object);
+            if (response == null)
+                return "";
             return response.serializedJSON();
         } else {
             List<JsonRpcRequest> requests = ((List<JsonRpcRequest>) object);
             List<JsonRpcResponse> responses = handle(requests);
+            if (responses.isEmpty())
+                return "";
             return TextUtils.serializeJSON(responses);
         }
     }
@@ -188,8 +192,11 @@ public abstract class JsonRpcServer {
         for (JsonRpcRequest request : requests) {
             if (request == null)
                 responses.add(JsonRpcResponseError.newInvalidRequest(null));
-            else
-                responses.add(handle(request));
+            else {
+                JsonRpcResponse response = handle(request);
+                if (response != null)
+                    responses.add(response);
+            }
         }
         return responses;
     }
