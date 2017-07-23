@@ -237,7 +237,19 @@ public class TextUtils {
      * @return The serialized object
      */
     public static String serializeJSON(Object object) {
-        if (object instanceof Serializable) {
+        if (object == null) {
+            return "null";
+        } else if (object instanceof Integer) {
+            return Integer.toString((Integer) object);
+        } else if (object instanceof Long) {
+            return Long.toString((Long) object);
+        } else if (object instanceof Float) {
+            return Float.toString((Float) object);
+        } else if (object instanceof Double) {
+            return Double.toString((Double) object);
+        } else if (object instanceof Boolean) {
+            return Boolean.toString((Boolean) object);
+        } else if (object instanceof Serializable) {
             return ((Serializable) object).serializedJSON();
         } else if (object instanceof Collection) {
             StringBuilder builder = new StringBuilder();
@@ -263,7 +275,19 @@ public class TextUtils {
      * @param object  The object to serialize
      */
     public static void serializeJSON(StringBuilder builder, Object object) {
-        if (object instanceof Serializable) {
+        if (object == null) {
+            builder.append("null");
+        } else if (object instanceof Integer) {
+            builder.append(Integer.toString((Integer) object));
+        } else if (object instanceof Long) {
+            builder.append(Long.toString((Long) object));
+        } else if (object instanceof Float) {
+            builder.append(Float.toString((Float) object));
+        } else if (object instanceof Double) {
+            builder.append(Double.toString((Double) object));
+        } else if (object instanceof Boolean) {
+            builder.append(Boolean.toString((Boolean) object));
+        } else if (object instanceof Serializable) {
             builder.append(((Serializable) object).serializedJSON());
         } else if (object instanceof Collection) {
             builder.append("[");
