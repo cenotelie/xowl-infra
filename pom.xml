@@ -40,6 +40,7 @@
     <modules>
         <module>commons</module>
         <module>jsonrpc</module>
+        <module>lsp</module>
         <module>lang</module>
         <module>store</module>
         <module>engine</module>
