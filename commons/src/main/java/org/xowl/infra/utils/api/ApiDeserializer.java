@@ -42,7 +42,7 @@ public class ApiDeserializer extends JsonDeserializer {
     }
 
     @Override
-    public Object deserializeObject(ASTNode definition) {
+    public Object deserializeObject(ASTNode definition, Object context) {
         // this is an object, does it have a type
         ASTNode nodeType = null;
         for (ASTNode memberNode : definition.getChildren()) {
@@ -63,6 +63,6 @@ public class ApiDeserializer extends JsonDeserializer {
             if (result != null)
                 return result;
         }
-        return super.deserializeObject(definition);
+        return super.deserializeObject(definition, context);
     }
 }

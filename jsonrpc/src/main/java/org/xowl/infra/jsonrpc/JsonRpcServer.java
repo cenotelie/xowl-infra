@@ -20,9 +20,9 @@ package org.xowl.infra.jsonrpc;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.json.Json;
+import org.xowl.infra.utils.json.JsonDeserializer;
 import org.xowl.infra.utils.json.JsonLexer;
 import org.xowl.infra.utils.json.JsonParser;
-import org.xowl.infra.utils.json.JsonDeserializer;
 import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.io.Reader;
@@ -173,7 +173,7 @@ public abstract class JsonRpcServer {
             return null;
         if (method == null)
             return null;
-        Object params2 = deserializer.deserialize(params);
+        Object params2 = deserializer.deserialize(params, method);
         return new JsonRpcRequest(identifier, method, params2);
     }
 

@@ -38,19 +38,20 @@ public class JsonDeserializer {
      * De-serializes an object parameters or result related to a request
      *
      * @param definition The serialized parameters
+     * @param context    The de-serialization context
      * @return The de-serialized object
      */
-    public Object deserialize(ASTNode definition) {
+    public Object deserialize(ASTNode definition, Object context) {
         switch (definition.getSymbol().getID()) {
             case JsonParser.ID.array: {
                 List<Object> value = new ArrayList<>();
                 for (ASTNode child : definition.getChildren()) {
-                    value.add(deserialize(child));
+                    value.add(deserialize(child, context));
                 }
                 return value;
             }
             case JsonParser.ID.object: {
-                return deserializeObject(definition);
+                return deserializeObject(definition, context);
             }
             case JsonLexer.ID.LITERAL_NULL: {
                 return null;
@@ -82,16 +83,17 @@ public class JsonDeserializer {
      * De-serializes an object related to a request
      *
      * @param definition The serialized parameters
+     * @param context    The de-serialization context
      * @return The de-serialized object
      */
-    public Object deserializeObject(ASTNode definition) {
+    public Object deserializeObject(ASTNode definition, Object context) {
         // fallback to mapping the properties
         SerializedUnknown result = new SerializedUnknown();
         for (ASTNode memberNode : definition.getChildren()) {
             String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
-            result.addProperty(memberName, deserialize(memberValue));
+            result.addProperty(memberName, deserialize(memberValue, context));
         }
         return result;
     }
