@@ -17,6 +17,8 @@
 
 package org.xowl.infra.utils;
 
+import org.xowl.infra.utils.json.Json;
+
 /**
  * Represents a rich string for a message with possible links to objects
  * This class is expected to be used to represented rich messages in a user interface.
@@ -92,7 +94,7 @@ public class RichString implements Serializable {
             return "{\"type\": \"" +
                     TextUtils.escapeStringJSON(StyledSpan.class.getCanonicalName()) +
                     "\", \"value\": " +
-                    TextUtils.serializeJSON(value) +
+                    Json.serialize(value) +
                     ", \"fontStyle\": \"" +
                     TextUtils.escapeStringJSON(fontStyle.toString()) +
                     "\", \"fontSize\": \"" +
@@ -138,7 +140,7 @@ public class RichString implements Serializable {
         for (int i = 0; i != parts.length; i++) {
             if (i != 0)
                 buffer.append(", ");
-            TextUtils.serializeJSON(buffer, parts[i]);
+            Json.serialize(buffer, parts[i]);
         }
         buffer.append("]}");
         return buffer.toString();

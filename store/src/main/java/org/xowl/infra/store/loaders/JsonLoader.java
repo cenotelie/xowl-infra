@@ -19,14 +19,14 @@ package org.xowl.infra.store.loaders;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.ParseResult;
-import org.xowl.infra.jsonrpc.Json;
-import org.xowl.infra.jsonrpc.JsonParser;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.json.Json;
+import org.xowl.infra.utils.json.JsonParser;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Reader;

@@ -20,7 +20,6 @@ package org.xowl.infra.server.standalone;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.jsonrpc.Json;
 import org.xowl.infra.server.api.ApiV1;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.base.BaseStoredProcedure;
@@ -33,6 +32,7 @@ import org.xowl.infra.utils.concurrent.SafeRunnable;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
 import org.xowl.infra.utils.http.URIUtils;
+import org.xowl.infra.utils.json.Json;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logging;
 

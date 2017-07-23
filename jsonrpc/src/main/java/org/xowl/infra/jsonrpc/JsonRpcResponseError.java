@@ -18,6 +18,7 @@
 package org.xowl.infra.jsonrpc;
 
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.json.Json;
 
 /**
  * Represents an error response in the Json-Rpc protocol
@@ -168,7 +169,7 @@ public class JsonRpcResponseError implements JsonRpcResponse {
         builder.append("\"");
         if (data != null) {
             builder.append(", \"data\": ");
-            TextUtils.serializeJSON(builder, data);
+            Json.serialize(builder, data);
         }
         builder.append("}}");
         return builder.toString();

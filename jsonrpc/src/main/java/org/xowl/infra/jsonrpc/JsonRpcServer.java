@@ -19,6 +19,9 @@ package org.xowl.infra.jsonrpc;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.json.Json;
+import org.xowl.infra.utils.json.JsonLexer;
+import org.xowl.infra.utils.json.JsonParser;
 import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.io.Reader;
@@ -77,7 +80,7 @@ public abstract class JsonRpcServer {
             List<JsonRpcResponse> responses = handle(requests);
             if (responses.isEmpty())
                 return "";
-            return TextUtils.serializeJSON(responses);
+            return Json.serialize(responses);
         }
     }
 

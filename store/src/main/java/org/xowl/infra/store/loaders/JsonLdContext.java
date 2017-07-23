@@ -18,10 +18,10 @@
 package org.xowl.infra.store.loaders;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.jsonrpc.JsonLexer;
-import org.xowl.infra.jsonrpc.JsonParser;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.http.URIUtils;
+import org.xowl.infra.utils.json.JsonLexer;
+import org.xowl.infra.utils.json.JsonParser;
 
 import java.util.ArrayList;
 import java.util.Collections;

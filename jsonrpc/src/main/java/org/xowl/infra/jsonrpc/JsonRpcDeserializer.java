@@ -18,8 +18,10 @@
 package org.xowl.infra.jsonrpc;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.utils.SerializedUnknown;
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.json.JsonLexer;
+import org.xowl.infra.utils.json.JsonParser;
+import org.xowl.infra.utils.json.SerializedUnknown;
 
 import java.util.ArrayList;
 import java.util.List;

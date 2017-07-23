@@ -19,6 +19,7 @@ package org.xowl.infra.jsonrpc;
 
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.json.Json;
 
 /**
  * Implementation of a Json-Rpc request
@@ -118,7 +119,7 @@ public class JsonRpcRequest implements Serializable {
         builder.append("\"");
         if (params != null) {
             builder.append(", \"params\": ");
-            TextUtils.serializeJSON(builder, params);
+            Json.serialize(builder, params);
         }
         builder.append("}");
         return builder.toString();

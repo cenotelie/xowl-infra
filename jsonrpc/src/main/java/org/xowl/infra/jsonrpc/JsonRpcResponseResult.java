@@ -18,6 +18,7 @@
 package org.xowl.infra.jsonrpc;
 
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.json.Json;
 
 /**
  * Implements a Json-Rpc response with a result
@@ -75,7 +76,7 @@ public class JsonRpcResponseResult<T> implements JsonRpcResponse {
         builder.append("{\"jsonrpc\": \"2.0\", \"id\": \"");
         builder.append(TextUtils.escapeStringJSON(identifier));
         builder.append("\", \"result\": ");
-        TextUtils.serializeJSON(builder, result);
+        Json.serialize(builder, result);
         builder.append("}");
         return builder.toString();
     }

@@ -15,18 +15,21 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.jsonrpc;
+package org.xowl.infra.utils.json;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.ParseError;
 import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.TextContext;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.Serializable;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Collection;
 
 /**
  * Json utility APIs
@@ -34,6 +37,10 @@ import java.io.StringReader;
  * @author Laurent Wouters
  */
 public class Json {
+
+
+
+
     /**
      * Parses the JSON content
      *
@@ -90,5 +97,81 @@ public class Json {
             logger.error(context.getPointer());
         }
         return result;
+    }
+
+    /**
+     * Gets the JSON serialization of the specified object
+     *
+     * @param object The object to serialize
+     * @return The serialized object
+     */
+    public static String serialize(Object object) {
+        if (object == null) {
+            return "null";
+        } else if (object instanceof Integer) {
+            return Integer.toString((Integer) object);
+        } else if (object instanceof Long) {
+            return Long.toString((Long) object);
+        } else if (object instanceof Float) {
+            return Float.toString((Float) object);
+        } else if (object instanceof Double) {
+            return Double.toString((Double) object);
+        } else if (object instanceof Boolean) {
+            return Boolean.toString((Boolean) object);
+        } else if (object instanceof Serializable) {
+            return ((Serializable) object).serializedJSON();
+        } else if (object instanceof Collection) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("[");
+            boolean first = true;
+            for (Object value : ((Collection<?>) object)) {
+                if (!first)
+                    builder.append(", ");
+                first = false;
+                serialize(builder, value);
+            }
+            builder.append("]");
+            return builder.toString();
+        } else {
+            return "\"" + TextUtils.escapeStringJSON(object.toString()) + "\"";
+        }
+    }
+
+    /**
+     * Builds the JSON serialization of the specified object
+     *
+     * @param builder The string build to output to
+     * @param object  The object to serialize
+     */
+    public static void serialize(StringBuilder builder, Object object) {
+        if (object == null) {
+            builder.append("null");
+        } else if (object instanceof Integer) {
+            builder.append(Integer.toString((Integer) object));
+        } else if (object instanceof Long) {
+            builder.append(Long.toString((Long) object));
+        } else if (object instanceof Float) {
+            builder.append(Float.toString((Float) object));
+        } else if (object instanceof Double) {
+            builder.append(Double.toString((Double) object));
+        } else if (object instanceof Boolean) {
+            builder.append(Boolean.toString((Boolean) object));
+        } else if (object instanceof Serializable) {
+            builder.append(((Serializable) object).serializedJSON());
+        } else if (object instanceof Collection) {
+            builder.append("[");
+            boolean first = true;
+            for (Object value : ((Collection<?>) object)) {
+                if (!first)
+                    builder.append(", ");
+                first = false;
+                serialize(builder, value);
+            }
+            builder.append("]");
+        } else {
+            builder.append("\"");
+            builder.append(TextUtils.escapeStringJSON(object.toString()));
+            builder.append("\"");
+        }
     }
 }

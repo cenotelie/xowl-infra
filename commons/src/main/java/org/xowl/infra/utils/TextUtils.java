@@ -17,8 +17,6 @@
 
 package org.xowl.infra.utils;
 
-import java.util.Collection;
-
 /**
  * Utility APIs for text manipulation
  *
@@ -228,81 +226,5 @@ public class TextUtils {
                 builder.append(c);
         }
         return builder.toString();
-    }
-
-    /**
-     * Gets the JSON serialization of the specified object
-     *
-     * @param object The object to serialize
-     * @return The serialized object
-     */
-    public static String serializeJSON(Object object) {
-        if (object == null) {
-            return "null";
-        } else if (object instanceof Integer) {
-            return Integer.toString((Integer) object);
-        } else if (object instanceof Long) {
-            return Long.toString((Long) object);
-        } else if (object instanceof Float) {
-            return Float.toString((Float) object);
-        } else if (object instanceof Double) {
-            return Double.toString((Double) object);
-        } else if (object instanceof Boolean) {
-            return Boolean.toString((Boolean) object);
-        } else if (object instanceof Serializable) {
-            return ((Serializable) object).serializedJSON();
-        } else if (object instanceof Collection) {
-            StringBuilder builder = new StringBuilder();
-            builder.append("[");
-            boolean first = true;
-            for (Object value : ((Collection<?>) object)) {
-                if (!first)
-                    builder.append(", ");
-                first = false;
-                serializeJSON(builder, value);
-            }
-            builder.append("]");
-            return builder.toString();
-        } else {
-            return "\"" + escapeStringJSON(object.toString()) + "\"";
-        }
-    }
-
-    /**
-     * Builds the JSON serialization of the specified object
-     *
-     * @param builder The string build to output to
-     * @param object  The object to serialize
-     */
-    public static void serializeJSON(StringBuilder builder, Object object) {
-        if (object == null) {
-            builder.append("null");
-        } else if (object instanceof Integer) {
-            builder.append(Integer.toString((Integer) object));
-        } else if (object instanceof Long) {
-            builder.append(Long.toString((Long) object));
-        } else if (object instanceof Float) {
-            builder.append(Float.toString((Float) object));
-        } else if (object instanceof Double) {
-            builder.append(Double.toString((Double) object));
-        } else if (object instanceof Boolean) {
-            builder.append(Boolean.toString((Boolean) object));
-        } else if (object instanceof Serializable) {
-            builder.append(((Serializable) object).serializedJSON());
-        } else if (object instanceof Collection) {
-            builder.append("[");
-            boolean first = true;
-            for (Object value : ((Collection<?>) object)) {
-                if (!first)
-                    builder.append(", ");
-                first = false;
-                serializeJSON(builder, value);
-            }
-            builder.append("]");
-        } else {
-            builder.append("\"");
-            builder.append(escapeStringJSON(object.toString()));
-            builder.append("\"");
-        }
     }
 }

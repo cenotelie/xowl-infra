@@ -18,17 +18,17 @@
 package org.xowl.infra.server.xsp;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.jsonrpc.Json;
 import org.xowl.infra.server.api.XOWLFactory;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.sparql.ResultUtils;
 import org.xowl.infra.utils.Serializable;
-import org.xowl.infra.utils.SerializedUnknown;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
+import org.xowl.infra.utils.json.Json;
+import org.xowl.infra.utils.json.SerializedUnknown;
 import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.io.IOException;
@@ -112,7 +112,7 @@ public class XSPReplyUtils {
                 if (!first)
                     builder.append(", ");
                 first = false;
-                TextUtils.serializeJSON(builder, obj);
+                Json.serialize(builder, obj);
             }
             builder.append("]");
             return new HttpResponse(HttpURLConnection.HTTP_OK, HttpConstants.MIME_JSON, builder.toString());

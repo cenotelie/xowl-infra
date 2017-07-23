@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,7 +15,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.utils;
+package org.xowl.infra.utils.json;
+
+import org.xowl.infra.utils.Serializable;
+import org.xowl.infra.utils.TextUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,7 +88,7 @@ public class SerializedUnknown implements Serializable {
             builder.append("\"");
             builder.append(TextUtils.escapeStringJSON(mapping.getKey()));
             builder.append("\": ");
-            TextUtils.serializeJSON(builder, mapping.getValue());
+            Json.serialize(builder, mapping.getValue());
         }
         builder.append("}");
         return builder.toString();

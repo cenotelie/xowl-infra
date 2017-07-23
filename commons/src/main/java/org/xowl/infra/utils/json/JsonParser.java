@@ -20,7 +20,7 @@
  * Hime Parser Generator 2.0.0.0
  */
 
-package org.xowl.infra.jsonrpc;
+package org.xowl.infra.utils.json;
 
 import fr.cenotelie.hime.redist.Symbol;
 import fr.cenotelie.hime.redist.parsers.LRkAutomaton;

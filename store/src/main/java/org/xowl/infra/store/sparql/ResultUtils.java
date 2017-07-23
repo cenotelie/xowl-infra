@@ -18,7 +18,6 @@
 package org.xowl.infra.store.sparql;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.jsonrpc.Json;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
@@ -31,6 +30,7 @@ import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.json.Json;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.DispatchLogger;
 import org.xowl.infra.utils.logging.Logging;

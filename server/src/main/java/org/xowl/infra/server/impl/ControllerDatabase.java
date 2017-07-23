@@ -18,7 +18,6 @@
 package org.xowl.infra.server.impl;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.jsonrpc.Json;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
@@ -26,7 +25,9 @@ import org.xowl.infra.server.base.BaseRule;
 import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.base.BaseStoredProcedureContext;
 import org.xowl.infra.store.*;
-import org.xowl.infra.store.loaders.*;
+import org.xowl.infra.store.loaders.RDFLoaderResult;
+import org.xowl.infra.store.loaders.SPARQLLoader;
+import org.xowl.infra.store.loaders.xRDFLoader;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFRule;
@@ -40,6 +41,7 @@ import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.SHA1;
 import org.xowl.infra.utils.config.Configuration;
+import org.xowl.infra.utils.json.Json;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.metrics.Metric;

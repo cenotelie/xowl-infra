@@ -18,6 +18,7 @@
 package org.xowl.infra.server.xsp;
 
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.json.Json;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -89,7 +90,7 @@ public class XSPReplyResultCollection<T> implements XSPReply {
             if (!first)
                 builder.append(", ");
             first = false;
-            TextUtils.serializeJSON(builder, obj);
+            Json.serialize(builder, obj);
         }
         builder.append("]}");
         return builder.toString();
