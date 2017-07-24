@@ -26,6 +26,7 @@ import org.xowl.infra.utils.json.JsonParser;
 import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -63,11 +64,31 @@ public abstract class JsonRpcServer {
      * @param input The input for the server
      * @return The response
      */
+    public String handle(String input) {
+        return handle(new StringReader(input));
+    }
+
+    /**
+     * Handles the specified input
+     *
+     * @param input The input for the server
+     * @return The response
+     */
     public String handle(Reader input) {
         BufferedLogger logger = new BufferedLogger();
         ASTNode definition = Json.parse(logger, input);
         if (definition == null || !logger.getErrorMessages().isEmpty())
             return JsonRpcResponseError.newParseError(null).serializedJSON();
+        return handle(definition);
+    }
+
+    /**
+     * Handles the specified input
+     *
+     * @param definition the definition of the request
+     * @return The response
+     */
+    protected String handle(ASTNode definition) {
         Object object = deserializeRequests(definition);
         if (object == null)
             return JsonRpcResponseError.newInvalidRequest(null).serializedJSON();
