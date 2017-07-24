@@ -94,8 +94,27 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
         Reply reply = doSend(message);
         if (!reply.isSuccess())
             return reply;
+        return doParseResponse(((ReplyResult<String>) reply).getData(), context);
+    }
+
+    /**
+     * Do send a message to the server
+     *
+     * @param message The message to send
+     * @return The reply
+     */
+    protected abstract Reply doSend(String message);
+
+    /**
+     * Parses the content of a response
+     *
+     * @param content The content of a response
+     * @param context The de-serialization context
+     * @return The reply
+     */
+    protected Reply doParseResponse(String content, Object context) {
         BufferedLogger logger = new BufferedLogger();
-        ASTNode definition = Json.parse(logger, ((ReplyResult<String>) reply).getData());
+        ASTNode definition = Json.parse(logger, content);
         if (definition == null || !logger.getErrorMessages().isEmpty())
             return new ReplyApiError(ERROR_RESPONSE_PARSING, logger.getErrorsAsString());
         Object object = deserializeResponses(definition, context);
@@ -107,14 +126,6 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
             return new ReplyResultCollection<>((List<JsonRpcResponse>) object);
         return new ReplyApiError(ERROR_INVALID_RESPONSE);
     }
-
-    /**
-     * Do send a message to the server
-     *
-     * @param message The message to send
-     * @return The reply
-     */
-    protected abstract Reply doSend(String message);
 
     /**
      * De-serializes the response objects

@@ -46,14 +46,14 @@ public abstract class LspEndpointListenerBase extends JsonRpcServerBase implemen
 
     @Override
     public String handle(String input) {
-        String content = stripEnvelope(input);
+        String content = LspUtils.stripEnvelope(input);
         if (content == null)
             return null;
         BufferedLogger logger = new BufferedLogger();
         ASTNode definition = Json.parse(logger, content);
         if (definition == null || !logger.getErrorMessages().isEmpty())
-            return JsonRpcResponseError.newParseError(null).serializedJSON();
-        return handle(definition);
+            return LspUtils.envelop(JsonRpcResponseError.newParseError(null).serializedJSON());
+        return LspUtils.envelop(handle(definition));
     }
 
     @Override
@@ -64,37 +64,5 @@ public abstract class LspEndpointListenerBase extends JsonRpcServerBase implemen
             Logging.get().error(exception);
             return null;
         }
-    }
-
-    /**
-     * Gets the content Json-Rpc payload after the header
-     *
-     * @param message The input message
-     * @return The content
-     */
-    private String stripEnvelope(String message) {
-        if (message == null)
-            return null;
-        if (!message.startsWith(LspUtils.HEADER_CONTENT_LENGTH))
-            return null;
-        int index = message.indexOf(LspUtils.EOL, LspUtils.HEADER_CONTENT_LENGTH.length() + 1);
-        if (index == -1)
-            return null;
-        int length;
-        try {
-            length = Integer.parseInt(message.substring(LspUtils.HEADER_CONTENT_LENGTH.length() + 1, index).trim());
-        } catch (NumberFormatException exception) {
-            return null;
-        }
-        message = message.substring(index + LspUtils.EOL.length());
-        if (message.startsWith(LspUtils.HEADER_CONTENT_TYPE)) {
-            index = message.indexOf(LspUtils.EOL, LspUtils.HEADER_CONTENT_TYPE.length() + 1);
-            if (index == -1)
-                return null;
-            message = message.substring(index + LspUtils.EOL.length());
-        }
-        if (message.startsWith(LspUtils.EOL))
-            message = message.substring(LspUtils.EOL.length());
-        return message;
     }
 }

@@ -19,6 +19,7 @@ package org.xowl.infra.lsp;
 
 import org.xowl.infra.jsonrpc.JsonRpcClientBase;
 import org.xowl.infra.utils.api.Reply;
+import org.xowl.infra.utils.api.ReplyResult;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
@@ -50,21 +51,10 @@ public abstract class LspEndpointBase extends JsonRpcClientBase implements LspEn
 
     @Override
     public Reply send(String message, Object context) {
-        return super.send(envelop(message), context);
-    }
-
-    /**
-     * Gets the full message for the specified content
-     *
-     * @param content The content
-     * @return The full message with the envelope
-     */
-    private String envelop(String content) {
-        if (content == null)
-            return null;
-        return LspUtils.HEADER_CONTENT_LENGTH + ": " + Integer.toString(content.length()) + LspUtils.EOL +
-                LspUtils.HEADER_CONTENT_TYPE + ": " + LspUtils.HEADER_CONTENT_TYPE_VALUE + LspUtils.EOL +
-                LspUtils.EOL +
-                content;
+        Reply reply = doSend(LspUtils.envelop(message));
+        if (!reply.isSuccess())
+            return reply;
+        String content = LspUtils.stripEnvelope(((ReplyResult<String>) reply).getData());
+        return doParseResponse(content, context);
     }
 }

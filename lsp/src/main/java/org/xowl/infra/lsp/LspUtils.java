@@ -46,4 +46,51 @@ public class LspUtils {
      * The error code when the server is not initialized
      */
     public static final int ERROR_SERVER_NOT_INITIALIZED = -32002;
+
+    /**
+     * Gets the full message for the specified content
+     *
+     * @param content The content
+     * @return The full message with the envelope
+     */
+    public static String envelop(String content) {
+        if (content == null)
+            return null;
+        return HEADER_CONTENT_LENGTH + ": " + Integer.toString(content.length()) + EOL +
+                HEADER_CONTENT_TYPE + ": " + HEADER_CONTENT_TYPE_VALUE + EOL +
+                EOL +
+                content;
+    }
+
+    /**
+     * Gets the content Json-Rpc payload after the header
+     *
+     * @param message The input message
+     * @return The content
+     */
+    public static String stripEnvelope(String message) {
+        if (message == null)
+            return null;
+        if (!message.startsWith(HEADER_CONTENT_LENGTH))
+            return null;
+        int index = message.indexOf(EOL, HEADER_CONTENT_LENGTH.length() + 1);
+        if (index == -1)
+            return null;
+        int length;
+        try {
+            length = Integer.parseInt(message.substring(HEADER_CONTENT_LENGTH.length() + 1, index).trim());
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+        message = message.substring(index + EOL.length());
+        if (message.startsWith(HEADER_CONTENT_TYPE)) {
+            index = message.indexOf(EOL, HEADER_CONTENT_TYPE.length() + 1);
+            if (index == -1)
+                return null;
+            message = message.substring(index + EOL.length());
+        }
+        if (message.startsWith(EOL))
+            message = message.substring(EOL.length());
+        return message;
+    }
 }
