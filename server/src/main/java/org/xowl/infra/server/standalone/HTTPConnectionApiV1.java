@@ -22,10 +22,10 @@ import com.sun.net.httpserver.HttpExchange;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.ApiV1;
 import org.xowl.infra.server.api.XOWLPrivilege;
+import org.xowl.infra.server.api.XOWLReplyUtils;
 import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.UserImpl;
-import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.api.*;
@@ -779,7 +779,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
      */
     private int response(Reply reply) {
         List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
-        HttpResponse response = XSPReplyUtils.toHttpResponse(reply, acceptTypes);
+        HttpResponse response = XOWLReplyUtils.toHttpResponse(reply, acceptTypes);
         if (response.getContentType() != null)
             httpExchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, response.getContentType());
         return response(response.getCode(), response.getBodyAsString());

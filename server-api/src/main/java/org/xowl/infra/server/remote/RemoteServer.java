@@ -19,7 +19,6 @@ package org.xowl.infra.server.remote;
 
 import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.base.BaseStoredProcedure;
-import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
@@ -108,7 +107,7 @@ public class RemoteServer implements XOWLServer {
                 HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_TEXT_PLAIN
         );
-        Reply reply = XSPReplyUtils.fromHttpResponse(response, deserializer);
+        Reply reply = XOWLReplyUtils.fromHttpResponse(response, deserializer);
         if (reply.isSuccess()) {
             currentUser = new RemoteUser(this, login);
             currentLogin = login;
@@ -129,7 +128,7 @@ public class RemoteServer implements XOWLServer {
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN
         );
-        Reply reply = XSPReplyUtils.fromHttpResponse(response, deserializer);
+        Reply reply = XOWLReplyUtils.fromHttpResponse(response, deserializer);
         currentUser = null;
         currentLogin = null;
         currentPassword = null;
@@ -142,7 +141,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/server/shutdown",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN), deserializer);
@@ -155,7 +154,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/server/shutdown",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN), deserializer);
@@ -167,7 +166,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/server/restart",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN), deserializer);
@@ -180,7 +179,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/server/restart",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_TEXT_PLAIN), deserializer);
@@ -197,7 +196,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/server/grantAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
@@ -210,7 +209,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/server/grantAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
@@ -227,7 +226,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/server/revokeAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
@@ -240,7 +239,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/server/revokeAdmin?user=" + URIUtils.encodeComponent(target),
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
@@ -252,7 +251,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -265,7 +264,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -277,7 +276,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -290,7 +289,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -303,7 +302,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), deserializer);
@@ -316,7 +315,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), deserializer);
@@ -333,7 +332,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
@@ -346,7 +345,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
@@ -358,7 +357,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -371,7 +370,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -383,7 +382,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -396,7 +395,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -408,7 +407,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
                 password,
@@ -423,7 +422,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_GET,
                 password,
@@ -442,7 +441,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/metric",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -455,7 +454,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/metric",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -472,7 +471,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/statistics",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -485,7 +484,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/statistics",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -509,7 +508,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/sparql",
                 HttpConstants.METHOD_POST,
                 sparql,
@@ -524,7 +523,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/sparql",
                 HttpConstants.METHOD_POST,
                 sparql,
@@ -543,7 +542,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -556,7 +555,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -574,7 +573,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_POST,
                 regime.toString(),
@@ -589,7 +588,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_POST,
                 regime.toString(),
@@ -608,7 +607,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -621,7 +620,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -641,7 +640,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges/grant" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
@@ -656,7 +655,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges/grant" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
@@ -678,7 +677,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges/revoke" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
@@ -693,7 +692,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/privileges/revoke" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
@@ -712,7 +711,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -725,7 +724,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -743,7 +742,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -756,7 +755,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -775,7 +774,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + Boolean.toString(activate),
                 HttpConstants.METHOD_PUT,
                 content,
@@ -790,7 +789,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + Boolean.toString(activate),
                 HttpConstants.METHOD_PUT,
                 content,
@@ -810,7 +809,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
@@ -823,7 +822,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
@@ -841,7 +840,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
@@ -854,7 +853,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
@@ -872,7 +871,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
@@ -885,7 +884,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
@@ -903,7 +902,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -916,7 +915,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -933,7 +932,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -946,7 +945,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -964,7 +963,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -977,7 +976,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -998,7 +997,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_PUT,
                 procedure.serializedJSON(),
@@ -1013,7 +1012,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_PUT,
                 procedure.serializedJSON(),
@@ -1033,7 +1032,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
@@ -1046,7 +1045,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
@@ -1065,7 +1064,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_POST,
                 context.serializedJSON(),
@@ -1080,7 +1079,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_POST,
                 context.serializedJSON(),
@@ -1112,7 +1111,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_POST,
                 input,
@@ -1128,7 +1127,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_POST,
                 input,
@@ -1167,7 +1166,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(toDelete),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
@@ -1180,7 +1179,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(toDelete),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
@@ -1198,7 +1197,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/password",
                 HttpConstants.METHOD_POST,
                 password,
@@ -1213,7 +1212,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/password",
                 HttpConstants.METHOD_POST,
                 password,
@@ -1232,7 +1231,7 @@ public class RemoteServer implements XOWLServer {
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XSPReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
@@ -1245,7 +1244,7 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XSPReplyUtils.fromHttpResponse(connection.request(
+        return XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/users/" + URIUtils.encodeComponent(user) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
