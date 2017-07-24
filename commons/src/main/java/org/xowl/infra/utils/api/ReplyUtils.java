@@ -127,7 +127,7 @@ public class ReplyUtils {
         if (response.getCode() == HttpURLConnection.HTTP_INTERNAL_ERROR)
             return new ReplyException(null); // exception not preserved
 
-        // other failures (including XSPReplyFailure) mapped to HTTP_UNKNOWN_ERROR
+        // other failures (including ReplyFailure) mapped to HTTP_UNKNOWN_ERROR
         if (response.getCode() == HttpConstants.HTTP_UNKNOWN_ERROR)
             return new ReplyFailure(response.getBodyAsString());
         // handle other failures

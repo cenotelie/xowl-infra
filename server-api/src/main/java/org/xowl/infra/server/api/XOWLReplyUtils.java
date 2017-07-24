@@ -40,7 +40,7 @@ import java.util.List;
  */
 public class XOWLReplyUtils {
     /**
-     * Translates an XSP reply to an HTTP response
+     * Translates an API reply to an HTTP response
      *
      * @param reply       The reply
      * @param acceptTypes The accepted MIME types, if any
@@ -67,11 +67,11 @@ public class XOWLReplyUtils {
     }
 
     /**
-     * Translates an HTTP response to an XSP reply
+     * Translates an HTTP response to an API reply
      *
      * @param response     The response
      * @param deserializer The deserializer to use
-     * @return The XSP reply
+     * @return The API Reply
      */
     public static Reply fromHttpResponse(HttpResponse response, ApiDeserializer deserializer) {
         if (response != null) {
@@ -101,10 +101,10 @@ public class XOWLReplyUtils {
     }
 
     /**
-     * Translates an HTTP response to an XSP reply when the content type is a SPARQL result
+     * Translates an HTTP response to an API reply when the content type is a SPARQL result
      *
      * @param response The response
-     * @return The XSP reply
+     * @return The API Reply
      */
     private static Reply fromHttpResponseSPARQL(HttpResponse response) {
         String content = response.getBodyAsString();
