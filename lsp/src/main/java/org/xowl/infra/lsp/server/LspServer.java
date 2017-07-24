@@ -117,8 +117,8 @@ public class LspServer extends LspEndpointBase {
     }
 
     @Override
-    public Reply send(String message) {
-        return client.send(message);
+    public Reply send(String message, Object context) {
+        return client.send(message, context);
     }
 
     @Override

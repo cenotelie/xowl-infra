@@ -49,8 +49,8 @@ public abstract class LspEndpointBase extends JsonRpcClientBase implements LspEn
     }
 
     @Override
-    public Reply send(String message) {
-        return super.send(envelop(message));
+    public Reply send(String message, Object context) {
+        return super.send(envelop(message), context);
     }
 
     /**

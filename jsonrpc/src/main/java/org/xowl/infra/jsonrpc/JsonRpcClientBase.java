@@ -62,7 +62,7 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
 
     @Override
     public Reply send(JsonRpcRequest request) {
-        return send(request.serializedJSON());
+        return send(request.serializedJSON(), request.getMethod());
     }
 
     @Override
@@ -77,16 +77,20 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
             builder.append(request.serializedJSON());
         }
         builder.append("]");
-        return send(builder.toString());
+        List<String> context = new ArrayList<>();
+        for (JsonRpcRequest request : requests)
+            context.add(request.getMethod());
+        return send(builder.toString(), context);
     }
 
     /**
      * Send a message to the server and get the response
      *
      * @param message The message to send
+     * @param context The de-serialization context
      * @return The reply
      */
-    public Reply send(String message) {
+    public Reply send(String message, Object context) {
         Reply reply = doSend(message);
         if (!reply.isSuccess())
             return reply;
@@ -94,7 +98,7 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
         ASTNode definition = Json.parse(logger, ((ReplyResult<String>) reply).getData());
         if (definition == null || !logger.getErrorMessages().isEmpty())
             return new ReplyApiError(ERROR_RESPONSE_PARSING, logger.getErrorsAsString());
-        Object object = deserializeResponses(definition);
+        Object object = deserializeResponses(definition, context);
         if (object == null)
             return new ReplyApiError(ERROR_INVALID_RESPONSE);
         if (object instanceof JsonRpcResponse)
@@ -116,16 +120,24 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      * De-serializes the response objects
      *
      * @param definition The serialized definition
+     * @param context    The de-serialization context
      * @return The response(s)
      */
-    protected Object deserializeResponses(ASTNode definition) {
+    protected Object deserializeResponses(ASTNode definition, Object context) {
         if (definition.getSymbol().getID() == JsonParser.ID.object)
-            return deserializeResponse(definition);
+            return deserializeResponse(definition, context);
         if (definition.getSymbol().getID() != JsonParser.ID.array)
             return null;
         List<JsonRpcResponse> responses = new ArrayList<>();
+        List<String> methods = null;
+        if (context != null && context instanceof List)
+            methods = (List<String>) context;
+        int index = 0;
         for (ASTNode child : definition.getChildren()) {
-            JsonRpcResponse response = deserializeResponse(child);
+            Object objContext = null;
+            if (methods != null && methods.size() == definition.getChildren().size())
+                objContext = methods.get(index++);
+            JsonRpcResponse response = deserializeResponse(child, objContext);
             responses.add(response);
         }
         return responses;
@@ -135,9 +147,10 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      * De-serializes the response object
      *
      * @param definition The serialized definition
+     * @param context    The de-serialization context
      * @return The response
      */
-    protected JsonRpcResponse deserializeResponse(ASTNode definition) {
+    protected JsonRpcResponse deserializeResponse(ASTNode definition, Object context) {
         if (definition.getSymbol().getID() != JsonParser.ID.object)
             return null;
 
@@ -185,7 +198,7 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
                     break;
                 }
                 case "result": {
-                    result = deserializer.deserialize(nodeValue, null);
+                    result = deserializer.deserialize(nodeValue, context);
                     break;
                 }
                 case "error": {

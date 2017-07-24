@@ -61,7 +61,8 @@ public interface JsonRpcClient {
      * Send a message to the server and get the response
      *
      * @param message The message to send
+     * @param context The de-serialization context
      * @return The reply
      */
-    Reply send(String message);
+    Reply send(String message, Object context);
 }

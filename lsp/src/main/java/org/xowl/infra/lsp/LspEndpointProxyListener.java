@@ -61,7 +61,7 @@ public class LspEndpointProxyListener implements LspEndpoint {
     }
 
     @Override
-    public Reply send(String message) {
+    public Reply send(String message, Object context) {
         return ReplyUnsupported.instance();
     }
 }
