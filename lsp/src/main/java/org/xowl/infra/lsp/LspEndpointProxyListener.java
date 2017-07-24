@@ -22,6 +22,7 @@ import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyResult;
 import org.xowl.infra.utils.api.ReplyResultCollection;
 import org.xowl.infra.utils.api.ReplyUnsupported;
+import org.xowl.infra.utils.json.JsonDeserializer;
 
 import java.util.List;
 
@@ -30,24 +31,15 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class LspEndpointProxyListener implements LspEndpoint {
+public class LspEndpointProxyListener extends LspEndpointBase implements LspEndpoint {
     /**
-     * The proxied listener
-     */
-    private final LspEndpointListener listener;
-
-    /**
-     * Initialized this proxy
+     * Initializes this endpoint
      *
-     * @param listener The proxied listener
+     * @param listener     The proxied listener
+     * @param deserializer The de-serializer to use for responses
      */
-    public LspEndpointProxyListener(LspEndpointListener listener) {
-        this.listener = listener;
-    }
-
-    @Override
-    public LspEndpointListener getListener() {
-        return listener;
+    protected LspEndpointProxyListener(LspEndpointListener listener, JsonDeserializer deserializer) {
+        super(listener, deserializer);
     }
 
     @Override
@@ -62,6 +54,12 @@ public class LspEndpointProxyListener implements LspEndpoint {
 
     @Override
     public Reply send(String message, Object context) {
+        String content = listener.handle(LspUtils.envelop(message));
+        return doParseResponse(LspUtils.stripEnvelope(content), context);
+    }
+
+    @Override
+    protected Reply doSend(String message) {
         return ReplyUnsupported.instance();
     }
 }
