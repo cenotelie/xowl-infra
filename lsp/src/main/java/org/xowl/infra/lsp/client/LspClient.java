@@ -15,110 +15,80 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.server;
+package org.xowl.infra.lsp.client;
 
 import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.lsp.LspEndpoint;
 import org.xowl.infra.lsp.LspEndpointBase;
 import org.xowl.infra.lsp.LspEndpointListener;
-import org.xowl.infra.lsp.client.LspClientResponseDeserializer;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyUnsupported;
 
 import java.util.List;
 
 /**
- * Implements a base LSP server
+ * Base interface for a LSP client
  *
  * @author Laurent Wouters
  */
-public class LspServer extends LspEndpointBase {
-    /**
-     * The server has been created, it has not been initialized yet
-     */
-    public static final int STATE_CREATED = 0;
-    /**
-     * The server is being initialized
-     */
-    public static final int STATE_INITIALIZING = 1;
-    /**
-     * The server is initialized and ready for work
-     */
-    public static final int STATE_READY = 2;
-    /**
-     * The server is shutting down
-     */
-    public static final int STATE_SHUTTING_DOWN = 3;
-    /**
-     * The server has been shut down
-     */
-    public static final int STATE_SHUT_DOWN = 4;
-    /**
-     * The server is exiting
-     */
-    public static final int STATE_EXITING = 5;
-    /**
-     * The server has exited
-     */
-    public static final int STATE_EXITED = 6;
-
+public class LspClient extends LspEndpointBase {
     /**
      * The server endpoint
      */
-    protected LspEndpoint client;
+    protected LspEndpoint server;
 
     /**
      * Initializes this endpoint
      *
      * @param listener The listener for requests from the server
      */
-    public LspServer(LspEndpointListener listener) {
+    public LspClient(LspEndpointListener listener) {
         super(listener, new LspClientResponseDeserializer());
-        this.client = null;
+        this.server = null;
     }
 
     /**
      * Initializes this endpoint
      *
      * @param listener The listener for requests from the server
-     * @param client   The client endpoint
+     * @param server   The server endpoint
      */
-    public LspServer(LspEndpointListener listener, LspEndpoint client) {
+    public LspClient(LspEndpointListener listener, LspEndpoint server) {
         super(listener, new LspClientResponseDeserializer());
-        this.client = client;
+        this.server = server;
     }
 
     /**
-     * Gets the associated client endpoint
+     * Gets the associated server endpoint
      *
-     * @return The associated client endpoint
+     * @return The associated server endpoint
      */
-    public LspEndpoint getClient() {
-        return client;
+    public LspEndpoint getServer() {
+        return server;
     }
 
     /**
-     * Sets the associated client endpoint
+     * Sets the associated server endpoint
      *
-     * @param client The associated client endpoint
+     * @param server The associated server endpoint
      */
-    public void setClient(LspEndpoint client) {
-        this.client = client;
+    public void setServer(LspEndpoint server) {
+        this.server = server;
     }
 
     @Override
     public Reply send(JsonRpcRequest request) {
-        return client.send(request);
+        return server.send(request);
     }
 
     @Override
     public Reply send(List<JsonRpcRequest> requests) {
-        return client.send(requests);
+        return server.send(requests);
     }
 
     @Override
     public Reply send(String message) {
-        return client.send(message);
+        return server.send(message);
     }
 
     @Override

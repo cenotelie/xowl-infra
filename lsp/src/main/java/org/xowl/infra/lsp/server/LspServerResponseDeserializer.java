@@ -21,11 +21,11 @@ import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
- * A de-serializer for the request objects received by a LSP server
+ * A de-serializer for the response objects received by a LSP server
  *
  * @author Laurent Wouters
  */
-public class LspServerRequestDeserializer extends JsonDeserializer {
+public class LspServerResponseDeserializer extends JsonDeserializer {
     @Override
     public Object deserializeObject(ASTNode definition, Object context) {
         return deserializeObject(definition, (String) context);

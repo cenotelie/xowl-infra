@@ -17,44 +17,51 @@
 
 package org.xowl.infra.jsonrpc;
 
-import java.io.Reader;
+import org.xowl.infra.utils.api.ApiError;
+import org.xowl.infra.utils.api.Reply;
+
 import java.util.List;
 
 /**
- * Represents a server for a Json-Rpc protocol
+ * Represents a client for Json-Rpc protocol
  *
  * @author Laurent Wouters
  */
-public interface JsonRpcServer {
+public interface JsonRpcClient {
     /**
-     * Handles the specified input
-     *
-     * @param input The input for the server
-     * @return The response
+     * Error when the parsing of the incoming response failed
      */
-    String handle(String input);
+    ApiError ERROR_RESPONSE_PARSING = new ApiError(0x0001,
+            "Error while parsing the response",
+            "http://cenotelie.fr/xowl/support/jsonrpc/errors/0x0001.html");
+    /**
+     * Error when the response object is not valid
+     */
+    ApiError ERROR_INVALID_RESPONSE = new ApiError(0x0002,
+            "Invalid response",
+            "http://cenotelie.fr/xowl/support/jsonrpc/errors/0x0002.html");
 
     /**
-     * Handles the specified input
-     *
-     * @param input The input for the server
-     * @return The response
-     */
-    String handle(Reader input);
-
-    /**
-     * Handles a request
+     * Sends a request to the server
      *
      * @param request The request
      * @return The response
      */
-    JsonRpcResponse handle(JsonRpcRequest request);
+    Reply send(JsonRpcRequest request);
 
     /**
-     * Handles a batch of requests
+     * Sends a batch of requests to the server
      *
      * @param requests The requests
      * @return The responses
      */
-    List<JsonRpcResponse> handle(List<JsonRpcRequest> requests);
+    Reply send(List<JsonRpcRequest> requests);
+
+    /**
+     * Send a message to the server and get the response
+     *
+     * @param message The message to send
+     * @return The reply
+     */
+    Reply send(String message);
 }

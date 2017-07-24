@@ -15,42 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.server;
+package org.xowl.infra.lsp.client;
 
-import org.xowl.infra.jsonrpc.JsonRpcRequest;
-import org.xowl.infra.jsonrpc.JsonRpcResponse;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
- * Implements a base LSP server
+ * A de-serializer for the request objects received by a LSP client
  *
  * @author Laurent Wouters
  */
-public class LspServerBase extends LspServer {
-    /**
-     * The state of the server
-     */
-    private final AtomicInteger state;
-
-    /**
-     * Gets the current state of this server
-     *
-     * @return The current state of this server
-     */
-    public int getState() {
-        return state.get();
-    }
-
-    /**
-     * Initializes this server
-     */
-    public LspServerBase() {
-        this.state = new AtomicInteger(STATE_CREATED);
-    }
-
+public class LspClientRequestDeserializer extends JsonDeserializer {
     @Override
-    public JsonRpcResponse handle(JsonRpcRequest request) {
-        return null;
+    public Object deserializeObject(ASTNode definition, Object context) {
+        return deserializeObject(definition, (String) context);
+    }
+
+    /**
+     * De-serializes an object related to a request
+     *
+     * @param definition The serialized parameters
+     * @param method     The current LSP method
+     * @return The de-serialized object
+     */
+    public Object deserializeObject(ASTNode definition, String method) {
+        return super.deserializeObject(definition, method);
     }
 }

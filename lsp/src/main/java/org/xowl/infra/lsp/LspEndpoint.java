@@ -15,30 +15,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.server;
+package org.xowl.infra.lsp;
 
-import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.utils.json.JsonDeserializer;
+import org.xowl.infra.jsonrpc.JsonRpcClient;
 
 /**
- * A de-serializer for the request objects received by a LSP server
+ * Represents the actionable interface of a LSP endpoint (server or client)
  *
  * @author Laurent Wouters
  */
-public class LspServerRequestDeserializer extends JsonDeserializer {
-    @Override
-    public Object deserializeObject(ASTNode definition, Object context) {
-        return deserializeObject(definition, (String) context);
-    }
-
+public interface LspEndpoint extends JsonRpcClient {
     /**
-     * De-serializes an object related to a request
+     * Gets the listener for requests coming from this endpoint
      *
-     * @param definition The serialized parameters
-     * @param method     The current LSP method
-     * @return The de-serialized object
+     * @return The listener for requests coming from this endpoint
      */
-    public Object deserializeObject(ASTNode definition, String method) {
-        return super.deserializeObject(definition, method);
-    }
+    LspEndpointListener getListener();
 }

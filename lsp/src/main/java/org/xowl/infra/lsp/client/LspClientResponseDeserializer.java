@@ -15,17 +15,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.server;
+package org.xowl.infra.lsp.client;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
- * A de-serializer for the request objects received by a LSP server
+ * A de-serializer for the response objects received by a LSP client
  *
  * @author Laurent Wouters
  */
-public class LspServerRequestDeserializer extends JsonDeserializer {
+public class LspClientResponseDeserializer extends JsonDeserializer {
     @Override
     public Object deserializeObject(ASTNode definition, Object context) {
         return deserializeObject(definition, (String) context);

@@ -15,30 +15,35 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.server;
-
-import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.utils.json.JsonDeserializer;
+package org.xowl.infra.lsp;
 
 /**
- * A de-serializer for the request objects received by a LSP server
- *
- * @author Laurent Wouters
+ * Utility APIs and constants for LSP
  */
-public class LspServerRequestDeserializer extends JsonDeserializer {
-    @Override
-    public Object deserializeObject(ASTNode definition, Object context) {
-        return deserializeObject(definition, (String) context);
-    }
+public class LspUtils {
+    /**
+     * The end of line string to use
+     */
+    public static final String EOL = "\r\n";
+    /**
+     * The MIME type for LSP messages
+     */
+    public static final String MIME_LSP = "application/vscode-jsonrpc";
+    /**
+     * The content of the Content-Type header
+     */
+    public static final String HEADER_CONTENT_TYPE_VALUE = MIME_LSP + "; charset=utf-8";
+    /**
+     * The name of the Content-Length header
+     */
+    public static final String HEADER_CONTENT_LENGTH = "Content-Length";
+    /**
+     * The name of the Content-Type header
+     */
+    public static final String HEADER_CONTENT_TYPE = "Content-Type";
 
     /**
-     * De-serializes an object related to a request
-     *
-     * @param definition The serialized parameters
-     * @param method     The current LSP method
-     * @return The de-serialized object
+     * The error code when the server is not initialized
      */
-    public Object deserializeObject(ASTNode definition, String method) {
-        return super.deserializeObject(definition, method);
-    }
+    public static final int ERROR_SERVER_NOT_INITIALIZED = -32002;
 }
