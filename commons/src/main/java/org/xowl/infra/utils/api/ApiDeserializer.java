@@ -33,6 +33,15 @@ public class ApiDeserializer extends JsonDeserializer {
     private final ApiFactory factory;
 
     /**
+     * Gets the associated factory
+     *
+     * @return The associated factory
+     */
+    public ApiFactory getFactory() {
+        return factory;
+    }
+
+    /**
      * Initializes this deserializer
      *
      * @param factory The associated factory
