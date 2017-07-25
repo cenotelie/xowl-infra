@@ -49,6 +49,15 @@ public class ClientCapabilities implements Serializable {
 
     /**
      * Initializes this structure
+     */
+    public ClientCapabilities() {
+        this.workspace = new WorkspaceClientCapabilities();
+        this.textDocument = new TextDocumentClientCapabilities();
+        this.experimental = null;
+    }
+
+    /**
+     * Initializes this structure
      *
      * @param workspace    Workspace specific client capabilities.
      * @param textDocument Text document specific client capabilities.
