@@ -19,19 +19,14 @@ package org.xowl.infra.jsonrpc;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplyApiError;
-import org.xowl.infra.utils.api.ReplyResult;
-import org.xowl.infra.utils.api.ReplyResultCollection;
+import org.xowl.infra.utils.api.*;
 import org.xowl.infra.utils.json.Json;
 import org.xowl.infra.utils.json.JsonDeserializer;
 import org.xowl.infra.utils.json.JsonLexer;
 import org.xowl.infra.utils.json.JsonParser;
 import org.xowl.infra.utils.logging.BufferedLogger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A base implementation of a Json-Rpc client
@@ -77,9 +72,10 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
             builder.append(request.serializedJSON());
         }
         builder.append("]");
-        List<String> context = new ArrayList<>();
+        Map<String, String> context = new HashMap<>();
         for (JsonRpcRequest request : requests)
-            context.add(request.getMethod());
+            if (!request.isNotification())
+                context.put(request.getIdentifier(), request.getMethod());
         return send(builder.toString(), context);
     }
 
@@ -113,18 +109,16 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      * @return The reply
      */
     protected Reply doParseResponse(String content, Object context) {
+        if (content == null || content.isEmpty())
+            return ReplySuccess.instance();
+        if (context == null)
+            return new ReplyApiError(ERROR_MISSING_CONTEXT);
+
         BufferedLogger logger = new BufferedLogger();
         ASTNode definition = Json.parse(logger, content);
         if (definition == null || !logger.getErrorMessages().isEmpty())
             return new ReplyApiError(ERROR_RESPONSE_PARSING, logger.getErrorsAsString());
-        Object object = deserializeResponses(definition, context);
-        if (object == null)
-            return new ReplyApiError(ERROR_INVALID_RESPONSE);
-        if (object instanceof JsonRpcResponse)
-            return new ReplyResult<>((JsonRpcResponse) object);
-        if (object instanceof List)
-            return new ReplyResultCollection<>((List<JsonRpcResponse>) object);
-        return new ReplyApiError(ERROR_INVALID_RESPONSE);
+        return deserializeResponses(definition, context);
     }
 
     /**
@@ -132,26 +126,23 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      *
      * @param definition The serialized definition
      * @param context    The de-serialization context
-     * @return The response(s)
+     * @return The reply
      */
-    protected Object deserializeResponses(ASTNode definition, Object context) {
+    protected Reply deserializeResponses(ASTNode definition, Object context) {
         if (definition.getSymbol().getID() == JsonParser.ID.object)
             return deserializeResponse(definition, context);
         if (definition.getSymbol().getID() != JsonParser.ID.array)
-            return null;
+            return new ReplyApiError(ERROR_INVALID_RESPONSE, "Response is neither an object nor an array");
+
+        // here, expect an array of responses
         List<JsonRpcResponse> responses = new ArrayList<>();
-        List<String> methods = null;
-        if (context != null && context instanceof List)
-            methods = (List<String>) context;
-        int index = 0;
         for (ASTNode child : definition.getChildren()) {
-            Object objContext = null;
-            if (methods != null && methods.size() == definition.getChildren().size())
-                objContext = methods.get(index++);
-            JsonRpcResponse response = deserializeResponse(child, objContext);
-            responses.add(response);
+            Reply reply = deserializeResponse(child, context);
+            if (!reply.isSuccess())
+                return reply;
+            responses.add(((ReplyResult<JsonRpcResponse>) reply).getData());
         }
-        return responses;
+        return new ReplyResultCollection<>(responses);
     }
 
     /**
@@ -159,15 +150,15 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      *
      * @param definition The serialized definition
      * @param context    The de-serialization context
-     * @return The response
+     * @return The reply
      */
-    protected JsonRpcResponse deserializeResponse(ASTNode definition, Object context) {
+    protected Reply deserializeResponse(ASTNode definition, Object context) {
         if (definition.getSymbol().getID() != JsonParser.ID.object)
-            return null;
+            return new ReplyApiError(ERROR_INVALID_RESPONSE, "Response item in a batch of responses is not an object");
 
         String jsonRpc = null;
         String identifier = null;
-        Object result = null;
+        ASTNode nodeResult = null;
         ASTNode nodeError = null;
 
         for (ASTNode child : definition.getChildren()) {
@@ -191,16 +182,16 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
                         case JsonLexer.ID.LITERAL_TRUE:
                             return null;
                         case JsonLexer.ID.LITERAL_INTEGER:
-                            identifier = definition.getValue();
+                            identifier = nodeValue.getValue();
                             break;
                         case JsonLexer.ID.LITERAL_DECIMAL:
-                            identifier = definition.getValue();
+                            identifier = nodeValue.getValue();
                             break;
                         case JsonLexer.ID.LITERAL_DOUBLE:
-                            identifier = definition.getValue();
+                            identifier = nodeValue.getValue();
                             break;
                         case JsonLexer.ID.LITERAL_STRING:
-                            identifier = TextUtils.unescape(definition.getValue());
+                            identifier = TextUtils.unescape(nodeValue.getValue());
                             identifier = identifier.substring(1, identifier.length() - 1);
                             break;
                         default:
@@ -209,7 +200,7 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
                     break;
                 }
                 case "result": {
-                    result = deserializer.deserialize(nodeValue, context);
+                    nodeResult = nodeValue;
                     break;
                 }
                 case "error": {
@@ -220,25 +211,38 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
         }
 
         if (!Objects.equals(jsonRpc, "2.0"))
-            return null;
+            return new ReplyApiError(ERROR_INVALID_RESPONSE, "Not a Json-Rpc 2.0 response");
         if (identifier == null)
-            return null;
-        if (result != null)
-            return new JsonRpcResponseResult<>(identifier, result);
+            return new ReplyApiError(ERROR_INVALID_RESPONSE, "Invalid response identifier");
+        if (nodeResult == null && nodeError == null)
+            return new ReplyApiError(ERROR_INVALID_RESPONSE, "No result or error in response");
         if (nodeError != null)
             return deserializeResponseError(nodeError, identifier);
-        return null;
+
+        Object result;
+        if (context instanceof String)
+            result = deserializer.deserialize(nodeResult, context);
+        else if (context instanceof Map) {
+            String method = ((Map<String, String>) context).get(identifier);
+            if (method == null)
+                return new ReplyApiError(ERROR_MISSING_CONTEXT, "Missing context for response: " + identifier);
+            result = deserializer.deserialize(nodeResult, method);
+        } else
+            return new ReplyApiError(ERROR_MISSING_CONTEXT, "Invalid context");
+        if (result == null)
+            return new ReplyApiError(ERROR_INVALID_RESPONSE, "Failed to de-serialize the result in the response");
+        return new ReplyResult<>(new JsonRpcResponseResult<>(identifier, result));
     }
 
     /**
      * De-serializes the error response object
      *
      * @param definition The serialized definition
-     * @return The response
+     * @return The reply
      */
-    protected JsonRpcResponse deserializeResponseError(ASTNode definition, String identifier) {
+    protected Reply deserializeResponseError(ASTNode definition, String identifier) {
         if (definition.getSymbol().getID() != JsonParser.ID.object)
-            return null;
+            return new ReplyApiError(ERROR_INVALID_RESPONSE, "Error component in Json-Rpc error response is not object");
 
         int code = 0;
         String message = null;
@@ -267,7 +271,7 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
         }
 
         if (code == 0 || message == null)
-            return null;
-        return new JsonRpcResponseError(identifier, code, message, data);
+            return new ReplyApiError(ERROR_INVALID_RESPONSE, "Missing code or message in Json-Rpc error response");
+        return new ReplyResult<>(new JsonRpcResponseError(identifier, code, message, data));
     }
 }

@@ -29,6 +29,7 @@ import org.xowl.infra.utils.logging.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.lang.reflect.Array;
 import java.util.Collection;
 
 /**
@@ -80,6 +81,7 @@ public class Json {
             String content = IOUtils.read(reader);
             JsonLexer lexer = new JsonLexer(content);
             JsonParser parser = new JsonParser(lexer);
+            lexer.setRecoveryDistance(0);
             parser.setModeRecoverErrors(false);
             result = parser.parse();
         } catch (IOException ex) {
@@ -116,6 +118,17 @@ public class Json {
             return Boolean.toString((Boolean) object);
         } else if (object instanceof Serializable) {
             return ((Serializable) object).serializedJSON();
+        } else if (object.getClass().isArray()) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("[");
+            int length = Array.getLength(object);
+            for (int i = 0; i != length; i++) {
+                if (i != 0)
+                    builder.append(", ");
+                serialize(builder, Array.get(object, i));
+            }
+            builder.append("]");
+            return builder.toString();
         } else if (object instanceof Collection) {
             StringBuilder builder = new StringBuilder();
             builder.append("[");
@@ -154,6 +167,15 @@ public class Json {
             builder.append(Boolean.toString((Boolean) object));
         } else if (object instanceof Serializable) {
             builder.append(((Serializable) object).serializedJSON());
+        } else if (object.getClass().isArray()) {
+            builder.append("[");
+            int length = Array.getLength(object);
+            for (int i = 0; i != length; i++) {
+                if (i != 0)
+                    builder.append(", ");
+                serialize(builder, Array.get(object, i));
+            }
+            builder.append("]");
         } else if (object instanceof Collection) {
             builder.append("[");
             boolean first = true;

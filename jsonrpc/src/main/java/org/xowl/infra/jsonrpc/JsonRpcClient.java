@@ -40,6 +40,12 @@ public interface JsonRpcClient {
     ApiError ERROR_INVALID_RESPONSE = new ApiError(0x0002,
             "Invalid response",
             "http://cenotelie.fr/xowl/support/jsonrpc/errors/0x0002.html");
+    /**
+     * Error when a context is missing while de-serializing
+     */
+    ApiError ERROR_MISSING_CONTEXT = new ApiError(0x0003,
+            "Missing context while de-serializing",
+            "http://cenotelie.fr/xowl/support/jsonrpc/errors/0x0003.html");
 
     /**
      * Sends a request to the server

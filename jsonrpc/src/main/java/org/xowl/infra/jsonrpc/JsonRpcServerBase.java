@@ -169,16 +169,16 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
                         case JsonLexer.ID.LITERAL_TRUE:
                             return null;
                         case JsonLexer.ID.LITERAL_INTEGER:
-                            identifier = definition.getValue();
+                            identifier = nodeValue.getValue();
                             break;
                         case JsonLexer.ID.LITERAL_DECIMAL:
-                            identifier = definition.getValue();
+                            identifier = nodeValue.getValue();
                             break;
                         case JsonLexer.ID.LITERAL_DOUBLE:
-                            identifier = definition.getValue();
+                            identifier = nodeValue.getValue();
                             break;
                         case JsonLexer.ID.LITERAL_STRING:
-                            identifier = TextUtils.unescape(definition.getValue());
+                            identifier = TextUtils.unescape(nodeValue.getValue());
                             identifier = identifier.substring(1, identifier.length() - 1);
                             break;
                         default:
