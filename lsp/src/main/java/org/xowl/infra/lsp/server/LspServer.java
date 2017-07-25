@@ -23,7 +23,6 @@ import org.xowl.infra.lsp.LspEndpointBase;
 import org.xowl.infra.lsp.LspEndpointListener;
 import org.xowl.infra.lsp.client.LspClientResponseDeserializer;
 import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplyUnsupported;
 
 import java.util.List;
 
@@ -107,6 +106,11 @@ public class LspServer extends LspEndpointBase {
     }
 
     @Override
+    public Reply send(String message) {
+        return client.send(message);
+    }
+
+    @Override
     public Reply send(JsonRpcRequest request) {
         return client.send(request);
     }
@@ -114,15 +118,5 @@ public class LspServer extends LspEndpointBase {
     @Override
     public Reply send(List<JsonRpcRequest> requests) {
         return client.send(requests);
-    }
-
-    @Override
-    public Reply sendAndDeserialize(String message, Object context) {
-        return client.send(message, context);
-    }
-
-    @Override
-    protected Reply doSend(String message) {
-        return ReplyUnsupported.instance();
     }
 }

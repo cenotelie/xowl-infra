@@ -38,7 +38,7 @@ public class LspEndpointRemoteTcp extends LspEndpointBase {
     }
 
     @Override
-    protected Reply doSend(String message) {
+    public Reply send(String message) {
         return ReplyUnsupported.instance();
     }
 }

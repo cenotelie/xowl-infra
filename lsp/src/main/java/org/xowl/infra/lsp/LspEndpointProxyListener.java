@@ -21,7 +21,6 @@ import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyResult;
 import org.xowl.infra.utils.api.ReplyResultCollection;
-import org.xowl.infra.utils.api.ReplyUnsupported;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
 import java.util.List;
@@ -43,6 +42,11 @@ public class LspEndpointProxyListener extends LspEndpointBase implements LspEndp
     }
 
     @Override
+    public Reply send(String message) {
+        return new ReplyResult<>(listener.handle(message));
+    }
+
+    @Override
     public Reply send(JsonRpcRequest request) {
         return new ReplyResult<>(listener.handle(request));
     }
@@ -56,10 +60,5 @@ public class LspEndpointProxyListener extends LspEndpointBase implements LspEndp
     public Reply sendAndDeserialize(String message, Object context) {
         String content = listener.handle(LspUtils.envelop(message));
         return deserializeResponses(LspUtils.stripEnvelope(content), context);
-    }
-
-    @Override
-    protected Reply doSend(String message) {
-        return ReplyUnsupported.instance();
     }
 }
