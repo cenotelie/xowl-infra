@@ -168,6 +168,8 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
                 case "jsonrpc": {
+                    if (nodeValue.getSymbol().getID() != JsonLexer.ID.LITERAL_STRING)
+                        return new ReplyApiError(ERROR_INVALID_RESPONSE);
                     jsonRpc = TextUtils.unescape(nodeValue.getValue());
                     jsonRpc = jsonRpc.substring(1, jsonRpc.length() - 1);
                     break;
@@ -212,8 +214,6 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
 
         if (!Objects.equals(jsonRpc, "2.0"))
             return new ReplyApiError(ERROR_INVALID_RESPONSE, "Not a Json-Rpc 2.0 response");
-        if (identifier == null)
-            return new ReplyApiError(ERROR_INVALID_RESPONSE, "Invalid response identifier");
         if (nodeResult == null && nodeError == null)
             return new ReplyApiError(ERROR_INVALID_RESPONSE, "No result or error in response");
         if (nodeError != null)

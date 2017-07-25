@@ -43,7 +43,7 @@ public class JsonRpcResponseError implements JsonRpcResponse {
      * @return The error
      */
     public static JsonRpcResponseError newInvalidRequest(String identifier) {
-        return new JsonRpcResponseError(identifier, -32600, "Invalid request", null);
+        return new JsonRpcResponseError(identifier, -32600, "Invalid Request", null);
     }
 
     /**

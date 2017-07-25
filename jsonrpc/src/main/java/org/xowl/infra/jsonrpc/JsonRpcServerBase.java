@@ -155,6 +155,8 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
                 case "jsonrpc": {
+                    if (nodeValue.getSymbol().getID() != JsonLexer.ID.LITERAL_STRING)
+                        return null;
                     jsonRpc = TextUtils.unescape(nodeValue.getValue());
                     jsonRpc = jsonRpc.substring(1, jsonRpc.length() - 1);
                     break;
@@ -187,6 +189,8 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
                     break;
                 }
                 case "method": {
+                    if (nodeValue.getSymbol().getID() != JsonLexer.ID.LITERAL_STRING)
+                        return null;
                     method = TextUtils.unescape(nodeValue.getValue());
                     method = method.substring(1, method.length() - 1);
                     break;

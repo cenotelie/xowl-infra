@@ -191,4 +191,48 @@ public class JsonRpcTest {
         Assert.assertEquals(-32601, error.getCode());
         Assert.assertEquals("Method not found", error.getMessage());
     }
+
+    @Test
+    public void testInvalidJson() {
+        JsonRpcServer server = new JsonRpcServerBase() {
+            @Override
+            public JsonRpcResponse handle(JsonRpcRequest request) {
+                if (!"myMethod".equals(request.getMethod()))
+                    return JsonRpcResponseError.newMethodNotFound(request.getIdentifier());
+                return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
+            }
+        };
+        JsonRpcClient client = new TestClient(server);
+
+        Reply reply = client.send("{\"jsonrpc\": \"2.0\", \"method\": \"foobar, \"params\": \"bar\", \"baz]", "foobar");
+        Assert.assertTrue(reply.isSuccess());
+        JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
+        Assert.assertTrue(response instanceof JsonRpcResponseError);
+        JsonRpcResponseError error = (JsonRpcResponseError) response;
+        Assert.assertEquals(null, error.getIdentifier());
+        Assert.assertEquals(-32700, error.getCode());
+        Assert.assertEquals("Parse error", error.getMessage());
+    }
+
+    @Test
+    public void testInvalidRequest() {
+        JsonRpcServer server = new JsonRpcServerBase() {
+            @Override
+            public JsonRpcResponse handle(JsonRpcRequest request) {
+                if (!"myMethod".equals(request.getMethod()))
+                    return JsonRpcResponseError.newMethodNotFound(request.getIdentifier());
+                return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
+            }
+        };
+        JsonRpcClient client = new TestClient(server);
+
+        Reply reply = client.send("{\"jsonrpc\": \"2.0\", \"method\": 1, \"params\": \"bar\"}", "1");
+        Assert.assertTrue(reply.isSuccess());
+        JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
+        Assert.assertTrue(response instanceof JsonRpcResponseError);
+        JsonRpcResponseError error = (JsonRpcResponseError) response;
+        Assert.assertEquals(null, error.getIdentifier());
+        Assert.assertEquals(-32600, error.getCode());
+        Assert.assertEquals("Invalid Request", error.getMessage());
+    }
 }
