@@ -30,7 +30,7 @@ public interface JsonRpcServer {
      * Handles the specified input
      *
      * @param input The input for the server
-     * @return The response
+     * @return The serialized protocol response
      */
     String handle(String input);
 
@@ -38,7 +38,7 @@ public interface JsonRpcServer {
      * Handles the specified input
      *
      * @param input The input for the server
-     * @return The response
+     * @return The serialized protocol response
      */
     String handle(Reader input);
 
@@ -46,7 +46,7 @@ public interface JsonRpcServer {
      * Handles a request
      *
      * @param request The request
-     * @return The response
+     * @return The response object, or null in the case of a notification
      */
     JsonRpcResponse handle(JsonRpcRequest request);
 
@@ -54,7 +54,7 @@ public interface JsonRpcServer {
      * Handles a batch of requests
      *
      * @param requests The requests
-     * @return The responses
+     * @return The response objects
      */
     List<JsonRpcResponse> handle(List<JsonRpcRequest> requests);
 }

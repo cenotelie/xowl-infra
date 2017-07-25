@@ -21,10 +21,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyResult;
+import org.xowl.infra.utils.api.ReplyResultCollection;
 import org.xowl.infra.utils.api.ReplySuccess;
 import org.xowl.infra.utils.json.SerializedUnknown;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Test suite for the Json-Rcp protocol
@@ -202,10 +204,14 @@ public class JsonRpcTest {
                 return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
             }
         };
-        JsonRpcClient client = new TestClient(server);
+        TestClient client = new TestClient(server);
 
-        Reply reply = client.send("{\"jsonrpc\": \"2.0\", \"method\": \"foobar, \"params\": \"bar\", \"baz]", "foobar");
+        String request = "{\"jsonrpc\": \"2.0\", \"method\": \"foobar, \"params\": \"bar\", \"baz]";
+        Reply reply = client.send(request);
         Assert.assertTrue(reply.isSuccess());
+        reply = client.deserializeResponses(request, ((ReplyResult<String>) reply).getData());
+        Assert.assertTrue(reply.isSuccess());
+
         JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
         Assert.assertTrue(response instanceof JsonRpcResponseError);
         JsonRpcResponseError error = (JsonRpcResponseError) response;
@@ -224,10 +230,14 @@ public class JsonRpcTest {
                 return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
             }
         };
-        JsonRpcClient client = new TestClient(server);
+        TestClient client = new TestClient(server);
 
-        Reply reply = client.send("{\"jsonrpc\": \"2.0\", \"method\": 1, \"params\": \"bar\"}", "1");
+        String request = "{\"jsonrpc\": \"2.0\", \"method\": 1, \"params\": \"bar\"}";
+        Reply reply = client.send(request);
         Assert.assertTrue(reply.isSuccess());
+        reply = client.deserializeResponses(request, ((ReplyResult<String>) reply).getData());
+        Assert.assertTrue(reply.isSuccess());
+
         JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
         Assert.assertTrue(response instanceof JsonRpcResponseError);
         JsonRpcResponseError error = (JsonRpcResponseError) response;
@@ -246,13 +256,17 @@ public class JsonRpcTest {
                 return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
             }
         };
-        JsonRpcClient client = new TestClient(server);
+        TestClient client = new TestClient(server);
 
-        Reply reply = client.send("[\n" +
+        String request = "[\n" +
                 "  {\"jsonrpc\": \"2.0\", \"method\": \"sum\", \"params\": [1,2,4], \"id\": \"1\"},\n" +
                 "  {\"jsonrpc\": \"2.0\", \"method\"\n" +
-                "]", "1");
+                "]";
+        Reply reply = client.send(request);
         Assert.assertTrue(reply.isSuccess());
+        reply = client.deserializeResponses(request, ((ReplyResult<String>) reply).getData());
+        Assert.assertTrue(reply.isSuccess());
+
         JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
         Assert.assertTrue(response instanceof JsonRpcResponseError);
         JsonRpcResponseError error = (JsonRpcResponseError) response;
@@ -271,10 +285,14 @@ public class JsonRpcTest {
                 return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
             }
         };
-        JsonRpcClient client = new TestClient(server);
+        TestClient client = new TestClient(server);
 
-        Reply reply = client.send("[]", "1");
+        String request = "[]";
+        Reply reply = client.send(request);
         Assert.assertTrue(reply.isSuccess());
+        reply = client.deserializeResponses(request, ((ReplyResult<String>) reply).getData());
+        Assert.assertTrue(reply.isSuccess());
+
         JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
         Assert.assertTrue(response instanceof JsonRpcResponseError);
         JsonRpcResponseError error = (JsonRpcResponseError) response;
@@ -284,7 +302,7 @@ public class JsonRpcTest {
     }
 
     @Test
-    public void testBatchInvalid() {
+    public void testBatchInvalid1() {
         JsonRpcServer server = new JsonRpcServerBase() {
             @Override
             public JsonRpcResponse handle(JsonRpcRequest request) {
@@ -293,15 +311,131 @@ public class JsonRpcTest {
                 return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
             }
         };
-        JsonRpcClient client = new TestClient(server);
+        TestClient client = new TestClient(server);
 
-        Reply reply = client.send("[1]", "1");
+        String request = "[1]";
+        Reply reply = client.send(request);
         Assert.assertTrue(reply.isSuccess());
-        JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
+        reply = client.deserializeResponses(request, ((ReplyResult<String>) reply).getData());
+        Assert.assertTrue(reply.isSuccess());
+
+        Collection<JsonRpcResponse> responses = ((ReplyResultCollection<JsonRpcResponse>) reply).getData();
+        Assert.assertEquals(1, responses.size());
+        JsonRpcResponse response = responses.iterator().next();
         Assert.assertTrue(response instanceof JsonRpcResponseError);
         JsonRpcResponseError error = (JsonRpcResponseError) response;
         Assert.assertEquals(null, error.getIdentifier());
         Assert.assertEquals(-32600, error.getCode());
         Assert.assertEquals("Invalid Request", error.getMessage());
+    }
+
+    @Test
+    public void testBatchInvalid2() {
+        JsonRpcServer server = new JsonRpcServerBase() {
+            @Override
+            public JsonRpcResponse handle(JsonRpcRequest request) {
+                if (!"myMethod".equals(request.getMethod()))
+                    return JsonRpcResponseError.newMethodNotFound(request.getIdentifier());
+                return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
+            }
+        };
+        TestClient client = new TestClient(server);
+
+        String request = "[1,2,3]";
+        Reply reply = client.send(request);
+        Assert.assertTrue(reply.isSuccess());
+        reply = client.deserializeResponses(request, ((ReplyResult<String>) reply).getData());
+        Assert.assertTrue(reply.isSuccess());
+
+        Collection<JsonRpcResponse> responses = ((ReplyResultCollection<JsonRpcResponse>) reply).getData();
+        Assert.assertEquals(3, responses.size());
+        for (JsonRpcResponse response : responses) {
+            Assert.assertTrue(response instanceof JsonRpcResponseError);
+            JsonRpcResponseError error = (JsonRpcResponseError) response;
+            Assert.assertEquals(null, error.getIdentifier());
+            Assert.assertEquals(-32600, error.getCode());
+            Assert.assertEquals("Invalid Request", error.getMessage());
+        }
+    }
+
+    @Test
+    public void testBatchExample() {
+        JsonRpcServer server = new JsonRpcServerBase() {
+            @Override
+            public JsonRpcResponse handle(JsonRpcRequest request) {
+                if (request.getMethod().equals("sum"))
+                    return new JsonRpcResponseResult<>(request.getIdentifier(), 7);
+                if (request.getMethod().equals("notify_hello"))
+                    return null;
+                if (request.getMethod().equals("subtract"))
+                    return new JsonRpcResponseResult<>(request.getIdentifier(), 19);
+                if (request.getMethod().equals("get_data"))
+                    return new JsonRpcResponseResult<>(request.getIdentifier(), new Object[]{"hello", 5});
+                return JsonRpcResponseError.newMethodNotFound(request.getIdentifier());
+            }
+        };
+        TestClient client = new TestClient(server);
+
+        String request = "[\n" +
+                "        {\"jsonrpc\": \"2.0\", \"method\": \"sum\", \"params\": [1,2,4], \"id\": \"1\"},\n" +
+                "        {\"jsonrpc\": \"2.0\", \"method\": \"notify_hello\", \"params\": [7]},\n" +
+                "        {\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": [42,23], \"id\": \"2\"},\n" +
+                "        {\"foo\": \"boo\"},\n" +
+                "        {\"jsonrpc\": \"2.0\", \"method\": \"foo.get\", \"params\": {\"name\": \"myself\"}, \"id\": \"5\"},\n" +
+                "        {\"jsonrpc\": \"2.0\", \"method\": \"get_data\", \"id\": \"9\"} \n" +
+                "    ]";
+        Reply reply = client.send(request);
+        Assert.assertTrue(reply.isSuccess());
+        reply = client.deserializeResponses(request, ((ReplyResult<String>) reply).getData());
+        Assert.assertTrue(reply.isSuccess());
+
+        Collection<JsonRpcResponse> responses = ((ReplyResultCollection<JsonRpcResponse>) reply).getData();
+        Assert.assertEquals(5, responses.size());
+        Iterator<JsonRpcResponse> iterator = responses.iterator();
+
+        JsonRpcResponse response = iterator.next();
+        Assert.assertFalse(response.isError());
+        Assert.assertEquals("1", response.getIdentifier());
+        Assert.assertEquals((Integer) 7, ((JsonRpcResponseResult<Integer>) response).getResult());
+
+        response = iterator.next();
+        Assert.assertFalse(response.isError());
+        Assert.assertEquals("2", response.getIdentifier());
+        Assert.assertEquals((Integer) 19, ((JsonRpcResponseResult<Integer>) response).getResult());
+
+        response = iterator.next();
+        Assert.assertTrue(response.isError());
+        Assert.assertEquals(null, response.getIdentifier());
+        Assert.assertEquals(-32600, ((JsonRpcResponseError) response).getCode());
+
+        response = iterator.next();
+        Assert.assertTrue(response.isError());
+        Assert.assertEquals("5", response.getIdentifier());
+        Assert.assertEquals(-32601, ((JsonRpcResponseError) response).getCode());
+
+        response = iterator.next();
+        Assert.assertFalse(response.isError());
+        Assert.assertEquals("9", response.getIdentifier());
+    }
+
+    @Test
+    public void testBatchAllNotification() {
+        JsonRpcServer server = new JsonRpcServerBase() {
+            @Override
+            public JsonRpcResponse handle(JsonRpcRequest request) {
+                Assert.assertTrue(request.isNotification());
+                return null;
+            }
+        };
+        TestClient client = new TestClient(server);
+
+        String request = "[\n" +
+                "        {\"jsonrpc\": \"2.0\", \"method\": \"notify_sum\", \"params\": [1,2,4]},\n" +
+                "        {\"jsonrpc\": \"2.0\", \"method\": \"notify_hello\", \"params\": [7]}\n" +
+                "    ]";
+        Reply reply = client.send(request);
+        Assert.assertTrue(reply.isSuccess());
+        reply = client.deserializeResponses(request, ((ReplyResult<String>) reply).getData());
+        Assert.assertEquals(ReplySuccess.instance(), reply);
     }
 }

@@ -42,6 +42,8 @@ public class JsonRpcResponseResult<T> implements JsonRpcResponse {
      * @param result     The result data
      */
     public JsonRpcResponseResult(String identifier, T result) {
+        if (identifier == null)
+            throw new IllegalArgumentException("identifier must not be null");
         this.identifier = identifier;
         this.result = result;
     }

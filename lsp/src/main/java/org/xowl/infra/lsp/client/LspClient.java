@@ -87,7 +87,7 @@ public class LspClient extends LspEndpointBase {
     }
 
     @Override
-    public Reply send(String message, Object context) {
+    public Reply sendAndDeserialize(String message, Object context) {
         return server.send(message, context);
     }
 

@@ -53,9 +53,9 @@ public class LspEndpointProxyListener extends LspEndpointBase implements LspEndp
     }
 
     @Override
-    public Reply send(String message, Object context) {
+    public Reply sendAndDeserialize(String message, Object context) {
         String content = listener.handle(LspUtils.envelop(message));
-        return doParseResponse(LspUtils.stripEnvelope(content), context);
+        return deserializeResponses(LspUtils.stripEnvelope(content), context);
     }
 
     @Override

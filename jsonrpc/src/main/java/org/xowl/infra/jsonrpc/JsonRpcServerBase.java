@@ -130,8 +130,6 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
         List<JsonRpcRequest> requests = new ArrayList<>();
         for (ASTNode child : definition.getChildren()) {
             JsonRpcRequest request = deserializeRequest(child);
-            if (request == null)
-                return null;
             requests.add(request);
         }
         return requests;

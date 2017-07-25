@@ -42,7 +42,18 @@ public class TestClient extends JsonRpcClientBase {
     }
 
     @Override
-    protected Reply doSend(String message) {
+    public Reply send(String message) {
         return new ReplyResult<>(server.handle(message));
+    }
+
+    /**
+     * De-serialized responses
+     *
+     * @param requests  The associated requests
+     * @param responses The responses
+     * @return The reply
+     */
+    public Reply deserializeResponses(String requests, String responses) {
+        return deserializeResponses(responses, detectContext(requests));
     }
 }

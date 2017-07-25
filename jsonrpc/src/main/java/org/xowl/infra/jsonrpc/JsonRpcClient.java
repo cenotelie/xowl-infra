@@ -48,10 +48,18 @@ public interface JsonRpcClient {
             "http://cenotelie.fr/xowl/support/jsonrpc/errors/0x0003.html");
 
     /**
+     * Sends serialized data to the server
+     *
+     * @param message The message to sendAndDeserialize
+     * @return The reply
+     */
+    Reply send(String message);
+
+    /**
      * Sends a request to the server
      *
      * @param request The request
-     * @return The response
+     * @return The reply
      */
     Reply send(JsonRpcRequest request);
 
@@ -59,16 +67,7 @@ public interface JsonRpcClient {
      * Sends a batch of requests to the server
      *
      * @param requests The requests
-     * @return The responses
-     */
-    Reply send(List<JsonRpcRequest> requests);
-
-    /**
-     * Send a message to the server and get the response
-     *
-     * @param message The message to send
-     * @param context The de-serialization context
      * @return The reply
      */
-    Reply send(String message, Object context);
+    Reply send(List<JsonRpcRequest> requests);
 }

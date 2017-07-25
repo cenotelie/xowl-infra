@@ -57,7 +57,7 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
 
     @Override
     public Reply send(JsonRpcRequest request) {
-        return send(request.serializedJSON(), request.getMethod());
+        return sendAndDeserialize(request.serializedJSON(), request.getMethod());
     }
 
     @Override
@@ -76,30 +76,22 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
         for (JsonRpcRequest request : requests)
             if (!request.isNotification())
                 context.put(request.getIdentifier(), request.getMethod());
-        return send(builder.toString(), context);
+        return sendAndDeserialize(builder.toString(), context);
     }
 
     /**
-     * Send a message to the server and get the response
+     * Send a serialized message to the server and get the de-serialized response
      *
-     * @param message The message to send
+     * @param message The message to sendAndDeserialize
      * @param context The de-serialization context
      * @return The reply
      */
-    public Reply send(String message, Object context) {
-        Reply reply = doSend(message);
+    protected Reply sendAndDeserialize(String message, Object context) {
+        Reply reply = send(message);
         if (!reply.isSuccess())
             return reply;
-        return doParseResponse(((ReplyResult<String>) reply).getData(), context);
+        return deserializeResponses(((ReplyResult<String>) reply).getData(), context);
     }
-
-    /**
-     * Do send a message to the server
-     *
-     * @param message The message to send
-     * @return The reply
-     */
-    protected abstract Reply doSend(String message);
 
     /**
      * Parses the content of a response
@@ -108,11 +100,9 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      * @param context The de-serialization context
      * @return The reply
      */
-    protected Reply doParseResponse(String content, Object context) {
+    protected Reply deserializeResponses(String content, Object context) {
         if (content == null || content.isEmpty())
             return ReplySuccess.instance();
-        if (context == null)
-            return new ReplyApiError(ERROR_MISSING_CONTEXT);
 
         BufferedLogger logger = new BufferedLogger();
         ASTNode definition = Json.parse(logger, content);
@@ -220,6 +210,8 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
             return deserializeResponseError(nodeError, identifier);
 
         Object result;
+        if (context == null)
+            return new ReplyApiError(ERROR_MISSING_CONTEXT);
         if (context instanceof String)
             result = deserializer.deserialize(nodeResult, context);
         else if (context instanceof Map) {
@@ -273,5 +265,110 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
         if (code == 0 || message == null)
             return new ReplyApiError(ERROR_INVALID_RESPONSE, "Missing code or message in Json-Rpc error response");
         return new ReplyResult<>(new JsonRpcResponseError(identifier, code, message, data));
+    }
+
+    /**
+     * Tries to detect and build the context object for the specified serialized request(s)
+     *
+     * @param content A serialized Json-Rpc message containing requests
+     * @return The detected context object
+     */
+    protected Object detectContext(String content) {
+        BufferedLogger logger = new BufferedLogger();
+        ASTNode definition = Json.parse(logger, content);
+        if (definition == null || !logger.getErrorMessages().isEmpty())
+            // failed to parse
+            return null;
+
+        if (definition.getSymbol().getID() == JsonParser.ID.object)
+            return detectContextSingle(definition);
+        if (definition.getSymbol().getID() != JsonParser.ID.array)
+            return null;
+        Map<String, String> context = new HashMap<>();
+        for (ASTNode child : definition.getChildren())
+            detectContextBatchItem(child, context);
+        return context;
+    }
+
+    /**
+     * Tries to detect the context for a single Json-Rpc request
+     *
+     * @param definition The AST node for the serialized definition
+     * @return The context for a single Json-Rpc request
+     */
+    protected String detectContextSingle(ASTNode definition) {
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeMemberName = child.getChildren().get(0);
+            String name = TextUtils.unescape(nodeMemberName.getValue());
+            name = name.substring(1, name.length() - 1);
+            ASTNode nodeValue = child.getChildren().get(1);
+            switch (name) {
+                case "method": {
+                    if (nodeValue.getSymbol().getID() != JsonLexer.ID.LITERAL_STRING)
+                        return null;
+                    String method = TextUtils.unescape(nodeValue.getValue());
+                    method = method.substring(1, method.length() - 1);
+                    return method;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Tries to detect the context for a Json-Rpc request as batch item
+     *
+     * @param definition The AST node for the serialized definition
+     * @param context    The context object ro build
+     */
+    protected void detectContextBatchItem(ASTNode definition, Map<String, String> context) {
+        if (definition.getSymbol().getID() != JsonParser.ID.object)
+            return;
+        String identifier = null;
+        String method = null;
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeMemberName = child.getChildren().get(0);
+            String name = TextUtils.unescape(nodeMemberName.getValue());
+            name = name.substring(1, name.length() - 1);
+            ASTNode nodeValue = child.getChildren().get(1);
+            switch (name) {
+                case "id": {
+                    switch (nodeValue.getSymbol().getID()) {
+                        case JsonLexer.ID.LITERAL_NULL:
+                            identifier = null;
+                            break;
+                        case JsonLexer.ID.LITERAL_FALSE:
+                            return;
+                        case JsonLexer.ID.LITERAL_TRUE:
+                            return;
+                        case JsonLexer.ID.LITERAL_INTEGER:
+                            identifier = nodeValue.getValue();
+                            break;
+                        case JsonLexer.ID.LITERAL_DECIMAL:
+                            identifier = nodeValue.getValue();
+                            break;
+                        case JsonLexer.ID.LITERAL_DOUBLE:
+                            identifier = nodeValue.getValue();
+                            break;
+                        case JsonLexer.ID.LITERAL_STRING:
+                            identifier = TextUtils.unescape(nodeValue.getValue());
+                            identifier = identifier.substring(1, identifier.length() - 1);
+                            break;
+                        default:
+                            return;
+                    }
+                    break;
+                }
+                case "method": {
+                    if (nodeValue.getSymbol().getID() != JsonLexer.ID.LITERAL_STRING)
+                        return;
+                    method = TextUtils.unescape(nodeValue.getValue());
+                    method = method.substring(1, method.length() - 1);
+                    break;
+                }
+            }
+        }
+        if (identifier != null && method != null)
+            context.put(identifier, method);
     }
 }
