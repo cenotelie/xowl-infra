@@ -89,6 +89,8 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
             return response.serializedJSON();
         } else {
             List<JsonRpcRequest> requests = ((List<JsonRpcRequest>) object);
+            if (requests.isEmpty())
+                return JsonRpcResponseError.newInvalidRequest(null).serializedJSON();
             List<JsonRpcResponse> responses = handle(requests);
             if (responses.isEmpty())
                 return "";
@@ -128,6 +130,8 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
         List<JsonRpcRequest> requests = new ArrayList<>();
         for (ASTNode child : definition.getChildren()) {
             JsonRpcRequest request = deserializeRequest(child);
+            if (request == null)
+                return null;
             requests.add(request);
         }
         return requests;

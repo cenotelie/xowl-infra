@@ -235,4 +235,73 @@ public class JsonRpcTest {
         Assert.assertEquals(-32600, error.getCode());
         Assert.assertEquals("Invalid Request", error.getMessage());
     }
+
+    @Test
+    public void testBatchInvalidJson() {
+        JsonRpcServer server = new JsonRpcServerBase() {
+            @Override
+            public JsonRpcResponse handle(JsonRpcRequest request) {
+                if (!"myMethod".equals(request.getMethod()))
+                    return JsonRpcResponseError.newMethodNotFound(request.getIdentifier());
+                return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
+            }
+        };
+        JsonRpcClient client = new TestClient(server);
+
+        Reply reply = client.send("[\n" +
+                "  {\"jsonrpc\": \"2.0\", \"method\": \"sum\", \"params\": [1,2,4], \"id\": \"1\"},\n" +
+                "  {\"jsonrpc\": \"2.0\", \"method\"\n" +
+                "]", "1");
+        Assert.assertTrue(reply.isSuccess());
+        JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
+        Assert.assertTrue(response instanceof JsonRpcResponseError);
+        JsonRpcResponseError error = (JsonRpcResponseError) response;
+        Assert.assertEquals(null, error.getIdentifier());
+        Assert.assertEquals(-32700, error.getCode());
+        Assert.assertEquals("Parse error", error.getMessage());
+    }
+
+    @Test
+    public void testBatchEmpty() {
+        JsonRpcServer server = new JsonRpcServerBase() {
+            @Override
+            public JsonRpcResponse handle(JsonRpcRequest request) {
+                if (!"myMethod".equals(request.getMethod()))
+                    return JsonRpcResponseError.newMethodNotFound(request.getIdentifier());
+                return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
+            }
+        };
+        JsonRpcClient client = new TestClient(server);
+
+        Reply reply = client.send("[]", "1");
+        Assert.assertTrue(reply.isSuccess());
+        JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
+        Assert.assertTrue(response instanceof JsonRpcResponseError);
+        JsonRpcResponseError error = (JsonRpcResponseError) response;
+        Assert.assertEquals(null, error.getIdentifier());
+        Assert.assertEquals(-32600, error.getCode());
+        Assert.assertEquals("Invalid Request", error.getMessage());
+    }
+
+    @Test
+    public void testBatchInvalid() {
+        JsonRpcServer server = new JsonRpcServerBase() {
+            @Override
+            public JsonRpcResponse handle(JsonRpcRequest request) {
+                if (!"myMethod".equals(request.getMethod()))
+                    return JsonRpcResponseError.newMethodNotFound(request.getIdentifier());
+                return new JsonRpcResponseResult<>(request.getIdentifier(), "ok");
+            }
+        };
+        JsonRpcClient client = new TestClient(server);
+
+        Reply reply = client.send("[1]", "1");
+        Assert.assertTrue(reply.isSuccess());
+        JsonRpcResponse response = ((ReplyResult<JsonRpcResponse>) reply).getData();
+        Assert.assertTrue(response instanceof JsonRpcResponseError);
+        JsonRpcResponseError error = (JsonRpcResponseError) response;
+        Assert.assertEquals(null, error.getIdentifier());
+        Assert.assertEquals(-32600, error.getCode());
+        Assert.assertEquals("Invalid Request", error.getMessage());
+    }
 }
