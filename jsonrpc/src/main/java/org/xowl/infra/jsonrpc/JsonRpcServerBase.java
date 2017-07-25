@@ -202,7 +202,7 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
             return null;
         if (method == null)
             return null;
-        Object params2 = deserializer.deserialize(params, method);
+        Object params2 = params != null ? deserializer.deserialize(params, method) : null;
         return new JsonRpcRequest(identifier, method, params2);
     }
 }
