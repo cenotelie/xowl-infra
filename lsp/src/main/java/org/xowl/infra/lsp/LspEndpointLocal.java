@@ -15,22 +15,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.client;
+package org.xowl.infra.lsp;
 
-import org.xowl.infra.lsp.LspEndpointLocalBase;
+import org.xowl.infra.jsonrpc.JsonRpcClient;
 
 /**
- * Base interface for a LSP client
+ * Represents an LSP endpoint that is local to the current Java process
  *
  * @author Laurent Wouters
  */
-public class LspClient extends LspEndpointLocalBase {
+public interface LspEndpointLocal extends JsonRpcClient {
     /**
-     * Initializes this endpoint
+     * Gets the handler for the requests coming to this endpoint
      *
-     * @param handler The handler for the requests coming to this endpoint
+     * @return The handler for the requests coming to this endpoint
      */
-    public LspClient(LspClientHandlerBase handler) {
-        super(handler, new LspClientResponseDeserializer());
-    }
+    LspHandler getHandler();
 }

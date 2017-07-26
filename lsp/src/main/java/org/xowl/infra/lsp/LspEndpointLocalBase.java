@@ -18,20 +18,27 @@
 package org.xowl.infra.lsp;
 
 import org.xowl.infra.jsonrpc.JsonRpcClientBase;
+import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyResult;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
+import java.util.List;
+
 /**
- * Base implementation of all LSP endpoints
+ * Base implementation of an LSP endpoint that is local to the current Java process
  *
  * @author Laurent Wouters
  */
-public abstract class LspEndpointBase extends JsonRpcClientBase implements LspEndpoint {
+public abstract class LspEndpointLocalBase extends JsonRpcClientBase implements LspEndpointLocal {
     /**
      * The handler for the requests coming to this endpoint
      */
     protected final LspHandler handler;
+    /**
+     * The remote endpoint to connect to
+     */
+    protected LspEndpointRemote remote;
 
     /**
      * Initializes this endpoint
@@ -39,14 +46,59 @@ public abstract class LspEndpointBase extends JsonRpcClientBase implements LspEn
      * @param handler      The handler for the requests coming to this endpoint
      * @param deserializer The de-serializer to use for responses
      */
-    protected LspEndpointBase(LspHandler handler, JsonDeserializer deserializer) {
+    protected LspEndpointLocalBase(LspHandler handler, JsonDeserializer deserializer) {
+        this(handler, deserializer, null);
+    }
+
+    /**
+     * Initializes this endpoint
+     *
+     * @param handler      The handler for the requests coming to this endpoint
+     * @param deserializer The de-serializer to use for responses
+     * @param remote       The remote endpoint to connect to
+     */
+    protected LspEndpointLocalBase(LspHandler handler, JsonDeserializer deserializer, LspEndpointRemote remote) {
         super(deserializer);
         this.handler = handler;
+        this.remote = remote;
+    }
+
+    /**
+     * Gets the remote endpoint to connect to
+     *
+     * @return The remote endpoint to connect to
+     */
+    public LspEndpointRemote getRemote() {
+        return remote;
+    }
+
+    /**
+     * Sets the remote endpoint to connect to
+     *
+     * @param remote The remote endpoint to connect to
+     */
+    public void setRemote(LspEndpointRemote remote) {
+        this.remote = remote;
     }
 
     @Override
     public LspHandler getHandler() {
         return handler;
+    }
+
+    @Override
+    public Reply send(String message) {
+        return remote.send(message);
+    }
+
+    @Override
+    public Reply send(JsonRpcRequest request) {
+        return remote.send(request);
+    }
+
+    @Override
+    public Reply send(List<JsonRpcRequest> requests) {
+        return remote.send(requests);
     }
 
     @Override

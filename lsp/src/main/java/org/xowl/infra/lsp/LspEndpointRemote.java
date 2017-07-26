@@ -20,15 +20,9 @@ package org.xowl.infra.lsp;
 import org.xowl.infra.jsonrpc.JsonRpcClient;
 
 /**
- * Represents the actionable interface of a LSP endpoint (server or client)
+ * Represents a remote LSP endpoint that is connected to from a local endpoint
  *
  * @author Laurent Wouters
  */
-public interface LspEndpoint extends JsonRpcClient {
-    /**
-     * Gets the handler for the requests coming to this endpoint
-     *
-     * @return The handler for the requests coming to this endpoint
-     */
-    LspHandler getHandler();
+public interface LspEndpointRemote extends JsonRpcClient {
 }

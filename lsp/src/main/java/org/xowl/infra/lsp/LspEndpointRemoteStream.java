@@ -17,6 +17,7 @@
 
 package org.xowl.infra.lsp;
 
+import org.xowl.infra.jsonrpc.JsonRpcClientBase;
 import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.jsonrpc.JsonRpcResponse;
 import org.xowl.infra.utils.IOUtils;
@@ -33,7 +34,7 @@ import java.io.OutputStream;
  *
  * @author Laurent Wouters
  */
-public class LspEndpointRemoteStream extends LspEndpointBase {
+public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEndpointRemote {
     /**
      * The input handler for the remote endpoint
      */

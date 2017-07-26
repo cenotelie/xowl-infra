@@ -17,6 +17,7 @@
 
 package org.xowl.infra.lsp;
 
+import org.xowl.infra.jsonrpc.JsonRpcClientBase;
 import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyResult;
@@ -27,17 +28,23 @@ import org.xowl.infra.utils.json.JsonDeserializer;
 import java.util.List;
 
 /**
- * Implements a proxy endpoint for sending requests to the listening part of another endpoint object in the current Java process
+ * Implements a proxy endpoint for sending requests to
+ * the listening part of another local endpoint object in the current Java process
  *
  * @author Laurent Wouters
  */
-public class LspEndpointRemoteProxy extends LspEndpointBase {
+public class LspEndpointRemoteProxy extends JsonRpcClientBase implements LspEndpointRemote {
+    /**
+     * The handler of the local endpoint to proxy
+     */
+    private final LspHandler handler;
+
     /**
      * Initializes this endpoint
      *
      * @param target The target endpoint
      */
-    protected LspEndpointRemoteProxy(LspEndpoint target) {
+    public LspEndpointRemoteProxy(LspEndpointLocal target) {
         this(target, null);
     }
 
@@ -47,8 +54,9 @@ public class LspEndpointRemoteProxy extends LspEndpointBase {
      * @param target       The target endpoint
      * @param deserializer The de-serializer to use for responses
      */
-    protected LspEndpointRemoteProxy(LspEndpoint target, JsonDeserializer deserializer) {
-        super(target.getHandler(), deserializer);
+    public LspEndpointRemoteProxy(LspEndpointLocal target, JsonDeserializer deserializer) {
+        super(deserializer);
+        this.handler = target.getHandler();
     }
 
     @Override

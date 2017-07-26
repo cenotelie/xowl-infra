@@ -17,9 +17,7 @@
 
 package org.xowl.infra.lsp.server;
 
-import org.xowl.infra.lsp.LspEndpoint;
-import org.xowl.infra.lsp.LspEndpointBaseConnected;
-import org.xowl.infra.lsp.LspHandler;
+import org.xowl.infra.lsp.LspEndpointLocalBase;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyFailure;
 import org.xowl.infra.utils.api.ReplySuccess;
@@ -31,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Laurent Wouters
  */
-public class LspServer extends LspEndpointBaseConnected {
+public class LspServer extends LspEndpointLocalBase {
     /**
      * The server has been created, it has not been initialized yet
      */
@@ -71,18 +69,8 @@ public class LspServer extends LspEndpointBaseConnected {
      *
      * @param handler The handler for the requests coming to this endpoint
      */
-    public LspServer(LspHandler handler) {
-        this(handler, null);
-    }
-
-    /**
-     * Initializes this endpoint
-     *
-     * @param handler The handler for the requests coming to this endpoint
-     * @param remote  The remote endpoint to connect to
-     */
-    public LspServer(LspHandler handler, LspEndpoint remote) {
-        super(handler, new LspServerResponseDeserializer(), remote);
+    public LspServer(LspServerHandlerBase handler) {
+        super(handler, new LspServerResponseDeserializer());
         this.state = new AtomicInteger(STATE_CREATED);
     }
 

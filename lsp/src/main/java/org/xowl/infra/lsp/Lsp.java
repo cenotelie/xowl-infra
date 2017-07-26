@@ -20,6 +20,7 @@ package org.xowl.infra.lsp;
 import org.xowl.infra.lsp.client.LspClient;
 import org.xowl.infra.lsp.client.LspClientResponseDeserializer;
 import org.xowl.infra.lsp.server.LspServer;
+import org.xowl.infra.lsp.server.LspServerResponseDeserializer;
 
 /**
  * Front APi for the LSP protocol
@@ -28,24 +29,15 @@ import org.xowl.infra.lsp.server.LspServer;
  */
 public class Lsp {
     /**
-     * Create a LSP server for local services (within the current Java process)
+     * Connects a local client and a local server when they are both in the current Java process
      *
-     * @param handler The handler for client requests
-     * @return The LSP server
+     * @param client The LSP client
+     * @param server The LSP server
      */
-    public static LspServer createLocalServer(LspHandler handler) {
-        return new LspServer(handler);
-    }
-
-    /**
-     * Creates a LSP client for local services (within the current Java process)
-     *
-     * @param server  The server to connect to
-     * @param handler The handler for the server requests
-     * @return The LSP client
-     */
-    public static LspClient createLocalClient(LspServer server, LspHandler handler) {
-        LspEndpoint proxy = new LspEndpointRemoteProxy(server, new LspClientResponseDeserializer());
-        return new LspClient(handler, proxy);
+    public static void connectLocal(LspClient client, LspServer server) {
+        LspEndpointRemoteProxy proxyForClient = new LspEndpointRemoteProxy(server, new LspClientResponseDeserializer());
+        LspEndpointRemoteProxy proxyForServer = new LspEndpointRemoteProxy(client, new LspServerResponseDeserializer());
+        client.setRemote(proxyForClient);
+        server.setRemote(proxyForServer);
     }
 }
