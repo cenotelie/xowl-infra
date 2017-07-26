@@ -18,6 +18,7 @@
 package org.xowl.infra.lsp.client;
 
 import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.lsp.structures.InitializationResult;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
@@ -39,6 +40,11 @@ public class LspClientResponseDeserializer extends JsonDeserializer {
      * @return The de-serialized object
      */
     public Object deserializeObject(ASTNode definition, String method) {
-        return super.deserializeObject(definition, method);
+        switch (method) {
+            case "initialize":
+                return new InitializationResult(definition, this);
+            default:
+                return super.deserializeObject(definition, method);
+        }
     }
 }

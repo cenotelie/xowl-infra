@@ -71,7 +71,7 @@ public class InitializationResult implements Serializable {
                 }
             }
         }
-        this.capabilities = capabilities != null ? capabilities : new ServerCapabilities(null);
+        this.capabilities = capabilities != null ? capabilities : new ServerCapabilities();
     }
 
     @Override

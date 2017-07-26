@@ -20,7 +20,11 @@ package org.xowl.infra.lsp.server;
 import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.jsonrpc.JsonRpcResponse;
 import org.xowl.infra.jsonrpc.JsonRpcResponseError;
+import org.xowl.infra.jsonrpc.JsonRpcResponseResult;
 import org.xowl.infra.lsp.LspHandlerBase;
+import org.xowl.infra.lsp.LspUtils;
+import org.xowl.infra.lsp.structures.ClientCapabilities;
+import org.xowl.infra.utils.api.Reply;
 
 /**
  * Represents the part of a LSP server that handles requests from a client
@@ -29,23 +33,69 @@ import org.xowl.infra.lsp.LspHandlerBase;
  */
 public abstract class LspServerHandlerBase extends LspHandlerBase {
     /**
+     * The parent server
+     */
+    protected LspServer server;
+
+    /**
      * Initializes this server
      */
     public LspServerHandlerBase() {
         super(new LspServerRequestDeserializer());
     }
 
+    /**
+     * Sets the parent server
+     *
+     * @param server The parent server
+     */
+    protected void setServer(LspServer server) {
+        this.server = server;
+    }
+
     @Override
     public JsonRpcResponse handle(JsonRpcRequest request) {
+        int state = server.getState();
+        if (state < LspServer.STATE_READY) {
+            if ("initialize".equals(request.getMethod()))
+                return onInitialize(request);
+            if (request.isNotification())
+                return null;
+            return new JsonRpcResponseError(
+                    request.getIdentifier(),
+                    LspUtils.ERROR_SERVER_NOT_INITIALIZED,
+                    "Server is not initialized",
+                    null);
+        } else if (state >= LspServer.STATE_EXITING) {
+            if (request.isNotification())
+                return null;
+            return new JsonRpcResponseError(
+                    request.getIdentifier(),
+                    LspUtils.ERROR_SERVER_HAS_EXITED,
+                    "Server has exited",
+                    null);
+        } else if (state >= LspServer.STATE_SHUTTING_DOWN) {
+            if ("exit".equals(request.getMethod()))
+                return onExit(request);
+            if (request.isNotification())
+                return null;
+            return new JsonRpcResponseError(
+                    request.getIdentifier(),
+                    LspUtils.ERROR_SERVER_SHUT_DOWN,
+                    "Server has shut down",
+                    null);
+        }
+
+        // here the server is ready
         switch (request.getMethod()) {
             case "initialize":
-                return onInitialize(request);
+                return JsonRpcResponseError.newInvalidRequest(request.getIdentifier());
             case "initialized":
                 return onInitialized(request);
             case "shutdown":
                 return onShutdown(request);
             case "exit":
-                return onExit(request);
+                return JsonRpcResponseError.newInvalidRequest(request.getIdentifier());
             case "$/cancelRequest":
                 return onCancelRequest(request);
             case "workspace/didChangeConfiguration":
@@ -123,7 +173,13 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onInitialize(JsonRpcRequest request);
+    protected JsonRpcResponse onInitialize(JsonRpcRequest request) {
+        server.clientCapabilities = (ClientCapabilities) request.getParams();
+        Reply reply = server.initialize();
+        if (!reply.isSuccess())
+            return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        return new JsonRpcResponseResult<>(request.getIdentifier(), server.serverCapabilities);
+    }
 
     /**
      * The initialized notification is sent from the client to the server after the client received the result
@@ -133,7 +189,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onInitialized(JsonRpcRequest request);
+    protected JsonRpcResponse onInitialized(JsonRpcRequest request) {
+        return null;
+    }
 
     /**
      * The shutdown request is sent from the client to the server.
@@ -143,7 +201,12 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onShutdown(JsonRpcRequest request);
+    protected JsonRpcResponse onShutdown(JsonRpcRequest request) {
+        Reply reply = server.shutdown();
+        if (!reply.isSuccess())
+            return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        return new JsonRpcResponseResult<>(request.getIdentifier(), null);
+    }
 
     /**
      * A notification to ask the server to exit its process.
@@ -152,7 +215,10 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onExit(JsonRpcRequest request);
+    protected JsonRpcResponse onExit(JsonRpcRequest request) {
+        server.exit();
+        return null;
+    }
 
     /**
      * The base protocol offers support for request cancellation.

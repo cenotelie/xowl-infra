@@ -18,6 +18,8 @@
 package org.xowl.infra.lsp.server;
 
 import org.xowl.infra.lsp.LspEndpointLocalBase;
+import org.xowl.infra.lsp.structures.ClientCapabilities;
+import org.xowl.infra.lsp.structures.ServerCapabilities;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyFailure;
 import org.xowl.infra.utils.api.ReplySuccess;
@@ -63,6 +65,14 @@ public class LspServer extends LspEndpointLocalBase {
      * The server's current state
      */
     private final AtomicInteger state;
+    /**
+     * The capabilities of this current server
+     */
+    protected final ServerCapabilities serverCapabilities;
+    /**
+     * The capabilities of the connected client, if any
+     */
+    protected ClientCapabilities clientCapabilities;
 
     /**
      * Initializes this endpoint
@@ -72,6 +82,8 @@ public class LspServer extends LspEndpointLocalBase {
     public LspServer(LspServerHandlerBase handler) {
         super(handler, new LspServerResponseDeserializer());
         this.state = new AtomicInteger(STATE_CREATED);
+        this.serverCapabilities = new ServerCapabilities();
+        handler.setServer(this);
     }
 
     /**

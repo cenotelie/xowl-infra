@@ -39,6 +39,10 @@ public class LspServerResponseDeserializer extends JsonDeserializer {
      * @return The de-serialized object
      */
     public Object deserializeObject(ASTNode definition, String method) {
-        return super.deserializeObject(definition, method);
+        switch (method) {
+
+            default:
+                return super.deserializeObject(definition, method);
+        }
     }
 }

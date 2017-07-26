@@ -46,6 +46,14 @@ public class LspUtils {
      * The error code when the server is not initialized
      */
     public static final int ERROR_SERVER_NOT_INITIALIZED = -32002;
+    /**
+     * The error code when the server has shut down
+     */
+    public static final int ERROR_SERVER_SHUT_DOWN = -32003;
+    /**
+     * The error code when the server has exited (should not happen)
+     */
+    public static final int ERROR_SERVER_HAS_EXITED = -32004;
 
     /**
      * Gets the full message for the specified content
