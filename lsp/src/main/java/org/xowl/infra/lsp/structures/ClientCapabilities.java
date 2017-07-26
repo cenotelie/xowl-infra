@@ -89,11 +89,11 @@ public class ClientCapabilities implements Serializable {
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
                 case "workspace": {
-                    workspace = new WorkspaceClientCapabilities(nodeValue);
+                    workspace = new WorkspaceClientCapabilities(nodeValue, deserializer);
                     break;
                 }
                 case "textDocument": {
-                    textDocument = new TextDocumentClientCapabilities(nodeValue);
+                    textDocument = new TextDocumentClientCapabilities(nodeValue, deserializer);
                     break;
                 }
                 case "experimental": {

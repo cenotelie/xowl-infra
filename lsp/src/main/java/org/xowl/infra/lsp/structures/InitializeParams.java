@@ -22,6 +22,7 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.json.Json;
 import org.xowl.infra.utils.json.JsonDeserializer;
+import org.xowl.infra.utils.json.JsonLexer;
 
 /**
  * Parameters for the initialize request
@@ -161,6 +162,8 @@ public class InitializeParams implements Serializable {
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
                 case "processId": {
+                    if (nodeValue.getSymbol().getID() == JsonLexer.ID.LITERAL_INTEGER)
+                        processId = Integer.parseInt(nodeValue.getValue());
                     break;
                 }
                 case "rootPath": {

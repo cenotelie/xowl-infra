@@ -18,6 +18,7 @@
 package org.xowl.infra.lsp.structures;
 
 import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
  * WorkspaceClientCapabilities define capabilities the editor / tool provides on the workspace
@@ -65,9 +66,10 @@ public class WorkspaceClientCapabilities extends Capabilities {
     /**
      * Initializes this structure
      *
-     * @param definition The serialized definition
+     * @param definition   The serialized definition
+     * @param deserializer The deserializer to use
      */
-    public WorkspaceClientCapabilities(ASTNode definition) {
-        super(definition);
+    public WorkspaceClientCapabilities(ASTNode definition, JsonDeserializer deserializer) {
+        super(definition, deserializer);
     }
 }

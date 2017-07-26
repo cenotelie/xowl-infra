@@ -18,29 +18,51 @@
 package org.xowl.infra.lsp.structures;
 
 import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
- * TextDocumentClientCapabilities define capabilities the editor / tool provides on text documents
+ * Capabilities offered by the server
  * TODO: add constants
  *
  * @author Laurent Wouters
  */
-public class TextDocumentClientCapabilities extends Capabilities {
+public class ServerCapabilities extends Capabilities {
+    /**
+     * Experimental server capabilities
+     */
+    private final Object experimental;
+
     /**
      * Initializes this structure
+     *
+     * @param experimental Experimental server capabilities
      */
-    public TextDocumentClientCapabilities() {
-        super();
+    public ServerCapabilities(Object experimental) {
+        this.experimental = experimental;
     }
 
     /**
      * Initializes this structure
      *
      * @param definition   The serialized definition
-     * @param deserializer The deserializer to use
+     * @param deserializer The current de-serializer
      */
-    public TextDocumentClientCapabilities(ASTNode definition, JsonDeserializer deserializer) {
+    public ServerCapabilities(ASTNode definition, JsonDeserializer deserializer) {
         super(definition, deserializer);
+        Object experimental = null;
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeMemberName = child.getChildren().get(0);
+            String name = TextUtils.unescape(nodeMemberName.getValue());
+            name = name.substring(1, name.length() - 1);
+            ASTNode nodeValue = child.getChildren().get(1);
+            switch (name) {
+                case "experimental": {
+                    experimental = deserializer.deserialize(nodeValue, null);
+                    break;
+                }
+            }
+        }
+        this.experimental = experimental;
     }
 }
