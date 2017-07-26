@@ -45,6 +45,22 @@ public class Lsp {
     }
 
     /**
+     * Connects a local client to a server running an remote process through the use of the standard input and output streams
+     *
+     * @param client  The local LSP client
+     * @param process The process running the server to connect to
+     * @return The created remote endpoint
+     */
+    public static LspEndpointRemote connectToProcess(LspClient client, Process process) {
+        LspEndpointRemoteStream remote = new LspEndpointRemoteStream(
+                client,
+                process.getOutputStream(),
+                process.getInputStream());
+        client.setRemote(remote);
+        return remote;
+    }
+
+    /**
      * Serves the specified local server through the specified streams
      *
      * @param server The local server to make accessible through streams
