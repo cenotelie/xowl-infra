@@ -18,6 +18,7 @@
 package org.xowl.infra.lsp;
 
 import org.xowl.infra.jsonrpc.JsonRpcClientBase;
+import org.xowl.infra.jsonrpc.JsonRpcContext;
 import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyResult;
@@ -60,7 +61,7 @@ public class LspEndpointRemoteProxy extends JsonRpcClientBase implements LspEndp
     }
 
     @Override
-    public Reply send(String message) {
+    public Reply send(String message, JsonRpcContext context) {
         return new ReplyResult<>(handler.handle(message));
     }
 
@@ -75,7 +76,7 @@ public class LspEndpointRemoteProxy extends JsonRpcClientBase implements LspEndp
     }
 
     @Override
-    public Reply sendAndDeserialize(String message, Object context) {
+    public Reply sendAndDeserialize(String message, JsonRpcContext context) {
         if (deserializer == null)
             return ReplyUnsupported.instance();
         String content = handler.handle(LspUtils.envelop(message));

@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Front APi for the LSP protocol
+ * Front API for the LSP protocol
  *
  * @author Laurent Wouters
  */
@@ -82,5 +82,14 @@ public class Lsp {
      */
     public static LspEndpointRemote serveByStdStreams(LspServer server) {
         return serveByStreams(server, System.out, System.in);
+    }
+
+
+    /**
+     * Main method for
+     * @param server
+     */
+    public static void main(LspServer server) {
+
     }
 }

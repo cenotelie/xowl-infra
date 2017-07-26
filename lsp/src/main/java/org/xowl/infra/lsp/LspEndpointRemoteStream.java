@@ -19,12 +19,10 @@ package org.xowl.infra.lsp;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.jsonrpc.JsonRpcClientBase;
+import org.xowl.infra.jsonrpc.JsonRpcContext;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplyException;
-import org.xowl.infra.utils.api.ReplyFailure;
-import org.xowl.infra.utils.api.ReplyResult;
+import org.xowl.infra.utils.api.*;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
 import org.xowl.infra.utils.json.Json;
 import org.xowl.infra.utils.json.JsonParser;
@@ -121,7 +119,35 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
     }
 
     @Override
-    public synchronized Reply send(String message) {
+    public synchronized Reply send(String message, JsonRpcContext context) {
+        if (context.isEmpty())
+            return sendNoReply(message);
+        return sendAndGetReply(message);
+    }
+
+    /**
+     * Sends a message without expecting a reply
+     *
+     * @param message The message to send
+     * @return The reply
+     */
+    private Reply sendNoReply(String message) {
+        try {
+            writeToOutput(message);
+            return ReplySuccess.instance();
+        } catch (IOException exception) {
+            Logging.get().error(exception);
+            return new ReplyException(exception);
+        }
+    }
+
+    /**
+     * Sends a message and get the reply
+     *
+     * @param message The message to send
+     * @return The reply
+     */
+    private Reply sendAndGetReply(String message) {
         if (!waitingResponses.compareAndSet(false, true))
             return new ReplyFailure("Bad state");
         try {
