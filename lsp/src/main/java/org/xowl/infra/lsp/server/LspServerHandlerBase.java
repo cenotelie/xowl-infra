@@ -95,7 +95,7 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
             case "shutdown":
                 return onShutdown(request);
             case "exit":
-                return JsonRpcResponseError.newInvalidRequest(request.getIdentifier());
+                return onExit(request);
             case "$/cancelRequest":
                 return onCancelRequest(request);
             case "workspace/didChangeConfiguration":

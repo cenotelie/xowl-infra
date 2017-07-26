@@ -83,13 +83,4 @@ public class Lsp {
     public static LspEndpointRemote serveByStdStreams(LspServer server) {
         return serveByStreams(server, System.out, System.in);
     }
-
-
-    /**
-     * Main method for
-     * @param server
-     */
-    public static void main(LspServer server) {
-
-    }
 }

@@ -24,6 +24,8 @@ import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyFailure;
 import org.xowl.infra.utils.api.ReplySuccess;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -66,6 +68,10 @@ public class LspServer extends LspEndpointLocalBase {
      */
     private final AtomicInteger state;
     /**
+     * The listeners for this server
+     */
+    private final Collection<LspServerListener> listeners;
+    /**
      * The capabilities of this current server
      */
     protected final ServerCapabilities serverCapabilities;
@@ -82,6 +88,7 @@ public class LspServer extends LspEndpointLocalBase {
     public LspServer(LspServerHandlerBase handler) {
         super(handler, new LspServerResponseDeserializer());
         this.state = new AtomicInteger(STATE_CREATED);
+        this.listeners = new ArrayList<>();
         this.serverCapabilities = new ServerCapabilities();
         handler.setServer(this);
     }
@@ -96,6 +103,24 @@ public class LspServer extends LspEndpointLocalBase {
     }
 
     /**
+     * Register a listener
+     *
+     * @param listener A listener
+     */
+    public void registerListener(LspServerListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Unregister a listener
+     *
+     * @param listener A listener
+     */
+    public void unregisterListener(LspServerListener listener) {
+
+    }
+
+    /**
      * Performs the server's initialization
      *
      * @return The reply
@@ -107,6 +132,8 @@ public class LspServer extends LspEndpointLocalBase {
         if (!reply.isSuccess())
             return reply;
         state.compareAndSet(STATE_INITIALIZING, STATE_READY);
+        for (LspServerListener listener : listeners)
+            listener.onInitialize();
         return reply;
     }
 
@@ -131,6 +158,8 @@ public class LspServer extends LspEndpointLocalBase {
         if (!reply.isSuccess())
             return reply;
         state.compareAndSet(STATE_SHUTTING_DOWN, STATE_SHUT_DOWN);
+        for (LspServerListener listener : listeners)
+            listener.onShutdown();
         return reply;
     }
 
@@ -155,6 +184,8 @@ public class LspServer extends LspEndpointLocalBase {
         if (!reply.isSuccess())
             return reply;
         state.compareAndSet(STATE_EXITING, STATE_EXITED);
+        for (LspServerListener listener : listeners)
+            listener.onExit();
         return reply;
     }
 
