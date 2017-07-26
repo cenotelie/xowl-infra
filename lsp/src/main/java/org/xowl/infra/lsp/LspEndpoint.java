@@ -26,9 +26,9 @@ import org.xowl.infra.jsonrpc.JsonRpcClient;
  */
 public interface LspEndpoint extends JsonRpcClient {
     /**
-     * Gets the listener for requests coming from this endpoint
+     * Gets the handler for the requests coming to this endpoint
      *
-     * @return The listener for requests coming from this endpoint
+     * @return The handler for the requests coming to this endpoint
      */
-    LspEndpointListener getListener();
+    LspHandler getHandler();
 }

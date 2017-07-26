@@ -17,76 +17,32 @@
 
 package org.xowl.infra.lsp.client;
 
-import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.lsp.LspEndpoint;
-import org.xowl.infra.lsp.LspEndpointBase;
-import org.xowl.infra.lsp.LspEndpointListener;
-import org.xowl.infra.utils.api.Reply;
-
-import java.util.List;
+import org.xowl.infra.lsp.LspEndpointBaseConnected;
+import org.xowl.infra.lsp.LspHandler;
 
 /**
  * Base interface for a LSP client
  *
  * @author Laurent Wouters
  */
-public class LspClient extends LspEndpointBase {
-    /**
-     * The server endpoint
-     */
-    protected LspEndpoint server;
-
+public class LspClient extends LspEndpointBaseConnected {
     /**
      * Initializes this endpoint
      *
-     * @param listener The listener for requests from the server
+     * @param handler The handler for the requests coming to this endpoint
      */
-    public LspClient(LspEndpointListener listener) {
-        super(listener, new LspClientResponseDeserializer());
-        this.server = null;
+    public LspClient(LspHandler handler) {
+        super(handler, new LspClientResponseDeserializer());
     }
 
     /**
      * Initializes this endpoint
      *
-     * @param listener The listener for requests from the server
-     * @param server   The server endpoint
+     * @param handler The handler for the requests coming to this endpoint
+     * @param remote  The remote endpoint to connect to
      */
-    public LspClient(LspEndpointListener listener, LspEndpoint server) {
-        super(listener, new LspClientResponseDeserializer());
-        this.server = server;
-    }
-
-    /**
-     * Gets the associated server endpoint
-     *
-     * @return The associated server endpoint
-     */
-    public LspEndpoint getServer() {
-        return server;
-    }
-
-    /**
-     * Sets the associated server endpoint
-     *
-     * @param server The associated server endpoint
-     */
-    public void setServer(LspEndpoint server) {
-        this.server = server;
-    }
-
-    @Override
-    public Reply send(String message) {
-        return server.send(message);
-    }
-
-    @Override
-    public Reply send(JsonRpcRequest request) {
-        return server.send(request);
-    }
-
-    @Override
-    public Reply send(List<JsonRpcRequest> requests) {
-        return server.send(requests);
+    public LspClient(LspHandler handler, LspEndpoint remote) {
+        super(handler, new LspClientResponseDeserializer(), remote);
     }
 }

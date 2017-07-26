@@ -17,16 +17,13 @@
 
 package org.xowl.infra.lsp.server;
 
-import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.lsp.LspEndpoint;
-import org.xowl.infra.lsp.LspEndpointBase;
-import org.xowl.infra.lsp.LspEndpointListener;
-import org.xowl.infra.lsp.client.LspClientResponseDeserializer;
+import org.xowl.infra.lsp.LspEndpointBaseConnected;
+import org.xowl.infra.lsp.LspHandler;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyFailure;
 import org.xowl.infra.utils.api.ReplySuccess;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -34,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Laurent Wouters
  */
-public class LspServer extends LspEndpointBase {
+public class LspServer extends LspEndpointBaseConnected {
     /**
      * The server has been created, it has not been initialized yet
      */
@@ -68,32 +65,25 @@ public class LspServer extends LspEndpointBase {
      * The server's current state
      */
     private final AtomicInteger state;
-    /**
-     * The server endpoint
-     */
-    protected LspEndpoint client;
 
     /**
      * Initializes this endpoint
      *
-     * @param listener The listener for requests from the server
+     * @param handler The handler for the requests coming to this endpoint
      */
-    public LspServer(LspEndpointListener listener) {
-        super(listener, new LspClientResponseDeserializer());
-        this.state = new AtomicInteger(STATE_CREATED);
-        this.client = null;
+    public LspServer(LspHandler handler) {
+        this(handler, null);
     }
 
     /**
      * Initializes this endpoint
      *
-     * @param listener The listener for requests from the server
-     * @param client   The client endpoint
+     * @param handler The handler for the requests coming to this endpoint
+     * @param remote  The remote endpoint to connect to
      */
-    public LspServer(LspEndpointListener listener, LspEndpoint client) {
-        super(listener, new LspClientResponseDeserializer());
+    public LspServer(LspHandler handler, LspEndpoint remote) {
+        super(handler, new LspServerResponseDeserializer(), remote);
         this.state = new AtomicInteger(STATE_CREATED);
-        this.client = client;
     }
 
     /**
@@ -103,39 +93,6 @@ public class LspServer extends LspEndpointBase {
      */
     public int getState() {
         return state.get();
-    }
-
-    /**
-     * Gets the associated client endpoint
-     *
-     * @return The associated client endpoint
-     */
-    public LspEndpoint getClient() {
-        return client;
-    }
-
-    /**
-     * Sets the associated client endpoint
-     *
-     * @param client The associated client endpoint
-     */
-    public void setClient(LspEndpoint client) {
-        this.client = client;
-    }
-
-    @Override
-    public Reply send(String message) {
-        return client.send(message);
-    }
-
-    @Override
-    public Reply send(JsonRpcRequest request) {
-        return client.send(request);
-    }
-
-    @Override
-    public Reply send(List<JsonRpcRequest> requests) {
-        return client.send(requests);
     }
 
     /**

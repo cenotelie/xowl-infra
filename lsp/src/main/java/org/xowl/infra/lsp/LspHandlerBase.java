@@ -30,17 +30,17 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
- * A specialized Json-Rcp server for the use of LSP
+ * Implements a basic handler of LSP requests
  *
  * @author Laurent Wouters
  */
-public abstract class LspEndpointListenerBase extends JsonRpcServerBase implements LspEndpointListener {
+public abstract class LspHandlerBase extends JsonRpcServerBase implements LspHandler {
     /**
      * Initializes this server
      *
      * @param deserializer The de-serializer to use for requests
      */
-    public LspEndpointListenerBase(JsonDeserializer deserializer) {
+    public LspHandlerBase(JsonDeserializer deserializer) {
         super(deserializer);
     }
 

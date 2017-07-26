@@ -29,24 +29,24 @@ import org.xowl.infra.utils.json.JsonDeserializer;
  */
 public abstract class LspEndpointBase extends JsonRpcClientBase implements LspEndpoint {
     /**
-     * The listener for requests coming from the remote endpoint
+     * The handler for the requests coming to this endpoint
      */
-    protected final LspEndpointListener listener;
+    protected final LspHandler handler;
 
     /**
      * Initializes this endpoint
      *
-     * @param listener     The listener for requests coming from the remote endpoint
+     * @param handler      The handler for the requests coming to this endpoint
      * @param deserializer The de-serializer to use for responses
      */
-    protected LspEndpointBase(LspEndpointListener listener, JsonDeserializer deserializer) {
+    protected LspEndpointBase(LspHandler handler, JsonDeserializer deserializer) {
         super(deserializer);
-        this.listener = listener;
+        this.handler = handler;
     }
 
     @Override
-    public LspEndpointListener getListener() {
-        return listener;
+    public LspHandler getHandler() {
+        return handler;
     }
 
     @Override

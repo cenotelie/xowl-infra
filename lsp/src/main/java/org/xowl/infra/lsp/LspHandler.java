@@ -15,27 +15,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.server;
+package org.xowl.infra.lsp;
 
-import org.xowl.infra.jsonrpc.JsonRpcRequest;
-import org.xowl.infra.jsonrpc.JsonRpcResponse;
-import org.xowl.infra.lsp.LspEndpointListenerBase;
+import org.xowl.infra.jsonrpc.JsonRpcServer;
 
 /**
- * Represents the part of a LSP client that listens to requests coming from the server
+ * Represents a handler of LSP requests
  *
  * @author Laurent Wouters
  */
-public class LspServerClientListenerBase extends LspEndpointListenerBase {
-    /**
-     * Initializes this server
-     */
-    public LspServerClientListenerBase() {
-        super(new LspServerRequestDeserializer());
-    }
-
-    @Override
-    public JsonRpcResponse handle(JsonRpcRequest request) {
-        return null;
-    }
+public interface LspHandler extends JsonRpcServer {
 }

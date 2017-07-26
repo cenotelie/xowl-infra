@@ -15,30 +15,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp;
+package org.xowl.infra.lsp.client;
 
-import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplyUnsupported;
-import org.xowl.infra.utils.json.JsonDeserializer;
+import org.xowl.infra.jsonrpc.JsonRpcRequest;
+import org.xowl.infra.jsonrpc.JsonRpcResponse;
+import org.xowl.infra.jsonrpc.JsonRpcResponseError;
+import org.xowl.infra.lsp.LspHandlerBase;
 
 /**
- * Represents a remote LSP endpoint, connected through a TCP connection
+ * Represents the part of a LSP client that handles requests from a server
  *
  * @author Laurent Wouters
  */
-public class LspEndpointRemoteTcp extends LspEndpointBase {
+public class LspClientHandlerBase extends LspHandlerBase {
     /**
-     * Initializes this endpoint
-     *
-     * @param listener     The listener for requests coming from the remote endpoint
-     * @param deserializer The de-serializer to use
+     * Initializes this server
      */
-    public LspEndpointRemoteTcp(LspEndpointListener listener, JsonDeserializer deserializer) {
-        super(listener, deserializer);
+    public LspClientHandlerBase() {
+        super(new LspClientRequestDeserializer());
     }
 
     @Override
-    public Reply send(String message) {
-        return ReplyUnsupported.instance();
+    public JsonRpcResponse handle(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInvalidRequest(request.getIdentifier());
     }
 }

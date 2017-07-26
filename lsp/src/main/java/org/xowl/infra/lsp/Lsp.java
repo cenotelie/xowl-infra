@@ -33,7 +33,7 @@ public class Lsp {
      * @param handler The handler for client requests
      * @return The LSP server
      */
-    public static LspServer createLocalServer(LspEndpointListener handler) {
+    public static LspServer createLocalServer(LspHandler handler) {
         return new LspServer(handler);
     }
 
@@ -44,8 +44,8 @@ public class Lsp {
      * @param handler The handler for the server requests
      * @return The LSP client
      */
-    public static LspClient createLocalClient(LspServer server, LspEndpointListener handler) {
-        LspEndpoint proxy = new LspEndpointProxyListener(server.getListener(), new LspClientResponseDeserializer());
+    public static LspClient createLocalClient(LspServer server, LspHandler handler) {
+        LspEndpoint proxy = new LspEndpointRemoteProxy(server, new LspClientResponseDeserializer());
         return new LspClient(handler, proxy);
     }
 }

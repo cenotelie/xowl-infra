@@ -21,44 +21,56 @@ import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyResult;
 import org.xowl.infra.utils.api.ReplyResultCollection;
+import org.xowl.infra.utils.api.ReplyUnsupported;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
 import java.util.List;
 
 /**
- * Implements a proxy endpoint for sending requests to the listening part of another endpoint object
+ * Implements a proxy endpoint for sending requests to the listening part of another endpoint object in the current Java process
  *
  * @author Laurent Wouters
  */
-public class LspEndpointProxyListener extends LspEndpointBase implements LspEndpoint {
+public class LspEndpointRemoteProxy extends LspEndpointBase {
     /**
      * Initializes this endpoint
      *
-     * @param listener     The proxied listener
+     * @param target The target endpoint
+     */
+    protected LspEndpointRemoteProxy(LspEndpoint target) {
+        this(target, null);
+    }
+
+    /**
+     * Initializes this endpoint
+     *
+     * @param target       The target endpoint
      * @param deserializer The de-serializer to use for responses
      */
-    protected LspEndpointProxyListener(LspEndpointListener listener, JsonDeserializer deserializer) {
-        super(listener, deserializer);
+    protected LspEndpointRemoteProxy(LspEndpoint target, JsonDeserializer deserializer) {
+        super(target.getHandler(), deserializer);
     }
 
     @Override
     public Reply send(String message) {
-        return new ReplyResult<>(listener.handle(message));
+        return new ReplyResult<>(handler.handle(message));
     }
 
     @Override
     public Reply send(JsonRpcRequest request) {
-        return new ReplyResult<>(listener.handle(request));
+        return new ReplyResult<>(handler.handle(request));
     }
 
     @Override
     public Reply send(List<JsonRpcRequest> requests) {
-        return new ReplyResultCollection<>(listener.handle(requests));
+        return new ReplyResultCollection<>(handler.handle(requests));
     }
 
     @Override
     public Reply sendAndDeserialize(String message, Object context) {
-        String content = listener.handle(LspUtils.envelop(message));
+        if (deserializer == null)
+            return ReplyUnsupported.instance();
+        String content = handler.handle(LspUtils.envelop(message));
         return deserializeResponses(LspUtils.stripEnvelope(content), context);
     }
 }
