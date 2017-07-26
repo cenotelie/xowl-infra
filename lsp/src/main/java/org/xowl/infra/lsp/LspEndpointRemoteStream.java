@@ -150,6 +150,7 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
     private synchronized void writeToOutput(String payload) throws IOException {
         byte[] bytes = payload.getBytes(IOUtils.UTF8);
         output.write(bytes);
+        output.flush();
     }
 
     @Override
