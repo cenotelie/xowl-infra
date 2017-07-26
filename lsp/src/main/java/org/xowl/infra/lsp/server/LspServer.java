@@ -23,8 +23,11 @@ import org.xowl.infra.lsp.LspEndpointBase;
 import org.xowl.infra.lsp.LspEndpointListener;
 import org.xowl.infra.lsp.client.LspClientResponseDeserializer;
 import org.xowl.infra.utils.api.Reply;
+import org.xowl.infra.utils.api.ReplyFailure;
+import org.xowl.infra.utils.api.ReplySuccess;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Implements a base LSP server
@@ -62,6 +65,10 @@ public class LspServer extends LspEndpointBase {
     public static final int STATE_EXITED = 6;
 
     /**
+     * The server's current state
+     */
+    private final AtomicInteger state;
+    /**
      * The server endpoint
      */
     protected LspEndpoint client;
@@ -73,6 +80,7 @@ public class LspServer extends LspEndpointBase {
      */
     public LspServer(LspEndpointListener listener) {
         super(listener, new LspClientResponseDeserializer());
+        this.state = new AtomicInteger(STATE_CREATED);
         this.client = null;
     }
 
@@ -84,7 +92,17 @@ public class LspServer extends LspEndpointBase {
      */
     public LspServer(LspEndpointListener listener, LspEndpoint client) {
         super(listener, new LspClientResponseDeserializer());
+        this.state = new AtomicInteger(STATE_CREATED);
         this.client = client;
+    }
+
+    /**
+     * Gets the server's current state
+     *
+     * @return The server's current state
+     */
+    public int getState() {
+        return state.get();
     }
 
     /**
@@ -118,5 +136,77 @@ public class LspServer extends LspEndpointBase {
     @Override
     public Reply send(List<JsonRpcRequest> requests) {
         return client.send(requests);
+    }
+
+    /**
+     * Performs the server's initialization
+     *
+     * @return The reply
+     */
+    protected Reply initialize() {
+        if (!state.compareAndSet(STATE_CREATED, STATE_INITIALIZING))
+            return ReplyFailure.instance();
+        Reply reply = doInitialize();
+        if (!reply.isSuccess())
+            return reply;
+        state.compareAndSet(STATE_INITIALIZING, STATE_READY);
+        return reply;
+    }
+
+    /**
+     * Do the server-specific work for its initialization
+     *
+     * @return The reply
+     */
+    protected Reply doInitialize() {
+        return ReplySuccess.instance();
+    }
+
+    /**
+     * Performs the server's shutdown
+     *
+     * @return The reply
+     */
+    protected Reply shutdown() {
+        if (!state.compareAndSet(STATE_READY, STATE_SHUTTING_DOWN))
+            return ReplyFailure.instance();
+        Reply reply = doShutdown();
+        if (!reply.isSuccess())
+            return reply;
+        state.compareAndSet(STATE_SHUTTING_DOWN, STATE_SHUT_DOWN);
+        return reply;
+    }
+
+    /**
+     * Do the server-specific work for its shutdown
+     *
+     * @return The reply
+     */
+    protected Reply doShutdown() {
+        return ReplySuccess.instance();
+    }
+
+    /**
+     * Performs the server's exit
+     *
+     * @return The reply
+     */
+    protected Reply exit() {
+        if (!state.compareAndSet(STATE_SHUT_DOWN, STATE_EXITING))
+            return ReplyFailure.instance();
+        Reply reply = doExit();
+        if (!reply.isSuccess())
+            return reply;
+        state.compareAndSet(STATE_EXITING, STATE_EXITED);
+        return reply;
+    }
+
+    /**
+     * Do the server-specific work for its exit
+     *
+     * @return The reply
+     */
+    protected Reply doExit() {
+        return ReplySuccess.instance();
     }
 }
