@@ -48,7 +48,11 @@ public class LspServerRunner {
     /**
      * Whether the server should stop
      */
-    private boolean shouldStop;
+    private volatile boolean shouldStop;
+    /**
+     * Whether the server has shutdown properly
+     */
+    private volatile boolean hasShutdown;
 
     /**
      * Initializes this runner
@@ -59,6 +63,7 @@ public class LspServerRunner {
         this.server = server;
         this.signal = new CountDownLatch(1);
         this.shouldStop = false;
+        this.hasShutdown = false;
     }
 
     /**
@@ -73,7 +78,7 @@ public class LspServerRunner {
 
             @Override
             public void onShutdown() {
-                // do nothing
+                hasShutdown = true;
             }
 
             @Override
@@ -104,7 +109,7 @@ public class LspServerRunner {
 
         onClose();
 
-        if (server.getState() == LspServer.STATE_EXITED)
+        if (hasShutdown)
             System.exit(EXIT_CODE_NORMAL);
         else
             System.exit(EXIT_CODE_ERROR);

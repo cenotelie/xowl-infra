@@ -129,8 +129,10 @@ public class LspServer extends LspEndpointLocalBase {
         if (!state.compareAndSet(STATE_CREATED, STATE_INITIALIZING))
             return ReplyFailure.instance();
         Reply reply = doInitialize();
-        if (!reply.isSuccess())
+        if (!reply.isSuccess()) {
+            state.compareAndSet(STATE_INITIALIZING, STATE_CREATED);
             return reply;
+        }
         state.compareAndSet(STATE_INITIALIZING, STATE_READY);
         for (LspServerListener listener : listeners)
             listener.onInitialize();
@@ -155,8 +157,10 @@ public class LspServer extends LspEndpointLocalBase {
         if (!state.compareAndSet(STATE_READY, STATE_SHUTTING_DOWN))
             return ReplyFailure.instance();
         Reply reply = doShutdown();
-        if (!reply.isSuccess())
+        if (!reply.isSuccess()) {
+            state.compareAndSet(STATE_SHUTTING_DOWN, STATE_READY);
             return reply;
+        }
         state.compareAndSet(STATE_SHUTTING_DOWN, STATE_SHUT_DOWN);
         for (LspServerListener listener : listeners)
             listener.onShutdown();
@@ -178,12 +182,9 @@ public class LspServer extends LspEndpointLocalBase {
      * @return The reply
      */
     protected Reply exit() {
-        if (!state.compareAndSet(STATE_SHUT_DOWN, STATE_EXITING))
-            return ReplyFailure.instance();
+        state.set(STATE_EXITING);
         Reply reply = doExit();
-        if (!reply.isSuccess())
-            return reply;
-        state.compareAndSet(STATE_EXITING, STATE_EXITED);
+        state.set(STATE_EXITED);
         for (LspServerListener listener : listeners)
             listener.onExit();
         return reply;

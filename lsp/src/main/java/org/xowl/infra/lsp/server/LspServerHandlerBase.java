@@ -59,6 +59,8 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
         if (state < LspServer.STATE_READY) {
             if ("initialize".equals(request.getMethod()))
                 return onInitialize(request);
+            if ("exit".equals(request.getMethod()))
+                return onExit(request);
             if (request.isNotification())
                 return null;
             return new JsonRpcResponseError(
