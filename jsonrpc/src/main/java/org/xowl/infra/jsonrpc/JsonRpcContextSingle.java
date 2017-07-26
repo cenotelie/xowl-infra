@@ -17,32 +17,38 @@
 
 package org.xowl.infra.jsonrpc;
 
-import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplyResult;
-
 /**
- * Implements a Json-Rpc client for testing purposes
+ * Implements a context for a single request
  *
  * @author Laurent Wouters
  */
-public class TestClient extends JsonRpcClientBase {
+public class JsonRpcContextSingle implements JsonRpcContext {
     /**
-     * The server
+     * The method for the context
      */
-    private final JsonRpcServer server;
+    private final String method;
 
     /**
-     * Initializes this client
+     * Initializes this context
      *
-     * @param server The server
+     * @param method The method for the context
      */
-    public TestClient(JsonRpcServer server) {
-        super();
-        this.server = server;
+    public JsonRpcContextSingle(String method) {
+        this.method = method;
     }
 
     @Override
-    public Reply send(String message, JsonRpcContext context) {
-        return new ReplyResult<>(server.handle(message));
+    public boolean isBatch() {
+        return false;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return method == null;
+    }
+
+    @Override
+    public String getMethodFor(String requestId) {
+        return method;
     }
 }
