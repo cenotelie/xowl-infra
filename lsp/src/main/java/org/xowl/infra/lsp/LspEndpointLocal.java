@@ -25,7 +25,7 @@ import org.xowl.infra.utils.json.JsonDeserializer;
  *
  * @author Laurent Wouters
  */
-public interface LspEndpointLocal extends JsonRpcClient {
+public interface LspEndpointLocal extends JsonRpcClient, AutoCloseable {
     /**
      * Gets the handler for the requests coming to this endpoint
      *

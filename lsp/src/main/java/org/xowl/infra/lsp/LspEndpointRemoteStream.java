@@ -17,14 +17,27 @@
 
 package org.xowl.infra.lsp;
 
+import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.jsonrpc.JsonRpcClientBase;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyException;
+import org.xowl.infra.utils.api.ReplyFailure;
+import org.xowl.infra.utils.api.ReplyResult;
+import org.xowl.infra.utils.concurrent.SafeRunnable;
+import org.xowl.infra.utils.json.Json;
+import org.xowl.infra.utils.json.JsonParser;
+import org.xowl.infra.utils.logging.BufferedLogger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Implements a remote LSP endpoint that uses streams to communicate
@@ -32,6 +45,23 @@ import java.io.OutputStream;
  * @author Laurent Wouters
  */
 public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEndpointRemote {
+    /**
+     * Timeout (in ms) for waiting
+     */
+    private static final int TIMEOUT = 500;
+    /**
+     * The counter of threads
+     */
+    private static final AtomicInteger COUNTER = new AtomicInteger(0);
+    /**
+     * The bytes for the first header to read
+     */
+    private static final byte[] HEADER_LENGTH = LspUtils.HEADER_CONTENT_LENGTH.getBytes(IOUtils.UTF8);
+    /**
+     * The header-ending sequence to detect (\r\n\r\n)
+     */
+    private static final int[] HEADER_ENDING = new int[]{0x0D, 0x0A, 0x0D, 0x0A};
+
     /**
      * The local endpoint
      */
@@ -44,6 +74,26 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
      * The input stream to read messages from the real remote endpoint
      */
     private final InputStream input;
+    /**
+     * Listening thread
+     */
+    private final Thread thread;
+    /**
+     * Whether the listening thread must exit
+     */
+    private final AtomicBoolean mustExit;
+    /**
+     * The response waiting to be consumed
+     */
+    private final AtomicReference<String> response;
+    /**
+     * The barrier to use for waiting for a response
+     */
+    private final CyclicBarrier responseBarrier;
+    /**
+     * Whether a thread is waiting for a response
+     */
+    private final AtomicBoolean waitingResponses;
 
     /**
      * Initializes this remote endpoint
@@ -57,22 +107,315 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
         this.local = local;
         this.input = input;
         this.output = output;
+        this.thread = new Thread(new SafeRunnable() {
+            @Override
+            public void doRun() {
+                threadListen();
+            }
+        }, LspEndpointRemoteStream.class.getCanonicalName() + ".Thread." + COUNTER.getAndIncrement());
+        this.mustExit = new AtomicBoolean(false);
+        this.thread.start();
+        this.response = new AtomicReference<>(null);
+        this.responseBarrier = new CyclicBarrier(2);
+        this.waitingResponses = new AtomicBoolean(false);
     }
 
     @Override
-    public Reply send(String message) {
-        byte[] bytes = message.getBytes(IOUtils.UTF8);
+    public synchronized Reply send(String message) {
+        if (!waitingResponses.compareAndSet(false, true))
+            return new ReplyFailure("Bad state");
         try {
-            output.write(bytes);
+            writeToOutput(message);
         } catch (IOException exception) {
+            Logging.get().error(exception);
+            waitingResponses.set(false);
             return new ReplyException(exception);
         }
+        try {
+            responseBarrier.await();
+        } catch (Exception exception) {
+            return new ReplyException(exception);
+        }
+        String content = response.getAndSet(null);
+        waitingResponses.set(false);
+        return new ReplyResult<>(content);
+    }
 
-        return null;
+    /**
+     * Writes a payload to the output stream
+     *
+     * @param payload The payload to write
+     * @throws IOException When writing failed
+     */
+    private synchronized void writeToOutput(String payload) throws IOException {
+        byte[] bytes = payload.getBytes(IOUtils.UTF8);
+        output.write(bytes);
     }
 
     @Override
     public void close() throws Exception {
+        if (mustExit.compareAndSet(false, true)) {
+            if (thread.isAlive()) {
+                thread.interrupt();
+                input.close();
+                try {
+                    thread.join(TIMEOUT);
+                } catch (InterruptedException exception) {
+                    Logging.get().error(exception);
+                }
+            }
+        }
+    }
 
+    /**
+     * Main method for the listening thread
+     */
+    private void threadListen() {
+        while (!mustExit.get() && !thread.isInterrupted()) {
+            try {
+                int length = threadReadHeaderLength();
+                if (length < 0)
+                    return;
+                if (threadSkipUntilPayload() < 0)
+                    return;
+                byte[] payload = threadReadPayload(length);
+                if (payload == null)
+                    return;
+                String content = new String(payload, IOUtils.UTF8);
+                threadHandlePayload(content);
+            } catch (Exception exception) {
+                // stream has been closed
+                return;
+            }
+        }
+    }
+
+    /**
+     * Reads the content-length header from the input stream
+     *
+     * @return The length of the payload, or -1 if the thread must exit
+     * @throws IOException When reading the stream fails
+     */
+    private int threadReadHeaderLength() throws IOException {
+        int index = 0;
+        while (index < HEADER_LENGTH.length) {
+            // expect to read the input at the current index
+            if (mustExit.get() && thread.isInterrupted())
+                return -1;
+            int value = input.read();
+            if (value < 0)
+                return -1;
+            if (value == (HEADER_LENGTH[index] & 0xFF))
+                index++;
+            else
+                // garbage on the stream
+                index = 0;
+        }
+
+        // we read the header name
+        // read the colon
+        int value = input.read();
+        if (mustExit.get() && thread.isInterrupted() || value < 0 || value != 0x3A)
+            // not the colon => exit
+            return -1;
+
+        // read the length
+        while (true) {
+            value = input.read();
+            if (mustExit.get() && thread.isInterrupted() || value < 0)
+                return -1;
+            if (value >= 0x30 && value <= 0x39)
+                // a digit
+                break;
+            if (value != 0x20)
+                // not a space => error, exit
+                return -1;
+        }
+        int length = value - 0x30;
+        while (true) {
+            value = input.read();
+            if (mustExit.get() && thread.isInterrupted() || value < 0)
+                return -1;
+            if (value >= 0x30 && value <= 0x39) {
+                length = length * 10 + (value - 0x30);
+                continue;
+            }
+            if (value != 0x0D)
+                // not the '\r'
+                return -1;
+            break;
+        }
+        value = input.read();
+        if (mustExit.get() && thread.isInterrupted() || value != 0x0A)
+            // not the '\n'
+            return -1;
+        return length;
+    }
+
+    /**
+     * Skip all content until the header ending sequence is detected
+     *
+     * @return The result
+     * @throws IOException When reading the stream fails
+     */
+    private int threadSkipUntilPayload() throws IOException {
+        int index = 0;
+        while (index < HEADER_ENDING.length) {
+            // expect to read the input at the current index
+            if (mustExit.get() && thread.isInterrupted())
+                return -1;
+            int value = input.read();
+            if (value < 0)
+                return -1;
+            if (value == (HEADER_ENDING[index] & 0xFF))
+                index++;
+            else
+                index = 0;
+        }
+        return 0;
+    }
+
+    /**
+     * Reads a payload from the input
+     *
+     * @param length The length of the payload
+     * @return The payload, or null if reading fails
+     * @throws IOException When reading the stream fails
+     */
+    private byte[] threadReadPayload(int length) throws IOException {
+        byte[] payload = new byte[length];
+        int index = 0;
+        while (index < length) {
+            int read = input.read(payload, index, length - index);
+            if (mustExit.get() && thread.isInterrupted() || read < 0)
+                return null;
+            index += read;
+        }
+        return payload;
+    }
+
+    /**
+     * Handles the specified input payload
+     *
+     * @param payload An input payload
+     * @return The result
+     * @throws Exception When an error occurs
+     */
+    private int threadHandlePayload(String payload) throws Exception {
+        BufferedLogger logger = new BufferedLogger();
+        ASTNode definition = Json.parse(logger, payload);
+        if (definition == null || !logger.getErrorMessages().isEmpty())
+            // failed to parse the payload
+            return threadTransmitUnknown(payload);
+        // determine whether this is a request or a response
+        int decision = threadInspectPayload(definition);
+        if (decision < 0)
+            return threadTransmitRequest(payload);
+        if (decision > 0)
+            return threadTransmitResponse(payload);
+        return threadTransmitUnknown(payload);
+    }
+
+    /**
+     * Inspects the specified payload to distinguish between a request and a response
+     *
+     * @param definition the payload definition
+     * @return 0 for no decision, -1 for requests, 1 for responses
+     */
+    private int threadInspectPayload(ASTNode definition) {
+        if (definition.getSymbol().getID() == JsonParser.ID.object) {
+            return threadInspectPayloadObject(definition);
+        } else if (definition.getSymbol().getID() == JsonParser.ID.array) {
+            return threadInspectPayloadArray(definition);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * Inspects the specified payload to distinguish between a request and a response
+     *
+     * @param definition the payload definition
+     * @return 0 for no decision, -1 for requests, 1 for responses
+     */
+    private int threadInspectPayloadObject(ASTNode definition) {
+        for (ASTNode child : definition.getChildren()) {
+            ASTNode nodeMemberName = child.getChildren().get(0);
+            String name = TextUtils.unescape(nodeMemberName.getValue());
+            name = name.substring(1, name.length() - 1);
+            switch (name) {
+                case "method":
+                case "params":
+                    return -1;
+                case "result":
+                case "error":
+                    return 1;
+
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Inspects the specified payload to distinguish between a request and a response
+     *
+     * @param definition the payload definition
+     * @return 0 for no decision, -1 for requests, 1 for responses
+     */
+    private int threadInspectPayloadArray(ASTNode definition) {
+        for (ASTNode node : definition.getChildren()) {
+            if (node.getSymbol().getID() == JsonParser.ID.object) {
+                int decision = threadInspectPayloadObject(node);
+                if (decision != 0)
+                    return decision;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Transmits an incoming message when the message could not be distinguished between a response and a request
+     *
+     * @param payload The payload to transmit
+     * @return The result
+     * @throws Exception When an error occurs
+     */
+    private int threadTransmitUnknown(String payload) throws Exception {
+        if (responseBarrier.getParties() == 1)
+            // a response is expected => maybe this is supposed to be the response
+            return threadTransmitResponse(payload);
+        else
+            // this is supposed to be a request
+            return threadTransmitRequest(payload);
+    }
+
+    /**
+     * Transmits a response to a waiting thread
+     *
+     * @param payload The payload to transmit
+     * @return The result
+     * @throws Exception When an error occurs
+     */
+    private int threadTransmitResponse(String payload) throws Exception {
+        if (responseBarrier.getParties() != 1)
+            // no waiting thread
+            throw new Exception("Invalid state");
+        if (!response.compareAndSet(null, payload))
+            throw new Exception("Invalid state");
+        responseBarrier.await();
+        return 0;
+    }
+
+    /**
+     * Transmits a request to the local endpoint
+     *
+     * @param payload The request to transmit
+     * @return The result
+     * @throws Exception When an error occurs
+     */
+    private int threadTransmitRequest(String payload) throws Exception {
+        String reply = local.getHandler().handle(LspUtils.envelop(payload));
+        writeToOutput(reply);
+        return 0;
     }
 }

@@ -82,6 +82,15 @@ public abstract class LspEndpointLocalBase extends JsonRpcClientBase implements 
     }
 
     @Override
+    public void close() throws Exception {
+        LspEndpointRemote temp = remote;
+        remote = null;
+        if (temp != null) {
+            temp.close();
+        }
+    }
+
+    @Override
     public LspHandler getHandler() {
         return handler;
     }

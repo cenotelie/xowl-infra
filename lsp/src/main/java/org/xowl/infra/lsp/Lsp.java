@@ -22,6 +22,9 @@ import org.xowl.infra.lsp.client.LspClientResponseDeserializer;
 import org.xowl.infra.lsp.server.LspServer;
 import org.xowl.infra.lsp.server.LspServerResponseDeserializer;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+
 /**
  * Front APi for the LSP protocol
  *
@@ -39,5 +42,29 @@ public class Lsp {
         LspEndpointRemoteProxy proxyForServer = new LspEndpointRemoteProxy(client, new LspServerResponseDeserializer());
         client.setRemote(proxyForClient);
         server.setRemote(proxyForServer);
+    }
+
+    /**
+     * Serves the specified local server through the specified streams
+     *
+     * @param server The local server to make accessible through streams
+     * @param output The output stream for sending messages to the real remote endpoint
+     * @param input  The input stream to read messages from the real remote endpoint
+     * @return The created remote endpoint
+     */
+    public static LspEndpointRemote serveByStreams(LspServer server, OutputStream output, InputStream input) {
+        LspEndpointRemoteStream remote = new LspEndpointRemoteStream(server, output, input);
+        server.setRemote(remote);
+        return remote;
+    }
+
+    /**
+     * Serves the specified local server through the standard input and output streams
+     *
+     * @param server The local server to make accessible through streams
+     * @return The created remote endpoint
+     */
+    public static LspEndpointRemote serveByStdStreams(LspServer server) {
+        return serveByStreams(server, System.out, System.in);
     }
 }
