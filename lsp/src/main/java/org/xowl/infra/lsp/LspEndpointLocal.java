@@ -18,6 +18,7 @@
 package org.xowl.infra.lsp;
 
 import org.xowl.infra.jsonrpc.JsonRpcClient;
+import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
  * Represents an LSP endpoint that is local to the current Java process
@@ -31,4 +32,11 @@ public interface LspEndpointLocal extends JsonRpcClient {
      * @return The handler for the requests coming to this endpoint
      */
     LspHandler getHandler();
+
+    /**
+     * Gets the deserializer used for responses
+     *
+     * @return The deserialize used for responses
+     */
+    JsonDeserializer getResponsesDeserializer();
 }

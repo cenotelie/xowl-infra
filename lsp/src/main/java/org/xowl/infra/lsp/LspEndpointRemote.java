@@ -24,5 +24,5 @@ import org.xowl.infra.jsonrpc.JsonRpcClient;
  *
  * @author Laurent Wouters
  */
-public interface LspEndpointRemote extends JsonRpcClient {
+public interface LspEndpointRemote extends JsonRpcClient, AutoCloseable {
 }

@@ -87,6 +87,11 @@ public abstract class LspEndpointLocalBase extends JsonRpcClientBase implements 
     }
 
     @Override
+    public JsonDeserializer getResponsesDeserializer() {
+        return deserializer;
+    }
+
+    @Override
     public Reply send(String message) {
         return remote.send(message);
     }

@@ -18,12 +18,9 @@
 package org.xowl.infra.lsp;
 
 import org.xowl.infra.jsonrpc.JsonRpcClientBase;
-import org.xowl.infra.jsonrpc.JsonRpcRequest;
-import org.xowl.infra.jsonrpc.JsonRpcResponse;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyException;
-import org.xowl.infra.utils.json.JsonDeserializer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,41 +33,28 @@ import java.io.OutputStream;
  */
 public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEndpointRemote {
     /**
-     * The input handler for the remote endpoint
+     * The local endpoint
      */
-    private class InputListener extends LspHandlerBase {
-        /**
-         * Initializes this server
-         *
-         * @param deserializer The de-serializer to use for requests
-         */
-        public InputListener(JsonDeserializer deserializer) {
-            super(deserializer);
-        }
-
-        @Override
-        public JsonRpcResponse handle(JsonRpcRequest request) {
-            return null;
-        }
-    }
-
+    private final LspEndpointLocal local;
     /**
-     * The output stream for sending messages to the remote endpoint
+     * The output stream for sending messages to the real remote endpoint
      */
     private final OutputStream output;
     /**
-     * The input stream to read messages from the remote endpoint
+     * The input stream to read messages from the real remote endpoint
      */
     private final InputStream input;
 
     /**
-     * Initializes this endpoint
+     * Initializes this remote endpoint
      *
-     * @param listener     The handler for requests coming from the remote endpoint
-     * @param deserializer The de-serializer to use
+     * @param local  the local endpoint
+     * @param output The output stream for sending messages to the real remote endpoint
+     * @param input  The input stream to read messages from the real remote endpoint
      */
-    public LspEndpointRemoteStream(LspHandler listener, JsonDeserializer deserializer, OutputStream output, InputStream input) {
-        super(listener, deserializer);
+    public LspEndpointRemoteStream(LspEndpointLocal local, OutputStream output, InputStream input) {
+        super(local.getResponsesDeserializer());
+        this.local = local;
         this.input = input;
         this.output = output;
     }
@@ -85,5 +69,10 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
         }
 
         return null;
+    }
+
+    @Override
+    public void close() throws Exception {
+
     }
 }

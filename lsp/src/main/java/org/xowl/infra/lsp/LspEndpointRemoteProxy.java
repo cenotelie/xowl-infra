@@ -81,4 +81,9 @@ public class LspEndpointRemoteProxy extends JsonRpcClientBase implements LspEndp
         String content = handler.handle(LspUtils.envelop(message));
         return deserializeResponses(LspUtils.stripEnvelope(content), context);
     }
+
+    @Override
+    public void close() throws Exception {
+        // do nothing
+    }
 }

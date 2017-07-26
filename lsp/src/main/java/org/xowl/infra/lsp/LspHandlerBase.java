@@ -45,6 +45,11 @@ public abstract class LspHandlerBase extends JsonRpcServerBase implements LspHan
     }
 
     @Override
+    public JsonDeserializer getRequestsDeserializer() {
+        return deserializer;
+    }
+
+    @Override
     public String handle(String input) {
         String content = LspUtils.stripEnvelope(input);
         if (content == null)

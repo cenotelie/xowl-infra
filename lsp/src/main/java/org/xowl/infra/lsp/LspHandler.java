@@ -18,6 +18,7 @@
 package org.xowl.infra.lsp;
 
 import org.xowl.infra.jsonrpc.JsonRpcServer;
+import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
  * Represents a handler of LSP requests
@@ -25,4 +26,10 @@ import org.xowl.infra.jsonrpc.JsonRpcServer;
  * @author Laurent Wouters
  */
 public interface LspHandler extends JsonRpcServer {
+    /**
+     * Gets the deserializer used for requests
+     *
+     * @return The deserializer used for requests
+     */
+    JsonDeserializer getRequestsDeserializer();
 }
