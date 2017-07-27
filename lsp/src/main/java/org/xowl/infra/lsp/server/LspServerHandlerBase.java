@@ -23,7 +23,7 @@ import org.xowl.infra.jsonrpc.JsonRpcResponseError;
 import org.xowl.infra.jsonrpc.JsonRpcResponseResult;
 import org.xowl.infra.lsp.LspHandlerBase;
 import org.xowl.infra.lsp.LspUtils;
-import org.xowl.infra.lsp.structures.ClientCapabilities;
+import org.xowl.infra.lsp.structures.InitializeParams;
 import org.xowl.infra.utils.api.Reply;
 
 /**
@@ -176,8 +176,7 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onInitialize(JsonRpcRequest request) {
-        server.clientCapabilities = (ClientCapabilities) request.getParams();
-        Reply reply = server.initialize();
+        Reply reply = server.initialize((InitializeParams) request.getParams());
         if (!reply.isSuccess())
             return JsonRpcResponseError.newInternalError(request.getIdentifier());
         return new JsonRpcResponseResult<>(request.getIdentifier(), server.serverCapabilities);

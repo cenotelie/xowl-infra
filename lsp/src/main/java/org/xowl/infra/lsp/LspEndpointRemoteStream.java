@@ -109,6 +109,12 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
             @Override
             public void doRun() {
                 threadListen();
+                onListenerEnded();
+            }
+
+            @Override
+            protected void onRunFailed(Throwable throwable) {
+                onListenerEnded();
             }
         }, LspEndpointRemoteStream.class.getCanonicalName() + ".Thread." + COUNTER.getAndIncrement());
         this.mustExit = new AtomicBoolean(false);
@@ -192,6 +198,13 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
                 }
             }
         }
+    }
+
+    /**
+     * Event when the listening thread ended
+     */
+    protected void onListenerEnded() {
+        // do nothing
     }
 
     /**
@@ -286,7 +299,7 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
      * @throws IOException When reading the stream fails
      */
     private int threadSkipUntilPayload() throws IOException {
-        int index = 0;
+        int index = 2;
         while (index < HEADER_ENDING.length) {
             // expect to read the input at the current index
             if (mustExit.get() && thread.isInterrupted())
@@ -442,6 +455,8 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
      */
     private int threadTransmitRequest(String payload) throws Exception {
         String reply = local.getHandler().handle(LspUtils.envelop(payload));
+        if (reply == null)
+            return 0;
         writeToOutput(reply);
         return 0;
     }

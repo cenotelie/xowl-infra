@@ -84,8 +84,6 @@ public abstract class LspRunner {
 
             @Override
             public void onExit() {
-                shouldStop = true;
-                signal.countDown();
                 close();
             }
         });
@@ -93,8 +91,6 @@ public abstract class LspRunner {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
-                shouldStop = true;
-                signal.countDown();
                 close();
             }
         }, LspRunnerStdStreams.class.getCanonicalName() + ".shutdown"));
@@ -122,9 +118,11 @@ public abstract class LspRunner {
     }
 
     /**
-     * When this application is closing
+     * Closes this runner
      */
-    private synchronized void close() {
+    protected void close() {
+        shouldStop = true;
+        signal.countDown();
         try {
             server.close();
         } catch (Exception exception) {

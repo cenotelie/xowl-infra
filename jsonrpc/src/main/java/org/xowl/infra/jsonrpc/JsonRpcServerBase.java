@@ -85,7 +85,7 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
         if (object instanceof JsonRpcRequest) {
             JsonRpcResponse response = handle((JsonRpcRequest) object);
             if (response == null)
-                return "";
+                return null;
             return response.serializedJSON();
         } else {
             List<JsonRpcRequest> requests = ((List<JsonRpcRequest>) object);
@@ -93,7 +93,7 @@ public abstract class JsonRpcServerBase implements JsonRpcServer {
                 return JsonRpcResponseError.newInvalidRequest(null).serializedJSON();
             List<JsonRpcResponse> responses = handle(requests);
             if (responses.isEmpty())
-                return "";
+                return null;
             return Json.serialize(responses);
         }
     }

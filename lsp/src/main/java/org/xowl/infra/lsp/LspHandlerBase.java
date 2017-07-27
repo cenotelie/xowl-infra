@@ -58,7 +58,10 @@ public abstract class LspHandlerBase extends JsonRpcServerBase implements LspHan
         ASTNode definition = Json.parse(logger, content);
         if (definition == null || !logger.getErrorMessages().isEmpty())
             return LspUtils.envelop(JsonRpcResponseError.newParseError(null).serializedJSON());
-        return LspUtils.envelop(handle(definition));
+        String response = handle(definition);
+        if (response == null)
+            return null;
+        return LspUtils.envelop(response);
     }
 
     @Override

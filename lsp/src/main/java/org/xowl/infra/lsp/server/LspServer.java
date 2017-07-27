@@ -18,7 +18,7 @@
 package org.xowl.infra.lsp.server;
 
 import org.xowl.infra.lsp.LspEndpointLocalBase;
-import org.xowl.infra.lsp.structures.ClientCapabilities;
+import org.xowl.infra.lsp.structures.InitializeParams;
 import org.xowl.infra.lsp.structures.ServerCapabilities;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyFailure;
@@ -76,9 +76,9 @@ public class LspServer extends LspEndpointLocalBase {
      */
     protected final ServerCapabilities serverCapabilities;
     /**
-     * The capabilities of the connected client, if any
+     * The initialization parameters received from the client
      */
-    protected ClientCapabilities clientCapabilities;
+    protected InitializeParams clientInitializationParameters;
 
     /**
      * Initializes this endpoint
@@ -117,17 +117,19 @@ public class LspServer extends LspEndpointLocalBase {
      * @param listener A listener
      */
     public void unregisterListener(LspServerListener listener) {
-
+        listeners.remove(listener);
     }
 
     /**
      * Performs the server's initialization
      *
+     * @param params The initialization parameters
      * @return The reply
      */
-    protected Reply initialize() {
+    protected Reply initialize(InitializeParams params) {
         if (!state.compareAndSet(STATE_CREATED, STATE_INITIALIZING))
             return ReplyFailure.instance();
+        clientInitializationParameters = params;
         Reply reply = doInitialize();
         if (!reply.isSuccess()) {
             state.compareAndSet(STATE_INITIALIZING, STATE_CREATED);

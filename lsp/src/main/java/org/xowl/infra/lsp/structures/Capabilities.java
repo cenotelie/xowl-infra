@@ -78,12 +78,15 @@ public class Capabilities implements Serializable {
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
+            String fullName = prefix + name;
             if (nodeValue.getSymbol().getID() == JsonParser.ID.object) {
-                loadCapabilities(prefix + "." + name, child, deserializer);
+                loadCapabilities(fullName + ".", nodeValue, deserializer);
             } else if (nodeValue.getSymbol().getID() == JsonLexer.ID.LITERAL_TRUE) {
-                this.capabilities.add(prefix + "." + name);
+                this.capabilities.add(fullName);
+            } else if (nodeValue.getSymbol().getID() == JsonLexer.ID.LITERAL_FALSE) {
+                // do not add the capability
             } else {
-                this.options.put(prefix + "." + name, deserializer.deserialize(nodeValue, null));
+                this.options.put(fullName, deserializer.deserialize(nodeValue, null));
             }
         }
     }
