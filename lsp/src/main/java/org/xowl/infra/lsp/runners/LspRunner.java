@@ -15,51 +15,52 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.server;
+package org.xowl.infra.lsp.runners;
 
-import org.xowl.infra.lsp.Lsp;
+import org.xowl.infra.lsp.server.LspServer;
+import org.xowl.infra.lsp.server.LspServerListener;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Implements an object for running a LSP server of the current Java process
+ * An object that runs an LSP server for the current Java process
  *
  * @author Laurent Wouters
  */
-public class LspServerRunner {
+public abstract class LspRunner {
     /**
      * Exit code on a nominal shutdown
      */
-    private static final int EXIT_CODE_NORMAL = 0;
+    protected static final int EXIT_CODE_NORMAL = 0;
     /**
      * Exit code when an improper shutdown
      */
-    private static final int EXIT_CODE_ERROR = 1;
+    protected static final int EXIT_CODE_ERROR = 1;
 
     /**
      * The LSP server to run
      */
-    private final LspServer server;
+    protected final LspServer server;
     /**
      * The signalling object for the main thread
      */
-    private final CountDownLatch signal;
+    protected final CountDownLatch signal;
     /**
      * Whether the server should stop
      */
-    private volatile boolean shouldStop;
+    protected volatile boolean shouldStop;
     /**
      * Whether the server has shutdown properly
      */
-    private volatile boolean hasShutdown;
+    protected volatile boolean hasShutdown;
 
     /**
      * Initializes this runner
      *
      * @param server The LSP server to run
      */
-    public LspServerRunner(LspServer server) {
+    public LspRunner(LspServer server) {
         this.server = server;
         this.signal = new CountDownLatch(1);
         this.shouldStop = false;
@@ -67,7 +68,7 @@ public class LspServerRunner {
     }
 
     /**
-     * Runs this program
+     * Executes this runner
      */
     public void run() {
         server.registerListener(new LspServerListener() {
@@ -85,7 +86,7 @@ public class LspServerRunner {
             public void onExit() {
                 shouldStop = true;
                 signal.countDown();
-                onClose();
+                close();
             }
         });
         // register hook for shutdown events
@@ -94,20 +95,12 @@ public class LspServerRunner {
             public void run() {
                 shouldStop = true;
                 signal.countDown();
-                onClose();
+                close();
             }
-        }, LspServerRunner.class.getCanonicalName() + ".shutdown"));
-        Lsp.serveByStdStreams(server);
+        }, LspRunnerStdStreams.class.getCanonicalName() + ".shutdown"));
 
-        while (!shouldStop) {
-            try {
-                signal.await();
-            } catch (InterruptedException exception) {
-                break;
-            }
-        }
-
-        onClose();
+        doRun();
+        close();
 
         if (hasShutdown)
             System.exit(EXIT_CODE_NORMAL);
@@ -116,13 +109,27 @@ public class LspServerRunner {
     }
 
     /**
+     * Effectively runs the server
+     * When this method returns, the server closes and exits
+     */
+    protected abstract void doRun();
+
+    /**
+     * When the runner is closing
+     */
+    protected void onClose() {
+        // do nothing
+    }
+
+    /**
      * When this application is closing
      */
-    private synchronized void onClose() {
+    private synchronized void close() {
         try {
             server.close();
         } catch (Exception exception) {
             Logging.get().error(exception);
         }
+        onClose();
     }
 }
