@@ -19,37 +19,37 @@ package org.xowl.infra.lsp.structures;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.utils.json.JsonLexer;
 
 /**
- * Registration options for the text changed events
+ * Registration options for the text save events
  *
  * @author Laurent Wouters
  */
-public class TextDocumentChangeRegistrationOptions extends TextDocumentRegistrationOptions {
+public class TextDocumentSaveRegistrationOptions extends TextDocumentRegistrationOptions {
     /**
-     * How documents are synced to the server.
-     * See TextDocumentSyncKind.Full and TextDocumentSyncKindIncremental
+     * The client is supposed to include the content on save
      */
-    private final int syncKind;
+    private final boolean includeText;
 
     /**
-     * Gets how documents are synced to the server
+     * Gets whether the client is supposed to include the content on save
      *
-     * @return How documents are synced to the server
+     * @return Whether the client is supposed to include the content on save
      */
-    public int getSyncKind() {
-        return syncKind;
+    public boolean getIncludeText() {
+        return includeText;
     }
 
     /**
      * Initializes this structure
      *
      * @param documentSelector A document selector to identify the scope of the registration
-     * @param syncKind         How documents are synced to the server
+     * @param includeText      The client is supposed to include the content on save
      */
-    public TextDocumentChangeRegistrationOptions(DocumentSelector documentSelector, int syncKind) {
+    public TextDocumentSaveRegistrationOptions(DocumentSelector documentSelector, boolean includeText) {
         super(documentSelector);
-        this.syncKind = syncKind;
+        this.includeText = includeText;
     }
 
     /**
@@ -57,22 +57,23 @@ public class TextDocumentChangeRegistrationOptions extends TextDocumentRegistrat
      *
      * @param definition The serialized definition
      */
-    public TextDocumentChangeRegistrationOptions(ASTNode definition) {
+    public TextDocumentSaveRegistrationOptions(ASTNode definition) {
         super(definition);
-        int syncKind = TextDocumentSyncKind.FULL;
+        boolean includeText = false;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "syncKind": {
-                    syncKind = Integer.parseInt(nodeValue.getValue());
+                case "includeText": {
+                    if (nodeValue.getSymbol().getID() == JsonLexer.ID.LITERAL_TRUE)
+                        includeText = true;
                     break;
                 }
             }
         }
-        this.syncKind = syncKind;
+        this.includeText = includeText;
     }
 
     @Override
@@ -83,9 +84,10 @@ public class TextDocumentChangeRegistrationOptions extends TextDocumentRegistrat
             builder.append("null");
         else
             builder.append(documentSelector.serializedJSON());
-        builder.append(", \"syncKind\": ");
-        builder.append(Integer.toString(syncKind));
+        builder.append(", \"includeText\": ");
+        builder.append(Boolean.toString(includeText));
         builder.append("}");
         return builder.toString();
     }
 }
+

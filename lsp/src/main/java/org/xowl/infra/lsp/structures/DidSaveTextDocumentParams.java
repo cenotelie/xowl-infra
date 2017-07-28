@@ -22,48 +22,48 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Parameters for the notification of a content change on a document
+ * Parameters for the notification of a document that has been saved on the client
  *
  * @author Laurent Wouters
  */
-public class DidChangeTextDocumentParams implements Serializable {
+public class DidSaveTextDocumentParams implements Serializable {
     /**
-     * The document that did change.
-     * The version number points to the version after all provided content changes have been applied.
+     * The document that was saved
      */
-    private final VersionedTextDocumentIdentifier textDocument;
+    private final TextDocumentIdentifier textDocument;
     /**
-     * The actual content changes.
+     * Optional the content when saved.
+     * Depends on the includeText value when the save notification was requested.
      */
-    private final TextDocumentContentChangeEvent[] contentChanges;
+    private final String text;
 
     /**
-     * Gets the document that did change
+     * Gets the document that was saved
      *
-     * @return The document that did change
+     * @return The document that was saved
      */
-    public VersionedTextDocumentIdentifier getTextDocument() {
+    public TextDocumentIdentifier getTextDocument() {
         return textDocument;
     }
 
     /**
-     * Gets the actual changes
+     * Gets the content when saved
      *
-     * @return The actual changes
+     * @return The content when saved
      */
-    public TextDocumentContentChangeEvent[] getContentChanges() {
-        return contentChanges;
+    public String getText() {
+        return text;
     }
 
     /**
      * Initializes this structure
      *
-     * @param textDocument   The document that did change
-     * @param contentChanges The actual content changes
+     * @param textDocument The document that was saved
+     * @param text         The content when saved
      */
-    public DidChangeTextDocumentParams(VersionedTextDocumentIdentifier textDocument, TextDocumentContentChangeEvent[] contentChanges) {
+    public DidSaveTextDocumentParams(TextDocumentIdentifier textDocument, String text) {
         this.textDocument = textDocument;
-        this.contentChanges = contentChanges;
+        this.text = text;
     }
 
     /**
@@ -71,9 +71,9 @@ public class DidChangeTextDocumentParams implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public DidChangeTextDocumentParams(ASTNode definition) {
-        VersionedTextDocumentIdentifier textDocument = null;
-        TextDocumentContentChangeEvent[] contentChanges = null;
+    public DidSaveTextDocumentParams(ASTNode definition) {
+        TextDocumentIdentifier textDocument = null;
+        String text = null;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
@@ -81,20 +81,18 @@ public class DidChangeTextDocumentParams implements Serializable {
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
                 case "textDocument": {
-                    textDocument = new VersionedTextDocumentIdentifier(nodeValue);
+                    textDocument = new TextDocumentIdentifier(nodeValue);
                     break;
                 }
-                case "contentChanges": {
-                    contentChanges = new TextDocumentContentChangeEvent[nodeValue.getChildren().size()];
-                    int index = 0;
-                    for (ASTNode change : nodeValue.getChildren())
-                        contentChanges[index++] = new TextDocumentContentChangeEvent(change);
+                case "text": {
+                    text = TextUtils.unescape(nodeValue.getValue());
+                    text = text.substring(1, text.length() - 1);
                     break;
                 }
             }
         }
         this.textDocument = textDocument;
-        this.contentChanges = contentChanges;
+        this.text = text;
     }
 
     @Override
@@ -107,13 +105,12 @@ public class DidChangeTextDocumentParams implements Serializable {
         StringBuilder builder = new StringBuilder();
         builder.append("{\"textDocument\": ");
         builder.append(textDocument.serializedJSON());
-        builder.append(", \"contentChanges\": [");
-        for (int i = 0; i != contentChanges.length; i++) {
-            if (i != 0)
-                builder.append(", ");
-            builder.append(contentChanges[i].serializedJSON());
+        if (text != null) {
+            builder.append(", \"text\": \"");
+            builder.append(TextUtils.escapeStringJSON(text));
+            builder.append("\"");
         }
-        builder.append("]}");
+        builder.append("}");
         return builder.toString();
     }
 }

@@ -18,38 +18,36 @@
 package org.xowl.infra.lsp.structures;
 
 import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Registration options for the text changed events
+ * Parameters for the notification of a document that was closed on the client
  *
  * @author Laurent Wouters
  */
-public class TextDocumentChangeRegistrationOptions extends TextDocumentRegistrationOptions {
+public class DidCloseTextDocumentParams implements Serializable {
     /**
-     * How documents are synced to the server.
-     * See TextDocumentSyncKind.Full and TextDocumentSyncKindIncremental
+     * The document that was closed
      */
-    private final int syncKind;
+    private final TextDocumentIdentifier textDocument;
 
     /**
-     * Gets how documents are synced to the server
+     * Gets the document that was closed
      *
-     * @return How documents are synced to the server
+     * @return The document that was closed
      */
-    public int getSyncKind() {
-        return syncKind;
+    public TextDocumentIdentifier getTextDocument() {
+        return textDocument;
     }
 
     /**
      * Initializes this structure
      *
-     * @param documentSelector A document selector to identify the scope of the registration
-     * @param syncKind         How documents are synced to the server
+     * @param textDocument The document that was saved
      */
-    public TextDocumentChangeRegistrationOptions(DocumentSelector documentSelector, int syncKind) {
-        super(documentSelector);
-        this.syncKind = syncKind;
+    public DidCloseTextDocumentParams(TextDocumentIdentifier textDocument) {
+        this.textDocument = textDocument;
     }
 
     /**
@@ -57,35 +55,32 @@ public class TextDocumentChangeRegistrationOptions extends TextDocumentRegistrat
      *
      * @param definition The serialized definition
      */
-    public TextDocumentChangeRegistrationOptions(ASTNode definition) {
-        super(definition);
-        int syncKind = TextDocumentSyncKind.FULL;
+    public DidCloseTextDocumentParams(ASTNode definition) {
+        TextDocumentIdentifier textDocument = null;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "syncKind": {
-                    syncKind = Integer.parseInt(nodeValue.getValue());
+                case "textDocument": {
+                    textDocument = new TextDocumentIdentifier(nodeValue);
                     break;
                 }
             }
         }
-        this.syncKind = syncKind;
+        this.textDocument = textDocument;
+    }
+
+    @Override
+    public String serializedString() {
+        return serializedJSON();
     }
 
     @Override
     public String serializedJSON() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\"documentSelector\": ");
-        if (documentSelector == null)
-            builder.append("null");
-        else
-            builder.append(documentSelector.serializedJSON());
-        builder.append(", \"syncKind\": ");
-        builder.append(Integer.toString(syncKind));
-        builder.append("}");
-        return builder.toString();
+        return "{\"textDocument\": " +
+                textDocument.serializedJSON() +
+                "}";
     }
 }
