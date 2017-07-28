@@ -22,49 +22,47 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * A textual edit applicable to a text document.
+ * Parameter for the will save document notification
  *
  * @author Laurent Wouters
  */
-public class TextEdit implements Serializable {
+public class WillSaveTextDocumentParams implements Serializable {
     /**
-     * The range of the text document to be manipulated.
-     * To insert text into a document create a range where start === end.
+     * The document that will be saved
      */
-    private final Range range;
+    private final TextDocumentIdentifier textDocument;
+    /**
+     * The reason for saving
+     */
+    private final int reason;
 
     /**
-     * The string to be inserted. For delete operations use an empty string.
-     */
-    private final String newText;
-
-    /**
-     * Gets the range of the text document to be manipulated.
+     * Gets the document that will be saved
      *
-     * @return The range of the text document to be manipulated.
+     * @return The document that will be saved
      */
-    public Range getRange() {
-        return range;
+    public TextDocumentIdentifier getTextDocument() {
+        return textDocument;
     }
 
     /**
-     * Gets the string to be inserted.
+     * Gets the reason for saving
      *
-     * @return The string to be inserted.
+     * @return The reason for saving
      */
-    public String getNewText() {
-        return newText;
+    public int getReason() {
+        return reason;
     }
 
     /**
      * Initializes this structure
      *
-     * @param range   The range of the text document to be manipulated.
-     * @param newText The string to be inserted.
+     * @param textDocument The document that will be saved
+     * @param reason       The reason for saving
      */
-    public TextEdit(Range range, String newText) {
-        this.range = range;
-        this.newText = newText;
+    public WillSaveTextDocumentParams(TextDocumentIdentifier textDocument, int reason) {
+        this.textDocument = textDocument;
+        this.reason = reason;
     }
 
     /**
@@ -72,28 +70,27 @@ public class TextEdit implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public TextEdit(ASTNode definition) {
-        Range range = null;
-        String newText = "";
+    public WillSaveTextDocumentParams(ASTNode definition) {
+        TextDocumentIdentifier textDocument = null;
+        int reason = TextDocumentSaveReason.MANUAL;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "newText": {
-                    newText = TextUtils.unescape(nodeValue.getValue());
-                    newText = newText.substring(1, newText.length() - 1);
+                case "textDocument": {
+                    textDocument = new TextDocumentIdentifier(nodeValue);
                     break;
                 }
-                case "character": {
-                    range = new Range(nodeValue);
+                case "reason": {
+                    reason = Integer.parseInt(nodeValue.getValue());
                     break;
                 }
             }
         }
-        this.newText = newText;
-        this.range = range != null ? range : new Range(new Position(0, 0), new Position(0, 0));
+        this.textDocument = textDocument;
+        this.reason = reason;
     }
 
     @Override
@@ -103,10 +100,10 @@ public class TextEdit implements Serializable {
 
     @Override
     public String serializedJSON() {
-        return "{\"range\": " +
-                range.serializedJSON() +
-                ", \"newText\": \"" +
-                TextUtils.escapeStringJSON(newText) +
-                "\"}";
+        return "{\"textDocument\": " +
+                textDocument.serializedJSON() +
+                ", \"reason\": " +
+                Integer.toString(reason) +
+                "}";
     }
 }
