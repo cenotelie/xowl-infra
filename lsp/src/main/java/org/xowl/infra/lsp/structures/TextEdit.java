@@ -21,12 +21,34 @@ import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
+import java.util.Comparator;
+
 /**
  * A textual edit applicable to a text document.
  *
  * @author Laurent Wouters
  */
 public class TextEdit implements Serializable {
+    /**
+     * The in-order comparator of text edits
+     */
+    public static final Comparator<TextEdit> COMPARATOR_ORDER = new Comparator<TextEdit>() {
+        @Override
+        public int compare(TextEdit edit1, TextEdit edit2) {
+            return edit1.getRange().getStart().compareTo(edit2.getRange().getStart());
+        }
+    };
+
+    /**
+     * The inverse order comparator of text edits
+     */
+    public static final Comparator<TextEdit> COMPARATOR_INVERSE = new Comparator<TextEdit>() {
+        @Override
+        public int compare(TextEdit edit1, TextEdit edit2) {
+            return edit2.getRange().getStart().compareTo(edit1.getRange().getStart());
+        }
+    };
+
     /**
      * The range of the text document to be manipulated.
      * To insert text into a document create a range where start === end.
@@ -54,6 +76,24 @@ public class TextEdit implements Serializable {
      */
     public String getNewText() {
         return newText;
+    }
+
+    /**
+     * Gets whether this edit is an insert
+     *
+     * @return Whether this edit is an insert
+     */
+    public boolean isInsert() {
+        return range.isEmpty();
+    }
+
+    /**
+     * Get whether this edit is a deletion
+     *
+     * @return Whether this edit is a deletion
+     */
+    public boolean isDeletion() {
+        return (newText == null || newText.isEmpty());
     }
 
     /**

@@ -21,12 +21,34 @@ import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
+import java.util.Comparator;
+
 /**
  * A range in a text document expressed as (zero-based) start and end positions. A range is comparable to a selection in an editor. Therefore the end position is exclusive.
  *
  * @author Laurent Wouters
  */
 public class Range implements Serializable {
+    /**
+     * The in-order comparator of ranges
+     */
+    public static final Comparator<Range> COMPARATOR_ORDER = new Comparator<Range>() {
+        @Override
+        public int compare(Range r1, Range r2) {
+            return r1.getStart().compareTo(r2.getStart());
+        }
+    };
+
+    /**
+     * The inverse order comparator of ranges
+     */
+    public static final Comparator<Range> COMPARATOR_INVERSE = new Comparator<Range>() {
+        @Override
+        public int compare(Range r1, Range r2) {
+            return r2.getStart().compareTo(r1.getStart());
+        }
+    };
+
     /**
      * The range's start position.
      */
@@ -53,6 +75,15 @@ public class Range implements Serializable {
      */
     public Position getEnd() {
         return end;
+    }
+
+    /**
+     * Gets whether this range is empty
+     *
+     * @return Whether this range is empty
+     */
+    public boolean isEmpty() {
+        return start.equals(end);
     }
 
     /**

@@ -21,6 +21,8 @@ import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
+import java.util.Comparator;
+
 /**
  * An event describing a change to a text document.
  * If range and rangeLength are omitted the new text is considered to be the full content of the document.
@@ -28,6 +30,35 @@ import org.xowl.infra.utils.TextUtils;
  * @author Laurent Wouters
  */
 public class TextDocumentContentChangeEvent implements Serializable {
+    /**
+     * The in-order comparator of events
+     */
+    public static final Comparator<TextDocumentContentChangeEvent> COMPARATOR_ORDER = new Comparator<TextDocumentContentChangeEvent>() {
+        @Override
+        public int compare(TextDocumentContentChangeEvent event1, TextDocumentContentChangeEvent event2) {
+            if (event1.range == null)
+                return -1;
+            if (event2.range == null)
+                return 1;
+            return event1.range.getStart().compareTo(event2.getRange().getStart());
+        }
+    };
+
+    /**
+     * The inverse order comparator of events
+     */
+    public static final Comparator<TextDocumentContentChangeEvent> COMPARATOR_INVERSE = new Comparator<TextDocumentContentChangeEvent>() {
+        @Override
+        public int compare(TextDocumentContentChangeEvent event1, TextDocumentContentChangeEvent event2) {
+            if (event2.range == null)
+                return -1;
+            if (event1.range == null)
+                return 1;
+            return event2.range.getStart().compareTo(event1.getRange().getStart());
+        }
+    };
+
+
     /**
      * The length of the range when omitted
      */
@@ -71,6 +102,26 @@ public class TextDocumentContentChangeEvent implements Serializable {
      */
     public String getText() {
         return text;
+    }
+
+    /**
+     * Gets whether this event is a full replacement of the text
+     *
+     * @return Whether this event is a full replacement of the text
+     */
+    public boolean isFullReplace() {
+        return (range == null && rangeLength == NO_RANGE);
+    }
+
+    /**
+     * Returns the equivalent edit, if possible
+     *
+     * @return The equivalent edit , if possible, null otherwise
+     */
+    public TextEdit toEdit() {
+        if (range == null || rangeLength < 0)
+            return null;
+        return new TextEdit(range, text);
     }
 
     /**

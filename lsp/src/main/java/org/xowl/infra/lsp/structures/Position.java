@@ -21,12 +21,34 @@ import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
+import java.util.Comparator;
+
 /**
  * Position in a text document expressed as zero-based line and character offset. A position is between two characters like an 'insert' cursor in a editor.
  *
  * @author Laurent Wouters
  */
-public class Position implements Serializable {
+public class Position implements Serializable, Comparable<Position> {
+    /**
+     * The in-order comparator of positions
+     */
+    public static final Comparator<Position> COMPARATOR_ORDER = new Comparator<Position>() {
+        @Override
+        public int compare(Position p1, Position p2) {
+            return p1.compareTo(p2);
+        }
+    };
+
+    /**
+     * The inverse order comparator of positions
+     */
+    public static final Comparator<Position> COMPARATOR_INVERSE = new Comparator<Position>() {
+        @Override
+        public int compare(Position p1, Position p2) {
+            return p2.compareTo(p1);
+        }
+    };
+
     /**
      * Line position in a document (zero-based).
      */
@@ -105,5 +127,23 @@ public class Position implements Serializable {
                 ",\"character\": " +
                 Integer.toString(character) +
                 "}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null)
+            return false;
+        if (!(o instanceof Position))
+            return false;
+        Position other = (Position) o;
+        return (this.line == other.line && this.character == other.character);
+    }
+
+    @Override
+    public int compareTo(Position position) {
+        int result = Integer.compare(this.line, position.line);
+        if (result != 0)
+            return result;
+        return Integer.compare(this.character, position.character);
     }
 }
