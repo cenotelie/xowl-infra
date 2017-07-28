@@ -81,6 +81,15 @@ public class Document {
     }
 
     /**
+     * Resets the full context for this document
+     *
+     * @param text The full context for this document
+     */
+    public void setFullContent(String text) {
+        this.currentVersion = new DocumentVersion(currentVersion.getNumber(), DocumentContentProvider.getContent(text));
+    }
+
+    /**
      * From the current version of this document, applies the specified edits to mutate into a new version
      *
      * @param nextNumber The new version number

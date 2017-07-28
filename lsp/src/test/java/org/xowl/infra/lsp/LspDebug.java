@@ -19,6 +19,7 @@ package org.xowl.infra.lsp;
 
 import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.jsonrpc.JsonRpcResponse;
+import org.xowl.infra.lsp.engine.Workspace;
 import org.xowl.infra.lsp.runners.LspRunner;
 import org.xowl.infra.lsp.runners.LspRunnerNetwork;
 import org.xowl.infra.lsp.server.LspServer;
@@ -36,22 +37,8 @@ public class LspDebug {
      * @param args The command-line arguments
      */
     public static void main(String[] args) {
-        LspServer server = new LspServer(new LspServerHandlerBase() {
-            @Override
-            protected JsonRpcResponse onCancelRequest(JsonRpcRequest request) {
-                return null;
-            }
-
-            @Override
-            protected JsonRpcResponse onWorkspaceDidChangeConfiguration(JsonRpcRequest request) {
-                return null;
-            }
-
-            @Override
-            protected JsonRpcResponse onWorkspaceDidChangeWatchedFiles(JsonRpcRequest request) {
-                return null;
-            }
-
+        Workspace workspace = new Workspace();
+        LspServer server = new LspServer(new LspServerHandlerBase(workspace) {
             @Override
             protected JsonRpcResponse onWorkspaceSymbol(JsonRpcRequest request) {
                 return null;
@@ -59,36 +46,6 @@ public class LspDebug {
 
             @Override
             protected JsonRpcResponse onWorkspaceExecuteCommand(JsonRpcRequest request) {
-                return null;
-            }
-
-            @Override
-            protected JsonRpcResponse onTextDocumentDidOpen(JsonRpcRequest request) {
-                return null;
-            }
-
-            @Override
-            protected JsonRpcResponse onTextDocumentDidChange(JsonRpcRequest request) {
-                return null;
-            }
-
-            @Override
-            protected JsonRpcResponse onTextDocumentWillSave(JsonRpcRequest request) {
-                return null;
-            }
-
-            @Override
-            protected JsonRpcResponse onTextDocumentWillSaveUntil(JsonRpcRequest request) {
-                return null;
-            }
-
-            @Override
-            protected JsonRpcResponse onTextDocumentDidSave(JsonRpcRequest request) {
-                return null;
-            }
-
-            @Override
-            protected JsonRpcResponse onTextDocumentDidClose(JsonRpcRequest request) {
                 return null;
             }
 

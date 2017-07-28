@@ -18,6 +18,7 @@
 package org.xowl.infra.lsp.server;
 
 import org.xowl.infra.lsp.LspEndpointLocalBase;
+import org.xowl.infra.lsp.structures.ClientCapabilities;
 import org.xowl.infra.lsp.structures.InitializeParams;
 import org.xowl.infra.lsp.structures.ServerCapabilities;
 import org.xowl.infra.utils.api.Reply;
@@ -118,6 +119,24 @@ public class LspServer extends LspEndpointLocalBase {
      */
     public void unregisterListener(LspServerListener listener) {
         listeners.remove(listener);
+    }
+
+    /**
+     * Gets the server capabilities
+     *
+     * @return The server capabilities
+     */
+    public ServerCapabilities getServerCapabilities() {
+        return serverCapabilities;
+    }
+
+    /**
+     * Gets the capabilities of the connected client, if any
+     *
+     * @return The capabilities of the connected client, if any
+     */
+    public ClientCapabilities getClientCapabiltiies() {
+        return clientInitializationParameters != null ? clientInitializationParameters.getCapabilities() : null;
     }
 
     /**

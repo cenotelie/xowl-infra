@@ -18,7 +18,7 @@
 package org.xowl.infra.lsp.server;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.lsp.structures.InitializeParams;
+import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
@@ -43,6 +43,25 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
         switch (method) {
             case "initialize":
                 return new InitializeParams(definition, this);
+            case "$/cancelRequest":
+                return new CancelParams(definition);
+            case "workspace/didChangeConfiguration":
+                return new DidChangeConfigurationParams(definition, this);
+            case "workspace/didChangeWatchedFiles":
+                return new DidChangeWatchedFilesParams(definition);
+
+            case "textDocument/didOpen":
+                return new DidOpenTextDocumentParams(definition);
+            case "textDocument/didChange":
+                return new DidChangeTextDocumentParams(definition);
+            case "textDocument/willSave":
+                return new WillSaveTextDocumentParams(definition);
+            case "textDocument/willSaveWaitUntil":
+                return new WillSaveTextDocumentParams(definition);
+            case "textDocument/didSave":
+                return new DidSaveTextDocumentParams(definition);
+            case "textDocument/didClose":
+                return new DidCloseTextDocumentParams(definition);
         }
         return super.deserializeObject(definition, method);
     }

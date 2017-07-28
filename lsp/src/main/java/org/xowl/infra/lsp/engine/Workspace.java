@@ -17,6 +17,8 @@
 
 package org.xowl.infra.lsp.engine;
 
+import org.xowl.infra.lsp.structures.*;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,5 +58,79 @@ public class Workspace {
      */
     public Workspace() {
         this.documents = new HashMap<>();
+    }
+
+    /**
+     * When file events have been received
+     *
+     * @param events The received file events
+     */
+    public void onFileEvents(FileEvent[] events) {
+        // do nothing
+    }
+
+    /**
+     * When a text document has been open
+     *
+     * @param documentItem The document item
+     */
+    public void onDocumentOpen(TextDocumentItem documentItem) {
+        documents.put(documentItem.getUri(), new Document(documentItem.getUri(), documentItem.getLanguageId(), documentItem.getVersion(), documentItem.getText()));
+    }
+
+    /**
+     * When document changes occurred on the client
+     *
+     * @param textDocument   The document that did change
+     * @param contentChanges The actual content changes
+     */
+    public void onDocumentChange(VersionedTextDocumentIdentifier textDocument, TextDocumentContentChangeEvent[] contentChanges) {
+        Document document = documents.get(textDocument.getUri());
+        if (document != null)
+            document.mutateTo(textDocument.getVersion(), contentChanges);
+    }
+
+    /**
+     * When a document is being saved
+     *
+     * @param textDocument The document that was is being saved
+     * @param reason       The reason for the save
+     */
+    public void onDocumentWillSave(TextDocumentIdentifier textDocument, int reason) {
+        // do nothing
+    }
+
+    /**
+     * When a document is being saved
+     *
+     * @param textDocument The document that was is being saved
+     * @param reason       The reason for the save
+     */
+    public TextEdit[] onDocumentWillSaveUntil(TextDocumentIdentifier textDocument, int reason) {
+        // do nothing
+        return null;
+    }
+
+    /**
+     * When a document has been saved on the client
+     *
+     * @param textDocument The document that was saved
+     * @param text         The full text for the saved document, if available
+     */
+    public void onDocumentDidSave(TextDocumentIdentifier textDocument, String text) {
+        if (text != null) {
+            Document document = documents.get(textDocument.getUri());
+            if (document != null)
+                document.setFullContent(text);
+        }
+    }
+
+    /**
+     * When a document has been closed on the client
+     *
+     * @param textDocument The document that was closed
+     */
+    public void onDocumentDidClose(TextDocumentIdentifier textDocument) {
+        documents.remove(textDocument.getUri());
     }
 }

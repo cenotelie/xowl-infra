@@ -23,7 +23,8 @@ import org.xowl.infra.jsonrpc.JsonRpcResponseError;
 import org.xowl.infra.jsonrpc.JsonRpcResponseResult;
 import org.xowl.infra.lsp.LspHandlerBase;
 import org.xowl.infra.lsp.LspUtils;
-import org.xowl.infra.lsp.structures.InitializeParams;
+import org.xowl.infra.lsp.engine.Workspace;
+import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.utils.api.Reply;
 
 /**
@@ -36,12 +37,19 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * The parent server
      */
     protected LspServer server;
+    /**
+     * The workspace to use
+     */
+    protected final Workspace workspace;
 
     /**
      * Initializes this server
+     *
+     * @param workspace The workspace to use
      */
-    public LspServerHandlerBase() {
+    public LspServerHandlerBase(Workspace workspace) {
         super(new LspServerRequestDeserializer());
+        this.workspace = workspace;
     }
 
     /**
@@ -227,7 +235,10 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onCancelRequest(JsonRpcRequest request);
+    protected JsonRpcResponse onCancelRequest(JsonRpcRequest request) {
+        // by default drop this notification
+        return null;
+    }
 
     /**
      * A notification sent from the client to the server to signal the change of configuration settings.
@@ -235,7 +246,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onWorkspaceDidChangeConfiguration(JsonRpcRequest request);
+    protected JsonRpcResponse onWorkspaceDidChangeConfiguration(JsonRpcRequest request) {
+        DidChangeConfigurationParams params = (DidChangeConfigurationParams) request.getParams();
+        // by default drop this notification
+        return null;
+    }
 
     /**
      * The watched files notification is sent from the client to the server when the client detects changes to files watched by the language client.
@@ -243,7 +258,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onWorkspaceDidChangeWatchedFiles(JsonRpcRequest request);
+    protected JsonRpcResponse onWorkspaceDidChangeWatchedFiles(JsonRpcRequest request) {
+        DidChangeWatchedFilesParams params = (DidChangeWatchedFilesParams) request.getParams();
+        workspace.onFileEvents(params.getChanges());
+        return null;
+    }
 
     /**
      * The workspace symbol request is sent from the client to the server to list project-wide symbols matching the query string.
@@ -269,7 +288,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentDidOpen(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentDidOpen(JsonRpcRequest request) {
+        DidOpenTextDocumentParams params = (DidOpenTextDocumentParams) request.getParams();
+        workspace.onDocumentOpen(params.getTextDocument());
+        return null;
+    }
 
     /**
      * The document change notification is sent from the client to the server to signal changes to a text document.
@@ -278,7 +301,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentDidChange(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentDidChange(JsonRpcRequest request) {
+        DidChangeTextDocumentParams params = (DidChangeTextDocumentParams) request.getParams();
+        workspace.onDocumentChange(params.getTextDocument(), params.getContentChanges());
+        return null;
+    }
 
     /**
      * The document will save notification is sent from the client to the server before the document is actually saved.
@@ -286,7 +313,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentWillSave(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentWillSave(JsonRpcRequest request) {
+        WillSaveTextDocumentParams params = (WillSaveTextDocumentParams) request.getParams();
+        workspace.onDocumentWillSave(params.getTextDocument(), params.getReason());
+        return null;
+    }
 
     /**
      * The document will save request is sent from the client to the server before the document is actually saved.
@@ -297,7 +328,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentWillSaveUntil(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentWillSaveUntil(JsonRpcRequest request) {
+        WillSaveTextDocumentParams params = (WillSaveTextDocumentParams) request.getParams();
+        TextEdit[] edits = workspace.onDocumentWillSaveUntil(params.getTextDocument(), params.getReason());
+        return new JsonRpcResponseResult<>(request.getIdentifier(), edits != null ? edits : new TextEdit[0]);
+    }
 
     /**
      * The document save notification is sent from the client to the server when the document was saved in the client.
@@ -305,7 +340,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentDidSave(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentDidSave(JsonRpcRequest request) {
+        DidSaveTextDocumentParams params = (DidSaveTextDocumentParams) request.getParams();
+        workspace.onDocumentDidSave(params.getTextDocument(), params.getText());
+        return null;
+    }
 
     /**
      * The document close notification is sent from the client to the server when the document got closed in the client.
@@ -314,7 +353,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentDidClose(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentDidClose(JsonRpcRequest request) {
+        DidCloseTextDocumentParams params = (DidCloseTextDocumentParams) request.getParams();
+        workspace.onDocumentDidClose(params.getTextDocument());
+        return null;
+    }
 
     /**
      * The Completion request is sent from the client to the server to compute completion items at a given cursor position.
