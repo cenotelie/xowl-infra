@@ -111,6 +111,16 @@ public class Capabilities implements Serializable {
     }
 
     /**
+     * Sets the value of an option
+     *
+     * @param optionName The name of the option
+     * @param value      The associated value
+     */
+    public void addOption(String optionName, Object value) {
+        options.put(optionName, value);
+    }
+
+    /**
      * Gets the value associated to the specified option name
      *
      * @param optionName The name of an option

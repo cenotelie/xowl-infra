@@ -24,6 +24,7 @@ import org.xowl.infra.lsp.runners.LspRunner;
 import org.xowl.infra.lsp.runners.LspRunnerNetwork;
 import org.xowl.infra.lsp.server.LspServer;
 import org.xowl.infra.lsp.server.LspServerHandlerBase;
+import org.xowl.infra.lsp.structures.TextDocumentSyncKind;
 
 /**
  * Test class for debugging a LSP server
@@ -134,6 +135,11 @@ public class LspDebug {
                 return null;
             }
         });
+        server.getServerCapabilities().addCapability("textDocumentSync.openClose");
+        server.getServerCapabilities().addCapability("textDocumentSync.willSave");
+        server.getServerCapabilities().addCapability("textDocumentSync.willSaveWaitUntil");
+        server.getServerCapabilities().addCapability("textDocumentSync.save.includeText");
+        server.getServerCapabilities().addOption("textDocumentSync.change", TextDocumentSyncKind.INCREMENTAL);
         LspRunner runner = new LspRunnerNetwork(server, 8000);
         runner.run();
     }
