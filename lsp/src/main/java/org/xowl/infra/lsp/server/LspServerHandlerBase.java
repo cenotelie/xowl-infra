@@ -187,7 +187,7 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
         Reply reply = server.initialize((InitializeParams) request.getParams());
         if (!reply.isSuccess())
             return JsonRpcResponseError.newInternalError(request.getIdentifier());
-        return new JsonRpcResponseResult<>(request.getIdentifier(), server.serverCapabilities);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), new InitializationResult(server.getServerCapabilities()));
     }
 
     /**
