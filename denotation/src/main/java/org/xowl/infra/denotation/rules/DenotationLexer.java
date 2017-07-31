@@ -72,13 +72,13 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int PNAME_NS = 0x000E;
         /**
-         * The unique identifier for terminal INTEGER
-         */
-        public static final int INTEGER = 0x0010;
-        /**
          * The unique identifier for terminal BLANK
          */
         public static final int BLANK = 0x0006;
+        /**
+         * The unique identifier for terminal INTEGER
+         */
+        public static final int INTEGER = 0x0010;
         /**
          * The unique identifier for terminal IRIREF
          */
@@ -202,8 +202,8 @@ class DenotationLexer extends ContextFreeLexer {
         new Symbol(0x0031, "COMMA"),
         new Symbol(0x0032, "COLON"),
         new Symbol(0x000E, "PNAME_NS"),
-        new Symbol(0x0010, "INTEGER"),
         new Symbol(0x0006, "BLANK"),
+        new Symbol(0x0010, "INTEGER"),
         new Symbol(0x0007, "IRIREF"),
         new Symbol(0x0017, "OP_NEQ"),
         new Symbol(0x0011, "DECIMAL"),
