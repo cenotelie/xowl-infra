@@ -56,7 +56,7 @@ public class Program {
         server.getServerCapabilities().addCapability("textDocumentSync.willSaveWaitUntil");
         server.getServerCapabilities().addCapability("textDocumentSync.save.includeText");
         server.getServerCapabilities().addOption("textDocumentSync.change", TextDocumentSyncKind.INCREMENTAL);
-        server.getServerCapabilities().addCapability("referencesProvider");
+        //server.getServerCapabilities().addCapability("referencesProvider");
         server.getServerCapabilities().addCapability("documentSymbolProvider");
         server.getServerCapabilities().addCapability("workspaceSymbolProvider");
         server.getServerCapabilities().addCapability("definitionProvider");
