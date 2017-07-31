@@ -49,6 +49,8 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
                 return new DidChangeConfigurationParams(definition, this);
             case "workspace/didChangeWatchedFiles":
                 return new DidChangeWatchedFilesParams(definition);
+            case "workspace/symbol":
+                return new WorkspaceSymbolParams(definition);
 
             case "textDocument/didOpen":
                 return new DidOpenTextDocumentParams(definition);
@@ -62,6 +64,11 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
                 return new DidSaveTextDocumentParams(definition);
             case "textDocument/didClose":
                 return new DidCloseTextDocumentParams(definition);
+
+            case "textDocument/documentSymbol":
+                return new DocumentSymbolParams(definition);
+            case "textDocument/definition":
+                return new TextDocumentPositionParams(definition);
         }
         return super.deserializeObject(definition, method);
     }

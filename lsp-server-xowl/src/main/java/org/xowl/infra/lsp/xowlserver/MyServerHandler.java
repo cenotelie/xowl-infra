@@ -35,11 +35,6 @@ public class MyServerHandler extends LspServerHandlerBase {
     }
 
     @Override
-    protected JsonRpcResponse onWorkspaceSymbol(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
     protected JsonRpcResponse onWorkspaceExecuteCommand(JsonRpcRequest request) {
         return null;
     }
@@ -75,11 +70,6 @@ public class MyServerHandler extends LspServerHandlerBase {
     }
 
     @Override
-    protected JsonRpcResponse onTextDocumentSymbols(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
     protected JsonRpcResponse onTextDocumentFormatting(JsonRpcRequest request) {
         return null;
     }
@@ -91,11 +81,6 @@ public class MyServerHandler extends LspServerHandlerBase {
 
     @Override
     protected JsonRpcResponse onTextDocumentOnTypeFormatting(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentDefinition(JsonRpcRequest request) {
         return null;
     }
 

@@ -17,28 +17,49 @@
 
 package org.xowl.infra.lsp.engine;
 
+import org.xowl.infra.lsp.structures.Range;
+
 /**
- * Represents an entity that can analyze the content of a file
+ * The reference to a symbol within a document
  *
  * @author Laurent Wouters
  */
-public interface DocumentAnalyzer {
+public class DocumentSymbolReference {
     /**
-     * Gets the priority of this analyzer for the specified document
-     * A greater number indicates a greater priority.
-     * A negative number indicates that the analyzer is not appropriate for the document
-     *
-     * @param document The document
-     * @return The priority
+     * The referenced symbol
      */
-    int getPriorityFor(Document document);
+    private final Symbol symbol;
+    /**
+     * The range of the reference
+     */
+    private final Range range;
 
     /**
-     * Gets the symbols within the document
+     * Initializes this reference
      *
-     * @param factory  The factory for symbols
-     * @param document The document to analyze
-     * @return The found symbols
+     * @param symbol The referenced symbol
+     * @param range  The range of the reference
      */
-    DocumentSymbols getSymbols(SymbolFactory factory, Document document);
+    public DocumentSymbolReference(Symbol symbol, Range range) {
+        this.symbol = symbol;
+        this.range = range;
+    }
+
+    /**
+     * Gets the referenced symbol
+     *
+     * @return The referenced symbol
+     */
+    public Symbol getSymbol() {
+        return symbol;
+    }
+
+    /**
+     * Gets the range of the reference
+     *
+     * @return The range of the reference
+     */
+    public Range getRange() {
+        return range;
+    }
 }

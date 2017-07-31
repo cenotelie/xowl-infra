@@ -18,6 +18,7 @@
 package org.xowl.infra.lsp.engine;
 
 import org.xowl.infra.lsp.structures.Location;
+import org.xowl.infra.lsp.structures.Range;
 
 import java.util.*;
 
@@ -30,7 +31,7 @@ public class Symbol {
     /**
      * The unique identifier of this symbol
      */
-    private String identifier;
+    private final String identifier;
     /**
      * The name of this symbol
      */
@@ -46,11 +47,11 @@ public class Symbol {
     /**
      * The location of the definition within the defining file
      */
-    private Location definitionLocation;
+    private Range definitionLocation;
     /**
      * The various references to this symbol by the URI of the referencing files
      */
-    private final Map<String, Collection<Location>> references;
+    private final Map<String, Collection<Range>> references;
     /**
      * The parent symbol, if any
      */
@@ -60,11 +61,10 @@ public class Symbol {
      * Initializes this symbol
      *
      * @param identifier The unique identifier of this symbol
-     * @param name       The name of this symbol
      */
-    public Symbol(String identifier, String name) {
+    public Symbol(String identifier) {
         this.identifier = identifier;
-        this.name = name;
+        this.name = identifier;
         this.kind = 0;
         this.definitionFileUri = null;
         this.definitionLocation = null;
@@ -122,7 +122,7 @@ public class Symbol {
      *
      * @return The location of the symbol definition within the defining document
      */
-    public Location getDefinitionLocation() {
+    public Range getDefinitionLocation() {
         return definitionLocation;
     }
 
@@ -141,8 +141,23 @@ public class Symbol {
      * @param uri The URI of the document
      * @return The location of the references to this symbol within the document
      */
-    public Collection<Location> getReferencesIn(String uri) {
+    public Collection<Range> getReferencesIn(String uri) {
         return references.get(uri);
+    }
+
+    /**
+     * Gets all the references to this symbol
+     *
+     * @return The references to this symbol
+     */
+    public Collection<Location> getAllReferences() {
+        Collection<Location> locations = new ArrayList<>();
+        for (Map.Entry<String, Collection<Range>> entry : references.entrySet()) {
+            for (Range range : entry.getValue()) {
+                locations.add(new Location(entry.getKey(), range));
+            }
+        }
+        return locations;
     }
 
     /**
@@ -152,6 +167,15 @@ public class Symbol {
      */
     public Symbol getParent() {
         return parent;
+    }
+
+    /**
+     * Sets th user name of this symbol
+     *
+     * @param name the user name of this symbol
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -169,7 +193,7 @@ public class Symbol {
      * @param uri      The URI of the defining file
      * @param location The location within the defining file
      */
-    public void setDefinition(String uri, Location location) {
+    public void setDefinition(String uri, Range location) {
         this.definitionFileUri = uri;
         this.definitionLocation = location;
     }
@@ -189,8 +213,8 @@ public class Symbol {
      * @param uri      The referencing document
      * @param location The location in the document
      */
-    public void addReference(String uri, Location location) {
-        Collection<Location> locations = references.get(uri);
+    public void addReference(String uri, Range location) {
+        Collection<Range> locations = references.get(uri);
         if (locations == null) {
             locations = new ArrayList<>();
             references.put(uri, locations);
@@ -211,24 +235,5 @@ public class Symbol {
         }
         references.remove(uri);
         return exists();
-    }
-
-    /**
-     * Merges the data of this symbol with the provided ones (most likely references)
-     *
-     * @param symbol The data of a symbol
-     */
-    public void merge(Symbol symbol) {
-        if (symbol.kind != this.kind)
-            this.kind = symbol.kind;
-        if (symbol.definitionFileUri != null)
-            this.definitionFileUri = symbol.definitionFileUri;
-        if (symbol.definitionLocation != null)
-            this.definitionLocation = symbol.definitionLocation;
-        if (symbol.parent != null)
-            this.parent = symbol.parent;
-        for (Map.Entry<String, Collection<Location>> entry : symbol.references.entrySet()) {
-            this.references.put(entry.getKey(), entry.getValue());
-        }
     }
 }

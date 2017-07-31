@@ -22,20 +22,20 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Parameters for the notification of a document that was closed on the client
+ * The parameter for the textDocument/documentSymbol request
  *
  * @author Laurent Wouters
  */
-public class DidCloseTextDocumentParams implements Serializable {
+public class DocumentSymbolParams implements Serializable {
     /**
-     * The document that was closed
+     * The text document
      */
     private final TextDocumentIdentifier textDocument;
 
     /**
-     * Gets the document that was closed
+     * Gets the text document
      *
-     * @return The document that was closed
+     * @return The text document
      */
     public TextDocumentIdentifier getTextDocument() {
         return textDocument;
@@ -44,9 +44,9 @@ public class DidCloseTextDocumentParams implements Serializable {
     /**
      * Initializes this structure
      *
-     * @param textDocument The document that was closed
+     * @param textDocument The text document
      */
-    public DidCloseTextDocumentParams(TextDocumentIdentifier textDocument) {
+    public DocumentSymbolParams(TextDocumentIdentifier textDocument) {
         this.textDocument = textDocument;
     }
 
@@ -55,7 +55,7 @@ public class DidCloseTextDocumentParams implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public DidCloseTextDocumentParams(ASTNode definition) {
+    public DocumentSymbolParams(ASTNode definition) {
         TextDocumentIdentifier textDocument = null;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);

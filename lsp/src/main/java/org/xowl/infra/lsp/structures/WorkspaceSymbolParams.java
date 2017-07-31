@@ -22,32 +22,32 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * Parameters for the notification of a document that was closed on the client
+ * The parameters of a Workspace Symbol Request
  *
  * @author Laurent Wouters
  */
-public class DidCloseTextDocumentParams implements Serializable {
+public class WorkspaceSymbolParams implements Serializable {
     /**
-     * The document that was closed
+     * A non-empty query string
      */
-    private final TextDocumentIdentifier textDocument;
+    protected final String query;
 
     /**
-     * Gets the document that was closed
+     * Gets the query string
      *
-     * @return The document that was closed
+     * @return The query string
      */
-    public TextDocumentIdentifier getTextDocument() {
-        return textDocument;
+    public String getQuery() {
+        return query;
     }
 
     /**
      * Initializes this structure
      *
-     * @param textDocument The document that was closed
+     * @param query A non-empty query string
      */
-    public DidCloseTextDocumentParams(TextDocumentIdentifier textDocument) {
-        this.textDocument = textDocument;
+    public WorkspaceSymbolParams(String query) {
+        this.query = query;
     }
 
     /**
@@ -55,21 +55,22 @@ public class DidCloseTextDocumentParams implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public DidCloseTextDocumentParams(ASTNode definition) {
-        TextDocumentIdentifier textDocument = null;
+    public WorkspaceSymbolParams(ASTNode definition) {
+        String query = "";
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "textDocument": {
-                    textDocument = new TextDocumentIdentifier(nodeValue);
+                case "query": {
+                    query = TextUtils.unescape(nodeValue.getValue());
+                    query = query.substring(1, query.length() - 1);
                     break;
                 }
             }
         }
-        this.textDocument = textDocument;
+        this.query = query;
     }
 
     @Override
@@ -79,8 +80,8 @@ public class DidCloseTextDocumentParams implements Serializable {
 
     @Override
     public String serializedJSON() {
-        return "{\"textDocument\": " +
-                textDocument.serializedJSON() +
-                "}";
+        return "{\"query\": \"" +
+                TextUtils.escapeStringJSON(query) +
+                "\"}";
     }
 }

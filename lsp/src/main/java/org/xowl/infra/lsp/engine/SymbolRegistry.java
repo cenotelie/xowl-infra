@@ -17,41 +17,46 @@
 
 package org.xowl.infra.lsp.engine;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import org.xowl.infra.lsp.structures.Location;
+import org.xowl.infra.lsp.structures.Position;
+import org.xowl.infra.lsp.structures.SymbolInformation;
+
+import java.util.*;
 
 /**
  * The registry of symbols found in the managed files
  *
  * @author Laurent Wouters
  */
-public class SymbolRegistry {
+public class SymbolRegistry implements SymbolFactory {
     /**
-     * The known symbols
+     * The global registry of known symbols
      */
-    private final Map<String, Symbol> symbols;
+    private final Map<String, Symbol> global;
+    /**
+     * The symbol references for specific documents
+     */
+    private final Map<String, DocumentSymbols> perDocument;
 
     /**
      * Initializes this registry
      */
     public SymbolRegistry() {
-        this.symbols = new HashMap<>();
+        this.global = new HashMap<>();
+        this.perDocument = new HashMap<>();
     }
 
     /**
      * Resolves the specified symbol
      *
      * @param identifier The unique identifier for the symbol
-     * @param name       The name of the symbol
      * @return The symbol data
      */
-    public Symbol resolve(String identifier, String name) {
-        Symbol symbol = symbols.get(identifier);
+    public Symbol resolve(String identifier) {
+        Symbol symbol = global.get(identifier);
         if (symbol == null) {
-            symbol = new Symbol(identifier, name);
-            symbols.put(identifier, symbol);
+            symbol = new Symbol(identifier);
+            global.put(identifier, symbol);
         }
         return symbol;
     }
@@ -65,15 +70,15 @@ public class SymbolRegistry {
         DocumentAnalyzer analyzer = DocumentAnalyzerProvider.getAnalyzer(document);
         if (analyzer == null)
             return;
-        onDocumentRemoved(document);
-        Collection<Symbol> founds = analyzer.getSymbols(this, document);
-        for (Symbol found : founds) {
-            Symbol original = symbols.get(found.getIdentifier());
-            if (original == null) {
-                symbols.put(found.getIdentifier(), found);
-            } else {
-                original.merge(found);
-            }
+        DocumentSymbols symbols = analyzer.getSymbols(this, document);
+        if (symbols == null)
+            return;
+        perDocument.put(document.getUri(), symbols);
+        for (DocumentSymbolReference definition : symbols.getDefinitions()) {
+            definition.getSymbol().setDefinition(document.getUri(), definition.getRange());
+        }
+        for (DocumentSymbolReference reference : symbols.getReferences()) {
+            reference.getSymbol().addReference(document.getUri(), reference.getRange());
         }
     }
 
@@ -84,7 +89,7 @@ public class SymbolRegistry {
      */
     public void onDocumentRemoved(Document document) {
         Collection<String> toRemove = null;
-        for (Map.Entry<String, Symbol> entry : symbols.entrySet()) {
+        for (Map.Entry<String, Symbol> entry : global.entrySet()) {
             if (!entry.getValue().onFileRemoved(document.getUri())) {
                 if (toRemove == null)
                     toRemove = new ArrayList<>();
@@ -93,7 +98,87 @@ public class SymbolRegistry {
         }
         if (toRemove != null) {
             for (String identifier : toRemove)
-                symbols.remove(identifier);
+                global.remove(identifier);
         }
+        perDocument.remove(document.getUri());
+    }
+
+    /**
+     * Gets all the definitions for a document
+     *
+     * @param uri The document URI
+     * @return The definitions
+     */
+    public Collection<SymbolInformation> getDefinitionsIn(String uri) {
+        DocumentSymbols symbols = perDocument.get(uri);
+        if (symbols == null)
+            return Collections.emptyList();
+        Collection<SymbolInformation> result = new ArrayList<>();
+        for (DocumentSymbolReference definition : symbols.getDefinitions()) {
+            result.add(new SymbolInformation(
+                    definition.getSymbol().getIdentifier(),
+                    definition.getSymbol().getKind(),
+                    new Location(
+                            uri,
+                            definition.getSymbol().getDefinitionLocation()
+                    ),
+                    definition.getSymbol().getParent() != null ? definition.getSymbol().getParent().getIdentifier() : null
+            ));
+        }
+        return result;
+    }
+
+    /**
+     * Lookups symbol information
+     *
+     * @param query The query string
+     * @return The found symbols
+     */
+    public Collection<SymbolInformation> lookup(String query) {
+        Collection<SymbolInformation> result = new ArrayList<>();
+        for (Symbol symbol : global.values()) {
+            if (symbol.getName().contains(query)) {
+                result.add(new SymbolInformation(
+                        symbol.getIdentifier(),
+                        symbol.getKind(),
+                        new Location(
+                                symbol.getDefinitionFileUri(),
+                                symbol.getDefinitionLocation()
+                        ),
+                        symbol.getParent() != null ? symbol.getParent().getIdentifier() : null
+                ));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Gets the symbol referenced or defined at a location in a document
+     *
+     * @param uri      The document's URI
+     * @param position The position within the document
+     * @return The symbol, or null if it is not found
+     */
+    public Symbol getSymbolAt(String uri, Position position) {
+        DocumentSymbols symbols = perDocument.get(uri);
+        if (symbols == null)
+            return null;
+        for (DocumentSymbolReference reference : symbols.getReferences()) {
+            int comparison = reference.getRange().compareTo(position);
+            if (comparison == 0)
+                return reference.getSymbol();
+            if (comparison > 0)
+                break;
+        }
+        // try the definitions
+        for (DocumentSymbolReference definition : symbols.getDefinitions()) {
+            int comparison = definition.getRange().compareTo(position);
+            if (comparison == 0)
+                return definition.getSymbol();
+            if (comparison > 0)
+                break;
+        }
+        // not found
+        return null;
     }
 }

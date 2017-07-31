@@ -23,9 +23,12 @@ import org.xowl.infra.jsonrpc.JsonRpcResponseError;
 import org.xowl.infra.jsonrpc.JsonRpcResponseResult;
 import org.xowl.infra.lsp.LspHandlerBase;
 import org.xowl.infra.lsp.LspUtils;
+import org.xowl.infra.lsp.engine.Symbol;
 import org.xowl.infra.lsp.engine.Workspace;
 import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.utils.api.Reply;
+
+import java.util.Collection;
 
 /**
  * Represents the part of a LSP server that handles requests from a client
@@ -272,7 +275,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onWorkspaceSymbol(JsonRpcRequest request);
+    protected JsonRpcResponse onWorkspaceSymbol(JsonRpcRequest request) {
+        WorkspaceSymbolParams params = (WorkspaceSymbolParams) request.getParams();
+        Collection<SymbolInformation> data = workspace.getSymbols().lookup(params.getQuery());
+        return new JsonRpcResponseResult<>(request.getIdentifier(), data);
+    }
 
     /**
      * The workspace/executeCommand request is sent from the client to the server to trigger command execution on the server.
@@ -425,7 +432,11 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentSymbols(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentSymbols(JsonRpcRequest request) {
+        DocumentSymbolParams params = (DocumentSymbolParams) request.getParams();
+        Collection<SymbolInformation> data = workspace.getSymbols().getDefinitionsIn(params.getTextDocument().getUri());
+        return new JsonRpcResponseResult<>(request.getIdentifier(), data);
+    }
 
     /**
      * The document formatting request is sent from the server to the client to format a whole document.
@@ -457,7 +468,18 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentDefinition(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentDefinition(JsonRpcRequest request) {
+        TextDocumentPositionParams params = (TextDocumentPositionParams) request.getParams();
+        Symbol symbol = workspace.getSymbols().getSymbolAt(params.getTextDocument().getUri(), params.getPosition());
+        if (symbol == null)
+            return new JsonRpcResponseResult<>(request.getIdentifier(), new Object[0]);
+        if (symbol.getDefinitionFileUri() == null)
+            return new JsonRpcResponseResult<>(request.getIdentifier(), new Object[0]);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), new Location(
+                symbol.getDefinitionFileUri(),
+                symbol.getDefinitionLocation()
+        ));
+    }
 
     /**
      * The code action request is sent from the client to the server to compute commands for a given text document and range.
