@@ -29,6 +29,7 @@ import org.xowl.infra.utils.logging.BufferedLogger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A base implementation of a Json-Rpc client
@@ -36,6 +37,10 @@ import java.util.Objects;
  * @author Laurent Wouters
  */
 public abstract class JsonRpcClientBase implements JsonRpcClient {
+    /**
+     * The counter for the unique identifiers of requests
+     */
+    protected final AtomicInteger counter;
     /**
      * The de-serializer to use
      */
@@ -54,7 +59,13 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      * @param deserializer The de-serializer to use for responses
      */
     public JsonRpcClientBase(JsonDeserializer deserializer) {
+        this.counter = new AtomicInteger(1);
         this.deserializer = deserializer;
+    }
+
+    @Override
+    public int getNextId() {
+        return counter.getAndIncrement();
     }
 
     @Override

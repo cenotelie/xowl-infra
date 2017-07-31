@@ -48,6 +48,13 @@ public interface JsonRpcClient {
             "http://cenotelie.fr/xowl/support/jsonrpc/errors/0x0003.html");
 
     /**
+     * Gets the next unique identifier for a request
+     *
+     * @return The next unique identifier
+     */
+    int getNextId();
+
+    /**
      * Sends serialized data to the server
      *
      * @param message The message to send to the server

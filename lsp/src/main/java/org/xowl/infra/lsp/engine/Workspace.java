@@ -17,6 +17,8 @@
 
 package org.xowl.infra.lsp.engine;
 
+import org.xowl.infra.jsonrpc.JsonRpcRequest;
+import org.xowl.infra.lsp.LspEndpointLocal;
 import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.logging.Logging;
@@ -37,11 +39,15 @@ public class Workspace {
     /**
      * The documents in the workspace
      */
-    private final Map<String, Document> documents;
+    protected final Map<String, Document> documents;
     /**
      * The symbol registry
      */
-    private final SymbolRegistry symbolRegistry;
+    protected final SymbolRegistry symbolRegistry;
+    /**
+     * The local LSP endpoint
+     */
+    protected LspEndpointLocal local;
 
     /**
      * Gets the documents in the workspace
@@ -69,6 +75,24 @@ public class Workspace {
      */
     public SymbolRegistry getSymbols() {
         return symbolRegistry;
+    }
+
+    /**
+     * Gets the local LSP endpoint
+     *
+     * @return The local LSP endpoint
+     */
+    public LspEndpointLocal getLocal() {
+        return local;
+    }
+
+    /**
+     * Sets the local LSP endpoint
+     *
+     * @param local The local LSP endpoint
+     */
+    public void setLocal(LspEndpointLocal local) {
+        this.local = local;
     }
 
     /**
@@ -115,7 +139,7 @@ public class Workspace {
             Document document = resolveDocument(file);
             if (document == null)
                 return;
-            symbolRegistry.onDocumentChanged(document);
+            onDocumentUpdated(document, false);
         }
     }
 
@@ -209,14 +233,14 @@ public class Workspace {
                 Document document = resolveDocument(file);
                 if (document == null)
                     return;
-                symbolRegistry.onDocumentChanged(document);
+                onDocumentUpdated(document, true);
                 break;
             }
             case FileChangeType.CHANGED: {
                 Document document = documents.get(event.getUri());
                 if (document == null)
                     return;
-                symbolRegistry.onDocumentChanged(document);
+                onDocumentUpdated(document, true);
                 break;
             }
         }
@@ -241,7 +265,7 @@ public class Workspace {
         Document document = documents.get(textDocument.getUri());
         if (document != null) {
             document.mutateTo(textDocument.getVersion(), contentChanges);
-            symbolRegistry.onDocumentChanged(document);
+            onDocumentUpdated(document, true);
         }
     }
 
@@ -277,7 +301,7 @@ public class Workspace {
             Document document = documents.get(textDocument.getUri());
             if (document != null) {
                 document.setFullContent(text);
-                symbolRegistry.onDocumentChanged(document);
+                onDocumentUpdated(document, true);
             }
         }
     }
@@ -289,5 +313,28 @@ public class Workspace {
      */
     public void onDocumentDidClose(TextDocumentIdentifier textDocument) {
         // do nothing
+    }
+
+    /**
+     * When a document has been updated
+     *
+     * @param document           The updated document
+     * @param publishDiagnostics Whether to publish the diagnostics
+     */
+    protected void onDocumentUpdated(Document document, boolean publishDiagnostics) {
+        DocumentAnalyzer analyzer = DocumentAnalyzerProvider.getAnalyzer(document);
+        if (analyzer == null)
+            return;
+        DocumentAnalysis analysis = analyzer.analyze(symbolRegistry, document);
+        if (analysis.getDiagnostics() != null && analysis.getDiagnostics().length > 0) {
+            if (local != null && publishDiagnostics) {
+                local.send(new JsonRpcRequest(
+                        Integer.toString(local.getNextId()),
+                        "textDocument/publishDiagnostics",
+                        new PublishDiagnosticsParams(document.getUri(), analysis.getDiagnostics())
+                ));
+            }
+        }
+        symbolRegistry.onDocumentChanged(document, analysis.getSymbols());
     }
 }

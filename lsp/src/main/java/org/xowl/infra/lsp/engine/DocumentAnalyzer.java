@@ -34,11 +34,11 @@ public interface DocumentAnalyzer {
     int getPriorityFor(Document document);
 
     /**
-     * Gets the symbols within the document
+     * Analyzes this document
      *
      * @param factory  The factory for symbols
      * @param document The document to analyze
-     * @return The found symbols
+     * @return The analysis
      */
-    DocumentSymbols getSymbols(SymbolFactory factory, Document document);
+    DocumentAnalysis analyze(SymbolFactory factory, Document document);
 }

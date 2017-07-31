@@ -65,12 +65,9 @@ public class SymbolRegistry implements SymbolFactory {
      * When a document has been updated
      *
      * @param document The updated document
+     * @param symbols  The symbols for the document
      */
-    public void onDocumentChanged(Document document) {
-        DocumentAnalyzer analyzer = DocumentAnalyzerProvider.getAnalyzer(document);
-        if (analyzer == null)
-            return;
-        DocumentSymbols symbols = analyzer.getSymbols(this, document);
+    public void onDocumentChanged(Document document, DocumentSymbols symbols) {
         if (symbols == null)
             return;
         perDocument.put(document.getUri(), symbols);

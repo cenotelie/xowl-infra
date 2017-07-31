@@ -62,6 +62,7 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      */
     protected void setServer(LspServer server) {
         this.server = server;
+        this.workspace.setLocal(server);
     }
 
     @Override

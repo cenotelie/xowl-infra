@@ -15,28 +15,51 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.structures;
+package org.xowl.infra.lsp.engine;
+
+import org.xowl.infra.lsp.structures.Diagnostic;
 
 /**
- * The protocol severities
+ * Represents the result of a document analysis
  *
  * @author Laurent Wouters
  */
-public interface DiagnosticSeverity {
+public class DocumentAnalysis {
     /**
-     * Reports an error.
+     * The symbols for the document
      */
-    int ERROR = 1;
+    private final DocumentSymbols symbols;
     /**
-     * Reports a warning.
+     * The diagnostics for the document
      */
-    int WARNING = 2;
+    private final Diagnostic[] diagnostics;
+
     /**
-     * Reports an information.
+     * Gets the symbols for the document
+     *
+     * @return The symbols for the document
      */
-    int INFORMATION = 3;
+    public DocumentSymbols getSymbols() {
+        return symbols;
+    }
+
     /**
-     * Reports a hint.
+     * The diagnostics for the document
+     *
+     * @return The diagnostics for the document
      */
-    int HINT = 4;
+    public Diagnostic[] getDiagnostics() {
+        return diagnostics;
+    }
+
+    /**
+     * Initializes this analysis
+     *
+     * @param symbols     The symbols for the document
+     * @param diagnostics The diagnostics for the document
+     */
+    public DocumentAnalysis(DocumentSymbols symbols, Diagnostic[] diagnostics) {
+        this.symbols = symbols;
+        this.diagnostics = diagnostics;
+    }
 }

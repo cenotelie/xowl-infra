@@ -125,7 +125,7 @@ public class Diagnostic implements Serializable {
      */
     public Diagnostic(ASTNode definition) {
         Range range = null;
-        int severity = DiagnosticSeverity.Hint;
+        int severity = DiagnosticSeverity.HINT;
         Object code = null;
         String source = null;
         String message = "";
@@ -194,7 +194,7 @@ public class Diagnostic implements Serializable {
         builder.append(Integer.toString(severity));
         if (code != null) {
             builder.append(", \"code\": ");
-            Json.serialize(code);
+            Json.serialize(builder, code);
         }
         if (source != null) {
             builder.append(", \"source\": \"");
