@@ -29,9 +29,7 @@ import org.xowl.infra.utils.json.JsonParser;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logging;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -261,6 +259,12 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
                 threadHandlePayload(content);
             } catch (Exception exception) {
                 // stream has been closed
+                if (debug != null) {
+                    StringWriter stringWriter = new StringWriter();
+                    PrintWriter writer = new PrintWriter(stringWriter);
+                    exception.printStackTrace(writer);
+                    printDebug(stringWriter.toString());
+                }
                 return;
             }
         }

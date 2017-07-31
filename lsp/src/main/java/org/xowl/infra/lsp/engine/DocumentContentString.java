@@ -73,8 +73,11 @@ public class DocumentContentString implements DocumentContent {
             }
             // in all other cases, drop the text with the span of this edit
             // the new current index is then just after the end of this edit
-            current = end + 1;
+            current = end;
         }
+        // adds the trailing text
+        if (current < data.length())
+            builder.append(data.substring(current));
         data = builder.toString();
     }
 
