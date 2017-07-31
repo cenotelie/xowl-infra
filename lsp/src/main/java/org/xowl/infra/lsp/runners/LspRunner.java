@@ -84,19 +84,19 @@ public abstract class LspRunner {
 
             @Override
             public void onExit() {
-                close();
+                doSignalClose();
             }
         });
         // register hook for shutdown events
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
-                close();
+                doSignalClose();
             }
         }, LspRunnerStdStreams.class.getCanonicalName() + ".shutdown"));
 
         doRun();
-        close();
+        doClose();
 
         if (hasShutdown)
             System.exit(EXIT_CODE_NORMAL);
@@ -118,11 +118,17 @@ public abstract class LspRunner {
     }
 
     /**
-     * Closes this runner
+     * Signals that this is time to close this runner
      */
-    protected void close() {
+    protected void doSignalClose() {
         shouldStop = true;
         signal.countDown();
+    }
+
+    /**
+     * Closes this runner
+     */
+    private void doClose() {
         try {
             server.close();
         } catch (Exception exception) {

@@ -40,9 +40,7 @@ public class LspRunnerStdStreams extends LspRunner {
         LspEndpointRemoteStream remote = new LspEndpointRemoteStream(server, System.out, System.in) {
             @Override
             protected void onListenerEnded() {
-                shouldStop = true;
-                signal.countDown();
-                LspRunnerStdStreams.this.close();
+                doSignalClose();
             }
         };
         server.setRemote(remote);

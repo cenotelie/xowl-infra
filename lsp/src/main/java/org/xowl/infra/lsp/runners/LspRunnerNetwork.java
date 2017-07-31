@@ -75,12 +75,10 @@ public class LspRunnerNetwork extends LspRunner {
 
         // bind the target socket
         try {
-            LspEndpointRemoteStream remote = new LspEndpointRemoteStream(server, targetSocket.getOutputStream(), targetSocket.getInputStream()) {
+            LspEndpointRemoteStream remote = new LspEndpointRemoteStream(server, targetSocket.getOutputStream(), targetSocket.getInputStream(), System.out) {
                 @Override
                 protected void onListenerEnded() {
-                    shouldStop = true;
-                    signal.countDown();
-                    LspRunnerNetwork.this.close();
+                    doSignalClose();
                 }
             };
             server.setRemote(remote);

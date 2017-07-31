@@ -69,6 +69,10 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
      */
     private final OutputStream output;
     /**
+     * A stream to write the received and sent messages to
+     */
+    private final OutputStream debug;
+    /**
      * The input stream to read messages from the real remote endpoint
      */
     private final InputStream input;
@@ -101,10 +105,23 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
      * @param input  The input stream to read messages from the real remote endpoint
      */
     public LspEndpointRemoteStream(LspEndpointLocal local, OutputStream output, InputStream input) {
+        this(local, output, input, null);
+    }
+
+    /**
+     * Initializes this remote endpoint
+     *
+     * @param local  the local endpoint
+     * @param output The output stream for sending messages to the real remote endpoint
+     * @param input  The input stream to read messages from the real remote endpoint
+     * @param debug  A stream to write the received and sent messages to
+     */
+    public LspEndpointRemoteStream(LspEndpointLocal local, OutputStream output, InputStream input, OutputStream debug) {
         super(local.getResponsesDeserializer());
         this.local = local;
         this.input = input;
         this.output = output;
+        this.debug = debug;
         this.thread = new Thread(new SafeRunnable() {
             @Override
             public void doRun() {
@@ -129,6 +146,23 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
         if (context.isEmpty())
             return sendNoReply(message);
         return sendAndGetReply(message);
+    }
+
+    /**
+     * Prints a debug message on a the debug stream
+     *
+     * @param message The message to print
+     */
+    private void printDebug(String message) {
+        if (debug == null)
+            return;
+        try {
+            debug.write(TextUtils.escapeStringBaseDoubleQuote(message).getBytes(IOUtils.CHARSET));
+            debug.write(IOUtils.LINE_SEPARATOR.getBytes(IOUtils.CHARSET));
+            debug.flush();
+        } catch (IOException exception) {
+            // do nothing
+        }
     }
 
     /**
@@ -180,6 +214,7 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
      * @throws IOException When writing failed
      */
     private synchronized void writeToOutput(String payload) throws IOException {
+        printDebug("<== " + payload);
         byte[] bytes = payload.getBytes(IOUtils.UTF8);
         output.write(bytes);
         output.flush();
@@ -222,6 +257,7 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
                 if (payload == null)
                     return;
                 String content = new String(payload, IOUtils.UTF8);
+                printDebug("==> " + content);
                 threadHandlePayload(content);
             } catch (Exception exception) {
                 // stream has been closed
