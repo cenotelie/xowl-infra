@@ -144,6 +144,10 @@ public class xRDFLexer extends ContextSensitiveLexer {
          */
         public static final int XOWL_OPAQUE_EXP = 0x0131;
         /**
+         * The unique identifier for terminal BLANK
+         */
+        public static final int BLANK = 0x0006;
+        /**
          * The unique identifier for terminal LITERAL_FLOAT
          */
         public static final int LITERAL_FLOAT = 0x011F;
@@ -155,10 +159,6 @@ public class xRDFLexer extends ContextSensitiveLexer {
          * The unique identifier for terminal INTEGER
          */
         public static final int INTEGER = 0x0014;
-        /**
-         * The unique identifier for terminal BLANK
-         */
-        public static final int BLANK = 0x0006;
         /**
          * The unique identifier for terminal LANGTAG
          */
@@ -280,13 +280,13 @@ public class xRDFLexer extends ContextSensitiveLexer {
          */
         public static final int LITERAL_NIL = 0x011A;
         /**
-         * The unique identifier for terminal DOUBLE
-         */
-        public static final int DOUBLE = 0x0016;
-        /**
          * The unique identifier for terminal LITERAL_RATIO
          */
         public static final int LITERAL_RATIO = 0x011E;
+        /**
+         * The unique identifier for terminal DOUBLE
+         */
+        public static final int DOUBLE = 0x0016;
         /**
          * The unique identifier for terminal LITERAL_TRUE
          */
@@ -550,10 +550,10 @@ public class xRDFLexer extends ContextSensitiveLexer {
         new Symbol(0x012D, "CLJ_SYNTAX_QUOTE"),
         new Symbol(0x012E, "CLJ_UNQUOTE"),
         new Symbol(0x0131, "XOWL_OPAQUE_EXP"),
+        new Symbol(0x0006, "BLANK"),
         new Symbol(0x011F, "LITERAL_FLOAT"),
         new Symbol(0x011D, "LITERAL_INTEGER"),
         new Symbol(0x0014, "INTEGER"),
-        new Symbol(0x0006, "BLANK"),
         new Symbol(0x0007, "LANGTAG"),
         new Symbol(0x0025, "OP_LEQ"),
         new Symbol(0x0008, "IRIREF"),
@@ -586,8 +586,8 @@ public class xRDFLexer extends ContextSensitiveLexer {
         new Symbol(0x0055, "ALL"),
         new Symbol(0x005E, "NOT"),
         new Symbol(0x011A, "LITERAL_NIL"),
-        new Symbol(0x0016, "DOUBLE"),
         new Symbol(0x011E, "LITERAL_RATIO"),
+        new Symbol(0x0016, "DOUBLE"),
         new Symbol(0x011B, "LITERAL_TRUE"),
         new Symbol(0x002C, "TRUE"),
         new Symbol(0x0039, "FROM"),
