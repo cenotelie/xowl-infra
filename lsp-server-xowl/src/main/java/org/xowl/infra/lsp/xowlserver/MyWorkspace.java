@@ -17,7 +17,14 @@
 
 package org.xowl.infra.lsp.xowlserver;
 
+import fr.cenotelie.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.Text;
+import fr.cenotelie.hime.redist.TextPosition;
+import fr.cenotelie.hime.redist.TextSpan;
 import org.xowl.infra.lsp.engine.Workspace;
+import org.xowl.infra.lsp.structures.Position;
+import org.xowl.infra.lsp.structures.Range;
+import org.xowl.infra.lsp.structures.SymbolKind;
 
 import java.io.File;
 
@@ -27,6 +34,36 @@ import java.io.File;
  * @author Laurent Wouters
  */
 public class MyWorkspace extends Workspace {
+    /**
+     * the symbol kind for IRIs
+     */
+    public static final int SYMBOL_IRI = SymbolKind.CLASS;
+    /**
+     * the symbol kind for ontologies
+     */
+    public static final int SYMBOL_ONTOLOGY = SymbolKind.CLASS;
+
+    /**
+     * Gets the range for the specified node
+     *
+     * @param text The input text
+     * @param node The AST node
+     * @return The range
+     */
+    public static Range getRangeFor(Text text, ASTNode node) {
+        TextSpan span = node.getSpan();
+        if (span == null)
+            return null;
+        int indexStart = span.getIndex();
+        int indexEnd = indexStart + span.getLength() - 1;
+        TextPosition positionStart = text.getPositionAt(indexStart);
+        TextPosition positionEnd = text.getPositionAt(indexEnd);
+        return new Range(
+                new Position(positionStart.getLine() - 1, positionStart.getColumn() - 1),
+                new Position(positionEnd.getLine() - 1, positionEnd.getColumn() - 1)
+        );
+    }
+
     @Override
     protected boolean isWorkspaceIncluded(File file) {
         String name = file.getName();

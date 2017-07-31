@@ -65,6 +65,7 @@ public class SymbolRegistry {
         DocumentAnalyzer analyzer = DocumentAnalyzerProvider.getAnalyzer(document);
         if (analyzer == null)
             return;
+        onDocumentRemoved(document);
         Collection<Symbol> founds = analyzer.getSymbols(this, document);
         for (Symbol found : founds) {
             Symbol original = symbols.get(found.getIdentifier());

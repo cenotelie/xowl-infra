@@ -19,10 +19,7 @@ package org.xowl.infra.lsp.engine;
 
 import org.xowl.infra.lsp.structures.Location;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents the data of a symbol
@@ -53,7 +50,7 @@ public class Symbol {
     /**
      * The various references to this symbol by the URI of the referencing files
      */
-    private final Map<String, Location[]> references;
+    private final Map<String, Collection<Location>> references;
     /**
      * The parent symbol, if any
      */
@@ -144,7 +141,7 @@ public class Symbol {
      * @param uri The URI of the document
      * @return The location of the references to this symbol within the document
      */
-    public Location[] getReferencesIn(String uri) {
+    public Collection<Location> getReferencesIn(String uri) {
         return references.get(uri);
     }
 
@@ -187,13 +184,18 @@ public class Symbol {
     }
 
     /**
-     * Sets the references to this symbol for the specified document
+     * Adds a reference to this symbol
      *
-     * @param uri       The uri of the referencing document
-     * @param locations The locations within the referencing document
+     * @param uri      The referencing document
+     * @param location The location in the document
      */
-    public void setReferencesFor(String uri, Location[] locations) {
-        references.put(uri, locations);
+    public void addReference(String uri, Location location) {
+        Collection<Location> locations = references.get(uri);
+        if (locations == null) {
+            locations = new ArrayList<>();
+            references.put(uri, locations);
+        }
+        locations.add(location);
     }
 
     /**
@@ -225,7 +227,7 @@ public class Symbol {
             this.definitionLocation = symbol.definitionLocation;
         if (symbol.parent != null)
             this.parent = symbol.parent;
-        for (Map.Entry<String, Location[]> entry : symbol.references.entrySet()) {
+        for (Map.Entry<String, Collection<Location>> entry : symbol.references.entrySet()) {
             this.references.put(entry.getKey(), entry.getValue());
         }
     }
