@@ -45,6 +45,7 @@
         <module>store</module>
         <module>engine</module>
         <module>denotation</module>
+        <module>lsp-server-xowl</module>
         <module>server-api</module>
         <module>server</module>
         <module>generator</module>
