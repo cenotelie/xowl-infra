@@ -17,35 +17,30 @@
 
 package org.xowl.infra.lsp.engine;
 
-import org.xowl.infra.lsp.structures.TextEdit;
-
-import java.io.Reader;
+import java.util.Collection;
 
 /**
- * Represents the content of a document
+ * Represents an entity that can analyze the content of a file
  *
  * @author Laurent Wouters
  */
-public interface DocumentContent {
+public interface DocumentAnalyzer {
     /**
-     * Gets a reader for this content
+     * Gets the priority of this analyzer for the specified document
+     * A greater number indicates a greater priority.
+     * A negative number indicates that the analyzer is not appropriate for the document
      *
-     * @return The reader for this content
+     * @param document The document
+     * @return The priority
      */
-    Reader getReader();
+    int getPriorityFor(Document document);
 
     /**
-     * Applies the specified edits in place
+     * Gets the symbols within the document
      *
-     * @param edits The edits to be applied
+     * @param registry The registry to use for solving existing symbols
+     * @param document The document to analyze
+     * @return The found symbols
      */
-    void applyEdits(TextEdit[] edits);
-
-    /**
-     * Clones this content with the specified edits applied
-     *
-     * @param edits The edits to be applied in the clone
-     * @return The clone
-     */
-    DocumentContent cloneWith(TextEdit[] edits);
+    Collection<Symbol> getSymbols(SymbolRegistry registry, Document document);
 }

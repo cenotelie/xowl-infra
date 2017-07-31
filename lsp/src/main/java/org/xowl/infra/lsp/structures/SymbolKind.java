@@ -15,37 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.engine;
-
-import org.xowl.infra.lsp.structures.TextEdit;
-
-import java.io.Reader;
+package org.xowl.infra.lsp.structures;
 
 /**
- * Represents the content of a document
+ * The different kinds of symbols
  *
  * @author Laurent Wouters
  */
-public interface DocumentContent {
-    /**
-     * Gets a reader for this content
-     *
-     * @return The reader for this content
-     */
-    Reader getReader();
-
-    /**
-     * Applies the specified edits in place
-     *
-     * @param edits The edits to be applied
-     */
-    void applyEdits(TextEdit[] edits);
-
-    /**
-     * Clones this content with the specified edits applied
-     *
-     * @param edits The edits to be applied in the clone
-     * @return The clone
-     */
-    DocumentContent cloneWith(TextEdit[] edits);
+public interface SymbolKind {
+    int FILE = 1;
+    int MODULE = 2;
+    int NAMESPACE = 3;
+    int PACKAGE = 4;
+    int CLASS = 5;
+    int METHOD = 6;
+    int PROPERTY = 7;
+    int FIELD = 8;
+    int CONSTRUCTOR = 9;
+    int ENUM = 10;
+    int INTERFACE = 11;
+    int FUNCTION = 12;
+    int VARIABLE = 13;
+    int CONSTANT = 14;
+    int STRING = 15;
+    int NUMBER = 16;
+    int BOOLEAN = 17;
+    int ARRAY = 18;
 }

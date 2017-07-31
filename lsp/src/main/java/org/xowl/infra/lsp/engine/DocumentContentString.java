@@ -20,6 +20,8 @@ package org.xowl.infra.lsp.engine;
 import fr.cenotelie.hime.redist.lexer.PrefetchedText;
 import org.xowl.infra.lsp.structures.TextEdit;
 
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.Arrays;
 
 /**
@@ -40,6 +42,11 @@ public class DocumentContentString implements DocumentContent {
      */
     public DocumentContentString(String data) {
         this.data = data;
+    }
+
+    @Override
+    public Reader getReader() {
+        return new StringReader(data);
     }
 
     @Override

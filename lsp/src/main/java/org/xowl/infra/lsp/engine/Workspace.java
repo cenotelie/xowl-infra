@@ -18,7 +18,12 @@
 package org.xowl.infra.lsp.engine;
 
 import org.xowl.infra.lsp.structures.*;
+import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.logging.Logging;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +38,10 @@ public class Workspace {
      * The documents in the workspace
      */
     private final Map<String, Document> documents;
+    /**
+     * The symbol registry
+     */
+    private final SymbolRegistry symbolRegistry;
 
     /**
      * Gets the documents in the workspace
@@ -54,10 +63,115 @@ public class Workspace {
     }
 
     /**
+     * Gets the associated symbol registry
+     *
+     * @return The associated symbol registry
+     */
+    public SymbolRegistry getSymbols() {
+        return symbolRegistry;
+    }
+
+    /**
      * Initializes an empty workspace
      */
     public Workspace() {
         this.documents = new HashMap<>();
+        this.symbolRegistry = new SymbolRegistry();
+    }
+
+    /**
+     * Initializes this workspace
+     *
+     * @param rootUri  The root uri for the workspace
+     * @param rootPath The root path for the workspace
+     */
+    public void onInitWorkspace(String rootUri, String rootPath) {
+        File workspaceRoot = null;
+        if (rootUri != null && rootUri.startsWith("file://"))
+            workspaceRoot = new File(rootUri.substring("file://".length()));
+        else if (rootPath != null)
+            workspaceRoot = new File(rootPath);
+        if (workspaceRoot != null && workspaceRoot.exists())
+            scanWorkspace(workspaceRoot);
+    }
+
+    /**
+     * Scans the specified content
+     *
+     * @param file The current file or directory
+     */
+    public void scanWorkspace(File file) {
+        if (isWorkspaceExcluded(file))
+            return;
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            if (files == null)
+                return;
+            for (int i = 0; i != files.length; i++)
+                scanWorkspace(files[i]);
+        } else {
+            if (!isWorkspaceIncluded(file))
+                return;
+            Document document = resolveDocument(file);
+            if (document == null)
+                return;
+            symbolRegistry.onDocumentChanged(document);
+        }
+    }
+
+    /**
+     * Determines whether the specified file or directory is excluded
+     *
+     * @param file The current file or directory
+     * @return true if the file is excluded
+     */
+    protected boolean isWorkspaceExcluded(File file) {
+        if (file.isDirectory()) {
+            String name = file.getName();
+            return (name.equals(".git") || name.equals(".hg") || name.equals(".svn"));
+        }
+        return false;
+    }
+
+    /**
+     * Determines whether the specified file should be analyzed
+     *
+     * @param file The current file
+     * @return true if the file should be analyzed
+     */
+    protected boolean isWorkspaceIncluded(File file) {
+        return false;
+    }
+
+    /**
+     * Resolves the document for the specified file
+     *
+     * @param file The file
+     * @return The document
+     */
+    protected Document resolveDocument(File file) {
+        String uri = "file://" + file.getAbsolutePath();
+        Document document = documents.get(uri);
+        if (document == null) {
+            try (Reader reader = IOUtils.getAutoReader(file)) {
+                String content = IOUtils.read(reader);
+                document = new Document(uri, getLanguageFor(file), 0, content);
+                documents.put(uri, document);
+            } catch (IOException exception) {
+                Logging.get().error(exception);
+            }
+        }
+        return document;
+    }
+
+    /**
+     * Gets the language associated to the specified file
+     *
+     * @param file The file
+     * @return The associated language
+     */
+    protected String getLanguageFor(File file) {
+        return "text";
     }
 
     /**
@@ -66,7 +180,46 @@ public class Workspace {
      * @param events The received file events
      */
     public void onFileEvents(FileEvent[] events) {
-        // do nothing
+        for (int i = 0; i != events.length; i++) {
+            onFileEvent(events[i]);
+        }
+    }
+
+    /**
+     * When file event have been received
+     *
+     * @param event The received file event
+     */
+    private void onFileEvent(FileEvent event) {
+        switch (event.getType()) {
+            case FileChangeType.DELETED: {
+                Document document = documents.get(event.getUri());
+                if (document == null)
+                    return;
+                documents.remove(document.getUri());
+                symbolRegistry.onDocumentRemoved(document);
+                break;
+            }
+            case FileChangeType.CREATED: {
+                if (!event.getUri().startsWith("file://"))
+                    return;
+                File file = new File(event.getUri().substring("file://".length()));
+                if (!file.exists() || isWorkspaceExcluded(file) || !isWorkspaceIncluded(file))
+                    return;
+                Document document = resolveDocument(file);
+                if (document == null)
+                    return;
+                symbolRegistry.onDocumentChanged(document);
+                break;
+            }
+            case FileChangeType.CHANGED: {
+                Document document = documents.get(event.getUri());
+                if (document == null)
+                    return;
+                symbolRegistry.onDocumentChanged(document);
+                break;
+            }
+        }
     }
 
     /**
@@ -86,8 +239,10 @@ public class Workspace {
      */
     public void onDocumentChange(VersionedTextDocumentIdentifier textDocument, TextDocumentContentChangeEvent[] contentChanges) {
         Document document = documents.get(textDocument.getUri());
-        if (document != null)
+        if (document != null) {
             document.mutateTo(textDocument.getVersion(), contentChanges);
+            symbolRegistry.onDocumentChanged(document);
+        }
     }
 
     /**
@@ -120,8 +275,10 @@ public class Workspace {
     public void onDocumentDidSave(TextDocumentIdentifier textDocument, String text) {
         if (text != null) {
             Document document = documents.get(textDocument.getUri());
-            if (document != null)
+            if (document != null) {
                 document.setFullContent(text);
+                symbolRegistry.onDocumentChanged(document);
+            }
         }
     }
 
@@ -131,6 +288,6 @@ public class Workspace {
      * @param textDocument The document that was closed
      */
     public void onDocumentDidClose(TextDocumentIdentifier textDocument) {
-        documents.remove(textDocument.getUri());
+        // do nothing
     }
 }
