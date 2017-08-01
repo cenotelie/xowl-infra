@@ -24,6 +24,32 @@ package org.xowl.infra.lsp.engine;
  */
 public interface DocumentAnalyzer {
     /**
+     * Priority when the analyzer is not applicable
+     */
+    int PRIORITY_NONE = -1;
+    /**
+     * The minimal priority for an appropriate analyzer
+     */
+    int PRIORITY_MINIMAL = 0;
+    /**
+     * An average priority for an appropriate analyzer
+     */
+    int PRIORITY_AVERAGE = 50;
+    /**
+     * A high priority for an appropriate analyzer
+     */
+    int PRIORITY_HIGH = 100;
+
+    /**
+     * The error code for a complete failure of the parser to produce output
+     */
+    String CODE_PARSER_FAILURE = "xowl-0";
+    /**
+     * The error code for parsing errors
+     */
+    String CODE_PARSING_ERROR = "xowl-1";
+
+    /**
      * Gets the priority of this analyzer for the specified document
      * A greater number indicates a greater priority.
      * A negative number indicates that the analyzer is not appropriate for the document
