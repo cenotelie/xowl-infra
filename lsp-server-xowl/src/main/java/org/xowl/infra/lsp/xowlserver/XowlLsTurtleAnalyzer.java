@@ -20,11 +20,12 @@ package org.xowl.infra.lsp.xowlserver;
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.Text;
-import org.xowl.infra.lsp.engine.*;
+import org.xowl.infra.lsp.engine.DocumentAnalyzerHime;
+import org.xowl.infra.lsp.engine.DocumentSymbols;
+import org.xowl.infra.lsp.engine.SymbolFactory;
 import org.xowl.infra.lsp.structures.Diagnostic;
-import org.xowl.infra.store.loaders.NTriplesLexer;
-import org.xowl.infra.store.loaders.NTriplesLoader;
-import org.xowl.infra.utils.TextUtils;
+import org.xowl.infra.store.loaders.TurtleLoader;
+import org.xowl.infra.store.loaders.TurtleParser;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.SinkLogger;
 
@@ -32,47 +33,41 @@ import java.io.Reader;
 import java.util.Collection;
 
 /**
- * The analyzer for the rdf-nt language
+ * The analyzer for the rdf-ttl language
  *
  * @author Laurent Wouters
  */
-public class MyRdfNtAnalyzer extends DocumentAnalyzerHime {
+public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
     /**
      * Initializes this analyzer
      */
-    public MyRdfNtAnalyzer() {
-        super(MyRdfNtAnalyzer.class.getCanonicalName(), "RDF (N-Triples) Analyzer", "rdf-nt");
+    public XowlLsTurtleAnalyzer() {
+        super(XowlLsNTriplesAnalyzer.class.getCanonicalName(), "RDF (Turtle) Analyzer", "rdf-ttl");
     }
 
     @Override
     protected ParseResult parse(Reader reader) {
         Logger logger = new SinkLogger();
-        NTriplesLoader loader = new NTriplesLoader();
+        TurtleLoader loader = new TurtleLoader();
         return loader.parse(logger, reader);
     }
 
     @Override
     protected DocumentSymbols findSymbols(ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics) {
         DocumentSymbols symbols = new DocumentSymbols();
-        for (ASTNode triple : root.getChildren()) {
-            boolean isFirst = true;
-            for (ASTNode node : triple.getChildren()) {
-                if (node.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
-                    String iri = node.getValue();
-                    iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
-                    Symbol symbol = factory.resolve(iri);
-                    if (symbol.getKind() == 0)
-                        symbol.setKind(MyWorkspace.SYMBOL_IRI);
-                    if (isFirst)
-                        symbols.addDefinition(new DocumentSymbolReference(
-                                symbol,
-                                getRangeFor(input, node)));
-                    else
-                        symbols.addReference(new DocumentSymbolReference(
-                                symbol,
-                                getRangeFor(input, node)));
-                }
-                isFirst = false;
+        for (ASTNode child : root.getChildren()) {
+            switch (child.getSymbol().getID()) {
+                case TurtleParser.ID.prefixID:
+                case TurtleParser.ID.sparqlPrefix:
+                    loadPrefixID(child);
+                    break;
+                case TurtleParser.ID.base:
+                case TurtleParser.ID.sparqlBase:
+                    loadBase(child);
+                    break;
+                default:
+                    loadTriples(child);
+                    break;
             }
         }
         return symbols;

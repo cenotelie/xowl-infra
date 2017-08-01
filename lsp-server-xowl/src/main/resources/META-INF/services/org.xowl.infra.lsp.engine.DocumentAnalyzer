@@ -1,2 +1,2 @@
-org.xowl.infra.lsp.xowlserver.MyRdfNtAnalyzer
-org.xowl.infra.lsp.xowlserver.MyRdfNqAnalyzer
+org.xowl.infra.lsp.xowlserver.XowlLsNTriplesAnalyzer
+org.xowl.infra.lsp.xowlserver.XowlLsNQuadsAnalyzer

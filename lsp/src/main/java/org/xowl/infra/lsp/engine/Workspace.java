@@ -146,7 +146,7 @@ public class Workspace {
             Document document = resolveDocument(file);
             if (document == null)
                 return;
-            onDocumentUpdated(document, false);
+            doDocumentAnalysis(document, false);
         }
     }
 
@@ -240,14 +240,14 @@ public class Workspace {
                 Document document = resolveDocument(file);
                 if (document == null)
                     return;
-                onDocumentUpdated(document, true);
+                doDocumentAnalysis(document, true);
                 break;
             }
             case FileChangeType.CHANGED: {
                 Document document = documents.get(event.getUri());
                 if (document == null)
                     return;
-                onDocumentUpdated(document, true);
+                doDocumentAnalysis(document, true);
                 break;
             }
         }
@@ -259,7 +259,13 @@ public class Workspace {
      * @param documentItem The document item
      */
     public void onDocumentOpen(TextDocumentItem documentItem) {
-        documents.put(documentItem.getUri(), new Document(documentItem.getUri(), documentItem.getLanguageId(), documentItem.getVersion(), documentItem.getText()));
+        Document document = new Document(
+                documentItem.getUri(),
+                documentItem.getLanguageId(),
+                documentItem.getVersion(),
+                documentItem.getText());
+        documents.put(documentItem.getUri(), document);
+        doDocumentAnalysis(document, true);
     }
 
     /**
@@ -272,7 +278,7 @@ public class Workspace {
         Document document = documents.get(textDocument.getUri());
         if (document != null) {
             document.mutateTo(textDocument.getVersion(), contentChanges);
-            onDocumentUpdated(document, true);
+            doDocumentAnalysis(document, true);
         }
     }
 
@@ -308,7 +314,7 @@ public class Workspace {
             Document document = documents.get(textDocument.getUri());
             if (document != null) {
                 document.setFullContent(text);
-                onDocumentUpdated(document, true);
+                doDocumentAnalysis(document, true);
             }
         }
     }
@@ -323,12 +329,12 @@ public class Workspace {
     }
 
     /**
-     * When a document has been updated
+     * Performs the analysis of a document
      *
-     * @param document           The updated document
+     * @param document           The document
      * @param publishDiagnostics Whether to publish the diagnostics
      */
-    protected void onDocumentUpdated(Document document, boolean publishDiagnostics) {
+    protected void doDocumentAnalysis(Document document, boolean publishDiagnostics) {
         DocumentAnalyzer analyzer = analyzerProvider.getAnalyzer(document);
         if (analyzer == null)
             return;

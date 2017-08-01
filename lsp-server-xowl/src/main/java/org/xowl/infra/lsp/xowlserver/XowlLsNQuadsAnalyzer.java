@@ -36,12 +36,12 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public class MyRdfNqAnalyzer extends DocumentAnalyzerHime {
+public class XowlLsNQuadsAnalyzer extends DocumentAnalyzerHime {
     /**
      * Initializes this analyzer
      */
-    public MyRdfNqAnalyzer() {
-        super(MyRdfNtAnalyzer.class.getCanonicalName(), "RDF (N-Quads) Analyzer", "rdf-nq");
+    public XowlLsNQuadsAnalyzer() {
+        super(XowlLsNTriplesAnalyzer.class.getCanonicalName(), "RDF (N-Quads) Analyzer", "rdf-nq");
     }
 
     @Override
@@ -62,7 +62,7 @@ public class MyRdfNqAnalyzer extends DocumentAnalyzerHime {
                     iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
                     Symbol symbol = factory.resolve(iri);
                     if (symbol.getKind() == 0)
-                        symbol.setKind(MyWorkspace.SYMBOL_IRI);
+                        symbol.setKind(XowlLsWorkspace.SYMBOL_IRI);
                     if (isFirst)
                         symbols.addDefinition(new DocumentSymbolReference(
                                 symbol,

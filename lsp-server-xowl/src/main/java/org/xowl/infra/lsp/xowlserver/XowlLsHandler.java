@@ -26,12 +26,12 @@ import org.xowl.infra.lsp.server.LspServerHandlerBase;
  *
  * @author Laurent Wouters
  */
-public class MyServerHandler extends LspServerHandlerBase {
+public class XowlLsHandler extends LspServerHandlerBase {
     /**
      * Initializes this server
      */
-    public MyServerHandler() {
-        super(new MyWorkspace());
+    public XowlLsHandler() {
+        super(new XowlLsWorkspace());
     }
 
     @Override

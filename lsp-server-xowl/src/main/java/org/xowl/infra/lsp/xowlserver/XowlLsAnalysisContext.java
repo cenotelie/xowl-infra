@@ -17,41 +17,24 @@
 
 package org.xowl.infra.lsp.xowlserver;
 
-import org.xowl.infra.lsp.runners.LspRunner;
-import org.xowl.infra.lsp.runners.LspRunnerNetwork;
-import org.xowl.infra.lsp.server.LspServer;
+import java.util.Map;
 
 /**
- * The main program for this language server
+ * Represents a context for an analysis
  *
  * @author Laurent Wouters
  */
-public class Program {
+public class XowlLsAnalysisContext {
     /**
-     * The default port for the server
+     * The URI of the resource currently being loaded
      */
-    private static final int PORT_DEFAULT = 8000;
-
+    public String resource;
     /**
-     * The main entry point
-     *
-     * @param args The arguments
+     * The base URI for relative URIs
      */
-    public static void main(String[] args) {
-        int port = PORT_DEFAULT;
-        if (args != null && args.length >= 1) {
-            try {
-                int value = Integer.parseInt(args[0]);
-                if (value > 0)
-                    port = value;
-            } catch (NumberFormatException exception) {
-                // do nothing, ignore the argument
-            }
-        }
-
-        LspServer server = new LspServer(new XowlLsHandler());
-
-        LspRunner runner = new LspRunnerNetwork(server, port);
-        runner.run();
-    }
+    public String baseURI;
+    /**
+     * Map of the current namespaces
+     */
+    public Map<String, String> namespaces;
 }

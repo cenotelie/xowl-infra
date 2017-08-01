@@ -24,11 +24,11 @@ import org.xowl.infra.lsp.structures.SymbolKind;
 import java.io.File;
 
 /**
- * The workspace for this server
+ * The workspace for the xOWL language server
  *
  * @author Laurent Wouters
  */
-public class MyWorkspace extends Workspace {
+public class XowlLsWorkspace extends Workspace {
     /**
      * the symbol kind for IRIs
      */
@@ -41,10 +41,11 @@ public class MyWorkspace extends Workspace {
     /**
      * Initializes this workspace
      */
-    public MyWorkspace() {
+    public XowlLsWorkspace() {
         super(new DocumentAnalyzerProviderStatic(
-                new MyRdfNtAnalyzer(),
-                new MyRdfNqAnalyzer()
+                new XowlLsNTriplesAnalyzer(),
+                new XowlLsNQuadsAnalyzer(),
+                new XowlLsTurtleAnalyzer()
         ));
     }
 
