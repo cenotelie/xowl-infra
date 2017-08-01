@@ -23,6 +23,7 @@ import org.xowl.infra.lsp.engine.SymbolFactory;
 import org.xowl.infra.lsp.structures.Diagnostic;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -43,7 +44,6 @@ public class XowlLsAnalysisContext {
      * The symbols for the current document
      */
     public final DocumentSymbols symbols;
-
     /**
      * The buffer for diagnostics
      */
@@ -59,7 +59,7 @@ public class XowlLsAnalysisContext {
     /**
      * Map of the current namespaces
      */
-    public Map<String, String> namespaces;
+    public final Map<String, String> namespaces;
 
     /**
      * Initializes this context
@@ -76,5 +76,7 @@ public class XowlLsAnalysisContext {
         this.symbols = symbols;
         this.diagnostics = diagnostics;
         this.resource = resourceUri;
+        this.baseURI = resourceUri;
+        this.namespaces = new HashMap<>();
     }
 }

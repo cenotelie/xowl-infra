@@ -46,7 +46,18 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
      * Initializes this analyzer
      */
     public XowlLsTurtleAnalyzer() {
-        super(XowlLsNTriplesAnalyzer.class.getCanonicalName(), "RDF (Turtle) Analyzer", "rdf-ttl");
+        this(XowlLsTurtleAnalyzer.class.getCanonicalName(), "RDF (Turtle) Analyzer", "rdf-ttl");
+    }
+
+    /**
+     * Initializes this analyzer
+     *
+     * @param identifier The unique identifier for this analyzer
+     * @param name       The human readable name for the analyzer
+     * @param language   The language to match for the analyzer
+     */
+    protected XowlLsTurtleAnalyzer(String identifier, String name, String language) {
+        super(identifier, name, language);
     }
 
     @Override
@@ -146,6 +157,9 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
             case TurtleLexer.ID.BLANK_NODE_LABEL:
                 inspectNodeBlank(context, node, isSubject);
                 break;
+            case TurtleParser.ID.rdfLiteral:
+                inspectNodeLiteral(context, node);
+                break;
             case TurtleParser.ID.collection:
                 inspectNodeCollection(context, node);
                 break;
@@ -218,6 +232,36 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
         String value = node.getValue();
         value = context.resource + "#" + TextUtils.unescape(value.substring(2));
         onSymbol(context, node, value, XowlLsWorkspace.SYMBOL_ENTITY, isSubject);
+    }
+
+    /**
+     * Inspects the RDF Literal node equivalent to the specified AST node
+     *
+     * @param node An AST node
+     */
+    protected void inspectNodeLiteral(XowlLsAnalysisContext context, ASTNode node) {
+        // No suffix, this is a naked string
+        if (node.getChildren().size() <= 1)
+            return;
+
+        ASTNode suffixChild = node.getChildren().get(1);
+        if (suffixChild.getSymbol().getID() == TurtleLexer.ID.IRIREF) {
+            // Datatype is specified with an IRI
+            String iri = suffixChild.getValue();
+            iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
+            iri = URIUtils.resolveRelative(context.baseURI, iri);
+            onSymbol(context, suffixChild, iri, XowlLsWorkspace.SYMBOL_ENTITY, false);
+        } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
+            // Datatype is specified with a local name
+            String local = getIRIForLocalName(context, suffixChild, suffixChild.getValue());
+            onSymbol(context, suffixChild, local, XowlLsWorkspace.SYMBOL_ENTITY, false);
+        } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
+            // Datatype is specified with a namespace
+            String ns = suffixChild.getValue();
+            ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
+            ns = context.namespaces.get(ns);
+            onSymbol(context, suffixChild, ns, XowlLsWorkspace.SYMBOL_ENTITY, false);
+        }
     }
 
     /**

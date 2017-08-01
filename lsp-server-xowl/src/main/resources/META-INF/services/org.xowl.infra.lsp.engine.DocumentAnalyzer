@@ -1,2 +1,4 @@
 org.xowl.infra.lsp.xowlserver.XowlLsNTriplesAnalyzer
 org.xowl.infra.lsp.xowlserver.XowlLsNQuadsAnalyzer
+org.xowl.infra.lsp.xowlserver.XowlLsTurtleAnalyzer
+org.xowl.infra.lsp.xowlserver.XowlLsTriGAnalyzer

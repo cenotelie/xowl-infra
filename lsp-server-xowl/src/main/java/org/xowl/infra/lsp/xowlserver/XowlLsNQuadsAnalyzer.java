@@ -41,7 +41,7 @@ public class XowlLsNQuadsAnalyzer extends DocumentAnalyzerHime {
      * Initializes this analyzer
      */
     public XowlLsNQuadsAnalyzer() {
-        super(XowlLsNTriplesAnalyzer.class.getCanonicalName(), "RDF (N-Quads) Analyzer", "rdf-nq");
+        super(XowlLsNQuadsAnalyzer.class.getCanonicalName(), "RDF (N-Quads) Analyzer", "rdf-nq");
     }
 
     @Override
