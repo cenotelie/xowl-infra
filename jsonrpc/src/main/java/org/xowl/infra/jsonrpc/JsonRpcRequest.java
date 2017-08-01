@@ -106,11 +106,9 @@ public class JsonRpcRequest implements Serializable {
     @Override
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"jsonrpc\": \"2.0\", \"id\": ");
-        if (identifier == null)
-            builder.append("null");
-        else {
-            builder.append("\"");
+        builder.append("{\"jsonrpc\": \"2.0\"");
+        if (identifier != null) {
+            builder.append(", \"id\": \"");
             builder.append(TextUtils.escapeStringJSON(identifier));
             builder.append("\"");
         }
