@@ -55,7 +55,7 @@ public class MyWorkspace extends Workspace {
         if (span == null)
             return null;
         int indexStart = span.getIndex();
-        int indexEnd = indexStart + span.getLength() - 1;
+        int indexEnd = indexStart + span.getLength();
         TextPosition positionStart = text.getPositionAt(indexStart);
         TextPosition positionEnd = text.getPositionAt(indexEnd);
         return new Range(

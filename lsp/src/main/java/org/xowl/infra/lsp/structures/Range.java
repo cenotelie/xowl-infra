@@ -125,26 +125,6 @@ public class Range implements Serializable {
         this.end = end != null ? end : new Position(0, 0);
     }
 
-    /**
-     * Compares the specified position to this range
-     *
-     * @param position The position to compare
-     * @return less that 0 if the position is strictly before this range, 0 if it is within this range, more that 0 if it is after this range
-     */
-    public int compareTo(Position position) {
-        int result = start.compareTo(position);
-        if (result < 0)
-            // before start
-            return result;
-        // after start
-        result = position.compareTo(end);
-        if (result > 0)
-            // after end
-            return result;
-        // after start and before end
-        return 0;
-    }
-
     @Override
     public String serializedString() {
         return serializedJSON();

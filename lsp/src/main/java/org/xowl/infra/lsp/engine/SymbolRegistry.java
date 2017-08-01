@@ -148,18 +148,20 @@ public class SymbolRegistry implements SymbolFactory {
         if (symbols == null)
             return null;
         for (DocumentSymbolReference reference : symbols.getReferences()) {
-            int comparison = reference.getRange().compareTo(position);
+            int comparison = position.compareTo(reference.getRange());
             if (comparison == 0)
                 return reference.getSymbol();
-            if (comparison > 0)
+            if (comparison < 0)
+                // the position is before the current reference, stop here
                 break;
         }
         // try the definitions
         for (DocumentSymbolReference definition : symbols.getDefinitions()) {
-            int comparison = definition.getRange().compareTo(position);
+            int comparison = position.compareTo(definition.getRange());
             if (comparison == 0)
                 return definition.getSymbol();
-            if (comparison > 0)
+            if (comparison < 0)
+                // the position is before the current definition, stop here
                 break;
         }
         // not found

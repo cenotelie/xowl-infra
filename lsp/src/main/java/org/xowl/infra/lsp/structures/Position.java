@@ -146,4 +146,24 @@ public class Position implements Serializable, Comparable<Position> {
             return result;
         return Integer.compare(this.character, position.character);
     }
+
+    /**
+     * Compares the this position to a range
+     *
+     * @param range The range to compare to
+     * @return less that 0 if the position is strictly before this range, 0 if it is within this range, more that 0 if it is after this range
+     */
+    public int compareTo(Range range) {
+        int result = compareTo(range.getStart());
+        if (result < 0)
+            // position is before start
+            return result;
+        // position is after start
+        result = compareTo(range.getEnd());
+        if (result > 0)
+            // position is after end
+            return result;
+        // position is after start and before end
+        return 0;
+    }
 }
