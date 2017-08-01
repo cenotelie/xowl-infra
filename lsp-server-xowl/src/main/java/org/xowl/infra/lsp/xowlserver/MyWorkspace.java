@@ -17,6 +17,7 @@
 
 package org.xowl.infra.lsp.xowlserver;
 
+import org.xowl.infra.lsp.engine.DocumentAnalyzerProviderStatic;
 import org.xowl.infra.lsp.engine.Workspace;
 import org.xowl.infra.lsp.structures.SymbolKind;
 
@@ -36,6 +37,16 @@ public class MyWorkspace extends Workspace {
      * the symbol kind for ontologies
      */
     public static final int SYMBOL_ONTOLOGY = SymbolKind.CLASS;
+
+    /**
+     * Initializes this workspace
+     */
+    public MyWorkspace() {
+        super(new DocumentAnalyzerProviderStatic(
+                new MyRdfNtAnalyzer(),
+                new MyRdfNqAnalyzer()
+        ));
+    }
 
     @Override
     protected boolean isWorkspaceIncluded(File file) {

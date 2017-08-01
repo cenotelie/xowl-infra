@@ -18,16 +18,36 @@
 package org.xowl.infra.lsp.engine;
 
 /**
- * The provider of document analyzers
+ * A static provider of document analyzers
  *
  * @author Laurent Wouters
  */
-public interface DocumentAnalyzerProvider {
+public class DocumentAnalyzerProviderStatic implements DocumentAnalyzerProvider {
     /**
-     * Gets the document analyzer for the specified document
-     *
-     * @param document A document
-     * @return The corresponding analyzer
+     * The provided analyzers
      */
-    DocumentAnalyzer getAnalyzer(Document document);
+    private final DocumentAnalyzer[] analyzers;
+
+    /**
+     * Initializes this provider
+     *
+     * @param analyzers The provided analyzers
+     */
+    public DocumentAnalyzerProviderStatic(DocumentAnalyzer... analyzers) {
+        this.analyzers = analyzers;
+    }
+
+    @Override
+    public DocumentAnalyzer getAnalyzer(Document document) {
+        DocumentAnalyzer best = null;
+        int bestPriority = -1;
+        for (int i = 0; i != analyzers.length; i++) {
+            int priority = analyzers[i].getPriorityFor(document);
+            if (priority > bestPriority) {
+                best = analyzers[i];
+                bestPriority = priority;
+            }
+        }
+        return best;
+    }
 }

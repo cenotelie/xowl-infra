@@ -45,6 +45,10 @@ public class Workspace {
      */
     protected final SymbolRegistry symbolRegistry;
     /**
+     * The provider of document analyzers
+     */
+    protected final DocumentAnalyzerProvider analyzerProvider;
+    /**
      * The local LSP endpoint
      */
     protected LspEndpointLocal local;
@@ -97,10 +101,13 @@ public class Workspace {
 
     /**
      * Initializes an empty workspace
+     *
+     * @param analyzerProvider The provider of document analyzers
      */
-    public Workspace() {
+    public Workspace(DocumentAnalyzerProvider analyzerProvider) {
         this.documents = new HashMap<>();
         this.symbolRegistry = new SymbolRegistry();
+        this.analyzerProvider = analyzerProvider;
     }
 
     /**
@@ -322,7 +329,7 @@ public class Workspace {
      * @param publishDiagnostics Whether to publish the diagnostics
      */
     protected void onDocumentUpdated(Document document, boolean publishDiagnostics) {
-        DocumentAnalyzer analyzer = DocumentAnalyzerProvider.getAnalyzer(document);
+        DocumentAnalyzer analyzer = analyzerProvider.getAnalyzer(document);
         if (analyzer == null)
             return;
         DocumentAnalysis analysis = analyzer.analyze(symbolRegistry, document);
