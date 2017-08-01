@@ -79,6 +79,7 @@ public class MyRdfNxAnalyzer implements DocumentAnalyzer {
 
         DocumentSymbols symbols = new DocumentSymbols();
         for (ASTNode triple : result.getRoot().getChildren()) {
+            boolean isFirst = true;
             for (ASTNode node : triple.getChildren()) {
                 if (node.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
                     String iri = node.getValue();
@@ -86,10 +87,16 @@ public class MyRdfNxAnalyzer implements DocumentAnalyzer {
                     Symbol symbol = factory.resolve(iri);
                     if (symbol.getKind() == 0)
                         symbol.setKind(MyWorkspace.SYMBOL_IRI);
-                    symbols.addReference(new DocumentSymbolReference(
-                            symbol,
-                            MyWorkspace.getRangeFor(result.getInput(), node)));
+                    if (isFirst)
+                        symbols.addDefinition(new DocumentSymbolReference(
+                                symbol,
+                                MyWorkspace.getRangeFor(result.getInput(), node)));
+                    else
+                        symbols.addReference(new DocumentSymbolReference(
+                                symbol,
+                                MyWorkspace.getRangeFor(result.getInput(), node)));
                 }
+                isFirst = false;
             }
         }
         return new DocumentAnalysis(symbols, null);
