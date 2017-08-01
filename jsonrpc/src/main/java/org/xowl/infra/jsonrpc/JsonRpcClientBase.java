@@ -100,8 +100,10 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      */
     protected Reply sendAndDeserialize(String message, JsonRpcContext context) {
         Reply reply = send(message, context);
-        if (context.isEmpty() || !reply.isSuccess())
+        if (!reply.isSuccess())
             return reply;
+        if (context.isEmpty())
+            return ReplySuccess.instance();
         return deserializeResponses(((ReplyResult<String>) reply).getData(), context);
     }
 
