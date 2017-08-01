@@ -125,22 +125,22 @@ public class XowlLsTriGAnalyzer extends XowlLsTurtleAnalyzer {
     Overridden to use TriGLexer and TriGParser IDs
      */
     @Override
-    protected void inspectNode(XowlLsAnalysisContext context, ASTNode node, boolean isSubject) {
+    protected void inspectNode(XowlLsAnalysisContext context, ASTNode node, boolean isDefinition) {
         switch (node.getSymbol().getID()) {
             case 0x003C: // a
-                inspectNodeIsA(context, node, isSubject);
+                inspectNodeIsA(context, node, isDefinition);
                 break;
             case TriGLexer.ID.IRIREF:
-                inspectNodeIRIRef(context, node, isSubject);
+                inspectNodeIRIRef(context, node, isDefinition);
                 break;
             case TriGLexer.ID.PNAME_LN:
-                inspectNodePNameLN(context, node, isSubject);
+                inspectNodePNameLN(context, node, isDefinition);
                 break;
             case TriGLexer.ID.PNAME_NS:
-                inspectNodePNameNS(context, node, isSubject);
+                inspectNodePNameNS(context, node, isDefinition);
                 break;
             case TriGLexer.ID.BLANK_NODE_LABEL:
-                inspectNodeBlank(context, node, isSubject);
+                inspectNodeBlank(context, node, isDefinition);
                 break;
             case TriGParser.ID.rdfLiteral:
                 inspectNodeLiteral(context, node);
@@ -169,17 +169,17 @@ public class XowlLsTriGAnalyzer extends XowlLsTurtleAnalyzer {
             String iri = suffixChild.getValue();
             iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
             iri = URIUtils.resolveRelative(context.baseURI, iri);
-            onSymbol(context, suffixChild, iri, XowlLsWorkspace.SYMBOL_ENTITY, false);
+            onSymbol(context, suffixChild, iri, false);
         } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(context, suffixChild, suffixChild.getValue());
-            onSymbol(context, suffixChild, local, XowlLsWorkspace.SYMBOL_ENTITY, false);
+            onSymbol(context, suffixChild, local, false);
         } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
             ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
             ns = context.namespaces.get(ns);
-            onSymbol(context, suffixChild, ns, XowlLsWorkspace.SYMBOL_ENTITY, false);
+            onSymbol(context, suffixChild, ns, false);
         }
     }
 }

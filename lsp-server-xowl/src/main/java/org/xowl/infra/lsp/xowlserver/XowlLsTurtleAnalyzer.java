@@ -136,26 +136,26 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
     /**
      * Inspect the RDF node equivalent to the specified AST node
      *
-     * @param context   The current context
-     * @param node      An AST node
-     * @param isSubject Whether the node is a subject
+     * @param context      The current context
+     * @param node         An AST node
+     * @param isDefinition Whether the node is the definition of a symbol
      */
-    protected void inspectNode(XowlLsAnalysisContext context, ASTNode node, boolean isSubject) {
+    protected void inspectNode(XowlLsAnalysisContext context, ASTNode node, boolean isDefinition) {
         switch (node.getSymbol().getID()) {
             case 0x003C: // a
-                inspectNodeIsA(context, node, isSubject);
+                inspectNodeIsA(context, node, isDefinition);
                 break;
             case TurtleLexer.ID.IRIREF:
-                inspectNodeIRIRef(context, node, isSubject);
+                inspectNodeIRIRef(context, node, isDefinition);
                 break;
             case TurtleLexer.ID.PNAME_LN:
-                inspectNodePNameLN(context, node, isSubject);
+                inspectNodePNameLN(context, node, isDefinition);
                 break;
             case TurtleLexer.ID.PNAME_NS:
-                inspectNodePNameNS(context, node, isSubject);
+                inspectNodePNameNS(context, node, isDefinition);
                 break;
             case TurtleLexer.ID.BLANK_NODE_LABEL:
-                inspectNodeBlank(context, node, isSubject);
+                inspectNodeBlank(context, node, isDefinition);
                 break;
             case TurtleParser.ID.rdfLiteral:
                 inspectNodeLiteral(context, node);
@@ -172,66 +172,66 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
     /**
      * Inspects the RDF IRI node for the RDF type element
      *
-     * @param context   The current context
-     * @param node      An AST node
-     * @param isSubject Whether the node is a subject
+     * @param context      The current context
+     * @param node         An AST node
+     * @param isDefinition Whether the node is a subject
      */
-    protected void inspectNodeIsA(XowlLsAnalysisContext context, ASTNode node, boolean isSubject) {
-        onSymbol(context, node, Vocabulary.rdfType, XowlLsWorkspace.SYMBOL_ENTITY, isSubject);
+    protected void inspectNodeIsA(XowlLsAnalysisContext context, ASTNode node, boolean isDefinition) {
+        onSymbol(context, node, Vocabulary.rdfType, isDefinition);
     }
 
     /**
      * Inspects the RDF IRI node equivalent to the specified AST node
      *
-     * @param context   The current context
-     * @param node      An AST node
-     * @param isSubject Whether the node is a subject
+     * @param context      The current context
+     * @param node         An AST node
+     * @param isDefinition Whether the node is a subject
      */
-    protected void inspectNodeIRIRef(XowlLsAnalysisContext context, ASTNode node, boolean isSubject) {
+    protected void inspectNodeIRIRef(XowlLsAnalysisContext context, ASTNode node, boolean isDefinition) {
         String value = node.getValue();
         value = TextUtils.unescape(value.substring(1, value.length() - 1));
         value = URIUtils.resolveRelative(context.baseURI, value);
-        onSymbol(context, node, value, XowlLsWorkspace.SYMBOL_ENTITY, isSubject);
+        onSymbol(context, node, value, isDefinition);
     }
 
     /**
      * Inspects the RDF IRI node equivalent to the specified AST node (local name)
      *
-     * @param context   The current context
-     * @param node      An AST node
-     * @param isSubject Whether the node is a subject
+     * @param context      The current context
+     * @param node         An AST node
+     * @param isDefinition Whether the node is a subject
      */
-    protected void inspectNodePNameLN(XowlLsAnalysisContext context, ASTNode node, boolean isSubject) {
+    protected void inspectNodePNameLN(XowlLsAnalysisContext context, ASTNode node, boolean isDefinition) {
         String value = node.getValue();
         value = getIRIForLocalName(context, node, value);
-        onSymbol(context, node, value, XowlLsWorkspace.SYMBOL_ENTITY, isSubject);
+        onSymbol(context, node, value, isDefinition);
     }
 
     /**
      * Inspects the RDF IRI node equivalent to the specified AST node (namespace)
      *
-     * @param context   The current context
-     * @param node      An AST node
-     * @param isSubject Whether the node is a subject
+     * @param context      The current context
+     * @param node         An AST node
+     * @param isDefinition Whether the node is a subject
      */
-    protected void inspectNodePNameNS(XowlLsAnalysisContext context, ASTNode node, boolean isSubject) {
+    protected void inspectNodePNameNS(XowlLsAnalysisContext context, ASTNode node, boolean isDefinition) {
         String value = node.getValue();
         value = TextUtils.unescape(value.substring(0, value.length() - 1));
         value = context.namespaces.get(value);
-        onSymbol(context, node, value, XowlLsWorkspace.SYMBOL_ENTITY, isSubject);
+        onSymbol(context, node, value, isDefinition);
     }
 
     /**
      * Inspects the RDF blank node equivalent to the specified AST node
      *
-     * @param context   The current context
-     * @param node      An AST node
-     * @param isSubject Whether the node is a subject
+     * @param context      The current context
+     * @param node         An AST node
+     * @param isDefinition Whether the node is a subject
      */
-    protected void inspectNodeBlank(XowlLsAnalysisContext context, ASTNode node, boolean isSubject) {
+    protected void inspectNodeBlank(XowlLsAnalysisContext context, ASTNode node, boolean isDefinition) {
         String value = node.getValue();
         value = context.resource + "#" + TextUtils.unescape(value.substring(2));
-        onSymbol(context, node, value, XowlLsWorkspace.SYMBOL_ENTITY, isSubject);
+        onSymbol(context, node, value, isDefinition);
     }
 
     /**
@@ -250,17 +250,17 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
             String iri = suffixChild.getValue();
             iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
             iri = URIUtils.resolveRelative(context.baseURI, iri);
-            onSymbol(context, suffixChild, iri, XowlLsWorkspace.SYMBOL_ENTITY, false);
+            onSymbol(context, suffixChild, iri, false);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(context, suffixChild, suffixChild.getValue());
-            onSymbol(context, suffixChild, local, XowlLsWorkspace.SYMBOL_ENTITY, false);
+            onSymbol(context, suffixChild, local, false);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
             ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
             ns = context.namespaces.get(ns);
-            onSymbol(context, suffixChild, ns, XowlLsWorkspace.SYMBOL_ENTITY, false);
+            onSymbol(context, suffixChild, ns, false);
         }
     }
 
@@ -337,17 +337,16 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
     /**
      * When a symbol is found
      *
-     * @param context    The current context
-     * @param node       The AST node for the symbol
-     * @param identifier The identifier for the symbol
-     * @param kind       The kind of symbol
-     * @param isSubject  Whether this is a subject (definition)
+     * @param context      The current context
+     * @param node         The AST node for the symbol
+     * @param identifier   The identifier for the symbol
+     * @param isDefinition Whether this is a subject (definition)
      */
-    protected void onSymbol(XowlLsAnalysisContext context, ASTNode node, String identifier, int kind, boolean isSubject) {
+    protected void onSymbol(XowlLsAnalysisContext context, ASTNode node, String identifier, boolean isDefinition) {
         Symbol symbol = context.factory.resolve(identifier);
         if (symbol.getKind() == 0)
-            symbol.setKind(kind);
-        if (isSubject)
+            symbol.setKind(XowlLsWorkspace.SYMBOL_ENTITY);
+        if (isDefinition)
             context.symbols.addDefinition(new DocumentSymbolReference(
                     symbol,
                     getRangeFor(context.input, node)));
