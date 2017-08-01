@@ -419,7 +419,7 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
         Symbol symbol = workspace.getSymbols().getSymbolAt(params.getTextDocument().getUri(), params.getPosition());
         if (symbol == null)
             return new JsonRpcResponseResult<>(request.getIdentifier(), new Object[0]);
-        Collection<SymbolInformation> result = symbol.getReferences();
+        Collection<Location> result = symbol.getReferences();
         if (params.getContext().includeDeclaration())
             result.addAll(symbol.getDefinitions());
         return new JsonRpcResponseResult<>(request.getIdentifier(), result);

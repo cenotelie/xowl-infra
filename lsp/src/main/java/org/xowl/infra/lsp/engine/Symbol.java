@@ -19,7 +19,6 @@ package org.xowl.infra.lsp.engine;
 
 import org.xowl.infra.lsp.structures.Location;
 import org.xowl.infra.lsp.structures.Range;
-import org.xowl.infra.lsp.structures.SymbolInformation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -131,16 +130,11 @@ public class Symbol {
      *
      * @return The definitions
      */
-    public Collection<SymbolInformation> getDefinitions() {
-        Collection<SymbolInformation> result = new ArrayList<>();
+    public Collection<Location> getDefinitions() {
+        Collection<Location> result = new ArrayList<>();
         for (Map.Entry<String, Collection<Range>> entry : definitions.entrySet()) {
             for (Range range : entry.getValue()) {
-                result.add(new SymbolInformation(
-                        identifier,
-                        kind,
-                        new Location(entry.getKey(), range),
-                        parent != null ? parent.identifier : null
-                ));
+                result.add(new Location(entry.getKey(), range));
             }
         }
         return result;
@@ -170,16 +164,11 @@ public class Symbol {
      *
      * @return The definitions
      */
-    public Collection<SymbolInformation> getReferences() {
-        Collection<SymbolInformation> result = new ArrayList<>();
+    public Collection<Location> getReferences() {
+        Collection<Location> result = new ArrayList<>();
         for (Map.Entry<String, Collection<Range>> entry : references.entrySet()) {
             for (Range range : entry.getValue()) {
-                result.add(new SymbolInformation(
-                        identifier,
-                        kind,
-                        new Location(entry.getKey(), range),
-                        parent != null ? parent.identifier : null
-                ));
+                result.add(new Location(entry.getKey(), range));
             }
         }
         return result;
