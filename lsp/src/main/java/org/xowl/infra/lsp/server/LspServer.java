@@ -21,6 +21,7 @@ import org.xowl.infra.lsp.LspEndpointLocalBase;
 import org.xowl.infra.lsp.structures.ClientCapabilities;
 import org.xowl.infra.lsp.structures.InitializeParams;
 import org.xowl.infra.lsp.structures.ServerCapabilities;
+import org.xowl.infra.lsp.structures.TextDocumentSyncKind;
 import org.xowl.infra.utils.api.Reply;
 import org.xowl.infra.utils.api.ReplyFailure;
 import org.xowl.infra.utils.api.ReplySuccess;
@@ -91,6 +92,15 @@ public class LspServer extends LspEndpointLocalBase {
         this.state = new AtomicInteger(STATE_CREATED);
         this.listeners = new ArrayList<>();
         this.serverCapabilities = new ServerCapabilities();
+        this.serverCapabilities.addCapability("textDocumentSync.openClose");
+        this.serverCapabilities.addCapability("textDocumentSync.willSave");
+        this.serverCapabilities.addCapability("textDocumentSync.willSaveWaitUntil");
+        this.serverCapabilities.addCapability("textDocumentSync.save.includeText");
+        this.serverCapabilities.addOption("textDocumentSync.change", TextDocumentSyncKind.INCREMENTAL);
+        this.serverCapabilities.addCapability("referencesProvider");
+        this.serverCapabilities.addCapability("documentSymbolProvider");
+        this.serverCapabilities.addCapability("workspaceSymbolProvider");
+        this.serverCapabilities.addCapability("definitionProvider");
         handler.setServer(this);
     }
 

@@ -22,47 +22,32 @@ import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * A parameter literal used in requests to pass a text document and a position inside that document.
+ * The context for the textDocument/references request
  *
  * @author Laurent Wouters
  */
-public class TextDocumentPositionParams implements Serializable {
+public class ReferenceContext implements Serializable {
     /**
-     * The text document.
+     * Include the declaration of the current symbol
      */
-    protected final TextDocumentIdentifier textDocument;
-    /**
-     * The position inside the text document.
-     */
-    protected final Position position;
+    private final boolean includeDeclaration;
 
     /**
-     * Gets the text document
+     * Gets whether to include the declaration of the current symbol
      *
-     * @return The text document
+     * @return Whether to include the declaration of the current symbol
      */
-    public TextDocumentIdentifier getTextDocument() {
-        return textDocument;
-    }
-
-    /**
-     * Gets the position inside the text document.
-     *
-     * @return The position inside the text document.
-     */
-    public Position getPosition() {
-        return position;
+    public boolean includeDeclaration() {
+        return includeDeclaration;
     }
 
     /**
      * Initializes this structure
      *
-     * @param textDocument The text document
-     * @param position     The position inside the text document.
+     * @param includeDeclaration Whether to include the declaration of the current symbol
      */
-    public TextDocumentPositionParams(TextDocumentIdentifier textDocument, Position position) {
-        this.textDocument = textDocument;
-        this.position = position;
+    public ReferenceContext(boolean includeDeclaration) {
+        this.includeDeclaration = includeDeclaration;
     }
 
     /**
@@ -70,27 +55,21 @@ public class TextDocumentPositionParams implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public TextDocumentPositionParams(ASTNode definition) {
-        TextDocumentIdentifier textDocument = null;
-        Position position = null;
+    public ReferenceContext(ASTNode definition) {
+        boolean includeDeclaration = false;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "textDocument": {
-                    textDocument = new TextDocumentIdentifier(nodeValue);
-                    break;
-                }
-                case "position": {
-                    position = new Position(nodeValue);
+                case "includeDeclaration": {
+                    includeDeclaration = Boolean.parseBoolean(nodeValue.getValue());
                     break;
                 }
             }
         }
-        this.textDocument = textDocument != null ? textDocument : new TextDocumentIdentifier("");
-        this.position = position != null ? position : new Position(0, 0);
+        this.includeDeclaration = includeDeclaration;
     }
 
     @Override
@@ -100,10 +79,8 @@ public class TextDocumentPositionParams implements Serializable {
 
     @Override
     public String serializedJSON() {
-        return "{\"textDocument\": " +
-                textDocument.serializedJSON() +
-                ", \"position\": " +
-                position.serializedJSON() +
+        return "{\"includeDeclaration\": " +
+                Boolean.toString(includeDeclaration) +
                 "}";
     }
 }

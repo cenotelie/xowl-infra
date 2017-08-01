@@ -18,51 +18,38 @@
 package org.xowl.infra.lsp.structures;
 
 import fr.cenotelie.hime.redist.ASTNode;
-import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**
- * A parameter literal used in requests to pass a text document and a position inside that document.
+ * The parameters for the textDocument/references request
  *
  * @author Laurent Wouters
  */
-public class TextDocumentPositionParams implements Serializable {
+public class ReferenceParams extends TextDocumentPositionParams {
     /**
-     * The text document.
+     * The context for the request
      */
-    protected final TextDocumentIdentifier textDocument;
-    /**
-     * The position inside the text document.
-     */
-    protected final Position position;
+    private final ReferenceContext context;
 
     /**
-     * Gets the text document
+     * Gets the context for the request
      *
-     * @return The text document
+     * @return The context for the request
      */
-    public TextDocumentIdentifier getTextDocument() {
-        return textDocument;
-    }
-
-    /**
-     * Gets the position inside the text document.
-     *
-     * @return The position inside the text document.
-     */
-    public Position getPosition() {
-        return position;
+    public ReferenceContext getContext() {
+        return context;
     }
 
     /**
      * Initializes this structure
      *
      * @param textDocument The text document
-     * @param position     The position inside the text document.
+     * @param position     The position inside the text document
+     * @param context      The context for the request
      */
-    public TextDocumentPositionParams(TextDocumentIdentifier textDocument, Position position) {
-        this.textDocument = textDocument;
-        this.position = position;
+    public ReferenceParams(TextDocumentIdentifier textDocument, Position position, ReferenceContext context) {
+        super(textDocument, position);
+        this.context = context;
     }
 
     /**
@@ -70,32 +57,22 @@ public class TextDocumentPositionParams implements Serializable {
      *
      * @param definition The serialized definition
      */
-    public TextDocumentPositionParams(ASTNode definition) {
-        TextDocumentIdentifier textDocument = null;
-        Position position = null;
+    public ReferenceParams(ASTNode definition) {
+        super(definition);
+        ReferenceContext context = null;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
-                case "textDocument": {
-                    textDocument = new TextDocumentIdentifier(nodeValue);
-                    break;
-                }
-                case "position": {
-                    position = new Position(nodeValue);
+                case "context": {
+                    context = new ReferenceContext(nodeValue);
                     break;
                 }
             }
         }
-        this.textDocument = textDocument != null ? textDocument : new TextDocumentIdentifier("");
-        this.position = position != null ? position : new Position(0, 0);
-    }
-
-    @Override
-    public String serializedString() {
-        return serializedJSON();
+        this.context = context;
     }
 
     @Override
@@ -104,6 +81,8 @@ public class TextDocumentPositionParams implements Serializable {
                 textDocument.serializedJSON() +
                 ", \"position\": " +
                 position.serializedJSON() +
+                ", \"context\": " +
+                context.serializedJSON() +
                 "}";
     }
 }

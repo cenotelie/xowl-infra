@@ -19,8 +19,12 @@ package org.xowl.infra.lsp.engine;
 
 import org.xowl.infra.lsp.structures.Location;
 import org.xowl.infra.lsp.structures.Range;
+import org.xowl.infra.lsp.structures.SymbolInformation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents the data of a symbol
@@ -41,13 +45,9 @@ public class Symbol {
      */
     private int kind;
     /**
-     * The URI of the file that contains the symbol's definition
+     * The various definitions of this symbol by the URI of the defining files
      */
-    private String definitionFileUri;
-    /**
-     * The location of the definition within the defining file
-     */
-    private Range definitionLocation;
+    private final Map<String, Collection<Range>> definitions;
     /**
      * The various references to this symbol by the URI of the referencing files
      */
@@ -66,8 +66,7 @@ public class Symbol {
         this.identifier = identifier;
         this.name = identifier;
         this.kind = 0;
-        this.definitionFileUri = null;
-        this.definitionLocation = null;
+        this.definitions = new HashMap<>();
         this.references = new HashMap<>();
         this.parent = null;
     }
@@ -78,7 +77,7 @@ public class Symbol {
      * @return Whether this symbol still exists
      */
     public boolean exists() {
-        return definitionFileUri != null || !references.isEmpty();
+        return (!definitions.isEmpty() || !references.isEmpty());
     }
 
     /**
@@ -109,21 +108,42 @@ public class Symbol {
     }
 
     /**
-     * Gets the URI of the defining document
+     * Gets the URI of the documents that defines this symbol
      *
-     * @return the URI of the defining document
+     * @return The URI of the defining documents
      */
-    public String getDefinitionFileUri() {
-        return definitionFileUri;
+    public Collection<String> getDefiningDocuments() {
+        return definitions.keySet();
     }
 
     /**
-     * Gets the location of the symbol definition within the defining document
+     * Gets the location of the definitions of this symbol within a document
      *
-     * @return The location of the symbol definition within the defining document
+     * @param uri The URI of the document
+     * @return The location of the definitions of this symbol within the document
      */
-    public Range getDefinitionLocation() {
-        return definitionLocation;
+    public Collection<Range> getDefinitionsIn(String uri) {
+        return definitions.get(uri);
+    }
+
+    /**
+     * Gets all the definitions of this symbol
+     *
+     * @return The definitions
+     */
+    public Collection<SymbolInformation> getDefinitions() {
+        Collection<SymbolInformation> result = new ArrayList<>();
+        for (Map.Entry<String, Collection<Range>> entry : definitions.entrySet()) {
+            for (Range range : entry.getValue()) {
+                result.add(new SymbolInformation(
+                        identifier,
+                        kind,
+                        new Location(entry.getKey(), range),
+                        parent != null ? parent.identifier : null
+                ));
+            }
+        }
+        return result;
     }
 
     /**
@@ -146,18 +166,23 @@ public class Symbol {
     }
 
     /**
-     * Gets all the references to this symbol
+     * Gets all the definitions of this symbol
      *
-     * @return The references to this symbol
+     * @return The definitions
      */
-    public Collection<Location> getAllReferences() {
-        Collection<Location> locations = new ArrayList<>();
+    public Collection<SymbolInformation> getReferences() {
+        Collection<SymbolInformation> result = new ArrayList<>();
         for (Map.Entry<String, Collection<Range>> entry : references.entrySet()) {
             for (Range range : entry.getValue()) {
-                locations.add(new Location(entry.getKey(), range));
+                result.add(new SymbolInformation(
+                        identifier,
+                        kind,
+                        new Location(entry.getKey(), range),
+                        parent != null ? parent.identifier : null
+                ));
             }
         }
-        return locations;
+        return result;
     }
 
     /**
@@ -188,23 +213,27 @@ public class Symbol {
     }
 
     /**
-     * Sets the data for the definition of this symbol
-     *
-     * @param uri      The URI of the defining file
-     * @param location The location within the defining file
-     */
-    public void setDefinition(String uri, Range location) {
-        this.definitionFileUri = uri;
-        this.definitionLocation = location;
-    }
-
-    /**
      * Sets the parent symbol
      *
      * @param parent The parent symbol
      */
     public void setParent(Symbol parent) {
         this.parent = parent;
+    }
+
+    /**
+     * Adds a definition of this symbol
+     *
+     * @param uri      The defining document
+     * @param location The location in the document
+     */
+    public void addDefinition(String uri, Range location) {
+        Collection<Range> locations = definitions.get(uri);
+        if (locations == null) {
+            locations = new ArrayList<>();
+            definitions.put(uri, locations);
+        }
+        locations.add(location);
     }
 
     /**
@@ -229,10 +258,7 @@ public class Symbol {
      * @return Whether the symbol still exists
      */
     public boolean onFileRemoved(String uri) {
-        if (Objects.equals(definitionFileUri, uri)) {
-            definitionFileUri = null;
-            definitionLocation = null;
-        }
+        definitions.remove(uri);
         references.remove(uri);
         return exists();
     }

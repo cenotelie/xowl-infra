@@ -60,11 +60,6 @@ public class MyServerHandler extends LspServerHandlerBase {
     }
 
     @Override
-    protected JsonRpcResponse onTextDocumentReferences(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
     protected JsonRpcResponse onTextDocumentHighlights(JsonRpcRequest request) {
         return null;
     }

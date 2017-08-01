@@ -72,7 +72,7 @@ public class SymbolRegistry implements SymbolFactory {
             return;
         perDocument.put(document.getUri(), symbols);
         for (DocumentSymbolReference definition : symbols.getDefinitions()) {
-            definition.getSymbol().setDefinition(document.getUri(), definition.getRange());
+            definition.getSymbol().addDefinition(document.getUri(), definition.getRange());
         }
         for (DocumentSymbolReference reference : symbols.getReferences()) {
             reference.getSymbol().addReference(document.getUri(), reference.getRange());
@@ -117,7 +117,7 @@ public class SymbolRegistry implements SymbolFactory {
                     definition.getSymbol().getKind(),
                     new Location(
                             uri,
-                            definition.getSymbol().getDefinitionLocation()
+                            definition.getRange()
                     ),
                     definition.getSymbol().getParent() != null ? definition.getSymbol().getParent().getIdentifier() : null
             ));
@@ -133,19 +133,6 @@ public class SymbolRegistry implements SymbolFactory {
      */
     public Collection<SymbolInformation> lookup(String query) {
         Collection<SymbolInformation> result = new ArrayList<>();
-        for (Symbol symbol : global.values()) {
-            if (symbol.getName().contains(query)) {
-                result.add(new SymbolInformation(
-                        symbol.getIdentifier(),
-                        symbol.getKind(),
-                        new Location(
-                                symbol.getDefinitionFileUri(),
-                                symbol.getDefinitionLocation()
-                        ),
-                        symbol.getParent() != null ? symbol.getParent().getIdentifier() : null
-                ));
-            }
-        }
         return result;
     }
 

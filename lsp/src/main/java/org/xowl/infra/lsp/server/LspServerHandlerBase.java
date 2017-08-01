@@ -414,7 +414,16 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentReferences(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentReferences(JsonRpcRequest request) {
+        ReferenceParams params = (ReferenceParams) request.getParams();
+        Symbol symbol = workspace.getSymbols().getSymbolAt(params.getTextDocument().getUri(), params.getPosition());
+        if (symbol == null)
+            return new JsonRpcResponseResult<>(request.getIdentifier(), new Object[0]);
+        Collection<SymbolInformation> result = symbol.getReferences();
+        if (params.getContext().includeDeclaration())
+            result.addAll(symbol.getDefinitions());
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
+    }
 
     /**
      * The document highlight request is sent from the client to the server to resolve a document highlights for a given text document position.
@@ -474,12 +483,7 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
         Symbol symbol = workspace.getSymbols().getSymbolAt(params.getTextDocument().getUri(), params.getPosition());
         if (symbol == null)
             return new JsonRpcResponseResult<>(request.getIdentifier(), new Object[0]);
-        if (symbol.getDefinitionFileUri() == null)
-            return new JsonRpcResponseResult<>(request.getIdentifier(), new Object[0]);
-        return new JsonRpcResponseResult<>(request.getIdentifier(), new Location(
-                symbol.getDefinitionFileUri(),
-                symbol.getDefinitionLocation()
-        ));
+        return new JsonRpcResponseResult<>(request.getIdentifier(), symbol.getDefinitions());
     }
 
     /**

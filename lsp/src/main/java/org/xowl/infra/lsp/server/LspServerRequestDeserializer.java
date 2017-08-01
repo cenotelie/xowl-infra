@@ -65,6 +65,8 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
             case "textDocument/didClose":
                 return new DidCloseTextDocumentParams(definition);
 
+            case "textDocument/references":
+                return new ReferenceParams(definition);
             case "textDocument/documentSymbol":
                 return new DocumentSymbolParams(definition);
             case "textDocument/definition":

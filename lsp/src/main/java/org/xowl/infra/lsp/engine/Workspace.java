@@ -329,7 +329,7 @@ public class Workspace {
         if (analysis.getDiagnostics() != null && analysis.getDiagnostics().length > 0) {
             if (local != null && publishDiagnostics) {
                 local.send(new JsonRpcRequest(
-                        Integer.toString(local.getNextId()),
+                        null,
                         "textDocument/publishDiagnostics",
                         new PublishDiagnosticsParams(document.getUri(), analysis.getDiagnostics())
                 ));
