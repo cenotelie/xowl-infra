@@ -326,14 +326,15 @@ public class Workspace {
         if (analyzer == null)
             return;
         DocumentAnalysis analysis = analyzer.analyze(symbolRegistry, document);
-        if (analysis.getDiagnostics() != null && analysis.getDiagnostics().length > 0) {
-            if (local != null && publishDiagnostics) {
-                local.send(new JsonRpcRequest(
-                        null,
-                        "textDocument/publishDiagnostics",
-                        new PublishDiagnosticsParams(document.getUri(), analysis.getDiagnostics())
-                ));
-            }
+        if (local != null && publishDiagnostics) {
+            Diagnostic[] diagnostics = analysis.getDiagnostics();
+            if (diagnostics == null)
+                diagnostics = new Diagnostic[0];
+            local.send(new JsonRpcRequest(
+                    null,
+                    "textDocument/publishDiagnostics",
+                    new PublishDiagnosticsParams(document.getUri(), diagnostics)
+            ));
         }
         symbolRegistry.onDocumentChanged(document, analysis.getSymbols());
     }

@@ -55,6 +55,15 @@ public class DocumentAnalysis {
     /**
      * Initializes this analysis
      *
+     * @param symbols The symbols for the document
+     */
+    public DocumentAnalysis(DocumentSymbols symbols) {
+        this(symbols, null);
+    }
+
+    /**
+     * Initializes this analysis
+     *
      * @param symbols     The symbols for the document
      * @param diagnostics The diagnostics for the document
      */

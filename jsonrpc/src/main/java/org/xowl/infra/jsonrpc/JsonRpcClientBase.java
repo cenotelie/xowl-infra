@@ -70,7 +70,10 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
 
     @Override
     public Reply send(JsonRpcRequest request) {
-        return sendAndDeserialize(request.serializedJSON(), new JsonRpcContextSingle(request.getMethod()));
+        return sendAndDeserialize(
+                request.serializedJSON(),
+                new JsonRpcContextSingle(request.isNotification() ? null : request.getMethod())
+        );
     }
 
     @Override
@@ -97,7 +100,7 @@ public abstract class JsonRpcClientBase implements JsonRpcClient {
      */
     protected Reply sendAndDeserialize(String message, JsonRpcContext context) {
         Reply reply = send(message, context);
-        if (!reply.isSuccess())
+        if (context.isEmpty() || !reply.isSuccess())
             return reply;
         return deserializeResponses(((ReplyResult<String>) reply).getData(), context);
     }

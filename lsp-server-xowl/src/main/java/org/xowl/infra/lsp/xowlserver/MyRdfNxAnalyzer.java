@@ -99,6 +99,6 @@ public class MyRdfNxAnalyzer implements DocumentAnalyzer {
                 isFirst = false;
             }
         }
-        return new DocumentAnalysis(symbols, null);
+        return new DocumentAnalysis(symbols);
     }
 }
