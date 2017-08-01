@@ -52,7 +52,7 @@ public class XowlLsNTriplesAnalyzer extends DocumentAnalyzerHime {
     }
 
     @Override
-    protected DocumentSymbols findSymbols(ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics) {
+    protected DocumentSymbols findSymbols(String resourceUri, ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics) {
         DocumentSymbols symbols = new DocumentSymbols();
         for (ASTNode triple : root.getChildren()) {
             boolean isFirst = true;
@@ -62,7 +62,7 @@ public class XowlLsNTriplesAnalyzer extends DocumentAnalyzerHime {
                     iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
                     Symbol symbol = factory.resolve(iri);
                     if (symbol.getKind() == 0)
-                        symbol.setKind(XowlLsWorkspace.SYMBOL_IRI);
+                        symbol.setKind(XowlLsWorkspace.SYMBOL_ENTITY);
                     if (isFirst)
                         symbols.addDefinition(new DocumentSymbolReference(
                                 symbol,

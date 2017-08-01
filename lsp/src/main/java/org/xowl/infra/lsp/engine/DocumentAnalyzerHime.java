@@ -38,15 +38,15 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
     /**
      * The unique identifier for this analyzer
      */
-    private final String identifier;
+    protected final String identifier;
     /**
      * The human readable name for the analyzer
      */
-    private final String name;
+    protected final String name;
     /**
      * The language to match for the analyzer
      */
-    private final String language;
+    protected final String language;
 
     /**
      * Initializes this analyzer
@@ -109,7 +109,7 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
 
         DocumentSymbols symbols = null;
         if (result.getRoot() != null) {
-            symbols = findSymbols(result.getRoot(), result.getInput(), factory, diagnostics);
+            symbols = findSymbols(document.getUri(), result.getRoot(), result.getInput(), factory, diagnostics);
             findDiagnostics(result.getRoot(), diagnostics);
         }
 
@@ -127,13 +127,14 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
     /**
      * Finds the symbols in the specified document
      *
+     * @param resourceUri The URI of the resource
      * @param root        The AST root for the document
      * @param input       The text input that was parsed
      * @param factory     The factory for symbols
      * @param diagnostics The buffer for diagnostics
      * @return The symbols in the document
      */
-    protected abstract DocumentSymbols findSymbols(ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics);
+    protected abstract DocumentSymbols findSymbols(String resourceUri, ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics);
 
     /**
      * Finds additional diagnostics for the specified document

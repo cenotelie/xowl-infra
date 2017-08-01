@@ -30,11 +30,11 @@ import java.io.File;
  */
 public class XowlLsWorkspace extends Workspace {
     /**
-     * the symbol kind for IRIs
+     * The symbol kind for entities (IRIs, blank nodes and anonymous nodes)
      */
-    public static final int SYMBOL_IRI = SymbolKind.CLASS;
+    public static final int SYMBOL_ENTITY = SymbolKind.CLASS;
     /**
-     * the symbol kind for ontologies
+     * The symbol kind for ontologies
      */
     public static final int SYMBOL_ONTOLOGY = SymbolKind.CLASS;
 
