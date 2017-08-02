@@ -18,7 +18,7 @@
 package org.xowl.infra.lsp.xowlserver;
 
 import org.xowl.infra.lsp.runners.LspRunner;
-import org.xowl.infra.lsp.runners.LspRunnerNetwork;
+import org.xowl.infra.lsp.runners.LspRunnerStdStreams;
 import org.xowl.infra.lsp.server.LspServer;
 
 /**
@@ -28,30 +28,13 @@ import org.xowl.infra.lsp.server.LspServer;
  */
 public class Program {
     /**
-     * The default port for the server
-     */
-    private static final int PORT_DEFAULT = 8000;
-
-    /**
      * The main entry point
      *
      * @param args The arguments
      */
     public static void main(String[] args) {
-        int port = PORT_DEFAULT;
-        if (args != null && args.length >= 1) {
-            try {
-                int value = Integer.parseInt(args[0]);
-                if (value > 0)
-                    port = value;
-            } catch (NumberFormatException exception) {
-                // do nothing, ignore the argument
-            }
-        }
-
         LspServer server = new LspServer(new XowlLsHandler());
-
-        LspRunner runner = new LspRunnerNetwork(server, port);
+        LspRunner runner = new LspRunnerStdStreams(server);
         runner.run();
     }
 }

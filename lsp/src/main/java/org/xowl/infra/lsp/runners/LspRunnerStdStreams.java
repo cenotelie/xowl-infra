@@ -20,6 +20,8 @@ package org.xowl.infra.lsp.runners;
 import org.xowl.infra.lsp.LspEndpointRemoteStream;
 import org.xowl.infra.lsp.server.LspServer;
 
+import java.io.OutputStream;
+
 /**
  * Runs a single LSP server in this Java process and serves it with the standard input and output streams
  *
@@ -27,17 +29,33 @@ import org.xowl.infra.lsp.server.LspServer;
  */
 public class LspRunnerStdStreams extends LspRunner {
     /**
+     * A stream to write the received and sent messages to
+     */
+    private final OutputStream debug;
+
+    /**
      * Initializes this runner
      *
      * @param server The LSP server to run
      */
     public LspRunnerStdStreams(LspServer server) {
+        this(server, null);
+    }
+
+    /**
+     * Initializes this runner
+     *
+     * @param server The LSP server to run
+     * @param debug  A stream to write the received and sent messages to
+     */
+    public LspRunnerStdStreams(LspServer server, OutputStream debug) {
         super(server);
+        this.debug = debug;
     }
 
     @Override
     protected void doRun() {
-        LspEndpointRemoteStream remote = new LspEndpointRemoteStream(server, System.out, System.in) {
+        LspEndpointRemoteStream remote = new LspEndpointRemoteStream(server, System.out, System.in, debug) {
             @Override
             protected void onListenerEnded() {
                 doSignalClose();

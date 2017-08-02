@@ -22,6 +22,7 @@ import org.xowl.infra.lsp.server.LspServer;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -31,6 +32,10 @@ import java.net.Socket;
  * @author Laurent Wouters
  */
 public class LspRunnerNetwork extends LspRunner {
+    /**
+     * A stream to write the received and sent messages to
+     */
+    private final OutputStream debug;
     /**
      * The port to listen on for connections
      */
@@ -51,8 +56,20 @@ public class LspRunnerNetwork extends LspRunner {
      * @param port   The port to listen on for connections
      */
     public LspRunnerNetwork(LspServer server, int port) {
+        this(server, port, null);
+    }
+
+    /**
+     * Initializes this runner
+     *
+     * @param server The LSP server to run
+     * @param port   The port to listen on for connections
+     * @param debug  A stream to write the received and sent messages to
+     */
+    public LspRunnerNetwork(LspServer server, int port, OutputStream debug) {
         super(server);
         this.port = port;
+        this.debug = debug;
     }
 
     @Override
@@ -75,7 +92,7 @@ public class LspRunnerNetwork extends LspRunner {
 
         // bind the target socket
         try {
-            LspEndpointRemoteStream remote = new LspEndpointRemoteStream(server, targetSocket.getOutputStream(), targetSocket.getInputStream(), System.out) {
+            LspEndpointRemoteStream remote = new LspEndpointRemoteStream(server, targetSocket.getOutputStream(), targetSocket.getInputStream(), debug) {
                 @Override
                 protected void onListenerEnded() {
                     doSignalClose();
