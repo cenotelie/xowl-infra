@@ -46,7 +46,8 @@ public class XowlLsWorkspace extends Workspace {
                 new XowlLsNTriplesAnalyzer(),
                 new XowlLsNQuadsAnalyzer(),
                 new XowlLsTurtleAnalyzer(),
-                new XowlLsTriGAnalyzer()
+                new XowlLsTriGAnalyzer(),
+                new XowlLsRdfXmlAnalyzer()
         ));
     }
 
