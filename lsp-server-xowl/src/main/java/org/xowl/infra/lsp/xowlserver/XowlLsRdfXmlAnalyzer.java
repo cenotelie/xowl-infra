@@ -288,7 +288,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
                 }
             }
         } else {
-            if ("Literal".equals(attribute)) {
+            /*if ("Literal".equals(attribute)) {
                 loadElementPropertyLiteralParseType(context, element);
             } else if ("Resource".equals(attribute)) {
                 loadElementPropertyResourceParseType(context, element);
@@ -296,7 +296,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
                 loadElementPropertyCollectionParseType(context, element);
             } else {
                 loadElementPropertyLiteralParseType(context, element);
-            }
+            }*/
         }
     }
 
@@ -496,7 +496,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
      * @param subject The current RDF subject
      */
     private void loadElementPropertyLiteralParseType(XmlElement element, SubjectNode subject) {
-        IRINode property = getProperty(element);
+        /*IRINode property = getProperty(element);
         String attributeID = element.getAttribute(Vocabulary.rdfID);
         Iterator<Couple<String, String>> attributes = element.getAttributes();
         if (attributes.hasNext()) {
@@ -515,7 +515,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
             register(proxy, Vocabulary.rdfObject, value);
-        }
+        }*/
     }
 
     /**
@@ -525,7 +525,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
      * @param subject The current RDF subject
      */
     private void loadElementPropertyResourceParseType(XmlElement element, SubjectNode subject) {
-        IRINode property = getProperty(element);
+        /*IRINode property = getProperty(element);
         SubjectNode value = store.getBlankNode();
         register(subject, property, value);
         String attributeID = element.getAttribute(Vocabulary.rdfID);
@@ -545,7 +545,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         }
 
         for (XmlElement child : element)
-            inspectElementProperty(child, value);
+            inspectElementProperty(child, value);*/
     }
 
     /**
@@ -555,7 +555,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
      * @param subject The current RDF subject
      */
     private void loadElementPropertyCollectionParseType(XmlElement element, SubjectNode subject) {
-        IRINode property = getProperty(element);
+        /*IRINode property = getProperty(element);
         String attributeID = element.getAttribute(Vocabulary.rdfID);
         Iterator<XmlElement> children = element.getChildren();
 
@@ -592,7 +592,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
             head = next;
         }
         register(head, Vocabulary.rdfFirst, values.get(values.size() - 1));
-        register(head, Vocabulary.rdfRest, store.getIRINode(Vocabulary.rdfNil));
+        register(head, Vocabulary.rdfRest, store.getIRINode(Vocabulary.rdfNil));*/
     }
 
     /**
