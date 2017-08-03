@@ -34,6 +34,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Import-Package>!sun.*,*</Import-Package>
                         <XOWL-Dependencies>fr.cenotelie.hime.redist</XOWL-Dependencies>
                     </instructions>
                 </configuration>
