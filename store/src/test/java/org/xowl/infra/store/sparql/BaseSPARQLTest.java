@@ -21,7 +21,6 @@ import org.junit.Assert;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
@@ -35,9 +34,8 @@ import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.SinkLogger;
+import org.xowl.infra.utils.xml.Xml;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.util.*;
 
@@ -270,9 +268,7 @@ public abstract class BaseSPARQLTest {
     private List<Map<String, Value>> loadSolutionsXML(String input) {
         try {
             List<Map<String, Value>> results = new ArrayList<>();
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder parser = factory.newDocumentBuilder();
-            Document document = parser.parse(new InputSource(new StringReader(input)));
+            Document document = Xml.parse(new StringReader(input));
             Element root = document.getDocumentElement();
             for (int i = 0; i != root.getChildNodes().getLength(); i++) {
                 Node node = root.getChildNodes().item(i);

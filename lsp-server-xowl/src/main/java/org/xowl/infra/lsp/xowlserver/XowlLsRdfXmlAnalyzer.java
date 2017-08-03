@@ -24,7 +24,7 @@ import org.xowl.infra.lsp.structures.Position;
 import org.xowl.infra.lsp.structures.Range;
 import org.xowl.infra.store.loaders.XMLElement;
 import org.xowl.infra.utils.Identifiable;
-import org.xowl.infra.utils.xml.XmlUtils;
+import org.xowl.infra.utils.xml.Xml;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +57,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
     public DocumentAnalysis analyze(SymbolFactory factory, Document document) {
         org.w3c.dom.Document xmlDocument;
         try {
-            xmlDocument = XmlUtils.parse(document.getCurrentVersion().getContent().getReader());
+            xmlDocument = Xml.parse(document.getCurrentVersion().getContent().getReader());
         } catch (Exception exception) {
             return new DocumentAnalysis(null, new Diagnostic[]{
                     new Diagnostic(

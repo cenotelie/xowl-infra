@@ -24,7 +24,7 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.xml.XmlUtils;
+import org.xowl.infra.utils.xml.Xml;
 
 import java.io.Reader;
 import java.util.*;
@@ -72,7 +72,7 @@ public class OWLXMLLoader implements Loader {
         this.namespaces = new HashMap<>();
         this.blanks = new HashMap<>();
         try {
-            Document document = XmlUtils.parse(reader);
+            Document document = Xml.parse(reader);
             XMLElement root = new XMLElement(document.getDocumentElement(), uri);
             loadOntology(root);
         } catch (Exception ex) {

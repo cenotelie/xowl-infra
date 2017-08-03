@@ -25,7 +25,7 @@ import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.xml.XmlUtils;
+import org.xowl.infra.utils.xml.Xml;
 
 import java.io.Reader;
 import java.util.*;
@@ -168,7 +168,7 @@ public class RDFXMLLoader implements Loader {
         imports = result.getImports();
 
         try {
-            Document xmlDocument = XmlUtils.parse(reader);
+            Document xmlDocument = Xml.parse(reader);
             XMLElement root = new XMLElement(xmlDocument.getDocumentElement(), resourceIRI);
             if (Vocabulary.rdfRDF.equals(root.getNodeIRI()))
                 loadDocument(root);

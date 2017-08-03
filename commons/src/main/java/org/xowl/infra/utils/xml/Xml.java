@@ -31,7 +31,7 @@ import java.io.Reader;
  *
  * @author Laurent Wouters
  */
-public class XmlUtils {
+public class Xml {
     /**
      * Parses the input reader as an XML document
      *
