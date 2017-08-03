@@ -22,9 +22,9 @@ import org.xowl.infra.lsp.structures.Diagnostic;
 import org.xowl.infra.lsp.structures.DiagnosticSeverity;
 import org.xowl.infra.lsp.structures.Position;
 import org.xowl.infra.lsp.structures.Range;
-import org.xowl.infra.store.loaders.XMLElement;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.xml.Xml;
+import org.xowl.infra.utils.xml.XmlElement;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,7 +74,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         DocumentSymbols symbols = new DocumentSymbols();
         XowlLsAnalysisContext context = new XowlLsAnalysisContext(document.getUri(), null, factory, symbols, diagnostics);
 
-        XMLElement root = new XMLElement(xmlDocument.getDocumentElement(), document.getUri());
+        XmlElement root = new XmlElement(xmlDocument.getDocumentElement(), document.getUri());
         /*if (Vocabulary.rdfRDF.equals(root.getNodeIRI()))
             inspectDocument(context, root);
         else

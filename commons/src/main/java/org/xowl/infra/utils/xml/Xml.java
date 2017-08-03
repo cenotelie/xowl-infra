@@ -33,6 +33,15 @@ import java.io.Reader;
  */
 public class Xml {
     /**
+     * The key for the position of the opening tag of an element
+     */
+    public static final String KEY_POSITION_OPENING_START = PositionalSaxHandler.class.getCanonicalName() + ".PositionOpeningStart";
+    /**
+     * The key for the position of the end of the opening tag of an element
+     */
+    public static final String KEY_POSITION_OPENING_END = PositionalSaxHandler.class.getCanonicalName() + ".PositionOpeningEnd";
+
+    /**
      * Parses the input reader as an XML document
      *
      * @param reader The reader to use as input

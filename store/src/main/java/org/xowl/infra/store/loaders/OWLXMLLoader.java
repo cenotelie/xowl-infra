@@ -25,6 +25,7 @@ import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.xml.Xml;
+import org.xowl.infra.utils.xml.XmlElement;
 
 import java.io.Reader;
 import java.util.*;
@@ -73,7 +74,7 @@ public class OWLXMLLoader implements Loader {
         this.blanks = new HashMap<>();
         try {
             Document document = Xml.parse(reader);
-            XMLElement root = new XMLElement(document.getDocumentElement(), uri);
+            XmlElement root = new XmlElement(document.getDocumentElement(), uri);
             loadOntology(root);
         } catch (Exception ex) {
             logger.error(ex);
@@ -87,13 +88,13 @@ public class OWLXMLLoader implements Loader {
      *
      * @param node A XML node
      */
-    private void loadOntology(XMLElement node) {
+    private void loadOntology(XmlElement node) {
         baseURI = node.getAttribute("ontologyIRI");
         if (baseURI == null)
             baseURI = resource;
         String version = node.getAttribute("versionIRI");
         cache = new OWLLoaderResult(baseURI, version);
-        for (XMLElement child : node) {
+        for (XmlElement child : node) {
             switch (child.getNodeName()) {
                 case Vocabulary.OWL2.ontoPrefix:
                     loadPrefixID(child);
@@ -116,7 +117,7 @@ public class OWLXMLLoader implements Loader {
      *
      * @param node A XML node
      */
-    private void loadPrefixID(XMLElement node) {
+    private void loadPrefixID(XmlElement node) {
         String prefix = node.getAttribute("name");
         String uri = node.getAttribute("IRI");
         namespaces.put(prefix, TextUtils.unescape(uri));
@@ -151,10 +152,10 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The annotation
      */
-    private Annotation loadAnnotation(XMLElement node) {
+    private Annotation loadAnnotation(XmlElement node) {
         Annotation result = Owl2Factory.newAnnotation();
         // loads the annotations on this annotation
-        for (XMLElement child : node) {
+        for (XmlElement child : node) {
             switch (child.getNodeName()) {
                 case Vocabulary.OWL2.ontoAnnotation:
                     result.addAnnotations(loadAnnotation(child));
@@ -175,7 +176,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiom(XMLElement node) {
+    private Axiom loadAxiom(XmlElement node) {
         switch (node.getNodeName()) {
             case Vocabulary.OWL2.axiomDeclaration:
                 return loadAxiomDeclaration(node);
@@ -262,10 +263,10 @@ public class OWLXMLLoader implements Loader {
      * @param axiom The axiom
      * @return The children except the annotations
      */
-    private List<XMLElement> loadAxiomBase(XMLElement node, Axiom axiom) {
+    private List<XmlElement> loadAxiomBase(XmlElement node, Axiom axiom) {
         axiom.setFile(baseURI);
-        List<XMLElement> result = new ArrayList<>();
-        for (XMLElement child : node) {
+        List<XmlElement> result = new ArrayList<>();
+        for (XmlElement child : node) {
             switch (child.getNodeName()) {
                 case Vocabulary.OWL2.ontoAnnotation:
                     axiom.addAnnotations(loadAnnotation(child));
@@ -284,9 +285,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDeclaration(XMLElement node) {
+    private Axiom loadAxiomDeclaration(XmlElement node) {
         Declaration axiom = Owl2Factory.newDeclaration();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setType(children.get(0).getNodeName());
         axiom.setEntity(loadEntity(children.get(0)));
         return axiom;
@@ -298,9 +299,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomSubClassOf(XMLElement node) {
+    private Axiom loadAxiomSubClassOf(XmlElement node) {
         SubClassOf axiom = Owl2Factory.newSubClassOf();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setClasse(loadExpClass(children.get(1)));
         axiom.setSuperClass(loadExpClass(children.get(2)));
         return axiom;
@@ -312,9 +313,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomEquivalentClasses(XMLElement node) {
+    private Axiom loadAxiomEquivalentClasses(XmlElement node) {
         EquivalentClasses axiom = Owl2Factory.newEquivalentClasses();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         ClassSequence seq = Owl2Factory.newClassSequence();
         for (int i = 0; i != children.size(); i++) {
             ClassElement element = Owl2Factory.newClassElement();
@@ -332,9 +333,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDisjointClasses(XMLElement node) {
+    private Axiom loadAxiomDisjointClasses(XmlElement node) {
         DisjointClasses axiom = Owl2Factory.newDisjointClasses();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         ClassSequence seq = Owl2Factory.newClassSequence();
         for (int i = 0; i != children.size(); i++) {
             ClassElement element = Owl2Factory.newClassElement();
@@ -352,9 +353,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDisjointUnion(XMLElement node) {
+    private Axiom loadAxiomDisjointUnion(XmlElement node) {
         DisjointUnion axiom = Owl2Factory.newDisjointUnion();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setClasse(loadExpClass(children.get(0)));
         ClassSequence seq = Owl2Factory.newClassSequence();
         for (int i = 1; i != children.size(); i++) {
@@ -373,13 +374,13 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomSubObjectPropertyOf(XMLElement node) {
+    private Axiom loadAxiomSubObjectPropertyOf(XmlElement node) {
         SubObjectPropertyOf axiom = Owl2Factory.newSubObjectPropertyOf();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         if (Vocabulary.OWL2.expObjectPropertyChain.equals(children.get(0).getNodeName())) {
             ObjectPropertySequence seq = Owl2Factory.newObjectPropertySequence();
             int index = 0;
-            for (XMLElement child : children.get(0)) {
+            for (XmlElement child : children.get(0)) {
                 ObjectPropertyElement element = Owl2Factory.newObjectPropertyElement();
                 element.setObjectProperty(loadExpObjectProperty(child));
                 element.setIndex(index);
@@ -400,9 +401,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomEquivalentObjectProperties(XMLElement node) {
+    private Axiom loadAxiomEquivalentObjectProperties(XmlElement node) {
         EquivalentObjectProperties axiom = Owl2Factory.newEquivalentObjectProperties();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         ObjectPropertySequence seq = Owl2Factory.newObjectPropertySequence();
         for (int i = 0; i != children.size(); i++) {
             ObjectPropertyElement element = Owl2Factory.newObjectPropertyElement();
@@ -420,9 +421,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDisjointObjectProperties(XMLElement node) {
+    private Axiom loadAxiomDisjointObjectProperties(XmlElement node) {
         DisjointObjectProperties axiom = Owl2Factory.newDisjointObjectProperties();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         ObjectPropertySequence seq = Owl2Factory.newObjectPropertySequence();
         for (int i = 0; i != children.size(); i++) {
             ObjectPropertyElement element = Owl2Factory.newObjectPropertyElement();
@@ -440,9 +441,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomInverseObjectProperties(XMLElement node) {
+    private Axiom loadAxiomInverseObjectProperties(XmlElement node) {
         InverseObjectProperties axiom = Owl2Factory.newInverseObjectProperties();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         axiom.setInverse(loadExpObjectProperty(children.get(1)));
         return axiom;
@@ -454,9 +455,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomObjectPropertyDomain(XMLElement node) {
+    private Axiom loadAxiomObjectPropertyDomain(XmlElement node) {
         ObjectPropertyDomain axiom = Owl2Factory.newObjectPropertyDomain();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         axiom.setClasse(loadExpClass(children.get(1)));
         return axiom;
@@ -468,9 +469,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomObjectPropertyRange(XMLElement node) {
+    private Axiom loadAxiomObjectPropertyRange(XmlElement node) {
         ObjectPropertyRange axiom = Owl2Factory.newObjectPropertyRange();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         axiom.setClasse(loadExpClass(children.get(1)));
         return axiom;
@@ -482,9 +483,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomFunctionalObjectProperty(XMLElement node) {
+    private Axiom loadAxiomFunctionalObjectProperty(XmlElement node) {
         FunctionalObjectProperty axiom = Owl2Factory.newFunctionalObjectProperty();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         return axiom;
     }
@@ -495,9 +496,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomInverseFunctionalObjectProperty(XMLElement node) {
+    private Axiom loadAxiomInverseFunctionalObjectProperty(XmlElement node) {
         InverseFunctionalObjectProperty axiom = Owl2Factory.newInverseFunctionalObjectProperty();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         return axiom;
     }
@@ -508,9 +509,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomReflexiveObjectProperty(XMLElement node) {
+    private Axiom loadAxiomReflexiveObjectProperty(XmlElement node) {
         ReflexiveObjectProperty axiom = Owl2Factory.newReflexiveObjectProperty();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         return axiom;
     }
@@ -521,9 +522,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomIrreflexiveObjectProperty(XMLElement node) {
+    private Axiom loadAxiomIrreflexiveObjectProperty(XmlElement node) {
         IrreflexiveObjectProperty axiom = Owl2Factory.newIrreflexiveObjectProperty();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         return axiom;
     }
@@ -534,9 +535,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomSymmetricObjectProperty(XMLElement node) {
+    private Axiom loadAxiomSymmetricObjectProperty(XmlElement node) {
         SymmetricObjectProperty axiom = Owl2Factory.newSymmetricObjectProperty();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         return axiom;
     }
@@ -547,9 +548,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomAsymmetricObjectProperty(XMLElement node) {
+    private Axiom loadAxiomAsymmetricObjectProperty(XmlElement node) {
         AsymmetricObjectProperty axiom = Owl2Factory.newAsymmetricObjectProperty();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         return axiom;
     }
@@ -560,9 +561,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomTransitiveObjectProperty(XMLElement node) {
+    private Axiom loadAxiomTransitiveObjectProperty(XmlElement node) {
         TransitiveObjectProperty axiom = Owl2Factory.newTransitiveObjectProperty();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         return axiom;
     }
@@ -573,9 +574,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomSubDataPropertyOf(XMLElement node) {
+    private Axiom loadAxiomSubDataPropertyOf(XmlElement node) {
         SubDataPropertyOf axiom = Owl2Factory.newSubDataPropertyOf();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(children.get(0)));
         axiom.setSuperDataProperty(loadExpDataProperty(children.get(1)));
         return axiom;
@@ -587,9 +588,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomEquivalentDataProperties(XMLElement node) {
+    private Axiom loadAxiomEquivalentDataProperties(XmlElement node) {
         EquivalentDataProperties axiom = Owl2Factory.newEquivalentDataProperties();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         DataPropertySequence seq = Owl2Factory.newDataPropertySequence();
         for (int i = 0; i != children.size(); i++) {
             DataPropertyElement element = Owl2Factory.newDataPropertyElement();
@@ -607,9 +608,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDisjointDataProperties(XMLElement node) {
+    private Axiom loadAxiomDisjointDataProperties(XmlElement node) {
         DisjointDataProperties axiom = Owl2Factory.newDisjointDataProperties();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         DataPropertySequence seq = Owl2Factory.newDataPropertySequence();
         for (int i = 0; i != children.size(); i++) {
             DataPropertyElement element = Owl2Factory.newDataPropertyElement();
@@ -627,9 +628,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDataPropertyDomain(XMLElement node) {
+    private Axiom loadAxiomDataPropertyDomain(XmlElement node) {
         DataPropertyDomain axiom = Owl2Factory.newDataPropertyDomain();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(children.get(0)));
         axiom.setClasse(loadExpClass(children.get(1)));
         return axiom;
@@ -641,9 +642,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDataPropertyRange(XMLElement node) {
+    private Axiom loadAxiomDataPropertyRange(XmlElement node) {
         DataPropertyRange axiom = Owl2Factory.newDataPropertyRange();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(children.get(0)));
         axiom.setDatarange(loadExpDatarange(children.get(1)));
         return axiom;
@@ -655,9 +656,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomFunctionalDataProperty(XMLElement node) {
+    private Axiom loadAxiomFunctionalDataProperty(XmlElement node) {
         FunctionalDataProperty axiom = Owl2Factory.newFunctionalDataProperty();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(children.get(0)));
         return axiom;
     }
@@ -668,9 +669,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDatatypeDefinition(XMLElement node) {
+    private Axiom loadAxiomDatatypeDefinition(XmlElement node) {
         DatatypeDefinition axiom = Owl2Factory.newDatatypeDefinition();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setDatatype(loadExpDatarange(children.get(0)));
         axiom.setDatarange(loadExpDatarange(children.get(1)));
         return axiom;
@@ -682,9 +683,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomHasKey(XMLElement node) {
+    private Axiom loadAxiomHasKey(XmlElement node) {
         HasKey axiom = Owl2Factory.newHasKey();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         ObjectPropertySequence seq1 = Owl2Factory.newObjectPropertySequence();
         DataPropertySequence seq2 = Owl2Factory.newDataPropertySequence();
         axiom.setClasse(loadExpClass(children.get(0)));
@@ -708,9 +709,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomSameIndividual(XMLElement node) {
+    private Axiom loadAxiomSameIndividual(XmlElement node) {
         SameIndividual axiom = Owl2Factory.newSameIndividual();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         IndividualSequence seq = Owl2Factory.newIndividualSequence();
         for (int i = 0; i != children.size(); i++) {
             IndividualElement element = Owl2Factory.newIndividualElement();
@@ -728,9 +729,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDifferentIndividuals(XMLElement node) {
+    private Axiom loadAxiomDifferentIndividuals(XmlElement node) {
         DifferentIndividuals axiom = Owl2Factory.newDifferentIndividuals();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         IndividualSequence seq = Owl2Factory.newIndividualSequence();
         for (int i = 0; i != children.size(); i++) {
             IndividualElement element = Owl2Factory.newIndividualElement();
@@ -748,9 +749,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomClassAssertion(XMLElement node) {
+    private Axiom loadAxiomClassAssertion(XmlElement node) {
         ClassAssertion axiom = Owl2Factory.newClassAssertion();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setClasse(loadExpClass(children.get(0)));
         axiom.setIndividual(loadExpIndividual(children.get(1)));
         return axiom;
@@ -762,9 +763,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomObjectPropertyAssertion(XMLElement node) {
+    private Axiom loadAxiomObjectPropertyAssertion(XmlElement node) {
         ObjectPropertyAssertion axiom = Owl2Factory.newObjectPropertyAssertion();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         axiom.setIndividual(loadExpIndividual(children.get(1)));
         axiom.setValueIndividual(loadExpIndividual(children.get(2)));
@@ -777,9 +778,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomNegativeObjectPropertyAssertion(XMLElement node) {
+    private Axiom loadAxiomNegativeObjectPropertyAssertion(XmlElement node) {
         NegativeObjectPropertyAssertion axiom = Owl2Factory.newNegativeObjectPropertyAssertion();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(children.get(0)));
         axiom.setIndividual(loadExpIndividual(children.get(1)));
         axiom.setValueIndividual(loadExpIndividual(children.get(2)));
@@ -792,9 +793,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomDataPropertyAssertion(XMLElement node) {
+    private Axiom loadAxiomDataPropertyAssertion(XmlElement node) {
         DataPropertyAssertion axiom = Owl2Factory.newDataPropertyAssertion();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(children.get(0)));
         axiom.setIndividual(loadExpIndividual(children.get(1)));
         axiom.setValueLiteral(loadExpLiteral(children.get(2)));
@@ -807,9 +808,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomNegativeDataPropertyAssertion(XMLElement node) {
+    private Axiom loadAxiomNegativeDataPropertyAssertion(XmlElement node) {
         NegativeDataPropertyAssertion axiom = Owl2Factory.newNegativeDataPropertyAssertion();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(children.get(0)));
         axiom.setIndividual(loadExpIndividual(children.get(1)));
         axiom.setValueLiteral(loadExpLiteral(children.get(2)));
@@ -822,9 +823,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomAnnotationAssertion(XMLElement node) {
+    private Axiom loadAxiomAnnotationAssertion(XmlElement node) {
         AnnotationAssertion axiom = Owl2Factory.newAnnotationAssertion();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setAnnotProperty(loadExpAnnotationProperty(children.get(0)));
         axiom.setAnnotSubject(loadExpAnnotationSubject(children.get(1)));
         axiom.setAnnotValue(loadExpAnnotationValue(children.get(2)));
@@ -837,9 +838,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomSubAnnotationPropertyOf(XMLElement node) {
+    private Axiom loadAxiomSubAnnotationPropertyOf(XmlElement node) {
         SubAnnotationPropertyOf axiom = Owl2Factory.newSubAnnotationPropertyOf();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setAnnotProperty(loadExpAnnotationProperty(children.get(0)));
         axiom.setSuperAnnotProperty(loadExpAnnotationProperty(children.get(1)));
         return axiom;
@@ -851,9 +852,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomAnnotationPropertyDomain(XMLElement node) {
+    private Axiom loadAxiomAnnotationPropertyDomain(XmlElement node) {
         AnnotationPropertyDomain axiom = Owl2Factory.newAnnotationPropertyDomain();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setAnnotProperty(loadExpAnnotationProperty(children.get(0)));
         axiom.setAnnotDomain(loadEntity(children.get(1)));
         return axiom;
@@ -865,9 +866,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The axiom
      */
-    private Axiom loadAxiomAnnotationPropertyRange(XMLElement node) {
+    private Axiom loadAxiomAnnotationPropertyRange(XmlElement node) {
         AnnotationPropertyRange axiom = Owl2Factory.newAnnotationPropertyRange();
-        List<XMLElement> children = loadAxiomBase(node, axiom);
+        List<XmlElement> children = loadAxiomBase(node, axiom);
         axiom.setAnnotProperty(loadExpAnnotationProperty(children.get(0)));
         axiom.setAnnotRange(loadEntity(children.get(1)));
         return axiom;
@@ -879,7 +880,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The entity expression
      */
-    private EntityExpression loadExpEntity(XMLElement node) {
+    private EntityExpression loadExpEntity(XmlElement node) {
         return loadEntity(node);
     }
 
@@ -889,7 +890,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The entity
      */
-    private IRI loadEntity(XMLElement node) {
+    private IRI loadEntity(XmlElement node) {
         IRI iri = Owl2Factory.newIRI();
         switch (node.getNodeName()) {
             case "IRI":
@@ -915,7 +916,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpClass(XMLElement node) {
+    private ClassExpression loadExpClass(XmlElement node) {
         switch (node.getNodeName()) {
             case Vocabulary.OWL2.expObjectIntersectionOf:
                 return loadExpObjectIntersectionOf(node);
@@ -961,11 +962,11 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectIntersectionOf(XMLElement node) {
+    private ClassExpression loadExpObjectIntersectionOf(XmlElement node) {
         ObjectIntersectionOf expression = Owl2Factory.newObjectIntersectionOf();
         ClassSequence seq = Owl2Factory.newClassSequence();
         int index = 0;
-        for (XMLElement child : node) {
+        for (XmlElement child : node) {
             ClassElement element = Owl2Factory.newClassElement();
             element.setClasse(loadExpClass(child));
             element.setIndex(index);
@@ -982,11 +983,11 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectUnionOf(XMLElement node) {
+    private ClassExpression loadExpObjectUnionOf(XmlElement node) {
         ObjectUnionOf expression = Owl2Factory.newObjectUnionOf();
         ClassSequence seq = Owl2Factory.newClassSequence();
         int index = 0;
-        for (XMLElement child : node) {
+        for (XmlElement child : node) {
             ClassElement element = Owl2Factory.newClassElement();
             element.setClasse(loadExpClass(child));
             element.setIndex(index);
@@ -1003,7 +1004,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectComplementOf(XMLElement node) {
+    private ClassExpression loadExpObjectComplementOf(XmlElement node) {
         ObjectComplementOf expression = Owl2Factory.newObjectComplementOf();
         expression.setClasse(loadExpClass(node.getChildren().next()));
         return expression;
@@ -1015,11 +1016,11 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectOneOf(XMLElement node) {
+    private ClassExpression loadExpObjectOneOf(XmlElement node) {
         ObjectOneOf expression = Owl2Factory.newObjectOneOf();
         IndividualSequence seq = Owl2Factory.newIndividualSequence();
         int index = 0;
-        for (XMLElement child : node) {
+        for (XmlElement child : node) {
             IndividualElement element = Owl2Factory.newIndividualElement();
             element.setIndividual(loadExpIndividual(child));
             element.setIndex(index);
@@ -1036,9 +1037,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectSomeValuesFrom(XMLElement node) {
+    private ClassExpression loadExpObjectSomeValuesFrom(XmlElement node) {
         ObjectSomeValuesFrom expression = Owl2Factory.newObjectSomeValuesFrom();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setObjectProperty(loadExpObjectProperty(children.next()));
         expression.setClasse(loadExpClass(children.next()));
         return expression;
@@ -1050,9 +1051,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectAllValuesFrom(XMLElement node) {
+    private ClassExpression loadExpObjectAllValuesFrom(XmlElement node) {
         ObjectAllValuesFrom expression = Owl2Factory.newObjectAllValuesFrom();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setObjectProperty(loadExpObjectProperty(children.next()));
         expression.setClasse(loadExpClass(children.next()));
         return expression;
@@ -1064,9 +1065,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectHasValue(XMLElement node) {
+    private ClassExpression loadExpObjectHasValue(XmlElement node) {
         ObjectHasValue expression = Owl2Factory.newObjectHasValue();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setObjectProperty(loadExpObjectProperty(children.next()));
         expression.setIndividual(loadExpIndividual(children.next()));
         return expression;
@@ -1078,7 +1079,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectHasSelf(XMLElement node) {
+    private ClassExpression loadExpObjectHasSelf(XmlElement node) {
         ObjectHasSelf expression = Owl2Factory.newObjectHasSelf();
         expression.setObjectProperty(loadExpObjectProperty(node.getChildren().next()));
         return expression;
@@ -1090,9 +1091,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectMinCardinality(XMLElement node) {
+    private ClassExpression loadExpObjectMinCardinality(XmlElement node) {
         ObjectMinCardinality expression = Owl2Factory.newObjectMinCardinality();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setCardinality(loadExpLiteral(children.next()));
         expression.setObjectProperty(loadExpObjectProperty(children.next()));
         if (children.hasNext())
@@ -1106,9 +1107,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectMaxCardinality(XMLElement node) {
+    private ClassExpression loadExpObjectMaxCardinality(XmlElement node) {
         ObjectMaxCardinality expression = Owl2Factory.newObjectMaxCardinality();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setCardinality(loadExpLiteral(children.next()));
         expression.setObjectProperty(loadExpObjectProperty(children.next()));
         if (children.hasNext())
@@ -1122,9 +1123,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpObjectExactCardinality(XMLElement node) {
+    private ClassExpression loadExpObjectExactCardinality(XmlElement node) {
         ObjectExactCardinality expression = Owl2Factory.newObjectExactCardinality();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setCardinality(loadExpLiteral(children.next()));
         expression.setObjectProperty(loadExpObjectProperty(children.next()));
         if (children.hasNext())
@@ -1138,14 +1139,14 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpDataSomeValuesFrom(XMLElement node) {
+    private ClassExpression loadExpDataSomeValuesFrom(XmlElement node) {
         DataSomeValuesFrom expression = Owl2Factory.newDataSomeValuesFrom();
         DataPropertySequence seq = Owl2Factory.newDataPropertySequence();
         expression.setDataPropertySeq(seq);
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         int index = 0;
         while (children.hasNext()) {
-            XMLElement child = children.next();
+            XmlElement child = children.next();
             if (children.hasNext()) {
                 // not the last child, this is a data property
                 DataPropertyElement element = Owl2Factory.newDataPropertyElement();
@@ -1166,14 +1167,14 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpDataAllValuesFrom(XMLElement node) {
+    private ClassExpression loadExpDataAllValuesFrom(XmlElement node) {
         DataAllValuesFrom expression = Owl2Factory.newDataAllValuesFrom();
         DataPropertySequence seq = Owl2Factory.newDataPropertySequence();
         expression.setDataPropertySeq(seq);
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         int index = 0;
         while (children.hasNext()) {
-            XMLElement child = children.next();
+            XmlElement child = children.next();
             if (children.hasNext()) {
                 // not the last child, this is a data property
                 DataPropertyElement element = Owl2Factory.newDataPropertyElement();
@@ -1194,9 +1195,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpDataHasValue(XMLElement node) {
+    private ClassExpression loadExpDataHasValue(XmlElement node) {
         DataHasValue expression = Owl2Factory.newDataHasValue();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setDataProperty(loadExpDataProperty(children.next()));
         expression.setLiteral(loadExpLiteral(children.next()));
         return expression;
@@ -1208,9 +1209,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpDataMinCardinality(XMLElement node) {
+    private ClassExpression loadExpDataMinCardinality(XmlElement node) {
         DataMinCardinality expression = Owl2Factory.newDataMinCardinality();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setCardinality(loadExpLiteral(children.next()));
         expression.setDataProperty(loadExpDataProperty(children.next()));
         if (children.hasNext())
@@ -1224,9 +1225,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpDataMaxCardinality(XMLElement node) {
+    private ClassExpression loadExpDataMaxCardinality(XmlElement node) {
         DataMaxCardinality expression = Owl2Factory.newDataMaxCardinality();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setCardinality(loadExpLiteral(children.next()));
         expression.setDataProperty(loadExpDataProperty(children.next()));
         if (children.hasNext())
@@ -1240,9 +1241,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The class expression
      */
-    private ClassExpression loadExpDataExactCardinality(XMLElement node) {
+    private ClassExpression loadExpDataExactCardinality(XmlElement node) {
         DataExactCardinality expression = Owl2Factory.newDataExactCardinality();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setCardinality(loadExpLiteral(children.next()));
         expression.setDataProperty(loadExpDataProperty(children.next()));
         if (children.hasNext())
@@ -1256,7 +1257,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The individual expression
      */
-    private IndividualExpression loadExpIndividual(XMLElement node) {
+    private IndividualExpression loadExpIndividual(XmlElement node) {
         switch (node.getNodeName()) {
             case Vocabulary.OWL2.entityAnonymousIndividual:
                 return loadExpAnonymousIndividual(node);
@@ -1270,7 +1271,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The anonymous individual
      */
-    private AnonymousIndividual loadExpAnonymousIndividual(XMLElement node) {
+    private AnonymousIndividual loadExpAnonymousIndividual(XmlElement node) {
         String name = node.getAttribute("nodeID");
         AnonymousIndividual result = blanks.get(name);
         if (result != null)
@@ -1287,7 +1288,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The datarange expression
      */
-    private Datarange loadExpDatarange(XMLElement node) {
+    private Datarange loadExpDatarange(XmlElement node) {
         switch (node.getNodeName()) {
             case Vocabulary.OWL2.expDataIntersectionOf:
                 return loadExpDataIntersectionOf(node);
@@ -1309,11 +1310,11 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The datarange expression
      */
-    private Datarange loadExpDataIntersectionOf(XMLElement node) {
+    private Datarange loadExpDataIntersectionOf(XmlElement node) {
         DataIntersectionOf expression = Owl2Factory.newDataIntersectionOf();
         DatarangeSequence seq = Owl2Factory.newDatarangeSequence();
         int index = 0;
-        for (XMLElement child : node) {
+        for (XmlElement child : node) {
             DatarangeElement element = Owl2Factory.newDatarangeElement();
             element.setDatarange(loadExpDatarange(child));
             element.setIndex(index);
@@ -1330,11 +1331,11 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The datarange expression
      */
-    private Datarange loadExpDataUnionOf(XMLElement node) {
+    private Datarange loadExpDataUnionOf(XmlElement node) {
         DataUnionOf expression = Owl2Factory.newDataUnionOf();
         DatarangeSequence seq = Owl2Factory.newDatarangeSequence();
         int index = 0;
-        for (XMLElement child : node) {
+        for (XmlElement child : node) {
             DatarangeElement element = Owl2Factory.newDatarangeElement();
             element.setDatarange(loadExpDatarange(child));
             element.setIndex(index);
@@ -1351,7 +1352,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The datarange expression
      */
-    private Datarange loadExpDataComplementOf(XMLElement node) {
+    private Datarange loadExpDataComplementOf(XmlElement node) {
         DataComplementOf expression = Owl2Factory.newDataComplementOf();
         expression.setDatarange(loadExpDatarange(node.getChildren().next()));
         return expression;
@@ -1363,11 +1364,11 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The datarange expression
      */
-    private Datarange loadExpDataOneOf(XMLElement node) {
+    private Datarange loadExpDataOneOf(XmlElement node) {
         DataOneOf expression = Owl2Factory.newDataOneOf();
         LiteralSequence seq = Owl2Factory.newLiteralSequence();
         int index = 0;
-        for (XMLElement child : node) {
+        for (XmlElement child : node) {
             LiteralElement element = Owl2Factory.newLiteralElement();
             element.setLiteral(loadExpLiteral(child));
             element.setIndex(index);
@@ -1384,9 +1385,9 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The datarange expression
      */
-    private Datarange loadExpDatatypeRestriction(XMLElement node) {
+    private Datarange loadExpDatatypeRestriction(XmlElement node) {
         DatatypeRestriction expression = Owl2Factory.newDatatypeRestriction();
-        Iterator<XMLElement> children = node.getChildren();
+        Iterator<XmlElement> children = node.getChildren();
         expression.setDatarange(loadExpDatarange(children.next()));
         while (children.hasNext())
             expression.addFacetRestrictions(loadExpFacetRestriction(children.next()));
@@ -1399,7 +1400,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The facet restriction
      */
-    private FacetRestriction loadExpFacetRestriction(XMLElement node) {
+    private FacetRestriction loadExpFacetRestriction(XmlElement node) {
         FacetRestriction restriction = Owl2Factory.newFacetRestriction();
         IRI iri = Owl2Factory.newIRI();
         iri.setHasValue(node.getAttribute("facet"));
@@ -1414,7 +1415,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The object property expression
      */
-    private ObjectPropertyExpression loadExpObjectProperty(XMLElement node) {
+    private ObjectPropertyExpression loadExpObjectProperty(XmlElement node) {
         switch (node.getNodeName()) {
             case Vocabulary.OWL2.expObjectInverseOf:
                 return loaExpInverseObjectProperty(node);
@@ -1428,7 +1429,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The object property expression
      */
-    private ObjectPropertyExpression loaExpInverseObjectProperty(XMLElement node) {
+    private ObjectPropertyExpression loaExpInverseObjectProperty(XmlElement node) {
         ObjectInverseOf expression = Owl2Factory.newObjectInverseOf();
         expression.setInverse(loadExpObjectProperty(node.getChildren().next()));
         return expression;
@@ -1440,7 +1441,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The data property expression
      */
-    private DataPropertyExpression loadExpDataProperty(XMLElement node) {
+    private DataPropertyExpression loadExpDataProperty(XmlElement node) {
         return loadExpEntity(node);
     }
 
@@ -1450,7 +1451,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The literal expression
      */
-    private LiteralExpression loadExpLiteral(XMLElement node) {
+    private LiteralExpression loadExpLiteral(XmlElement node) {
         String value = node.getContent();
         String datatype = node.getAttribute("datatypeIRI");
         if (datatype == null)
@@ -1469,7 +1470,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The annotation value
      */
-    private IRI loadExpAnnotationProperty(XMLElement node) {
+    private IRI loadExpAnnotationProperty(XmlElement node) {
         return loadEntity(node);
     }
 
@@ -1479,7 +1480,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The annotation value
      */
-    private AnnotationSubject loadExpAnnotationSubject(XMLElement node) {
+    private AnnotationSubject loadExpAnnotationSubject(XmlElement node) {
         switch (node.getNodeName()) {
             case Vocabulary.OWL2.entityAnonymousIndividual:
                 return loadExpAnonymousIndividual(node);
@@ -1494,7 +1495,7 @@ public class OWLXMLLoader implements Loader {
      * @param node The XML node
      * @return The annotation value
      */
-    private AnnotationValue loadExpAnnotationValue(XMLElement node) {
+    private AnnotationValue loadExpAnnotationValue(XmlElement node) {
         switch (node.getNodeName()) {
             case "IRI": {
                 IRI iri = Owl2Factory.newIRI();

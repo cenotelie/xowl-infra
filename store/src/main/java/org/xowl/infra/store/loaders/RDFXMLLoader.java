@@ -26,6 +26,7 @@ import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.xml.Xml;
+import org.xowl.infra.utils.xml.XmlElement;
 
 import java.io.Reader;
 import java.util.*;
@@ -36,6 +37,72 @@ import java.util.*;
  * @author Laurent Wouters
  */
 public class RDFXMLLoader implements Loader {
+    /**
+     * Reserved core syntax terms
+     */
+    private static final String[] RESERVED_CORE_SYNTAX_TERMS = new String[]{
+            Vocabulary.rdfRDF,
+            Vocabulary.rdfID,
+            Vocabulary.rdfAbout,
+            Vocabulary.rdfParseType,
+            Vocabulary.rdfResource,
+            Vocabulary.rdfNodeID,
+            Vocabulary.rdfDatatype
+    };
+    /**
+     * Reserved old terms
+     */
+    private static final String[] RESERVED_OLD_TERMS = new String[]{
+            Vocabulary.rdf + "aboutEach",
+            Vocabulary.rdf + "aboutEachPrefix",
+            Vocabulary.rdf + "bagID"
+    };
+
+    /**
+     * Determines whether an element is a valid RDF resource element
+     *
+     * @param iri The IRI of the element
+     * @return <code>true</code> if the node is valid
+     */
+    public static boolean isValidElement(String iri) {
+        return (!contains(RESERVED_CORE_SYNTAX_TERMS, iri) && !contains(RESERVED_OLD_TERMS, iri) && !Vocabulary.rdfLI.equals(iri));
+    }
+
+    /**
+     * Determines whether an element is a valid RDF property element
+     *
+     * @param iri The IRI of the element
+     * @return <code>true</code> if the node is valid
+     */
+    public static boolean isValidPropertyElement(String iri) {
+        return (!contains(RESERVED_CORE_SYNTAX_TERMS, iri) && !contains(RESERVED_OLD_TERMS, iri) && !Vocabulary.rdfDescription.equals(iri));
+    }
+
+    /**
+     * Determines whether the specified IRI is a valid RDF property attribute
+     *
+     * @param iri The IRI of the element
+     * @return <code>true</code> if the node is valid
+     */
+    public static boolean isValidPropertyAttribute(String iri) {
+        return (!contains(RESERVED_CORE_SYNTAX_TERMS, iri) && !contains(RESERVED_OLD_TERMS, iri) && !Vocabulary.rdfLI.equals(iri) && !Vocabulary.rdfDescription.equals(iri));
+    }
+
+    /**
+     * Determines whether a list contains a specified value
+     *
+     * @param list  The list to look into
+     * @param value the value to look for
+     * @return <code>true</code> if the value is in the list
+     */
+    private static boolean contains(String[] list, String value) {
+        for (int i = 0; i != list.length; i++)
+            if (list[i].equals(value))
+                return true;
+        return false;
+    }
+
+
     /**
      * The RDF store to create nodes from
      */
@@ -169,7 +236,7 @@ public class RDFXMLLoader implements Loader {
 
         try {
             Document xmlDocument = Xml.parse(reader);
-            XMLElement root = new XMLElement(xmlDocument.getDocumentElement(), resourceIRI);
+            XmlElement root = new XmlElement(xmlDocument.getDocumentElement(), resourceIRI);
             if (Vocabulary.rdfRDF.equals(root.getNodeIRI()))
                 loadDocument(root);
             else
@@ -192,8 +259,8 @@ public class RDFXMLLoader implements Loader {
      *
      * @param element A RDF document node
      */
-    private void loadDocument(XMLElement element) {
-        for (XMLElement child : element)
+    private void loadDocument(XmlElement element) {
+        for (XmlElement child : element)
             loadElement(child);
     }
 
@@ -203,8 +270,8 @@ public class RDFXMLLoader implements Loader {
      * @param element A RDF resource node
      * @return The represented RDF node
      */
-    private SubjectNode loadElement(XMLElement element) {
-        if (!element.isValidElement())
+    private SubjectNode loadElement(XmlElement element) {
+        if (!isValidElement(element.getNodeIRI()))
             throw new IllegalArgumentException("Unexpected resource element " + element.getNodeIRI());
 
         SubjectNode subject = null;
@@ -254,7 +321,7 @@ public class RDFXMLLoader implements Loader {
         Iterator<Couple<String, String>> attributes = element.getAttributes();
         while (attributes.hasNext()) {
             Couple<String, String> couple = attributes.next();
-            if (!element.isValidPropertyAttribute(couple.x))
+            if (!isValidPropertyAttribute(couple.x))
                 throw new IllegalArgumentException("Unexpected property attribute node " + couple.x);
             IRINode property = store.getIRINode(couple.x);
             LiteralNode literal;
@@ -265,7 +332,7 @@ public class RDFXMLLoader implements Loader {
             register(subject, property, literal);
         }
 
-        for (XMLElement child : element)
+        for (XmlElement child : element)
             loadElementProperty(child, subject);
 
         return subject;
@@ -277,8 +344,8 @@ public class RDFXMLLoader implements Loader {
      * @param element The XML node representing the property
      * @param subject The current RDF subject
      */
-    private void loadElementProperty(XMLElement element, SubjectNode subject) {
-        if (!element.isValidPropertyElement())
+    private void loadElementProperty(XmlElement element, SubjectNode subject) {
+        if (!isValidPropertyElement(element.getNodeIRI()))
             throw new IllegalArgumentException("Unexpected property element node " + element.getNodeIRI());
 
         String attribute = element.getAttribute(Vocabulary.rdfParseType);
@@ -286,7 +353,7 @@ public class RDFXMLLoader implements Loader {
             if (element.isEmpty()) {
                 loadElementPropertyEmpty(element, subject);
             } else {
-                Iterator<XMLElement> children = element.getChildren();
+                Iterator<XmlElement> children = element.getChildren();
                 if (children.hasNext()) {
                     loadElementPropertyResource(element, subject);
                 } else {
@@ -312,9 +379,9 @@ public class RDFXMLLoader implements Loader {
      * @param element An XML node representing an RDF property
      * @return The equivalent property IRI node
      */
-    private IRINode getProperty(XMLElement element) {
+    private IRINode getProperty(XmlElement element) {
         if (Vocabulary.rdfLI.equals(element.getNodeIRI())) {
-            int index = element.getLIIndex();
+            int index = element.getIndex();
             return store.getIRINode(Vocabulary.rdf + "_" + Integer.toString(index));
         } else {
             return store.getIRINode(element.getNodeIRI());
@@ -327,9 +394,9 @@ public class RDFXMLLoader implements Loader {
      * @param element The XML node representing the property
      * @param subject The current RDF subject
      */
-    private void loadElementPropertyResource(XMLElement element, SubjectNode subject) {
+    private void loadElementPropertyResource(XmlElement element, SubjectNode subject) {
         IRINode property = getProperty(element);
-        Iterator<XMLElement> children = element.getChildren();
+        Iterator<XmlElement> children = element.getChildren();
         SubjectNode value = loadElement(children.next());
         register(subject, property, value);
 
@@ -356,7 +423,7 @@ public class RDFXMLLoader implements Loader {
      * @param element The XML node representing the property
      * @param subject The current RDF subject
      */
-    private void loadElementPropertyLiteral(XMLElement element, SubjectNode subject) {
+    private void loadElementPropertyLiteral(XmlElement element, SubjectNode subject) {
         IRINode property = getProperty(element);
         String lexem = element.getContent();
         LiteralNode value;
@@ -393,7 +460,7 @@ public class RDFXMLLoader implements Loader {
      * @param element The XML node representing the property
      * @param subject The current RDF subject
      */
-    private void loadElementPropertyEmpty(XMLElement element, SubjectNode subject) {
+    private void loadElementPropertyEmpty(XmlElement element, SubjectNode subject) {
         IRINode property = getProperty(element);
         String attributeID = element.getAttribute(Vocabulary.rdfID);
         String attribute;
@@ -446,7 +513,7 @@ public class RDFXMLLoader implements Loader {
             attributes = element.getAttributes();
             while (attributes.hasNext()) {
                 Couple<String, String> att = attributes.next();
-                if (!element.isValidPropertyAttribute(att.x))
+                if (!isValidPropertyAttribute(att.x))
                     throw new IllegalArgumentException("Unexpected property attribute node " + att.x);
                 IRINode subProperty = store.getIRINode(att.x);
                 LiteralNode literal;
@@ -475,7 +542,7 @@ public class RDFXMLLoader implements Loader {
      * @param element The XML node representing the property
      * @param subject The current RDF subject
      */
-    private void loadElementPropertyLiteralParseType(XMLElement element, SubjectNode subject) {
+    private void loadElementPropertyLiteralParseType(XmlElement element, SubjectNode subject) {
         IRINode property = getProperty(element);
         String attributeID = element.getAttribute(Vocabulary.rdfID);
         Iterator<Couple<String, String>> attributes = element.getAttributes();
@@ -504,7 +571,7 @@ public class RDFXMLLoader implements Loader {
      * @param element The XML node representing the property
      * @param subject The current RDF subject
      */
-    private void loadElementPropertyResourceParseType(XMLElement element, SubjectNode subject) {
+    private void loadElementPropertyResourceParseType(XmlElement element, SubjectNode subject) {
         IRINode property = getProperty(element);
         SubjectNode value = store.getBlankNode();
         register(subject, property, value);
@@ -524,7 +591,7 @@ public class RDFXMLLoader implements Loader {
             register(proxy, Vocabulary.rdfObject, value);
         }
 
-        for (XMLElement child : element)
+        for (XmlElement child : element)
             loadElementProperty(child, value);
     }
 
@@ -534,10 +601,10 @@ public class RDFXMLLoader implements Loader {
      * @param element The XML node representing the property
      * @param subject The current RDF subject
      */
-    private void loadElementPropertyCollectionParseType(XMLElement element, SubjectNode subject) {
+    private void loadElementPropertyCollectionParseType(XmlElement element, SubjectNode subject) {
         IRINode property = getProperty(element);
         String attributeID = element.getAttribute(Vocabulary.rdfID);
-        Iterator<XMLElement> children = element.getChildren();
+        Iterator<XmlElement> children = element.getChildren();
 
         SubjectNode head;
         if (!children.hasNext()) {

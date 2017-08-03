@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,19 +15,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.loaders;
+package org.xowl.infra.utils.xml;
 
 import fr.cenotelie.hime.redist.TextPosition;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.URIUtils;
-import org.xowl.infra.utils.xml.PositionalSaxHandler;
 
 import java.util.*;
 
@@ -36,32 +34,11 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class XMLElement implements Iterable<XMLElement> {
-    /**
-     * Reserved core syntax terms
-     */
-    private static final String[] RESERVED_CORE_SYNTAX_TERMS = new String[]{
-            Vocabulary.rdfRDF,
-            Vocabulary.rdfID,
-            Vocabulary.rdfAbout,
-            Vocabulary.rdfParseType,
-            Vocabulary.rdfResource,
-            Vocabulary.rdfNodeID,
-            Vocabulary.rdfDatatype
-    };
-    /**
-     * Reserved old terms
-     */
-    private static final String[] RESERVED_OLD_TERMS = new String[]{
-            Vocabulary.rdf + "aboutEach",
-            Vocabulary.rdf + "aboutEachPrefix",
-            Vocabulary.rdf + "bagID"
-    };
-
+public class XmlElement implements Iterable<XmlElement> {
     /**
      * The parent contextual element
      */
-    private XMLElement parent;
+    private XmlElement parent;
     /**
      * The represented XML element node
      */
@@ -140,18 +117,18 @@ public class XMLElement implements Iterable<XMLElement> {
     }
 
     /**
-     * Gets the index of this rdf:LI node relative to its siblings
+     * Gets the index of this node relative to its siblings with the same IRI
      *
      * @return The index of this node
      */
-    public int getLIIndex() {
-        Iterator<XMLElement> siblings = parent.getChildren();
+    public int getIndex() {
+        Iterator<XmlElement> siblings = parent.getChildren();
         int index = 1;
         while (siblings.hasNext()) {
-            XMLElement potential = siblings.next();
+            XmlElement potential = siblings.next();
             if (potential.node == this.node)
                 return index;
-            if (Vocabulary.rdfLI.equals(potential.nodeIRI))
+            if (this.nodeIRI.equals(potential.nodeIRI))
                 index++;
         }
         return 0;
@@ -172,7 +149,7 @@ public class XMLElement implements Iterable<XMLElement> {
      * @return The XML literal representation of the content of this node
      */
     public String getXMLLiteral() {
-        RDFXMLCanonicalizer canonicalizer = new RDFXMLCanonicalizer();
+        XmlCanonicalizer canonicalizer = new XmlCanonicalizer();
         return canonicalizer.canonicalize(node.getChildNodes());
     }
 
@@ -182,7 +159,7 @@ public class XMLElement implements Iterable<XMLElement> {
      * @return The text position
      */
     public TextPosition getPositionOpeningStart() {
-        return (TextPosition) node.getUserData(PositionalSaxHandler.KEY_POSITION_OPENING_START);
+        return (TextPosition) node.getUserData(Xml.KEY_POSITION_OPENING_START);
     }
 
     /**
@@ -191,7 +168,7 @@ public class XMLElement implements Iterable<XMLElement> {
      * @return The text position
      */
     public TextPosition getPositionOpeningEnd() {
-        return (TextPosition) node.getUserData(PositionalSaxHandler.KEY_POSITION_OPENING_END);
+        return (TextPosition) node.getUserData(Xml.KEY_POSITION_OPENING_END);
     }
 
     /**
@@ -200,7 +177,7 @@ public class XMLElement implements Iterable<XMLElement> {
      * @param node     The represented XML node
      * @param resource The resource's URI
      */
-    public XMLElement(Element node, String resource) {
+    public XmlElement(Element node, String resource) {
         this.node = node;
         this.resource = resource;
         this.namespaces = new HashMap<>();
@@ -213,7 +190,7 @@ public class XMLElement implements Iterable<XMLElement> {
      * @param parent The parent contextual node
      * @param node   The represented XML node
      */
-    public XMLElement(XMLElement parent, Element node) {
+    public XmlElement(XmlElement parent, Element node) {
         this.parent = parent;
         this.node = node;
         this.resource = parent.resource;
@@ -266,47 +243,6 @@ public class XMLElement implements Iterable<XMLElement> {
         return URIUtils.recompose(components[URIUtils.COMPONENT_SCHEME], components[URIUtils.COMPONENT_AUTHORITY], components[URIUtils.COMPONENT_PATH], components[URIUtils.COMPONENT_QUERY], null);
     }
 
-    /**
-     * Determines whether a list contains a specified value
-     *
-     * @param list  The list to look into
-     * @param value the value to look for
-     * @return <code>true</code> if the value is in the list
-     */
-    private static boolean contains(String[] list, String value) {
-        for (int i = 0; i != list.length; i++)
-            if (list[i].equals(value))
-                return true;
-        return false;
-    }
-
-    /**
-     * Determines whether this element is a valid RDF resource element
-     *
-     * @return <code>true</code> if the node is valid
-     */
-    public boolean isValidElement() {
-        return (!contains(RESERVED_CORE_SYNTAX_TERMS, nodeIRI) && !contains(RESERVED_OLD_TERMS, nodeIRI) && !Vocabulary.rdfLI.equals(nodeIRI));
-    }
-
-    /**
-     * Determines whether this element is a valid RDF property element
-     *
-     * @return <code>true</code> if the node is valid
-     */
-    public boolean isValidPropertyElement() {
-        return (!contains(RESERVED_CORE_SYNTAX_TERMS, nodeIRI) && !contains(RESERVED_OLD_TERMS, nodeIRI) && !Vocabulary.rdfDescription.equals(nodeIRI));
-    }
-
-    /**
-     * Determines whether the specified IRI is a valid RDF property attribute
-     *
-     * @param iri A XML node's IRI
-     * @return <code>true</code> if the node is valid
-     */
-    public boolean isValidPropertyAttribute(String iri) {
-        return (!contains(RESERVED_CORE_SYNTAX_TERMS, iri) && !contains(RESERVED_OLD_TERMS, iri) && !Vocabulary.rdfLI.equals(iri) && !Vocabulary.rdfDescription.equals(iri));
-    }
 
     /**
      * Resolves the specified local name with the contextual elements of this node and its ancestors
@@ -315,7 +251,7 @@ public class XMLElement implements Iterable<XMLElement> {
      * @return The resulting resolved URI
      */
     private String resolveLocalName(String localName) {
-        XMLElement current = this;
+        XmlElement current = this;
         localName = TextUtils.unescape(localName);
         if (!localName.contains(":"))
             return currentNamespace + localName;
@@ -382,7 +318,7 @@ public class XMLElement implements Iterable<XMLElement> {
      *
      * @return An iterator over the Element children
      */
-    public Iterator<XMLElement> getChildren() {
+    public Iterator<XmlElement> getChildren() {
         return iterator();
     }
 
@@ -392,9 +328,9 @@ public class XMLElement implements Iterable<XMLElement> {
      * @return An iterator over the Element children
      */
     @Override
-    public Iterator<XMLElement> iterator() {
+    public Iterator<XmlElement> iterator() {
         final NodeList list = node.getChildNodes();
-        return new Iterator<XMLElement>() {
+        return new Iterator<XmlElement>() {
             int index = getNext(0);
 
             private int getNext(int start) {
@@ -410,10 +346,10 @@ public class XMLElement implements Iterable<XMLElement> {
             }
 
             @Override
-            public XMLElement next() {
+            public XmlElement next() {
                 Element result = (Element) list.item(index);
                 index = getNext(index + 1);
-                return new XMLElement(XMLElement.this, result);
+                return new XmlElement(XmlElement.this, result);
             }
 
             @Override

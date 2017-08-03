@@ -33,16 +33,7 @@ import java.util.Stack;
  *
  * @author Laurent Wouters
  */
-public class PositionalSaxHandler extends DefaultWithLexicalHandler {
-    /**
-     * The key for the position of the opening tag of an element
-     */
-    public static final String KEY_POSITION_OPENING_START = PositionalSaxHandler.class.getCanonicalName() + ".PositionOpeningStart";
-    /**
-     * The key for the position of the end of the opening tag of an element
-     */
-    public static final String KEY_POSITION_OPENING_END = PositionalSaxHandler.class.getCanonicalName() + ".PositionOpeningEnd";
-
+class PositionalSaxHandler extends DefaultWithLexicalHandler {
     /**
      * The document to build
      */
@@ -89,9 +80,9 @@ public class PositionalSaxHandler extends DefaultWithLexicalHandler {
         for (int i = 0; i < attributes.getLength(); i++) {
             element.setAttribute(attributes.getQName(i), attributes.getValue(i));
         }
-        element.setUserData(KEY_POSITION_OPENING_START, lastLocation, null);
+        element.setUserData(Xml.KEY_POSITION_OPENING_START, lastLocation, null);
         lastLocation = new TextPosition(locator.getLineNumber(), locator.getColumnNumber());
-        element.setUserData(KEY_POSITION_OPENING_END, lastLocation, null);
+        element.setUserData(Xml.KEY_POSITION_OPENING_END, lastLocation, null);
         stack.push(element);
     }
 
