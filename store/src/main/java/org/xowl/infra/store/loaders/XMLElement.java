@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.hime.redist.TextPosition;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -26,6 +27,7 @@ import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.URIUtils;
+import org.xowl.infra.utils.xml.PositionalSaxHandler;
 
 import java.util.*;
 
@@ -34,7 +36,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class XMLElement implements Iterable<XMLElement> {
+public class XMLElement implements Iterable<XMLElement> {
     /**
      * Reserved core syntax terms
      */
@@ -172,6 +174,24 @@ class XMLElement implements Iterable<XMLElement> {
     public String getXMLLiteral() {
         RDFXMLCanonicalizer canonicalizer = new RDFXMLCanonicalizer();
         return canonicalizer.canonicalize(node.getChildNodes());
+    }
+
+    /**
+     * Gets the text position for the start of the opening tag of this element
+     *
+     * @return The text position
+     */
+    public TextPosition getPositionOpeningStart() {
+        return (TextPosition) node.getUserData(PositionalSaxHandler.KEY_POSITION_OPENING_START);
+    }
+
+    /**
+     * Gets the text position for the end of the opening tag of this element
+     *
+     * @return The text position
+     */
+    public TextPosition getPositionOpeningEnd() {
+        return (TextPosition) node.getUserData(PositionalSaxHandler.KEY_POSITION_OPENING_END);
     }
 
     /**

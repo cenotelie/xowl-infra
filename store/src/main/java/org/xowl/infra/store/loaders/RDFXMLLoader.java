@@ -17,18 +17,16 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 import fr.cenotelie.hime.redist.ParseResult;
+import org.w3c.dom.Document;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.xml.XmlUtils;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.Reader;
 import java.util.*;
 
@@ -170,10 +168,8 @@ public class RDFXMLLoader implements Loader {
         imports = result.getImports();
 
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder parser = factory.newDocumentBuilder();
-            Document document = parser.parse(new InputSource(reader));
-            XMLElement root = new XMLElement(document.getDocumentElement(), resourceIRI);
+            Document xmlDocument = XmlUtils.parse(reader);
+            XMLElement root = new XMLElement(xmlDocument.getDocumentElement(), resourceIRI);
             if (Vocabulary.rdfRDF.equals(root.getNodeIRI()))
                 loadDocument(root);
             else

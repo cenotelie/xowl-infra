@@ -84,7 +84,7 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
         if (result == null) {
             return new DocumentAnalysis(null, new Diagnostic[]{
                     new Diagnostic(
-                            new Range(new Position(10, 0), new Position(0, 0)),
+                            new Range(new Position(0, 0), new Position(0, 0)),
                             DiagnosticSeverity.ERROR,
                             CODE_PARSER_FAILURE,
                             name,
