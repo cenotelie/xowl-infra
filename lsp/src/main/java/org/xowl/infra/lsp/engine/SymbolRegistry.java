@@ -46,12 +46,7 @@ public class SymbolRegistry implements SymbolFactory {
         this.perDocument = new HashMap<>();
     }
 
-    /**
-     * Resolves the specified symbol
-     *
-     * @param identifier The unique identifier for the symbol
-     * @return The symbol data
-     */
+    @Override
     public Symbol resolve(String identifier) {
         Symbol symbol = global.get(identifier);
         if (symbol == null) {
@@ -59,6 +54,11 @@ public class SymbolRegistry implements SymbolFactory {
             global.put(identifier, symbol);
         }
         return symbol;
+    }
+
+    @Override
+    public Symbol lookup(String identifier) {
+        return global.get(identifier);
     }
 
     /**
@@ -126,12 +126,12 @@ public class SymbolRegistry implements SymbolFactory {
     }
 
     /**
-     * Lookups symbol information
+     * Search for symbol information
      *
      * @param query The query string
      * @return The found symbols
      */
-    public Collection<SymbolInformation> lookup(String query) {
+    public Collection<SymbolInformation> search(String query) {
         Collection<SymbolInformation> result = new ArrayList<>();
         return result;
     }

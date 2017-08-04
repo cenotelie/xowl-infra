@@ -17,8 +17,6 @@
 
 package org.xowl.infra.lsp.xowlserver;
 
-import org.xowl.infra.jsonrpc.JsonRpcRequest;
-import org.xowl.infra.jsonrpc.JsonRpcResponse;
 import org.xowl.infra.lsp.server.LspServerHandlerBase;
 
 /**
@@ -32,80 +30,5 @@ public class XowlLsHandler extends LspServerHandlerBase {
      */
     public XowlLsHandler() {
         super(new XowlLsWorkspace());
-    }
-
-    @Override
-    protected JsonRpcResponse onWorkspaceExecuteCommand(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentCompletion(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onCompletionItemResolve(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentHover(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentSignatureHelp(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentHighlights(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentFormatting(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentRangeFormatting(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentOnTypeFormatting(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentCodeAction(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentCodeLenses(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onCodeLensResolve(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentLink(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onDocumentLinkResolve(JsonRpcRequest request) {
-        return null;
-    }
-
-    @Override
-    protected JsonRpcResponse onTextDocumentRename(JsonRpcRequest request) {
-        return null;
     }
 }

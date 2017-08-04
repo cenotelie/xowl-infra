@@ -35,7 +35,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public abstract class LspServerHandlerBase extends LspHandlerBase {
+public class LspServerHandlerBase extends LspHandlerBase {
     /**
      * The parent server
      */
@@ -278,7 +278,7 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      */
     protected JsonRpcResponse onWorkspaceSymbol(JsonRpcRequest request) {
         WorkspaceSymbolParams params = (WorkspaceSymbolParams) request.getParams();
-        Collection<SymbolInformation> data = workspace.getSymbols().lookup(params.getQuery());
+        Collection<SymbolInformation> data = workspace.getSymbols().search(params.getQuery());
         return new JsonRpcResponseResult<>(request.getIdentifier(), data);
     }
 
@@ -289,7 +289,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onWorkspaceExecuteCommand(JsonRpcRequest request);
+    protected JsonRpcResponse onWorkspaceExecuteCommand(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The document open notification is sent from the client to the server to signal newly opened text documents.
@@ -382,7 +384,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentCompletion(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentCompletion(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The request is sent from the client to the server to resolve additional information for a given completion item.
@@ -390,7 +394,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onCompletionItemResolve(JsonRpcRequest request);
+    protected JsonRpcResponse onCompletionItemResolve(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The hover request is sent from the client to the server to request hover information at a given text document position.
@@ -398,7 +404,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentHover(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentHover(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The signature help request is sent from the client to the server to request signature information at a given cursor position.
@@ -406,7 +414,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentSignatureHelp(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentSignatureHelp(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The references request is sent from the client to the server to resolve project-wide references for the symbol denoted by the given text document position.
@@ -434,7 +444,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentHighlights(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentHighlights(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The document symbol request is sent from the client to the server to list all symbols found in a given text document.
@@ -454,7 +466,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentFormatting(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentFormatting(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The document range formatting request is sent from the client to the server to format a given range in a document.
@@ -462,7 +476,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentRangeFormatting(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentRangeFormatting(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The document on type formatting request is sent from the client to the server to format parts of the document during typing.
@@ -470,7 +486,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentOnTypeFormatting(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentOnTypeFormatting(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The goto definition request is sent from the client to the server to resolve the definition location of a symbol at a given text document position.
@@ -493,7 +511,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentCodeAction(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentCodeAction(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The code lens request is sent from the client to the server to compute code lenses for a given text document.
@@ -501,7 +521,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentCodeLenses(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentCodeLenses(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The code lens resolve request is sent from the client to the server to resolve the command for a given code lens item.
@@ -509,7 +531,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onCodeLensResolve(JsonRpcRequest request);
+    protected JsonRpcResponse onCodeLensResolve(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The document links request is sent from the client to the server to request the location of links in a document.
@@ -517,7 +541,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentLink(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentLink(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The document link resolve request is sent from the client to the server to resolve the target of a given document link.
@@ -525,7 +551,9 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onDocumentLinkResolve(JsonRpcRequest request);
+    protected JsonRpcResponse onDocumentLinkResolve(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 
     /**
      * The rename request is sent from the client to the server to perform a workspace-wide rename of a symbol.
@@ -533,5 +561,7 @@ public abstract class LspServerHandlerBase extends LspHandlerBase {
      * @param request The request
      * @return The response
      */
-    protected abstract JsonRpcResponse onTextDocumentRename(JsonRpcRequest request);
+    protected JsonRpcResponse onTextDocumentRename(JsonRpcRequest request) {
+        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+    }
 }

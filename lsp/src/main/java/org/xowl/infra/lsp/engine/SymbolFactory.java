@@ -24,10 +24,18 @@ package org.xowl.infra.lsp.engine;
  */
 public interface SymbolFactory {
     /**
-     * Resolves a symbol
+     * Resolves a symbol, i.e. lookup for a symbol with this identifier and create it if it does not already exist
      *
      * @param identifier The unique identifier of a symbol
      * @return The symbol
      */
     Symbol resolve(String identifier);
+
+    /**
+     * Lookups a symbol (but do not resolve it)
+     *
+     * @param identifier The unique identifier of a symbol
+     * @return The symbol
+     */
+    Symbol lookup(String identifier);
 }
