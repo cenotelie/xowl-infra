@@ -18,26 +18,16 @@
 package org.xowl.infra.lsp.engine;
 
 /**
- * Represents an entity that can analyze the content of a file
+ * A provider for a type of services for documents
  *
  * @author Laurent Wouters
  */
-public interface DocumentAnalyzer extends DocumentService {
+public interface DocumentServiceProvider<T extends DocumentService> {
     /**
-     * The error code for a complete failure of the parser to produce output
-     */
-    String CODE_PARSER_FAILURE = "xowl-0";
-    /**
-     * The error code for parsing errors
-     */
-    String CODE_PARSING_ERROR = "xowl-1";
-
-    /**
-     * Analyzes this document
+     * Gets the service for the specified document
      *
-     * @param factory  The factory for symbols
-     * @param document The document to analyze
-     * @return The analysis
+     * @param document A document
+     * @return The corresponding service
      */
-    DocumentAnalysis analyze(SymbolFactory factory, Document document);
+    T getService(Document document);
 }

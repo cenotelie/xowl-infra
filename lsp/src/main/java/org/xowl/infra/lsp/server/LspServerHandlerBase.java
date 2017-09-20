@@ -379,7 +379,7 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * If computing full completion items is expensive, servers can additionally provide a handler for the completion item resolve request ('completionItem/resolve').
      * This request is sent when a completion item is selected in the user interface.
      * A typical use case is for example:
-     * the 'textDocument/completion' request doesn't fill in the documentation property for returned completion items since it is expensive to compute.
+     * The 'textDocument/completion' request doesn't fill in the documentation property for returned completion items since it is expensive to compute.
      * When the item is selected in the user interface then a 'completionItem/resolve' request is sent with the selected completion item as a param.
      * The returned completion item should have the documentation property filled in.
      *
@@ -387,7 +387,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentCompletion(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        TextDocumentPositionParams params = (TextDocumentPositionParams) request.getParams();
+        CompletionList result = workspace.getCompletion(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**

@@ -18,16 +18,35 @@
 package org.xowl.infra.lsp.engine;
 
 /**
- * The provider of document analyzers
+ * Represents a service for a document
  *
  * @author Laurent Wouters
  */
-public interface DocumentAnalyzerProvider {
+public interface DocumentService {
     /**
-     * Gets the document analyzer for the specified document
-     *
-     * @param document A document
-     * @return The corresponding analyzer
+     * Priority when the service is not applicable
      */
-    DocumentAnalyzer getAnalyzer(Document document);
+    int PRIORITY_NONE = -1;
+    /**
+     * The minimal priority for an appropriate service
+     */
+    int PRIORITY_MINIMAL = 0;
+    /**
+     * An average priority for an appropriate service
+     */
+    int PRIORITY_AVERAGE = 50;
+    /**
+     * A high priority for an appropriate service
+     */
+    int PRIORITY_HIGH = 100;
+
+    /**
+     * Gets the priority of this service for the specified document
+     * A greater number indicates a greater priority.
+     * A negative number indicates that the service is not appropriate for the document
+     *
+     * @param document The document
+     * @return The priority
+     */
+    int getPriorityFor(Document document);
 }

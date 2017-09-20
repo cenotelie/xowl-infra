@@ -17,7 +17,8 @@
 
 package org.xowl.infra.lsp.xowlserver;
 
-import org.xowl.infra.lsp.engine.DocumentAnalyzerProviderStatic;
+import org.xowl.infra.lsp.engine.DocumentAnalyzer;
+import org.xowl.infra.lsp.engine.DocumentServiceProviderStatic;
 import org.xowl.infra.lsp.engine.Workspace;
 import org.xowl.infra.lsp.structures.SymbolKind;
 
@@ -42,13 +43,14 @@ public class XowlLsWorkspace extends Workspace {
      * Initializes this workspace
      */
     public XowlLsWorkspace() {
-        super(new DocumentAnalyzerProviderStatic(
+        super();
+        this.analyzerProvider = new DocumentServiceProviderStatic<DocumentAnalyzer>(
                 new XowlLsNTriplesAnalyzer(),
                 new XowlLsNQuadsAnalyzer(),
                 new XowlLsTurtleAnalyzer(),
                 new XowlLsTriGAnalyzer(),
                 new XowlLsRdfXmlAnalyzer()
-        ));
+        );
     }
 
     @Override

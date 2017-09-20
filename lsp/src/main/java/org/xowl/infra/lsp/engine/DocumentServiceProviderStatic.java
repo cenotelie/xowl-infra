@@ -18,26 +18,36 @@
 package org.xowl.infra.lsp.engine;
 
 /**
- * Represents an entity that can analyze the content of a file
+ * A static provider of services
  *
  * @author Laurent Wouters
  */
-public interface DocumentAnalyzer extends DocumentService {
+public class DocumentServiceProviderStatic<T extends DocumentService> implements DocumentServiceProvider<T> {
     /**
-     * The error code for a complete failure of the parser to produce output
+     * The provided services
      */
-    String CODE_PARSER_FAILURE = "xowl-0";
-    /**
-     * The error code for parsing errors
-     */
-    String CODE_PARSING_ERROR = "xowl-1";
+    private final T[] services;
 
     /**
-     * Analyzes this document
+     * Initializes this provider
      *
-     * @param factory  The factory for symbols
-     * @param document The document to analyze
-     * @return The analysis
+     * @param services The provided services
      */
-    DocumentAnalysis analyze(SymbolFactory factory, Document document);
+    public DocumentServiceProviderStatic(T... services) {
+        this.services = services;
+    }
+
+    @Override
+    public T getService(Document document) {
+        T best = null;
+        int bestPriority = -1;
+        for (int i = 0; i != services.length; i++) {
+            int priority = services[i].getPriorityFor(document);
+            if (priority > bestPriority) {
+                best = services[i];
+                bestPriority = priority;
+            }
+        }
+        return best;
+    }
 }

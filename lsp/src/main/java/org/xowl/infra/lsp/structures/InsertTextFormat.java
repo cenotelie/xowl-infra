@@ -15,29 +15,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.engine;
+package org.xowl.infra.lsp.structures;
 
 /**
- * Represents an entity that can analyze the content of a file
+ * Defines whether the insert text in a completion item should be interpreted as plain text or a snippet
  *
  * @author Laurent Wouters
  */
-public interface DocumentAnalyzer extends DocumentService {
+public interface InsertTextFormat {
     /**
-     * The error code for a complete failure of the parser to produce output
+     * The primary text to be inserted is treated as a plain string.
      */
-    String CODE_PARSER_FAILURE = "xowl-0";
-    /**
-     * The error code for parsing errors
-     */
-    String CODE_PARSING_ERROR = "xowl-1";
+    int PLAIN_TEXT = 1;
 
     /**
-     * Analyzes this document
+     * The primary text to be inserted is treated as a snippet.
+     * <p>
+     * A snippet can define tab stops and placeholders with `$1`, `$2`
+     * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
+     * the end of the snippet. Placeholders with equal identifiers are linked,
+     * that is typing in one will update others too.
+     * </p>
      *
-     * @param factory  The factory for symbols
-     * @param document The document to analyze
-     * @return The analysis
+     * @see "https://github.com/Microsoft/vscode/blob/master/src/vs/editor/contrib/snippet/common/snippet.md"
      */
-    DocumentAnalysis analyze(SymbolFactory factory, Document document);
+    int SNIPPET = 2;
 }

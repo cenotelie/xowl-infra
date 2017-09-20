@@ -21,37 +21,39 @@ import java.util.ServiceLoader;
 import java.util.WeakHashMap;
 
 /**
- * A provider of document analyzers that uses Java service resolver to find analyzers
+ * A provider of document service that uses Java service resolver to find services
  *
  * @author Laurent Wouters
  */
-public class DocumentAnalyzerProviderResolveJava implements DocumentAnalyzerProvider {
+public class DocumentServiceProviderJava<T extends DocumentService> implements DocumentServiceProvider<T> {
     /**
-     * The map of the resolved analyzers
+     * The map of the resolved services
      */
-    private final WeakHashMap<Document, DocumentAnalyzer> resolvedAnalyzers;
+    private final WeakHashMap<Document, T> resolvedAnalyzers;
     /**
      * The Java service loader for the analyzers
      */
-    private final ServiceLoader<DocumentAnalyzer> loader;
+    private final ServiceLoader<T> loader;
 
     /**
      * Initializes this provider
+     *
+     * @param serviceType The type of the resolve services
      */
-    public DocumentAnalyzerProviderResolveJava() {
-        this.loader = ServiceLoader.load(DocumentAnalyzer.class);
+    public DocumentServiceProviderJava(Class<T> serviceType) {
+        this.loader = ServiceLoader.load(serviceType);
         this.resolvedAnalyzers = new WeakHashMap<>();
     }
 
     @Override
-    public DocumentAnalyzer getAnalyzer(Document document) {
-        DocumentAnalyzer best = resolvedAnalyzers.get(document);
+    public T getService(Document document) {
+        T best = resolvedAnalyzers.get(document);
         if (best != null)
             return best;
 
         int bestPriority = -1;
 
-        for (DocumentAnalyzer analyzer : loader) {
+        for (T analyzer : loader) {
             int priority = analyzer.getPriorityFor(document);
             if (priority > bestPriority) {
                 best = analyzer;

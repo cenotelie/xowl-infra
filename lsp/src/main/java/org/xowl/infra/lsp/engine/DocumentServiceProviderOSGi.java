@@ -23,26 +23,33 @@ import java.util.Collection;
 import java.util.WeakHashMap;
 
 /**
- * A provider of document analyzers that uses the OSGi service resolver to find analyzers
+ * A provider of document services that uses the OSGi service resolver to find the services
  *
  * @author Laurent Wouters
  */
-public class DocumentAnalyzerProviderResolveOSGi implements DocumentAnalyzerProvider {
+public class DocumentServiceProviderOSGi<T extends DocumentService> implements DocumentServiceProvider<T> {
     /**
-     * The map of the resolved analyzers
+     * The map of the resolved services
      */
-    private final WeakHashMap<Document, DocumentAnalyzer> resolvedAnalyzers;
+    private final WeakHashMap<Document, T> resolvedAnalyzers;
+    /**
+     * The type of the resolve services
+     */
+    private final Class<T> serviceType;
 
     /**
      * Initializes this provider
+     *
+     * @param serviceType The type of the resolve services
      */
-    public DocumentAnalyzerProviderResolveOSGi() {
+    public DocumentServiceProviderOSGi(Class<T> serviceType) {
         this.resolvedAnalyzers = new WeakHashMap<>();
+        this.serviceType = serviceType;
     }
 
     @Override
-    public DocumentAnalyzer getAnalyzer(Document document) {
-        DocumentAnalyzer best = resolvedAnalyzers.get(document);
+    public T getService(Document document) {
+        T best = resolvedAnalyzers.get(document);
         if (best != null)
             return best;
 
@@ -53,9 +60,9 @@ public class DocumentAnalyzerProviderResolveOSGi implements DocumentAnalyzerProv
             BundleContext context = FrameworkUtil.getBundle(DocumentContentProvider.class).getBundleContext();
             if (context != null) {
                 try {
-                    Collection<ServiceReference<DocumentAnalyzer>> references = context.getServiceReferences(DocumentAnalyzer.class, null);
-                    for (ServiceReference<DocumentAnalyzer> reference : references) {
-                        DocumentAnalyzer analyzer = context.getService(reference);
+                    Collection<ServiceReference<T>> references = context.getServiceReferences(serviceType, null);
+                    for (ServiceReference<T> reference : references) {
+                        T analyzer = context.getService(reference);
                         context.ungetService(reference);
                         int priority = analyzer.getPriorityFor(document);
                         if (priority > bestPriority) {

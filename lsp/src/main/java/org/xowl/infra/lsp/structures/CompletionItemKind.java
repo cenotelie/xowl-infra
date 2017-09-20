@@ -15,29 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lsp.engine;
+package org.xowl.infra.lsp.structures;
 
 /**
- * Represents an entity that can analyze the content of a file
+ * The kind of a completion entry
  *
  * @author Laurent Wouters
  */
-public interface DocumentAnalyzer extends DocumentService {
-    /**
-     * The error code for a complete failure of the parser to produce output
-     */
-    String CODE_PARSER_FAILURE = "xowl-0";
-    /**
-     * The error code for parsing errors
-     */
-    String CODE_PARSING_ERROR = "xowl-1";
-
-    /**
-     * Analyzes this document
-     *
-     * @param factory  The factory for symbols
-     * @param document The document to analyze
-     * @return The analysis
-     */
-    DocumentAnalysis analyze(SymbolFactory factory, Document document);
+public interface CompletionItemKind {
+    int TEXT = 1;
+    int METHOD = 2;
+    int FUNCTION = 3;
+    int CONSTRUCTOR = 4;
+    int FIELD = 5;
+    int VARIABLE = 6;
+    int CLASS = 7;
+    int INTERFACE = 8;
+    int MODULE = 9;
+    int PROPERTY = 10;
+    int UNIT = 11;
+    int VALUE = 12;
+    int ENUM = 13;
+    int KEYWORD = 14;
+    int SNIPPET = 15;
+    int COLOR = 16;
+    int FILE = 17;
+    int REFERENCE = 18;
 }

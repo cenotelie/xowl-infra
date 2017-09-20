@@ -117,6 +117,7 @@ public class Command implements Serializable {
                     for (ASTNode arg : nodeValue.getChildren()) {
                         arguments[index++] = deserializer.deserialize(arg, command);
                     }
+                    break;
                 }
             }
         }

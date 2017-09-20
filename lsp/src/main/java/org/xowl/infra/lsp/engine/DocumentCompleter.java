@@ -17,37 +17,32 @@
 
 package org.xowl.infra.lsp.engine;
 
+import org.xowl.infra.lsp.structures.CompletionItem;
+import org.xowl.infra.lsp.structures.CompletionList;
+import org.xowl.infra.lsp.structures.Position;
+
 /**
- * A static provider of document analyzers
+ * Represents an entity that provides completion items for a document
  *
  * @author Laurent Wouters
  */
-public class DocumentAnalyzerProviderStatic implements DocumentAnalyzerProvider {
+public interface DocumentCompleter extends DocumentService {
     /**
-     * The provided analyzers
-     */
-    private final DocumentAnalyzer[] analyzers;
-
-    /**
-     * Initializes this provider
+     * Gets the completion items for the specified document and position
      *
-     * @param analyzers The provided analyzers
+     * @param document The document
+     * @param position The position within the document
+     * @return The completion items
      */
-    public DocumentAnalyzerProviderStatic(DocumentAnalyzer... analyzers) {
-        this.analyzers = analyzers;
-    }
+    CompletionList getCompletionItems(Document document, Position position);
 
-    @Override
-    public DocumentAnalyzer getAnalyzer(Document document) {
-        DocumentAnalyzer best = null;
-        int bestPriority = -1;
-        for (int i = 0; i != analyzers.length; i++) {
-            int priority = analyzers[i].getPriorityFor(document);
-            if (priority > bestPriority) {
-                best = analyzers[i];
-                bestPriority = priority;
-            }
-        }
-        return best;
-    }
+    /**
+     * Resolves additional information for a completion item
+     *
+     * @param document The document
+     * @param position The position within the document
+     * @param item     The completion item to resolve
+     * @return The resolved completion item
+     */
+    CompletionItem resolve(Document document, Position position, CompletionItem item);
 }

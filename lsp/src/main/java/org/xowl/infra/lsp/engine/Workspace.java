@@ -47,7 +47,11 @@ public class Workspace {
     /**
      * The provider of document analyzers
      */
-    protected final DocumentAnalyzerProvider analyzerProvider;
+    protected DocumentServiceProvider<DocumentAnalyzer> analyzerProvider;
+    /**
+     * The provider of document completer
+     */
+    protected DocumentServiceProvider<DocumentCompleter> completerProvider;
     /**
      * The local LSP endpoint
      */
@@ -101,13 +105,10 @@ public class Workspace {
 
     /**
      * Initializes an empty workspace
-     *
-     * @param analyzerProvider The provider of document analyzers
      */
-    public Workspace(DocumentAnalyzerProvider analyzerProvider) {
+    public Workspace() {
         this.documents = new HashMap<>();
         this.symbolRegistry = new SymbolRegistry();
-        this.analyzerProvider = analyzerProvider;
     }
 
     /**
@@ -335,7 +336,9 @@ public class Workspace {
      * @param publishDiagnostics Whether to publish the diagnostics
      */
     protected void doDocumentAnalysis(Document document, boolean publishDiagnostics) {
-        DocumentAnalyzer analyzer = analyzerProvider.getAnalyzer(document);
+        if (analyzerProvider == null)
+            return;
+        DocumentAnalyzer analyzer = analyzerProvider.getService(document);
         if (analyzer == null)
             return;
         DocumentAnalysis analysis = analyzer.analyze(symbolRegistry, document);
@@ -350,5 +353,48 @@ public class Workspace {
             ));
         }
         symbolRegistry.onDocumentChanged(document, analysis.getSymbols());
+    }
+
+    /**
+     * Gets the completion items for the specified document and position
+     *
+     * @param parameters The text document parameters
+     * @return The list of completion items
+     */
+    public CompletionList getCompletion(TextDocumentPositionParams parameters) {
+        if (completerProvider == null)
+            return new CompletionList(false, new CompletionItem[0]);
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new CompletionList(false, new CompletionItem[0]);
+        DocumentCompleter completer = completerProvider.getService(document);
+        if (completer == null)
+            return new CompletionList(false, new CompletionItem[0]);
+        CompletionList result = completer.getCompletionItems(document, parameters.getPosition());
+        for (CompletionItem item : result.getItems()) {
+            item.setData(parameters);
+        }
+        return result;
+    }
+
+    /**
+     * Resolves a completion item
+     *
+     * @param item The completion item to resolve
+     * @return The resolved completion item
+     */
+    public CompletionItem resolveCompletion(CompletionItem item) {
+        if (completerProvider == null)
+            return item;
+        if (item.getData() == null || !(item.getData() instanceof TextDocumentPositionParams))
+            return item;
+        TextDocumentPositionParams parameters = (TextDocumentPositionParams) item.getData();
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return item;
+        DocumentCompleter completer = completerProvider.getService(document);
+        if (completer == null)
+            return item;
+        return completer.resolve(document, parameters.getPosition(), item);
     }
 }
