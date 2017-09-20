@@ -399,7 +399,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onCompletionItemResolve(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        CompletionItem params = (CompletionItem) request.getParams();
+        CompletionItem result = workspace.resolveCompletion(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**
