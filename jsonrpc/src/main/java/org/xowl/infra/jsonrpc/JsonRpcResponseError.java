@@ -73,7 +73,7 @@ public class JsonRpcResponseError implements JsonRpcResponse {
      * @return The error
      */
     public static JsonRpcResponseError newInternalError(String identifier) {
-        return new JsonRpcResponseError(identifier, -32603, "Invalid parameters", null);
+        return new JsonRpcResponseError(identifier, -32603, "Invalid Error", null);
     }
 
 

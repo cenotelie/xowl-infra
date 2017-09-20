@@ -290,7 +290,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onWorkspaceExecuteCommand(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        ExecuteCommandParams params = (ExecuteCommandParams) request.getParams();
+        // this operation must be overridden to support the execution of the command
+        return new JsonRpcResponseResult<>(request.getIdentifier(), "OK");
     }
 
     /**

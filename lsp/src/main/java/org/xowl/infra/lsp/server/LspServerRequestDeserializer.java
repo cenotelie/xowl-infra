@@ -51,7 +51,8 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
                 return new DidChangeWatchedFilesParams(definition);
             case "workspace/symbol":
                 return new WorkspaceSymbolParams(definition);
-
+            case "workspace/executeCommand":
+                return new ExecuteCommandParams(definition, this);
             case "textDocument/didOpen":
                 return new DidOpenTextDocumentParams(definition);
             case "textDocument/didChange":
@@ -64,7 +65,6 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
                 return new DidSaveTextDocumentParams(definition);
             case "textDocument/didClose":
                 return new DidCloseTextDocumentParams(definition);
-
             case "textDocument/references":
                 return new ReferenceParams(definition);
             case "textDocument/documentSymbol":
