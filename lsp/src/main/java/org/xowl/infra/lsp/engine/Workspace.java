@@ -53,6 +53,10 @@ public class Workspace {
      */
     protected DocumentServiceProvider<DocumentCompleter> completerProvider;
     /**
+     * The provider of document hover service
+     */
+    protected DocumentServiceProvider<DocumentHoverProvider> hoverProvider;
+    /**
      * The local LSP endpoint
      */
     protected LspEndpointLocal local;
@@ -396,5 +400,23 @@ public class Workspace {
         if (completer == null)
             return item;
         return completer.resolve(document, parameters.getPosition(), item);
+    }
+
+    /**
+     * Gets the hover data for the specified document and position
+     *
+     * @param parameters The text document parameters
+     * @return The hover data
+     */
+    public Hover getHover(TextDocumentPositionParams parameters) {
+        if (hoverProvider == null)
+            return new Hover();
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new Hover();
+        DocumentHoverProvider service = hoverProvider.getService(document);
+        if (service == null)
+            return new Hover();
+        return service.getHoverData(document, parameters.getPosition());
     }
 }
