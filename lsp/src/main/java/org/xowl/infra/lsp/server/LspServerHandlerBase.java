@@ -567,7 +567,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentCodeLenses(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        CodeLensParams params = (CodeLensParams) request.getParams();
+        CodeLens[] result = workspace.getCodeLens(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**
@@ -577,7 +579,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onCodeLensResolve(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        CodeLens params = (CodeLens) request.getParams();
+        CodeLens result = workspace.resolveCodeLens(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**

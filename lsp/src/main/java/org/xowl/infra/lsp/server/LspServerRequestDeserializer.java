@@ -67,12 +67,32 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
                 return new DidCloseTextDocumentParams(definition);
             case "textDocument/completion":
                 return new TextDocumentPositionParams(definition);
+            case "completionItem/resolve":
+                return new CompletionItem(definition, this);
+            case "textDocument/hover":
+                return new TextDocumentPositionParams(definition);
+            case "textDocument/signatureHelp":
+                return new TextDocumentPositionParams(definition);
             case "textDocument/references":
                 return new ReferenceParams(definition);
+            case "textDocument/documentHighlight":
+                return new TextDocumentPositionParams(definition);
             case "textDocument/documentSymbol":
                 return new DocumentSymbolParams(definition);
+            case "textDocument/formatting":
+                return new DocumentFormattingParams(definition, this);
+            case "textDocument/rangeFormatting":
+                return new DocumentRangeFormattingParams(definition, this);
+            case "textDocument/onTypeFormatting":
+                return new DocumentOnTypeFormattingParams(definition, this);
             case "textDocument/definition":
                 return new TextDocumentPositionParams(definition);
+            case "textDocument/codeAction":
+                return new CodeActionParams(definition);
+            case "textDocument/codeLens":
+                return new CodeLensParams(definition);
+            case "codeLens/resolve":
+                return new CodeLens(definition, this);
         }
         return super.deserializeObject(definition, method);
     }

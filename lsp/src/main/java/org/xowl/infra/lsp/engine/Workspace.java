@@ -21,6 +21,7 @@ import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.lsp.LspEndpointLocal;
 import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.utils.IOUtils;
+import org.xowl.infra.utils.json.SerializedUnknown;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
@@ -386,8 +387,12 @@ public class Workspace {
         if (completer == null)
             return new CompletionList(false, new CompletionItem[0]);
         CompletionList result = completer.getCompletionItems(document, parameters.getPosition());
+        SerializedUnknown data = new SerializedUnknown();
+        data.addProperty("documentUri", parameters.getTextDocument().getUri());
+        data.addProperty("locationLine", parameters.getPosition().getLine());
+        data.addProperty("locationChar", parameters.getPosition().getCharacter());
         for (CompletionItem item : result.getItems()) {
-            item.setData(parameters);
+            item.setData(data);
         }
         return result;
     }
@@ -399,16 +404,16 @@ public class Workspace {
      * @return The resolved completion item
      */
     public CompletionItem resolveCompletion(CompletionItem item) {
-        if (item.getData() == null || !(item.getData() instanceof TextDocumentPositionParams))
+        if (item.getData() == null)
             return item;
-        TextDocumentPositionParams parameters = (TextDocumentPositionParams) item.getData();
-        Document document = documents.get(parameters.getTextDocument().getUri());
+        SerializedUnknown data = (SerializedUnknown) item.getData();
+        Document document = documents.get((String) data.getValueFor("documentUri"));
         if (document == null)
             return item;
         DocumentCompleter completer = getServiceCompleter(document);
         if (completer == null)
             return item;
-        return completer.resolve(document, parameters.getPosition(), item);
+        return completer.resolve(document, new Position((Integer) data.getValueFor("locationLine"), (Integer) data.getValueFor("locationChar")), item);
     }
 
     /**
@@ -494,7 +499,7 @@ public class Workspace {
     /**
      * Gets available code actions for the specified parameters
      *
-     * @param parameters the parameters for this request
+     * @param parameters The parameters for this request
      * @return The available code actions
      */
     public Command[] getCodeActions(CodeActionParams parameters) {
@@ -505,6 +510,44 @@ public class Workspace {
         if (service == null)
             return new Command[0];
         return service.getActions(document, parameters.getRange(), parameters.getContext());
+    }
+
+    /**
+     * Gets the code lens for the specified parameters
+     *
+     * @param parameters The parameters for this request
+     * @return The available code lens
+     */
+    public CodeLens[] getCodeLens(CodeLensParams parameters) {
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new CodeLens[0];
+        DocumentLensProvider service = getServiceLensProvider(document);
+        if (service == null)
+            return new CodeLens[0];
+        CodeLens[] lenses = service.getLens(document);
+        String data = parameters.getTextDocument().getUri();
+        for (CodeLens lens : lenses)
+            lens.setData(data);
+        return lenses;
+    }
+
+    /**
+     * Resolves a code lens
+     *
+     * @param lens The code lens to resolve
+     * @return The resolved code lens
+     */
+    public CodeLens resolveCodeLens(CodeLens lens) {
+        if (lens.getData() == null)
+            return lens;
+        Document document = documents.get((String) lens.getData());
+        if (document == null)
+            return lens;
+        DocumentLensProvider service = getServiceLensProvider(document);
+        if (service == null)
+            return lens;
+        return service.resolve(lens);
     }
 
     /**
@@ -582,6 +625,16 @@ public class Workspace {
      * @return The corresponding document action provider
      */
     protected DocumentActionProvider getServiceActionProvider(Document document) {
+        return null;
+    }
+
+    /**
+     * Gets the document lens provider for the specified document
+     *
+     * @param document A document
+     * @return The corresponding document lens provider
+     */
+    protected DocumentLensProvider getServiceLensProvider(Document document) {
         return null;
     }
 }
