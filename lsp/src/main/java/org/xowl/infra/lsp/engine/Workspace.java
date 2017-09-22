@@ -492,6 +492,22 @@ public class Workspace {
     }
 
     /**
+     * Gets available code actions for the specified parameters
+     *
+     * @param parameters the parameters for this request
+     * @return The available code actions
+     */
+    public Command[] getCodeActions(CodeActionParams parameters) {
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new Command[0];
+        DocumentActionProvider service = getServiceActionProvider(document);
+        if (service == null)
+            return new Command[0];
+        return service.getActions(document, parameters.getRange(), parameters.getContext());
+    }
+
+    /**
      * Lists the server capabilities that are supported by services provided by this entity
      *
      * @param capabilities The server capabilities structure to fill
@@ -556,6 +572,16 @@ public class Workspace {
      * @return The corresponding document formatter
      */
     protected DocumentFormatter getServiceFormatter(Document document) {
+        return null;
+    }
+
+    /**
+     * Gets the document action provider for the specified document
+     *
+     * @param document A document
+     * @return The corresponding document action provider
+     */
+    protected DocumentActionProvider getServiceActionProvider(Document document) {
         return null;
     }
 }

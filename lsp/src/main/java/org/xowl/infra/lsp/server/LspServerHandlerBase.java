@@ -555,7 +555,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentCodeAction(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        CodeActionParams params = (CodeActionParams) request.getParams();
+        Command[] result = workspace.getCodeActions(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**
