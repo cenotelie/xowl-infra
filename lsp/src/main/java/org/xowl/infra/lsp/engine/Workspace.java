@@ -428,6 +428,22 @@ public class Workspace {
     }
 
     /**
+     * Gets the signature help for the specified document and position
+     *
+     * @param parameters The text document parameters
+     * @return The signature help
+     */
+    public SignatureHelp getSignatures(TextDocumentPositionParams parameters) {
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new SignatureHelp(new SignatureInformation[0]);
+        DocumentSignatureHelper service = getServiceSignatureHelp(document);
+        if (service == null)
+            return new SignatureHelp(new SignatureInformation[0]);
+        return service.getSignatures(document, parameters.getPosition());
+    }
+
+    /**
      * Lists the server capabilities that are supported by services provided by this entity
      *
      * @param capabilities The server capabilities structure to fill
@@ -472,6 +488,16 @@ public class Workspace {
      * @return The corresponding document hover provider
      */
     protected DocumentHoverProvider getServiceHoverProvider(Document document) {
+        return null;
+    }
+
+    /**
+     * Gets the document signature helper for the specified document
+     *
+     * @param document A document
+     * @return The corresponding document signature helper
+     */
+    protected DocumentSignatureHelper getServiceSignatureHelp(Document document) {
         return null;
     }
 }

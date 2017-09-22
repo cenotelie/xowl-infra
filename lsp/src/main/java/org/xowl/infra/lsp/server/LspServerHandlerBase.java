@@ -432,7 +432,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentSignatureHelp(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        TextDocumentPositionParams params = (TextDocumentPositionParams) request.getParams();
+        SignatureHelp result = workspace.getSignatures(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**

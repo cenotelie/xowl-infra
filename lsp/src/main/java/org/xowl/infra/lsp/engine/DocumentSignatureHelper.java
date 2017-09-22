@@ -17,21 +17,21 @@
 
 package org.xowl.infra.lsp.engine;
 
-import org.xowl.infra.lsp.structures.Hover;
 import org.xowl.infra.lsp.structures.Position;
+import org.xowl.infra.lsp.structures.SignatureHelp;
 
 /**
- * Represents an entity that can provide hover information for a document
+ * Represents an entity that can provide signature help for a document
  *
  * @author Laurent Wouters
  */
-public interface DocumentHoverProvider extends DocumentService {
+public interface DocumentSignatureHelper extends DocumentService {
     /**
-     * Gets the hover data for a document at a position
+     * Gets the signature help for the specified document and position
      *
      * @param document The document
      * @param position The position within the document
-     * @return The hover data
+     * @return The signatures
      */
-    Hover getHoverData(Document document, Position position);
+    SignatureHelp getSignatures(Document document, Position position);
 }

@@ -19,53 +19,37 @@ package org.xowl.infra.lsp.structures;
 
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.json.JsonLexer;
 import org.xowl.infra.utils.json.JsonParser;
 
 /**
- * Registration options for the completion request on a document
+ * Registration options for the signature help request on a document
  *
  * @author Laurent Wouters
  */
-public class CompletionRegistrationOptions extends TextDocumentRegistrationOptions {
+public class SignatureHelpRegistrationOptions extends TextDocumentRegistrationOptions {
     /**
-     * The characters that trigger completion automatically
+     * The characters that trigger signature help automatically
      */
     private final String[] triggerCharacters;
-    /**
-     * The server provides support to resolve additional information for a completion item
-     */
-    private final boolean resolveProvider;
 
     /**
-     * Gets the characters that trigger completion automatically
+     * Gets the characters that trigger signature help automatically
      *
-     * @return The characters that trigger completion automatically
+     * @return The characters that trigger signature help automatically
      */
     public String[] getTriggerCharacters() {
         return triggerCharacters;
     }
 
     /**
-     * Gets whether the server provides support to resolve additional information for a completion item
-     *
-     * @return Whether the server provides support to resolve additional information for a completion item
-     */
-    public boolean getResolveProvider() {
-        return resolveProvider;
-    }
-
-    /**
      * Initializes this structure
      *
      * @param documentSelector  A document selector to identify the scope of the registration
-     * @param triggerCharacters The characters that trigger completion automatically
-     * @param resolveProvider   The server provides support to resolve additional information for a completion item
+     * @param triggerCharacters The characters that trigger signature help automatically
      */
-    public CompletionRegistrationOptions(DocumentSelector documentSelector, String[] triggerCharacters, boolean resolveProvider) {
+    public SignatureHelpRegistrationOptions(DocumentSelector documentSelector, String[] triggerCharacters) {
         super(documentSelector);
         this.triggerCharacters = triggerCharacters;
-        this.resolveProvider = resolveProvider;
     }
 
     /**
@@ -73,11 +57,9 @@ public class CompletionRegistrationOptions extends TextDocumentRegistrationOptio
      *
      * @param definition The serialized definition
      */
-    public CompletionRegistrationOptions(ASTNode definition) {
+    public SignatureHelpRegistrationOptions(ASTNode definition) {
         super(definition);
-
         String[] triggerCharacters = null;
-        boolean resolveProvider = false;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
@@ -96,21 +78,9 @@ public class CompletionRegistrationOptions extends TextDocumentRegistrationOptio
                     }
                     break;
                 }
-                case "resolveProvider": {
-                    if (nodeValue.getSymbol().getID() == JsonLexer.ID.LITERAL_TRUE)
-                        resolveProvider = true;
-                    else if (nodeValue.getSymbol().getID() == JsonLexer.ID.LITERAL_FALSE)
-                        resolveProvider = false;
-                    else {
-                        String value = TextUtils.unescape(nodeValue.getValue());
-                        value = value.substring(1, value.length() - 1);
-                        resolveProvider = value.equalsIgnoreCase("true");
-                    }
-                }
             }
         }
         this.triggerCharacters = triggerCharacters;
-        this.resolveProvider = resolveProvider;
     }
 
     @Override
@@ -137,8 +107,6 @@ public class CompletionRegistrationOptions extends TextDocumentRegistrationOptio
             }
             builder.append("]");
         }
-        builder.append(", \"resolveProvider\": ");
-        builder.append(Boolean.toString(resolveProvider));
         builder.append("}");
         return builder.toString();
     }
