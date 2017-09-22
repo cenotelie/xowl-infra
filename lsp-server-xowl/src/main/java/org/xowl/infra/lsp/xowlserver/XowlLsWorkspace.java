@@ -114,6 +114,7 @@ public class XowlLsWorkspace extends Workspace {
         capabilities.addCapability("documentSymbolProvider");
         capabilities.addCapability("workspaceSymbolProvider");
         capabilities.addCapability("definitionProvider");
+        capabilities.addCapability("documentHighlightProvider");
     }
 
     @Override

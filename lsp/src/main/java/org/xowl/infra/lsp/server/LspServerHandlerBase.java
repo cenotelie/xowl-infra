@@ -28,6 +28,7 @@ import org.xowl.infra.lsp.engine.Workspace;
 import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.utils.api.Reply;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -464,7 +465,24 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentHighlights(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        TextDocumentPositionParams params = (TextDocumentPositionParams) request.getParams();
+        Symbol symbol = workspace.getSymbols().getSymbolAt(params.getTextDocument().getUri(), params.getPosition());
+        if (symbol == null)
+            return new JsonRpcResponseResult<>(request.getIdentifier(), new Object[0]);
+        Collection<DocumentHighlight> result = new ArrayList<>();
+        Collection<Range> ranges = symbol.getDefinitionsIn(params.getTextDocument().getUri());
+        if (ranges != null) {
+            for (Range range : ranges) {
+                result.add(new DocumentHighlight(range));
+            }
+        }
+        ranges = symbol.getReferencesIn(params.getTextDocument().getUri());
+        if (ranges != null) {
+            for (Range range : ranges) {
+                result.add(new DocumentHighlight(range));
+            }
+        }
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**
