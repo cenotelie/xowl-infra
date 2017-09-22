@@ -177,7 +177,7 @@ public class InitializeParams implements Serializable {
                     break;
                 }
                 case "initializationOptions": {
-                    initializationOptions = deserializer.deserialize(nodeValue, null);
+                    initializationOptions = deserializer.deserialize(nodeValue, this);
                     break;
                 }
                 case "capabilities": {

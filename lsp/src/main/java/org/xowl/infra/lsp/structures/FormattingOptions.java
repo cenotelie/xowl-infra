@@ -135,7 +135,7 @@ public class FormattingOptions implements Serializable {
                     break;
                 }
                 default: {
-                    Object value = deserializer.deserialize(nodeValue, null);
+                    Object value = deserializer.deserialize(nodeValue, this);
                     properties.put(name, value);
                     break;
                 }

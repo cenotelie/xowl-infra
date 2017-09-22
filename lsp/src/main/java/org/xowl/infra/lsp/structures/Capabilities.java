@@ -86,7 +86,7 @@ public class Capabilities implements Serializable {
             } else if (nodeValue.getSymbol().getID() == JsonLexer.ID.LITERAL_FALSE) {
                 // do not add the capability
             } else {
-                this.options.put(fullName, deserializer.deserialize(nodeValue, null));
+                this.options.put(fullName, deserializer.deserialize(nodeValue, this));
             }
         }
     }

@@ -390,7 +390,7 @@ public class CompletionItem implements Serializable {
                     break;
                 }
                 case "data": {
-                    data = deserializer.deserialize(nodeValue, null);
+                    data = deserializer.deserialize(nodeValue, this);
                     break;
                 }
             }

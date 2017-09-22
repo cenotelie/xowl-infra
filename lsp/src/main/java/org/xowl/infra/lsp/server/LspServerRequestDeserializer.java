@@ -29,7 +29,9 @@ import org.xowl.infra.utils.json.JsonDeserializer;
 public class LspServerRequestDeserializer extends JsonDeserializer {
     @Override
     public Object deserializeObject(ASTNode definition, Object context) {
-        return deserializeObject(definition, (String) context);
+        if (context != null && (context instanceof String))
+            return deserializeObject(definition, (String) context);
+        return super.deserializeObject(definition, context);
     }
 
     /**

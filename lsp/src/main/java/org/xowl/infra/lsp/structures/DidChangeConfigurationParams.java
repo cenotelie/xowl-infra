@@ -67,7 +67,7 @@ public class DidChangeConfigurationParams implements Serializable {
             ASTNode nodeValue = child.getChildren().get(1);
             switch (name) {
                 case "settings": {
-                    settings = deserializer.deserialize(nodeValue, null);
+                    settings = deserializer.deserialize(nodeValue, this);
                     break;
                 }
             }

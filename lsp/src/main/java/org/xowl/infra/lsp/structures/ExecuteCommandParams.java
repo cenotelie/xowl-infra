@@ -103,7 +103,7 @@ public class ExecuteCommandParams implements Serializable {
                         arguments = new String[nodeValue.getChildren().size()];
                         int index = 0;
                         for (ASTNode nodeArg : nodeValue.getChildren())
-                            arguments[index++] = deserializer.deserialize(nodeArg, null);
+                            arguments[index++] = deserializer.deserialize(nodeArg, this);
                     }
                     break;
                 }

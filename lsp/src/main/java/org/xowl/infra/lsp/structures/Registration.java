@@ -110,7 +110,7 @@ public class Registration implements Serializable {
                     break;
                 }
                 case "registerOptions": {
-                    registerOptions = deserializer.deserialize(nodeValue, null);
+                    registerOptions = deserializer.deserialize(nodeValue, this);
                     break;
                 }
             }
