@@ -18,6 +18,8 @@
 package org.xowl.infra.lsp.engine;
 
 import org.xowl.infra.lsp.structures.Location;
+import org.xowl.infra.lsp.structures.MarkedString;
+import org.xowl.infra.lsp.structures.Position;
 import org.xowl.infra.lsp.structures.Range;
 
 import java.util.ArrayList;
@@ -44,6 +46,10 @@ public class Symbol {
      */
     private int kind;
     /**
+     * The documentation for this symbol
+     */
+    private MarkedString documentation;
+    /**
      * The various definitions of this symbol by the URI of the defining files
      */
     private final Map<String, Collection<Range>> definitions;
@@ -65,6 +71,7 @@ public class Symbol {
         this.identifier = identifier;
         this.name = identifier;
         this.kind = 0;
+        this.documentation = null;
         this.definitions = new HashMap<>();
         this.references = new HashMap<>();
         this.parent = null;
@@ -104,6 +111,15 @@ public class Symbol {
      */
     public int getKind() {
         return kind;
+    }
+
+    /**
+     * Gets the documentation for this symbol
+     *
+     * @return The documentation for this symbol
+     */
+    public MarkedString getDocumentation() {
+        return documentation;
     }
 
     /**
@@ -202,6 +218,15 @@ public class Symbol {
     }
 
     /**
+     * Sets the documentation for this symbol
+     *
+     * @param documentation The documentation for this symbol
+     */
+    public void setDocumentation(MarkedString documentation) {
+        this.documentation = documentation;
+    }
+
+    /**
      * Sets the parent symbol
      *
      * @param parent The parent symbol
@@ -238,6 +263,31 @@ public class Symbol {
             references.put(uri, locations);
         }
         locations.add(location);
+    }
+
+    /**
+     * Gets the range of the symbol's definition or reference at the specified position
+     *
+     * @param uri      The document
+     * @param position The position in the document
+     * @return The range of the symbol
+     */
+    public Range getRangeAt(String uri, Position position) {
+        Collection<Range> locations = definitions.get(uri);
+        if (locations != null) {
+            for (Range range : locations) {
+                if (position.compareTo(range) == 0)
+                    return range;
+            }
+        }
+        locations = references.get(uri);
+        if (locations != null) {
+            for (Range range : locations) {
+                if (position.compareTo(range) == 0)
+                    return range;
+            }
+        }
+        return null;
     }
 
     /**
