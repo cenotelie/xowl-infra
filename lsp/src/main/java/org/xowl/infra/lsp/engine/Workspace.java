@@ -444,6 +444,54 @@ public class Workspace {
     }
 
     /**
+     * Formats a whole document
+     *
+     * @param parameters The parameters for this request
+     * @return The edits representing the formatting result
+     */
+    public TextEdit[] formatDocument(DocumentFormattingParams parameters) {
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new TextEdit[0];
+        DocumentFormatter service = getServiceFormatter(document);
+        if (service == null)
+            return new TextEdit[0];
+        return service.format(parameters.getOptions(), document);
+    }
+
+    /**
+     * Formats a range in document
+     *
+     * @param parameters The parameters for this request
+     * @return The edits representing the formatting result
+     */
+    public TextEdit[] formatRange(DocumentRangeFormattingParams parameters) {
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new TextEdit[0];
+        DocumentFormatter service = getServiceFormatter(document);
+        if (service == null)
+            return new TextEdit[0];
+        return service.format(parameters.getOptions(), document, parameters.getRange());
+    }
+
+    /**
+     * Formats a part of the document when a character has been typed
+     *
+     * @param parameters The parameters for this request
+     * @return The edits representing the formatting result
+     */
+    public TextEdit[] formatOnTyped(DocumentOnTypeFormattingParams parameters) {
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new TextEdit[0];
+        DocumentFormatter service = getServiceFormatter(document);
+        if (service == null)
+            return new TextEdit[0];
+        return service.format(parameters.getOptions(), document, parameters.getPosition(), parameters.getCharacter());
+    }
+
+    /**
      * Lists the server capabilities that are supported by services provided by this entity
      *
      * @param capabilities The server capabilities structure to fill
@@ -498,6 +546,16 @@ public class Workspace {
      * @return The corresponding document signature helper
      */
     protected DocumentSignatureHelper getServiceSignatureHelp(Document document) {
+        return null;
+    }
+
+    /**
+     * Gets the document formatter for the specified document
+     *
+     * @param document A document
+     * @return The corresponding document formatter
+     */
+    protected DocumentFormatter getServiceFormatter(Document document) {
         return null;
     }
 }

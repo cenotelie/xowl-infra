@@ -504,7 +504,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentFormatting(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        DocumentFormattingParams params = (DocumentFormattingParams) request.getParams();
+        TextEdit[] result = workspace.formatDocument(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**
@@ -514,7 +516,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentRangeFormatting(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        DocumentRangeFormattingParams params = (DocumentRangeFormattingParams) request.getParams();
+        TextEdit[] result = workspace.formatRange(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**
@@ -524,7 +528,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentOnTypeFormatting(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        DocumentOnTypeFormattingParams params = (DocumentOnTypeFormattingParams) request.getParams();
+        TextEdit[] result = workspace.formatOnTyped(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**
