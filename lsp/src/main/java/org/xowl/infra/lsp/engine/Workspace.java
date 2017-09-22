@@ -45,21 +45,36 @@ public class Workspace {
      */
     protected final SymbolRegistry symbolRegistry;
     /**
-     * The provider of document analyzers
-     */
-    protected DocumentServiceProvider<DocumentAnalyzer> analyzerProvider;
-    /**
-     * The provider of document completer
-     */
-    protected DocumentServiceProvider<DocumentCompleter> completerProvider;
-    /**
-     * The provider of document hover service
-     */
-    protected DocumentServiceProvider<DocumentHoverProvider> hoverProvider;
-    /**
      * The local LSP endpoint
      */
     protected LspEndpointLocal local;
+
+    /**
+     * Gets the server capabilities that are supported by this workspace
+     *
+     * @return The server capabilities that are supported by this workspace
+     */
+    public ServerCapabilities getServerCapabilities() {
+        ServerCapabilities capabilities = new ServerCapabilities();
+        capabilities.addCapability("textDocumentSync.openClose");
+        capabilities.addCapability("textDocumentSync.willSave");
+        capabilities.addCapability("textDocumentSync.willSaveWaitUntil");
+        capabilities.addCapability("textDocumentSync.save.includeText");
+        capabilities.addOption("textDocumentSync.change", TextDocumentSyncKind.INCREMENTAL);
+        listServerCapabilities(capabilities);
+        return capabilities;
+    }
+
+    /**
+     * Gets the client capabilities that are supported by this workspace
+     *
+     * @return The client capabilities that are supported by this workspace
+     */
+    public ClientCapabilities getClientCapabilities() {
+        ClientCapabilities capabilities = new ClientCapabilities();
+        listClientCapabilities(capabilities);
+        return capabilities;
+    }
 
     /**
      * Gets the documents in the workspace
@@ -136,7 +151,7 @@ public class Workspace {
      *
      * @param file The current file or directory
      */
-    public void scanWorkspace(File file) {
+    private void scanWorkspace(File file) {
         if (isWorkspaceExcluded(file))
             return;
         if (file.isDirectory()) {
@@ -340,9 +355,7 @@ public class Workspace {
      * @param publishDiagnostics Whether to publish the diagnostics
      */
     protected void doDocumentAnalysis(Document document, boolean publishDiagnostics) {
-        if (analyzerProvider == null)
-            return;
-        DocumentAnalyzer analyzer = analyzerProvider.getService(document);
+        DocumentAnalyzer analyzer = getServiceAnalyzer(document);
         if (analyzer == null)
             return;
         DocumentAnalysis analysis = analyzer.analyze(symbolRegistry, document);
@@ -366,12 +379,10 @@ public class Workspace {
      * @return The list of completion items
      */
     public CompletionList getCompletion(TextDocumentPositionParams parameters) {
-        if (completerProvider == null)
-            return new CompletionList(false, new CompletionItem[0]);
         Document document = documents.get(parameters.getTextDocument().getUri());
         if (document == null)
             return new CompletionList(false, new CompletionItem[0]);
-        DocumentCompleter completer = completerProvider.getService(document);
+        DocumentCompleter completer = getServiceCompleter(document);
         if (completer == null)
             return new CompletionList(false, new CompletionItem[0]);
         CompletionList result = completer.getCompletionItems(document, parameters.getPosition());
@@ -388,15 +399,13 @@ public class Workspace {
      * @return The resolved completion item
      */
     public CompletionItem resolveCompletion(CompletionItem item) {
-        if (completerProvider == null)
-            return item;
         if (item.getData() == null || !(item.getData() instanceof TextDocumentPositionParams))
             return item;
         TextDocumentPositionParams parameters = (TextDocumentPositionParams) item.getData();
         Document document = documents.get(parameters.getTextDocument().getUri());
         if (document == null)
             return item;
-        DocumentCompleter completer = completerProvider.getService(document);
+        DocumentCompleter completer = getServiceCompleter(document);
         if (completer == null)
             return item;
         return completer.resolve(document, parameters.getPosition(), item);
@@ -409,14 +418,60 @@ public class Workspace {
      * @return The hover data
      */
     public Hover getHover(TextDocumentPositionParams parameters) {
-        if (hoverProvider == null)
-            return new Hover();
         Document document = documents.get(parameters.getTextDocument().getUri());
         if (document == null)
             return new Hover();
-        DocumentHoverProvider service = hoverProvider.getService(document);
+        DocumentHoverProvider service = getServiceHoverProvider(document);
         if (service == null)
             return new Hover();
         return service.getHoverData(document, parameters.getPosition());
+    }
+
+    /**
+     * Lists the server capabilities that are supported by services provided by this entity
+     *
+     * @param capabilities The server capabilities structure to fill
+     */
+    protected void listServerCapabilities(ServerCapabilities capabilities) {
+        // do nothing
+    }
+
+    /**
+     * Lists the client capabilities that are supported by services provided by this entity
+     *
+     * @param capabilities The client capabilities structure to fill
+     */
+    protected void listClientCapabilities(ClientCapabilities capabilities) {
+        // do nothing
+    }
+
+    /**
+     * Gets the document analyzer service for the specified document
+     *
+     * @param document A document
+     * @return The corresponding document analyzer
+     */
+    protected DocumentAnalyzer getServiceAnalyzer(Document document) {
+        return null;
+    }
+
+    /**
+     * Gets the document completer service for the specified document
+     *
+     * @param document A document
+     * @return The corresponding document completer
+     */
+    protected DocumentCompleter getServiceCompleter(Document document) {
+        return null;
+    }
+
+    /**
+     * Gets the document hover provider service for the specified document
+     *
+     * @param document A document
+     * @return The corresponding document hover provider
+     */
+    protected DocumentHoverProvider getServiceHoverProvider(Document document) {
+        return null;
     }
 }

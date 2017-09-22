@@ -46,6 +46,15 @@ public class LspServerHandlerBase extends LspHandlerBase {
     protected final Workspace workspace;
 
     /**
+     * Gets the workspace used by this handler
+     *
+     * @return The workspace used by this handler
+     */
+    Workspace getWorkspace() {
+        return workspace;
+    }
+
+    /**
      * Initializes this server
      *
      * @param workspace The workspace to use

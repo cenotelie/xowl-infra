@@ -17,9 +17,8 @@
 
 package org.xowl.infra.lsp.xowlserver;
 
-import org.xowl.infra.lsp.engine.DocumentAnalyzer;
-import org.xowl.infra.lsp.engine.DocumentServiceProviderStatic;
-import org.xowl.infra.lsp.engine.Workspace;
+import org.xowl.infra.lsp.engine.*;
+import org.xowl.infra.lsp.structures.ServerCapabilities;
 import org.xowl.infra.lsp.structures.SymbolKind;
 
 import java.io.File;
@@ -40,11 +39,16 @@ public class XowlLsWorkspace extends Workspace {
     public static final int SYMBOL_ONTOLOGY = SymbolKind.CLASS;
 
     /**
+     * The provider of document analyzers
+     */
+    private final DocumentServiceProvider<DocumentAnalyzer> documentAnalyzers;
+
+    /**
      * Initializes this workspace
      */
     public XowlLsWorkspace() {
         super();
-        this.analyzerProvider = new DocumentServiceProviderStatic<DocumentAnalyzer>(
+        this.documentAnalyzers = new DocumentServiceProviderStatic<DocumentAnalyzer>(
                 new XowlLsNTriplesAnalyzer(),
                 new XowlLsNQuadsAnalyzer(),
                 new XowlLsTurtleAnalyzer(),
@@ -102,5 +106,18 @@ public class XowlLsWorkspace extends Workspace {
         if (name.endsWith(".denotation"))
             return "denotation";
         return "text";
+    }
+
+    @Override
+    protected void listServerCapabilities(ServerCapabilities capabilities) {
+        capabilities.addCapability("referencesProvider");
+        capabilities.addCapability("documentSymbolProvider");
+        capabilities.addCapability("workspaceSymbolProvider");
+        capabilities.addCapability("definitionProvider");
+    }
+
+    @Override
+    protected DocumentAnalyzer getServiceAnalyzer(Document document) {
+        return documentAnalyzers.getService(document);
     }
 }
