@@ -423,6 +423,8 @@ public class LspServerHandlerBase extends LspHandlerBase {
     protected JsonRpcResponse onTextDocumentHover(JsonRpcRequest request) {
         TextDocumentPositionParams params = (TextDocumentPositionParams) request.getParams();
         Hover result = workspace.getHover(params);
+        if (result == null)
+            result = new Hover();
         return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
