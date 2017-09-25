@@ -18,6 +18,7 @@
 package org.xowl.infra.lsp.engine;
 
 import org.xowl.infra.lsp.structures.Diagnostic;
+import org.xowl.infra.lsp.structures.DocumentLink;
 
 /**
  * Represents the result of a document analysis
@@ -33,6 +34,10 @@ public class DocumentAnalysis {
      * The diagnostics for the document
      */
     private final Diagnostic[] diagnostics;
+    /**
+     * The links within the document
+     */
+    private final DocumentLink[] links;
 
     /**
      * Gets the symbols for the document
@@ -53,12 +58,21 @@ public class DocumentAnalysis {
     }
 
     /**
+     * Gets the links within the document
+     *
+     * @return The links within the document
+     */
+    public DocumentLink[] getLinks() {
+        return links;
+    }
+
+    /**
      * Initializes this analysis
      *
      * @param symbols The symbols for the document
      */
     public DocumentAnalysis(DocumentSymbols symbols) {
-        this(symbols, null);
+        this(symbols, null, null);
     }
 
     /**
@@ -66,9 +80,11 @@ public class DocumentAnalysis {
      *
      * @param symbols     The symbols for the document
      * @param diagnostics The diagnostics for the document
+     * @param links       The links within the document
      */
-    public DocumentAnalysis(DocumentSymbols symbols, Diagnostic[] diagnostics) {
+    public DocumentAnalysis(DocumentSymbols symbols, Diagnostic[] diagnostics, DocumentLink[] links) {
         this.symbols = symbols;
         this.diagnostics = diagnostics;
+        this.links = links;
     }
 }

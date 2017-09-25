@@ -95,6 +95,10 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
                 return new CodeLensParams(definition);
             case "codeLens/resolve":
                 return new CodeLens(definition, this);
+            case "textDocument/documentLink":
+                return new DocumentLinkParams(definition);
+            case "documentLink/resolve":
+                return new DocumentLink(definition);
         }
         return super.deserializeObject(definition, method);
     }

@@ -591,7 +591,11 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentLink(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        DocumentLinkParams params = (DocumentLinkParams) request.getParams();
+        DocumentLink[] result = workspace.getDocumentLinks(params);
+        if (result == null)
+            result = new DocumentLink[0];
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**
@@ -601,7 +605,9 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onDocumentLinkResolve(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        DocumentLink params = (DocumentLink) request.getParams();
+        DocumentLink result = workspace.resolveDocumentLink(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**

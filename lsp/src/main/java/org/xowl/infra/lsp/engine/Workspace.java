@@ -46,6 +46,10 @@ public class Workspace {
      */
     protected final SymbolRegistry symbolRegistry;
     /**
+     * The registry of links within a document
+     */
+    protected final Map<String, DocumentLink[]> documentLinks;
+    /**
      * The local LSP endpoint
      */
     protected LspEndpointLocal local;
@@ -129,6 +133,7 @@ public class Workspace {
     public Workspace() {
         this.documents = new HashMap<>();
         this.symbolRegistry = new SymbolRegistry();
+        this.documentLinks = new HashMap<>();
     }
 
     /**
@@ -371,6 +376,7 @@ public class Workspace {
             ));
         }
         symbolRegistry.onDocumentChanged(document, analysis.getSymbols());
+        documentLinks.put(document.getUri(), analysis.getLinks());
     }
 
     /**
@@ -548,6 +554,26 @@ public class Workspace {
         if (service == null)
             return lens;
         return service.resolve(lens);
+    }
+
+    /**
+     * Gets the document links for the specified parameters
+     *
+     * @param parameters The parameters for this request
+     * @return The document links
+     */
+    public DocumentLink[] getDocumentLinks(DocumentLinkParams parameters) {
+        return documentLinks.get(parameters.getTextDocument().getUri());
+    }
+
+    /**
+     * Resolves a document link
+     *
+     * @param link The document link to resolve
+     * @return The resolved document link
+     */
+    public DocumentLink resolveDocumentLink(DocumentLink link) {
+        return link;
     }
 
     /**
