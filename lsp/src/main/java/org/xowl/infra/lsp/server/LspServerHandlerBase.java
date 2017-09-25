@@ -617,6 +617,10 @@ public class LspServerHandlerBase extends LspHandlerBase {
      * @return The response
      */
     protected JsonRpcResponse onTextDocumentRename(JsonRpcRequest request) {
-        return JsonRpcResponseError.newInternalError(request.getIdentifier());
+        RenameParams params = (RenameParams) request.getParams();
+        WorkspaceEdit result = workspace.renameSymbol(params);
+        if (result == null)
+            return JsonRpcResponseError.newInvalidParameters(request.getIdentifier());
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 }

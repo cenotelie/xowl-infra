@@ -20,93 +20,76 @@ package org.xowl.infra.lsp.structures;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.json.JsonDeserializer;
 
 /**
- * The parameters for the document on-type formatting command
+ * The parameters for the symbol rename request from the client to the server
  *
  * @author Laurent Wouters
  */
-public class DocumentOnTypeFormattingParams implements Serializable {
+public class RenameParams implements Serializable {
     /**
-     * The document to format
+     * The document that contains the symbol to be renamed
      */
     private final TextDocumentIdentifier textDocument;
     /**
-     * The position at which this request was sent
+     * The position of the symbol within the document
      */
     private final Position position;
     /**
-     * The character that has been typed
+     * The new name of the symbol.
+     * If the given name is not valid the request must return a ResponseError with an appropriate message set.
      */
-    private final String character;
-    /**
-     * The format options
-     */
-    private final FormattingOptions options;
+    private final String newName;
 
     /**
-     * Gets the document to format
+     * Gets the document that contains the symbol to be renamed
      *
-     * @return The document to format
+     * @return The document that contains the symbol to be renamed
      */
     public TextDocumentIdentifier getTextDocument() {
         return textDocument;
     }
 
     /**
-     * Gets the position at which this request was sent
+     * Gets the position of the symbol within the document
      *
-     * @return The position at which this request was sent
+     * @return The position of the symbol within the document
      */
     public Position getPosition() {
         return position;
     }
 
     /**
-     * Gets the character that has been typed
+     * Gets the new name of the symbol
      *
-     * @return The character that has been typed
+     * @return The new name of the symbol
      */
-    public String getCharacter() {
-        return character;
-    }
-
-    /**
-     * Gets the format options
-     *
-     * @return The format options
-     */
-    public FormattingOptions getOptions() {
-        return options;
+    public String getNewName() {
+        return newName;
     }
 
     /**
      * Initializes this structure
      *
-     * @param textDocument The document to format
-     * @param position     The position at which this request was sent
-     * @param character    The character that has been typed
-     * @param options      The format options
+     * @param textDocument The document that contains the symbol to be renamed
+     * @param position     The position of the symbol within the document
+     * @param newName      The new name of the symbol
      */
-    public DocumentOnTypeFormattingParams(TextDocumentIdentifier textDocument, Position position, String character, FormattingOptions options) {
+    public RenameParams(TextDocumentIdentifier textDocument, Position position, String newName) {
         this.textDocument = textDocument;
         this.position = position;
-        this.character = character;
-        this.options = options;
+        this.newName = newName;
     }
 
     /**
      * Initializes this structure
      *
-     * @param definition   The serialized definition
-     * @param deserializer The current deserializer
+     * @param definition The serialized definition
      */
-    public DocumentOnTypeFormattingParams(ASTNode definition, JsonDeserializer deserializer) {
+    public RenameParams(ASTNode definition) {
         TextDocumentIdentifier textDocument = null;
         Position position = null;
-        String character = "";
-        FormattingOptions options = null;
+        String newName = "";
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
@@ -121,21 +104,16 @@ public class DocumentOnTypeFormattingParams implements Serializable {
                     position = new Position(nodeValue);
                     break;
                 }
-                case "ch": {
-                    character = TextUtils.unescape(nodeValue.getValue());
-                    character = character.substring(1, character.length() - 1);
-                    break;
-                }
-                case "options": {
-                    options = new FormattingOptions(nodeValue, deserializer);
+                case "newName": {
+                    newName = TextUtils.unescape(nodeValue.getValue());
+                    newName = newName.substring(1, newName.length() - 1);
                     break;
                 }
             }
         }
         this.textDocument = textDocument != null ? textDocument : new TextDocumentIdentifier("");
         this.position = position != null ? position : new Position(0, 0);
-        this.character = character;
-        this.options = options != null ? options : new FormattingOptions(4, false);
+        this.newName = newName;
     }
 
     @Override
@@ -149,10 +127,8 @@ public class DocumentOnTypeFormattingParams implements Serializable {
                 textDocument.serializedJSON() +
                 ", \"position\": " +
                 position.serializedJSON() +
-                ", \"ch\": \"" +
-                TextUtils.escapeStringJSON(character) +
-                "\", \"options\": " +
-                options.serializedJSON() +
-                "}";
+                ", \"newName\": \"" +
+                TextUtils.escapeStringJSON(newName) +
+                "\"}";
     }
 }

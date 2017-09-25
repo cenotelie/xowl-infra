@@ -99,6 +99,8 @@ public class LspServerRequestDeserializer extends JsonDeserializer {
                 return new DocumentLinkParams(definition);
             case "documentLink/resolve":
                 return new DocumentLink(definition);
+            case "textDocument/rename":
+                return new RenameParams(definition);
         }
         return super.deserializeObject(definition, method);
     }

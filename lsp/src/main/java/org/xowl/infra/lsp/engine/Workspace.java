@@ -577,6 +577,54 @@ public class Workspace {
     }
 
     /**
+     * Renames all occurrences of a symbol within this workspace
+     *
+     * @param parameters The parameters for the operation
+     * @return The operation's result as a list of edits to be applied to documents in this workspace
+     */
+    public WorkspaceEdit renameSymbol(RenameParams parameters) {
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return null;
+        Symbol symbol = symbolRegistry.getSymbolAt(parameters.getTextDocument().getUri(), parameters.getPosition());
+        if (symbol == null)
+            return null;
+        DocumentSymbolHandler service = getServiceSymbolHandler(document);
+        if (service == null)
+            return null;
+        if (!service.isLegalName(document, symbolRegistry, symbol, parameters.getNewName()))
+            return null;
+        WorkspaceEdit result = new WorkspaceEdit();
+        for (String uri : symbol.getDefiningDocuments()) {
+            Document doc = documents.get(uri);
+            if (doc == null)
+                return null;
+            service = getServiceSymbolHandler(doc);
+            if (service == null)
+                return null;
+            TextEdit[] changes = service.rename(doc, symbol, parameters.getNewName());
+            if (changes == null)
+                return null;
+            result.addChanges(uri, changes);
+        }
+        for (String uri : symbol.getReferencingDocuments()) {
+            if (symbol.getDefiningDocuments().contains(uri))
+                continue;
+            Document doc = documents.get(uri);
+            if (doc == null)
+                return null;
+            service = getServiceSymbolHandler(doc);
+            if (service == null)
+                return null;
+            TextEdit[] changes = service.rename(doc, symbol, parameters.getNewName());
+            if (changes == null)
+                return null;
+            result.addChanges(uri, changes);
+        }
+        return result;
+    }
+
+    /**
      * Lists the server capabilities that are supported by services provided by this entity
      *
      * @param capabilities The server capabilities structure to fill
@@ -661,6 +709,16 @@ public class Workspace {
      * @return The corresponding document lens provider
      */
     protected DocumentLensProvider getServiceLensProvider(Document document) {
+        return null;
+    }
+
+    /**
+     * Gets the document symbol handler for the specified document
+     *
+     * @param document A document
+     * @return The corresponding document symbol handler
+     */
+    protected DocumentSymbolHandler getServiceSymbolHandler(Document document) {
         return null;
     }
 }
