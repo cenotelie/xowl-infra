@@ -18,10 +18,7 @@
 package org.xowl.infra.lsp.engine;
 
 import fr.cenotelie.hime.redist.*;
-import org.xowl.infra.lsp.structures.Diagnostic;
-import org.xowl.infra.lsp.structures.DiagnosticSeverity;
-import org.xowl.infra.lsp.structures.Position;
-import org.xowl.infra.lsp.structures.Range;
+import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.utils.Identifiable;
 
 import java.io.Reader;
@@ -90,7 +87,7 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
                             name,
                             "The analysis failed"
                     )
-            });
+            }, new DocumentLink[0]);
         }
 
         Collection<Diagnostic> diagnostics = new ArrayList<>();
@@ -113,7 +110,7 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
             findDiagnostics(result.getRoot(), diagnostics);
         }
 
-        return new DocumentAnalysis(symbols, diagnostics.toArray(new Diagnostic[diagnostics.size()]));
+        return new DocumentAnalysis(symbols, diagnostics.toArray(new Diagnostic[diagnostics.size()]), new DocumentLink[0]);
     }
 
     /**

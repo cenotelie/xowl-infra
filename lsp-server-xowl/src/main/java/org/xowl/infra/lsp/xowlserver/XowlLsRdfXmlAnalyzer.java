@@ -20,14 +20,9 @@ package org.xowl.infra.lsp.xowlserver;
 import fr.cenotelie.hime.redist.Text;
 import fr.cenotelie.hime.redist.TextPosition;
 import org.xowl.infra.lsp.engine.*;
-import org.xowl.infra.lsp.structures.Diagnostic;
-import org.xowl.infra.lsp.structures.DiagnosticSeverity;
-import org.xowl.infra.lsp.structures.Position;
-import org.xowl.infra.lsp.structures.Range;
+import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.RDFXMLLoader;
-import org.xowl.infra.store.rdf.IRINode;
-import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.utils.Identifiable;
 import org.xowl.infra.utils.collections.Couple;
@@ -97,7 +92,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
                             getName(),
                             "The analysis failed"
                     )
-            });
+            }, new DocumentLink[0]);
         }
 
         Collection<Diagnostic> diagnostics = new ArrayList<>();
@@ -109,7 +104,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
             inspectDocument(context, root);
         else
             inspectElement(context, root);
-        return new DocumentAnalysis(symbols, diagnostics.toArray(new Diagnostic[diagnostics.size()]));
+        return new DocumentAnalysis(symbols, diagnostics.toArray(new Diagnostic[diagnostics.size()]), new DocumentLink[0]);
     }
 
 
