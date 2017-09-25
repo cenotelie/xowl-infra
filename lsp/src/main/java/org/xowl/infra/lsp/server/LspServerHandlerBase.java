@@ -301,8 +301,8 @@ public class LspServerHandlerBase extends LspHandlerBase {
      */
     protected JsonRpcResponse onWorkspaceExecuteCommand(JsonRpcRequest request) {
         ExecuteCommandParams params = (ExecuteCommandParams) request.getParams();
-        // this operation must be overridden to support the execution of the command
-        return new JsonRpcResponseResult<>(request.getIdentifier(), "OK");
+        Object result = workspace.executeCommand(params);
+        return new JsonRpcResponseResult<>(request.getIdentifier(), result);
     }
 
     /**

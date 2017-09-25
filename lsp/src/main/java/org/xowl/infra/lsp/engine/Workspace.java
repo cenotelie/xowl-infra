@@ -380,6 +380,16 @@ public class Workspace {
     }
 
     /**
+     * Executes a command on this workspace
+     *
+     * @param parameters The parameters for this request
+     * @return The result of the command execution
+     */
+    public Object executeCommand(ExecuteCommandParams parameters) {
+        return null;
+    }
+
+    /**
      * Gets the completion items for the specified document and position
      *
      * @param parameters The text document parameters
