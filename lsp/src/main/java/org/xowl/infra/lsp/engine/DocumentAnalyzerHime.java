@@ -105,12 +105,13 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
         }
 
         DocumentSymbols symbols = null;
+        Collection<DocumentLink> links = new ArrayList<>();
         if (result.getRoot() != null) {
-            symbols = findSymbols(document.getUri(), result.getRoot(), result.getInput(), factory, diagnostics);
-            findDiagnostics(result.getRoot(), diagnostics);
+            symbols = new DocumentSymbols();
+            doAnalyze(document.getUri(), result.getRoot(), result.getInput(), factory, symbols, diagnostics, links);
         }
 
-        return new DocumentAnalysis(symbols, diagnostics.toArray(new Diagnostic[diagnostics.size()]), new DocumentLink[0]);
+        return new DocumentAnalysis(symbols, diagnostics.toArray(new Diagnostic[diagnostics.size()]), links.toArray(new DocumentLink[links.size()]));
     }
 
     /**
@@ -122,26 +123,24 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
     protected abstract ParseResult parse(Reader reader);
 
     /**
-     * Finds the symbols in the specified document
+     * Performs the document analysis
      *
      * @param resourceUri The URI of the resource
      * @param root        The AST root for the document
      * @param input       The text input that was parsed
      * @param factory     The factory for symbols
+     * @param symbols     The repository of symbols for this document
      * @param diagnostics The buffer for diagnostics
-     * @return The symbols in the document
+     * @param links       The links found in this document
      */
-    protected abstract DocumentSymbols findSymbols(String resourceUri, ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics);
-
-    /**
-     * Finds additional diagnostics for the specified document
-     *
-     * @param root        The AST root for the document
-     * @param diagnostics The buffer for diagnostics
-     */
-    protected void findDiagnostics(ASTNode root, Collection<Diagnostic> diagnostics) {
-        // do nothing
-    }
+    protected abstract void doAnalyze(
+            String resourceUri,
+            ASTNode root,
+            Text input,
+            SymbolFactory factory,
+            DocumentSymbols symbols,
+            Collection<Diagnostic> diagnostics,
+            Collection<DocumentLink> links);
 
     /**
      * Gets the range for the specified node

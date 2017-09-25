@@ -22,6 +22,7 @@ import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.Text;
 import org.xowl.infra.lsp.engine.*;
 import org.xowl.infra.lsp.structures.Diagnostic;
+import org.xowl.infra.lsp.structures.DocumentLink;
 import org.xowl.infra.store.loaders.NQuadsLoader;
 import org.xowl.infra.store.loaders.NTriplesLexer;
 import org.xowl.infra.utils.TextUtils;
@@ -52,8 +53,7 @@ public class XowlLsNQuadsAnalyzer extends DocumentAnalyzerHime {
     }
 
     @Override
-    protected DocumentSymbols findSymbols(String resourceUri, ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics) {
-        DocumentSymbols symbols = new DocumentSymbols();
+    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentSymbols symbols, Collection<Diagnostic> diagnostics, Collection<DocumentLink> links) {
         for (ASTNode triple : root.getChildren()) {
             boolean isFirst = true;
             for (ASTNode node : triple.getChildren()) {
@@ -75,6 +75,5 @@ public class XowlLsNQuadsAnalyzer extends DocumentAnalyzerHime {
                 isFirst = false;
             }
         }
-        return symbols;
     }
 }

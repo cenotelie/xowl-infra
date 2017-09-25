@@ -23,6 +23,7 @@ import fr.cenotelie.hime.redist.Text;
 import org.xowl.infra.lsp.engine.DocumentSymbols;
 import org.xowl.infra.lsp.engine.SymbolFactory;
 import org.xowl.infra.lsp.structures.Diagnostic;
+import org.xowl.infra.lsp.structures.DocumentLink;
 import org.xowl.infra.store.loaders.TriGLexer;
 import org.xowl.infra.store.loaders.TriGLoader;
 import org.xowl.infra.store.loaders.TriGParser;
@@ -55,8 +56,7 @@ public class XowlLsTriGAnalyzer extends XowlLsTurtleAnalyzer {
     }
 
     @Override
-    protected DocumentSymbols findSymbols(String resourceUri, ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics) {
-        DocumentSymbols symbols = new DocumentSymbols();
+    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentSymbols symbols, Collection<Diagnostic> diagnostics, Collection<DocumentLink> links) {
         XowlLsAnalysisContext context = new XowlLsAnalysisContext(resourceUri, input, factory, symbols, diagnostics);
         for (ASTNode child : root.getChildren()) {
             switch (child.getSymbol().getID()) {
@@ -80,7 +80,6 @@ public class XowlLsTriGAnalyzer extends XowlLsTurtleAnalyzer {
                     break;
             }
         }
-        return symbols;
     }
 
     /**

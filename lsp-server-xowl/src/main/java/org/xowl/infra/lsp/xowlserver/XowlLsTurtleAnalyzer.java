@@ -23,6 +23,7 @@ import fr.cenotelie.hime.redist.Text;
 import org.xowl.infra.lsp.engine.*;
 import org.xowl.infra.lsp.structures.Diagnostic;
 import org.xowl.infra.lsp.structures.DiagnosticSeverity;
+import org.xowl.infra.lsp.structures.DocumentLink;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.TurtleLexer;
 import org.xowl.infra.store.loaders.TurtleLoader;
@@ -68,8 +69,7 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
     }
 
     @Override
-    protected DocumentSymbols findSymbols(String resourceUri, ASTNode root, Text input, SymbolFactory factory, Collection<Diagnostic> diagnostics) {
-        DocumentSymbols symbols = new DocumentSymbols();
+    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentSymbols symbols, Collection<Diagnostic> diagnostics, Collection<DocumentLink> links) {
         XowlLsAnalysisContext context = new XowlLsAnalysisContext(resourceUri, input, factory, symbols, diagnostics);
         for (ASTNode child : root.getChildren()) {
             switch (child.getSymbol().getID()) {
@@ -86,7 +86,6 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
                     break;
             }
         }
-        return symbols;
     }
 
     /**
