@@ -107,7 +107,7 @@ public class TextDocumentEdit implements Serializable {
         builder.append(textDocument.serializedJSON());
         builder.append(", \"edits\": [");
         for (int i = 0; i != edits.length; i++) {
-            if (i == 0)
+            if (i != 0)
                 builder.append(", ");
             builder.append(edits[i].serializedJSON());
         }
