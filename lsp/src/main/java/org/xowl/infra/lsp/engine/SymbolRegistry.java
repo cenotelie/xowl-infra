@@ -70,6 +70,7 @@ public class SymbolRegistry implements SymbolFactory {
     public void onDocumentChanged(Document document, DocumentSymbols symbols) {
         if (symbols == null)
             return;
+        onDocumentRemoved(document);
         perDocument.put(document.getUri(), symbols);
         for (DocumentSymbolReference definition : symbols.getDefinitions()) {
             definition.getSymbol().addDefinition(document.getUri(), definition.getRange());
