@@ -20,6 +20,9 @@ package org.xowl.infra.lsp.engine;
 import org.xowl.infra.lsp.structures.Diagnostic;
 import org.xowl.infra.lsp.structures.DocumentLink;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents the result of a document analysis
  *
@@ -29,15 +32,15 @@ public class DocumentAnalysis {
     /**
      * The symbols for the document
      */
-    private final DocumentSymbols symbols;
+    protected final DocumentSymbols symbols;
     /**
      * The diagnostics for the document
      */
-    private final Diagnostic[] diagnostics;
+    protected final List<Diagnostic> diagnostics;
     /**
      * The links within the document
      */
-    private final DocumentLink[] links;
+    protected final List<DocumentLink> links;
 
     /**
      * Gets the symbols for the document
@@ -53,7 +56,7 @@ public class DocumentAnalysis {
      *
      * @return The diagnostics for the document
      */
-    public Diagnostic[] getDiagnostics() {
+    public List<Diagnostic> getDiagnostics() {
         return diagnostics;
     }
 
@@ -62,29 +65,16 @@ public class DocumentAnalysis {
      *
      * @return The links within the document
      */
-    public DocumentLink[] getLinks() {
+    public List<DocumentLink> getLinks() {
         return links;
     }
 
     /**
      * Initializes this analysis
-     *
-     * @param symbols The symbols for the document
      */
-    public DocumentAnalysis(DocumentSymbols symbols) {
-        this(symbols, null, null);
-    }
-
-    /**
-     * Initializes this analysis
-     *
-     * @param symbols     The symbols for the document
-     * @param diagnostics The diagnostics for the document
-     * @param links       The links within the document
-     */
-    public DocumentAnalysis(DocumentSymbols symbols, Diagnostic[] diagnostics, DocumentLink[] links) {
-        this.symbols = symbols;
-        this.diagnostics = diagnostics;
-        this.links = links;
+    public DocumentAnalysis() {
+        this.symbols = new DocumentSymbols();
+        this.diagnostics = new ArrayList<>();
+        this.links = new ArrayList<>();
     }
 }

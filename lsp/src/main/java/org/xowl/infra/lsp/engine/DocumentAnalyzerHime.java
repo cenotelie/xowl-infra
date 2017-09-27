@@ -18,12 +18,13 @@
 package org.xowl.infra.lsp.engine;
 
 import fr.cenotelie.hime.redist.*;
-import org.xowl.infra.lsp.structures.*;
+import org.xowl.infra.lsp.structures.Diagnostic;
+import org.xowl.infra.lsp.structures.DiagnosticSeverity;
+import org.xowl.infra.lsp.structures.Position;
+import org.xowl.infra.lsp.structures.Range;
 import org.xowl.infra.utils.Identifiable;
 
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -77,22 +78,21 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
 
     @Override
     public DocumentAnalysis analyze(SymbolFactory factory, Document document) {
+        DocumentAnalysis analysis = new DocumentAnalysis();
         ParseResult result = parse(document.getCurrentVersion().getContent().getReader());
         if (result == null) {
-            return new DocumentAnalysis(null, new Diagnostic[]{
-                    new Diagnostic(
-                            new Range(new Position(0, 0), new Position(0, 0)),
-                            DiagnosticSeverity.ERROR,
-                            CODE_PARSER_FAILURE,
-                            name,
-                            "The analysis failed"
-                    )
-            }, new DocumentLink[0]);
+            analysis.getDiagnostics().add(new Diagnostic(
+                    new Range(new Position(0, 0), new Position(0, 0)),
+                    DiagnosticSeverity.ERROR,
+                    CODE_PARSER_FAILURE,
+                    name,
+                    "The analysis failed"
+            ));
+            return analysis;
         }
 
-        Collection<Diagnostic> diagnostics = new ArrayList<>();
         for (ParseError error : result.getErrors()) {
-            diagnostics.add(new Diagnostic(
+            analysis.getDiagnostics().add(new Diagnostic(
                     new Range(
                             new Position(error.getPosition().getLine() - 1, error.getPosition().getColumn() - 1),
                             new Position(error.getPosition().getLine() - 1, error.getPosition().getColumn() - 1 + error.getLength() + 1)
@@ -104,14 +104,9 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
             ));
         }
 
-        DocumentSymbols symbols = null;
-        Collection<DocumentLink> links = new ArrayList<>();
-        if (result.getRoot() != null) {
-            symbols = new DocumentSymbols();
-            doAnalyze(document.getUri(), result.getRoot(), result.getInput(), factory, symbols, diagnostics, links);
-        }
-
-        return new DocumentAnalysis(symbols, diagnostics.toArray(new Diagnostic[diagnostics.size()]), links.toArray(new DocumentLink[links.size()]));
+        if (result.getRoot() != null)
+            doAnalyze(document.getUri(), result.getRoot(), result.getInput(), factory, analysis);
+        return analysis;
     }
 
     /**
@@ -129,18 +124,14 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
      * @param root        The AST root for the document
      * @param input       The text input that was parsed
      * @param factory     The factory for symbols
-     * @param symbols     The repository of symbols for this document
-     * @param diagnostics The buffer for diagnostics
-     * @param links       The links found in this document
+     * @param analysis    The current analysis to fill
      */
     protected abstract void doAnalyze(
             String resourceUri,
             ASTNode root,
             Text input,
             SymbolFactory factory,
-            DocumentSymbols symbols,
-            Collection<Diagnostic> diagnostics,
-            Collection<DocumentLink> links);
+            DocumentAnalysis analysis);
 
     /**
      * Gets the range for the specified node

@@ -42,13 +42,9 @@ public class Workspace {
      */
     protected final Map<String, Document> documents;
     /**
-     * The symbol registry
+     * The global symbol registry
      */
     protected final SymbolRegistry symbolRegistry;
-    /**
-     * The registry of links within a document
-     */
-    protected final Map<String, DocumentLink[]> documentLinks;
     /**
      * The local LSP endpoint
      */
@@ -133,7 +129,6 @@ public class Workspace {
     public Workspace() {
         this.documents = new HashMap<>();
         this.symbolRegistry = new SymbolRegistry();
-        this.documentLinks = new HashMap<>();
     }
 
     /**
@@ -365,18 +360,15 @@ public class Workspace {
         if (analyzer == null)
             return;
         DocumentAnalysis analysis = analyzer.analyze(symbolRegistry, document);
+        document.setLastAnalysis(analysis);
         if (local != null && publishDiagnostics) {
-            Diagnostic[] diagnostics = analysis.getDiagnostics();
-            if (diagnostics == null)
-                diagnostics = new Diagnostic[0];
             local.send(new JsonRpcRequest(
                     null,
                     "textDocument/publishDiagnostics",
-                    new PublishDiagnosticsParams(document.getUri(), diagnostics)
+                    new PublishDiagnosticsParams(document.getUri(), analysis.getDiagnostics().toArray(new Diagnostic[analysis.getDiagnostics().size()]))
             ));
         }
         symbolRegistry.onDocumentChanged(document, analysis.getSymbols());
-        documentLinks.put(document.getUri(), analysis.getLinks());
     }
 
     /**
@@ -573,7 +565,13 @@ public class Workspace {
      * @return The document links
      */
     public DocumentLink[] getDocumentLinks(DocumentLinkParams parameters) {
-        return documentLinks.get(parameters.getTextDocument().getUri());
+        Document document = documents.get(parameters.getTextDocument().getUri());
+        if (document == null)
+            return new DocumentLink[0];
+        DocumentAnalysis analysis = document.getLastAnalysis();
+        if (analysis == null)
+            return new DocumentLink[0];
+        return analysis.getLinks().toArray(new DocumentLink[analysis.getLinks().size()]);
     }
 
     /**

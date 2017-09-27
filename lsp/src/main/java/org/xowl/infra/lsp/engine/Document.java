@@ -21,7 +21,7 @@ import org.xowl.infra.lsp.structures.TextDocumentContentChangeEvent;
 import org.xowl.infra.lsp.structures.TextEdit;
 
 /**
- * Represents a use document in a workspace
+ * Represents a document in a workspace
  *
  * @author Laurent Wouters
  */
@@ -38,6 +38,10 @@ public class Document {
      * The last known version of the document
      */
     private DocumentVersion currentVersion;
+    /**
+     * The last analysis of this document
+     */
+    private DocumentAnalysis lastAnalysis;
 
     /**
      * Gets the document's URI
@@ -64,6 +68,24 @@ public class Document {
      */
     public DocumentVersion getCurrentVersion() {
         return currentVersion;
+    }
+
+    /**
+     * Gets the result of the last analysis performed on this document
+     *
+     * @return The last performed analysis
+     */
+    public DocumentAnalysis getLastAnalysis() {
+        return lastAnalysis;
+    }
+
+    /**
+     * Sets the result of the last analysis performed on this document
+     *
+     * @param analysis The last performed analysis
+     */
+    public void setLastAnalysis(DocumentAnalysis analysis) {
+        this.lastAnalysis = analysis;
     }
 
     /**

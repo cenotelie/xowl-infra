@@ -20,10 +20,8 @@ package org.xowl.infra.lsp.xowlserver;
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.Text;
-import org.xowl.infra.lsp.engine.DocumentSymbols;
+import org.xowl.infra.lsp.engine.DocumentAnalysis;
 import org.xowl.infra.lsp.engine.SymbolFactory;
-import org.xowl.infra.lsp.structures.Diagnostic;
-import org.xowl.infra.lsp.structures.DocumentLink;
 import org.xowl.infra.store.loaders.TriGLexer;
 import org.xowl.infra.store.loaders.TriGLoader;
 import org.xowl.infra.store.loaders.TriGParser;
@@ -33,7 +31,6 @@ import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.Reader;
-import java.util.Collection;
 
 /**
  * The analyzer for the rdf-ttl language
@@ -56,8 +53,8 @@ public class XowlLsTriGAnalyzer extends XowlLsTurtleAnalyzer {
     }
 
     @Override
-    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentSymbols symbols, Collection<Diagnostic> diagnostics, Collection<DocumentLink> links) {
-        XowlLsAnalysisContext context = new XowlLsAnalysisContext(resourceUri, input, factory, symbols, diagnostics);
+    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentAnalysis analysis) {
+        XowlLsAnalysisContext context = new XowlLsAnalysisContext(resourceUri, input, factory, analysis);
         for (ASTNode child : root.getChildren()) {
             switch (child.getSymbol().getID()) {
                 case TriGParser.ID.prefixID:

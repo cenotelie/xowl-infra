@@ -21,8 +21,6 @@ import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.Text;
 import org.xowl.infra.lsp.engine.*;
-import org.xowl.infra.lsp.structures.Diagnostic;
-import org.xowl.infra.lsp.structures.DocumentLink;
 import org.xowl.infra.store.loaders.NQuadsLoader;
 import org.xowl.infra.store.loaders.NTriplesLexer;
 import org.xowl.infra.utils.TextUtils;
@@ -30,7 +28,6 @@ import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.Reader;
-import java.util.Collection;
 
 /**
  * The analyzer for the rdf-nt language
@@ -53,7 +50,7 @@ public class XowlLsNQuadsAnalyzer extends DocumentAnalyzerHime {
     }
 
     @Override
-    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentSymbols symbols, Collection<Diagnostic> diagnostics, Collection<DocumentLink> links) {
+    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentAnalysis analysis) {
         for (ASTNode triple : root.getChildren()) {
             boolean isFirst = true;
             for (ASTNode node : triple.getChildren()) {
@@ -64,11 +61,11 @@ public class XowlLsNQuadsAnalyzer extends DocumentAnalyzerHime {
                     if (symbol.getKind() == 0)
                         symbol.setKind(XowlLsWorkspace.SYMBOL_ENTITY);
                     if (isFirst)
-                        symbols.addDefinition(new DocumentSymbolReference(
+                        analysis.getSymbols().addDefinition(new DocumentSymbolReference(
                                 symbol,
                                 getRangeFor(input, node)));
                     else
-                        symbols.addReference(new DocumentSymbolReference(
+                        analysis.getSymbols().addReference(new DocumentSymbolReference(
                                 symbol,
                                 getRangeFor(input, node)));
                 }

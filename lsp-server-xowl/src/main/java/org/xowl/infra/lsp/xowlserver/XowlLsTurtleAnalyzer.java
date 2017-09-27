@@ -23,7 +23,6 @@ import fr.cenotelie.hime.redist.Text;
 import org.xowl.infra.lsp.engine.*;
 import org.xowl.infra.lsp.structures.Diagnostic;
 import org.xowl.infra.lsp.structures.DiagnosticSeverity;
-import org.xowl.infra.lsp.structures.DocumentLink;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.TurtleLexer;
 import org.xowl.infra.store.loaders.TurtleLoader;
@@ -34,7 +33,6 @@ import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.Reader;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -69,8 +67,8 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
     }
 
     @Override
-    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentSymbols symbols, Collection<Diagnostic> diagnostics, Collection<DocumentLink> links) {
-        XowlLsAnalysisContext context = new XowlLsAnalysisContext(resourceUri, input, factory, symbols, diagnostics);
+    protected void doAnalyze(String resourceUri, ASTNode root, Text input, SymbolFactory factory, DocumentAnalysis analysis) {
+        XowlLsAnalysisContext context = new XowlLsAnalysisContext(resourceUri, input, factory, analysis);
         for (ASTNode child : root.getChildren()) {
             switch (child.getSymbol().getID()) {
                 case TurtleParser.ID.prefixID:
@@ -305,7 +303,7 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
             }
             index++;
         }
-        context.diagnostics.add(new Diagnostic(
+        context.analysis.getDiagnostics().add(new Diagnostic(
                 getRangeFor(context.input, node),
                 DiagnosticSeverity.ERROR,
                 "rdf-ttl.0",
@@ -346,11 +344,11 @@ public class XowlLsTurtleAnalyzer extends DocumentAnalyzerHime {
         if (symbol.getKind() == 0)
             symbol.setKind(XowlLsWorkspace.SYMBOL_ENTITY);
         if (isDefinition)
-            context.symbols.addDefinition(new DocumentSymbolReference(
+            context.analysis.getSymbols().addDefinition(new DocumentSymbolReference(
                     symbol,
                     getRangeFor(context.input, node)));
         else
-            context.symbols.addReference(new DocumentSymbolReference(
+            context.analysis.getSymbols().addReference(new DocumentSymbolReference(
                     symbol,
                     getRangeFor(context.input, node)));
     }

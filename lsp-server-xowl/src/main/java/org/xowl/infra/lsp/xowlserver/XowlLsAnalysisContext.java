@@ -18,11 +18,9 @@
 package org.xowl.infra.lsp.xowlserver;
 
 import fr.cenotelie.hime.redist.Text;
-import org.xowl.infra.lsp.engine.DocumentSymbols;
+import org.xowl.infra.lsp.engine.DocumentAnalysis;
 import org.xowl.infra.lsp.engine.SymbolFactory;
-import org.xowl.infra.lsp.structures.Diagnostic;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,13 +39,9 @@ public class XowlLsAnalysisContext {
      */
     public final SymbolFactory factory;
     /**
-     * The symbols for the current document
+     * The current analysis to fill
      */
-    public final DocumentSymbols symbols;
-    /**
-     * The buffer for diagnostics
-     */
-    public final Collection<Diagnostic> diagnostics;
+    public final DocumentAnalysis analysis;
     /**
      * The URI of the resource currently being loaded
      */
@@ -67,14 +61,12 @@ public class XowlLsAnalysisContext {
      * @param resourceUri The URI of the resource
      * @param input       The text input that was parsed
      * @param factory     The factory for symbols
-     * @param symbols     The symbols for the current document
-     * @param diagnostics The buffer for diagnostics
+     * @param analysis    The current analysis to fill
      */
-    public XowlLsAnalysisContext(String resourceUri, Text input, SymbolFactory factory, DocumentSymbols symbols, Collection<Diagnostic> diagnostics) {
+    public XowlLsAnalysisContext(String resourceUri, Text input, SymbolFactory factory, DocumentAnalysis analysis) {
         this.input = input;
         this.factory = factory;
-        this.symbols = symbols;
-        this.diagnostics = diagnostics;
+        this.analysis = analysis;
         this.resource = resourceUri;
         this.baseURI = resourceUri;
         this.namespaces = new HashMap<>();

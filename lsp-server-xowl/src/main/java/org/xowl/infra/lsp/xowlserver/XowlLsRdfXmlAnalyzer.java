@@ -20,7 +20,10 @@ package org.xowl.infra.lsp.xowlserver;
 import fr.cenotelie.hime.redist.Text;
 import fr.cenotelie.hime.redist.TextPosition;
 import org.xowl.infra.lsp.engine.*;
-import org.xowl.infra.lsp.structures.*;
+import org.xowl.infra.lsp.structures.Diagnostic;
+import org.xowl.infra.lsp.structures.DiagnosticSeverity;
+import org.xowl.infra.lsp.structures.Position;
+import org.xowl.infra.lsp.structures.Range;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.RDFXMLLoader;
 import org.xowl.infra.store.rdf.SubjectNode;
@@ -52,11 +55,10 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
          * @param resourceUri The URI of the resource
          * @param input       The text input that was parsed
          * @param factory     The factory for symbols
-         * @param symbols     The symbols for the current document
-         * @param diagnostics The buffer for diagnostics
+         * @param analysis    The current analysis to fill
          */
-        public Context(String resourceUri, Text input, SymbolFactory factory, DocumentSymbols symbols, Collection<Diagnostic> diagnostics) {
-            super(resourceUri, input, factory, symbols, diagnostics);
+        public Context(String resourceUri, Text input, SymbolFactory factory, DocumentAnalysis analysis) {
+            super(resourceUri, input, factory, analysis);
             this.knownIDs = new ArrayList<>();
         }
     }
@@ -80,31 +82,27 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
 
     @Override
     public DocumentAnalysis analyze(SymbolFactory factory, Document document) {
+        DocumentAnalysis analysis = new DocumentAnalysis();
         org.w3c.dom.Document xmlDocument;
         try {
             xmlDocument = Xml.parse(document.getCurrentVersion().getContent().getReader());
         } catch (Exception exception) {
-            return new DocumentAnalysis(null, new Diagnostic[]{
-                    new Diagnostic(
-                            new Range(new Position(0, 0), new Position(0, 0)),
-                            DiagnosticSeverity.ERROR,
-                            CODE_PARSER_FAILURE,
-                            getName(),
-                            "The analysis failed"
-                    )
-            }, new DocumentLink[0]);
+            analysis.getDiagnostics().add(new Diagnostic(
+                    new Range(new Position(0, 0), new Position(0, 0)),
+                    DiagnosticSeverity.ERROR,
+                    CODE_PARSER_FAILURE,
+                    getName(),
+                    "The analysis failed"
+            ));
+            return analysis;
         }
-
-        Collection<Diagnostic> diagnostics = new ArrayList<>();
-        DocumentSymbols symbols = new DocumentSymbols();
-        Context context = new Context(document.getUri(), null, factory, symbols, diagnostics);
-
+        Context context = new Context(document.getUri(), null, factory, analysis);
         XmlElement root = new XmlElement(xmlDocument.getDocumentElement(), document.getUri());
         if (Vocabulary.rdfRDF.equals(root.getNodeIRI()))
             inspectDocument(context, root);
         else
             inspectElement(context, root);
-        return new DocumentAnalysis(symbols, diagnostics.toArray(new Diagnostic[diagnostics.size()]), new DocumentLink[0]);
+        return analysis;
     }
 
 
@@ -127,7 +125,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
      */
     private void inspectElement(Context context, XmlElement element) {
         if (!RDFXMLLoader.isValidElement(element.getNodeIRI())) {
-            context.diagnostics.add(new Diagnostic(
+            context.analysis.getDiagnostics().add(new Diagnostic(
                     getRangeFor(element),
                     DiagnosticSeverity.ERROR,
                     "rdf-xml.0",
@@ -143,7 +141,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         boolean hasID = false;
         if (attribute != null) {
             if (!RDFXMLLoader.isValidXMLName(attribute)) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.1",
@@ -154,7 +152,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
             }
             String iri = element.resolve("#" + attribute);
             if (context.knownIDs.contains(iri)) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.2",
@@ -170,7 +168,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         attribute = element.getAttribute(Vocabulary.rdfNodeID);
         if (attribute != null) {
             if (hasID) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.3",
@@ -180,7 +178,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
                 return;
             }
             if (!RDFXMLLoader.isValidXMLName(attribute)) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.4",
@@ -194,7 +192,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         attribute = element.getAttribute(Vocabulary.rdfAbout);
         if (attribute != null) {
             if (hasID) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.5",
@@ -204,7 +202,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
                 return;
             }
             if (symbolId != null) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.6",
@@ -235,7 +233,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         while (attributes.hasNext()) {
             Couple<String, String> couple = attributes.next();
             if (!RDFXMLLoader.isValidPropertyAttribute(couple.x)) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.7",
@@ -260,7 +258,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
      */
     private void inspectElementProperty(Context context, XmlElement element) {
         if (!RDFXMLLoader.isValidPropertyElement(element.getNodeIRI())) {
-            context.diagnostics.add(new Diagnostic(
+            context.analysis.getDiagnostics().add(new Diagnostic(
                     getRangeFor(element),
                     DiagnosticSeverity.ERROR,
                     "rdf-xml.8",
@@ -324,7 +322,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         String attribute = element.getAttribute(Vocabulary.rdfID);
         if (attribute != null) {
             if (!RDFXMLLoader.isValidXMLName(attribute)) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.1",
@@ -335,7 +333,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
             }
             String iri = element.resolve("#" + attribute);
             if (context.knownIDs.contains(iri)) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.2",
@@ -361,7 +359,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         String attribute = element.getAttribute(Vocabulary.rdfID);
         if (attribute != null) {
             if (!RDFXMLLoader.isValidXMLName(attribute)) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.1",
@@ -372,7 +370,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
             }
             String iri = element.resolve("#" + attribute);
             if (context.knownIDs.contains(iri)) {
-                context.diagnostics.add(new Diagnostic(
+                context.analysis.getDiagnostics().add(new Diagnostic(
                         getRangeFor(element),
                         DiagnosticSeverity.ERROR,
                         "rdf-xml.2",
@@ -401,7 +399,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         if (!attributes.hasNext()) {
             if (attributeID != null) {
                 if (!RDFXMLLoader.isValidXMLName(attributeID)) {
-                    context.diagnostics.add(new Diagnostic(
+                    context.analysis.getDiagnostics().add(new Diagnostic(
                             getRangeFor(element),
                             DiagnosticSeverity.ERROR,
                             "rdf-xml.1",
@@ -412,7 +410,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
                 }
                 String iri = element.resolve("#" + attributeID);
                 if (context.knownIDs.contains(iri)) {
-                    context.diagnostics.add(new Diagnostic(
+                    context.analysis.getDiagnostics().add(new Diagnostic(
                             getRangeFor(element),
                             DiagnosticSeverity.ERROR,
                             "rdf-xml.2",
@@ -433,7 +431,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
             attribute = element.getAttribute(Vocabulary.rdfNodeID);
             if (attribute != null) {
                 if (!RDFXMLLoader.isValidXMLName(attribute)) {
-                    context.diagnostics.add(new Diagnostic(
+                    context.analysis.getDiagnostics().add(new Diagnostic(
                             getRangeFor(element),
                             DiagnosticSeverity.ERROR,
                             "rdf-xml.1",
@@ -443,7 +441,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
                     return;
                 }
                 if (value != null) {
-                    context.diagnostics.add(new Diagnostic(
+                    context.analysis.getDiagnostics().add(new Diagnostic(
                             getRangeFor(element),
                             DiagnosticSeverity.ERROR,
                             "rdf-xml.7",
@@ -469,7 +467,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
             while (attributes.hasNext()) {
                 Couple<String, String> att = attributes.next();
                 if (!RDFXMLLoader.isValidPropertyAttribute(att.x)) {
-                    context.diagnostics.add(new Diagnostic(
+                    context.analysis.getDiagnostics().add(new Diagnostic(
                             getRangeFor(element),
                             DiagnosticSeverity.ERROR,
                             "rdf-xml.7",
@@ -603,11 +601,11 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
         if (symbol.getKind() == 0)
             symbol.setKind(XowlLsWorkspace.SYMBOL_ENTITY);
         if (isDefinition)
-            context.symbols.addDefinition(new DocumentSymbolReference(
+            context.analysis.getSymbols().addDefinition(new DocumentSymbolReference(
                     symbol,
                     getRangeFor(element)));
         else
-            context.symbols.addReference(new DocumentSymbolReference(
+            context.analysis.getSymbols().addReference(new DocumentSymbolReference(
                     symbol,
                     getRangeFor(element)));
     }
