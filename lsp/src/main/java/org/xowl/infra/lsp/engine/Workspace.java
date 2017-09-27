@@ -19,6 +19,7 @@ package org.xowl.infra.lsp.engine;
 
 import org.xowl.infra.jsonrpc.JsonRpcRequest;
 import org.xowl.infra.lsp.LspEndpointLocal;
+import org.xowl.infra.lsp.server.LspServer;
 import org.xowl.infra.lsp.structures.*;
 import org.xowl.infra.utils.IOUtils;
 import org.xowl.infra.utils.json.SerializedUnknown;
@@ -602,7 +603,7 @@ public class Workspace {
             return null;
         if (!service.isLegalName(document, symbolRegistry, symbol, parameters.getNewName()))
             return null;
-        WorkspaceEdit result = new WorkspaceEdit();
+        Map<Document, TextEdit[]> edits = new HashMap<>();
         for (String uri : symbol.getDefiningDocuments()) {
             Document doc = documents.get(uri);
             if (doc == null)
@@ -613,7 +614,8 @@ public class Workspace {
             TextEdit[] changes = service.rename(doc, symbol, parameters.getNewName());
             if (changes == null)
                 return null;
-            result.addChanges(uri, changes);
+            if (changes.length > 0)
+                edits.put(doc, changes);
         }
         for (String uri : symbol.getReferencingDocuments()) {
             if (symbol.getDefiningDocuments().contains(uri))
@@ -627,7 +629,19 @@ public class Workspace {
             TextEdit[] changes = service.rename(doc, symbol, parameters.getNewName());
             if (changes == null)
                 return null;
-            result.addChanges(uri, changes);
+            if (changes.length > 0)
+                edits.put(doc, changes);
+        }
+
+        WorkspaceEdit result = new WorkspaceEdit();
+        if (local != null && local instanceof LspServer && ((LspServer) local).getClientCapabiltiies().supports("workspace.workspaceEdit.documentChanges")) {
+            for (Map.Entry<Document, TextEdit[]> entry : edits.entrySet()) {
+                result.addChanges(entry.getKey().getUri(), entry.getKey().getCurrentVersion().getNumber(), entry.getValue());
+            }
+        } else {
+            for (Map.Entry<Document, TextEdit[]> entry : edits.entrySet()) {
+                result.addChanges(entry.getKey().getUri(), entry.getValue());
+            }
         }
         return result;
     }

@@ -20,12 +20,8 @@ package org.xowl.infra.lsp.structures;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.json.JsonDeserializer;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A workspace edit represents changes to many resources managed in the workspace.
@@ -44,7 +40,7 @@ public class WorkspaceEdit implements Serializable {
      * Whether a client supports versioned document edits is expressed via
      * `WorkspaceClientCapabilities.workspaceEdit.documentChanges`.
      */
-    private final TextDocumentEdit[] documentChanges;
+    private final Map<String, TextDocumentEdit> documentChanges;
 
     /**
      * Gets the changed resources
@@ -52,7 +48,11 @@ public class WorkspaceEdit implements Serializable {
      * @return The changed resources
      */
     public Collection<String> getChangedResources() {
-        return changes.keySet();
+        if (changes != null && !changes.isEmpty())
+            return changes.keySet();
+        if (documentChanges != null && !documentChanges.isEmpty())
+            return documentChanges.keySet();
+        return Collections.emptyList();
     }
 
     /**
@@ -62,16 +62,26 @@ public class WorkspaceEdit implements Serializable {
      * @return The changes
      */
     public TextEdit[] getChangesFor(String resource) {
-        return changes.get(resource);
+        if (changes != null && !changes.isEmpty())
+            return changes.get(resource);
+        if (documentChanges != null && !documentChanges.isEmpty()) {
+            TextDocumentEdit edit = documentChanges.get(resource);
+            if (edit != null)
+                return edit.getEdits();
+        }
+        return null;
     }
 
     /**
-     * Gets the document changes
+     * Gets the text document change for a resource
      *
-     * @return The document changes
+     * @param resource The resource
+     * @return The text document change, or null if there is none
      */
-    public TextDocumentEdit[] getDocumentChanges() {
-        return documentChanges;
+    public TextDocumentEdit getDocumentChangesFor(String resource) {
+        if (documentChanges == null)
+            return null;
+        return documentChanges.get(resource);
     }
 
     /**
@@ -79,26 +89,17 @@ public class WorkspaceEdit implements Serializable {
      */
     public WorkspaceEdit() {
         this.changes = new HashMap<>();
-        this.documentChanges = null;
-    }
-
-    /**
-     * Initializes this structure
-     */
-    public WorkspaceEdit(TextDocumentEdit[] documentChanges) {
-        this.changes = null;
-        this.documentChanges = documentChanges;
+        this.documentChanges = new HashMap<>();
     }
 
     /**
      * Initializes this structure
      *
-     * @param definition   The serialized definition
-     * @param deserializer The current deserializer
+     * @param definition The serialized definition
      */
-    public WorkspaceEdit(ASTNode definition, JsonDeserializer deserializer) {
+    public WorkspaceEdit(ASTNode definition) {
         Map<String, TextEdit[]> changes = null;
-        TextDocumentEdit[] documentChanges = null;
+        Map<String, TextDocumentEdit> documentChanges = null;
         for (ASTNode child : definition.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
             String name = TextUtils.unescape(nodeMemberName.getValue());
@@ -110,10 +111,11 @@ public class WorkspaceEdit implements Serializable {
                     break;
                 }
                 case "documentChanges": {
-                    documentChanges = new TextDocumentEdit[nodeValue.getChildren().size()];
-                    int index = 0;
-                    for (ASTNode edit : nodeValue.getChildren())
-                        documentChanges[index++] = new TextDocumentEdit(edit);
+                    documentChanges = new HashMap<>();
+                    for (ASTNode nodeItem : nodeValue.getChildren()) {
+                        TextDocumentEdit edit = new TextDocumentEdit(nodeItem);
+                        documentChanges.put(edit.getTextDocument().getUri(), edit);
+                    }
                 }
             }
         }
@@ -160,6 +162,24 @@ public class WorkspaceEdit implements Serializable {
         this.changes.put(resource, concat);
     }
 
+    /**
+     * Adds changes to a resource
+     *
+     * @param resource The changed resource
+     * @param changes  The changes
+     */
+    public void addChanges(String resource, int version, TextEdit[] changes) {
+        TextDocumentEdit previous = this.documentChanges.get(resource);
+        if (previous == null) {
+            this.documentChanges.put(resource, new TextDocumentEdit(new VersionedTextDocumentIdentifier(resource, version), changes));
+            return;
+        }
+        TextEdit[] old = previous.getEdits();
+        TextEdit[] concat = Arrays.copyOf(old, old.length + changes.length);
+        System.arraycopy(changes, 0, concat, old.length, changes.length);
+        this.documentChanges.put(resource, new TextDocumentEdit(new VersionedTextDocumentIdentifier(resource, version), concat));
+    }
+
     @Override
     public String serializedString() {
         return serializedJSON();
@@ -169,7 +189,7 @@ public class WorkspaceEdit implements Serializable {
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder();
         builder.append("{");
-        if (changes != null) {
+        if (changes != null && !changes.isEmpty()) {
             builder.append("\"changes\": {");
             boolean first = true;
             for (Map.Entry<String, TextEdit[]> entry : changes.entrySet()) {
@@ -187,12 +207,14 @@ public class WorkspaceEdit implements Serializable {
                 builder.append("]");
             }
             builder.append("}");
-        } else if (documentChanges != null) {
+        } else if (documentChanges != null && !documentChanges.isEmpty()) {
             builder.append("\"documentChanges\": [");
-            for (int i = 0; i != documentChanges.length; i++) {
-                if (i == 0)
+            boolean first = true;
+            for (TextDocumentEdit edit : documentChanges.values()) {
+                if (!first)
                     builder.append(", ");
-                builder.append(documentChanges[i].serializedJSON());
+                first = false;
+                builder.append(edit.serializedJSON());
             }
             builder.append("]");
         }
