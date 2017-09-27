@@ -78,7 +78,7 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
 
     @Override
     public DocumentAnalysis analyze(SymbolFactory factory, Document document) {
-        DocumentAnalysis analysis = new DocumentAnalysis();
+        DocumentAnalysis analysis = newAnalysis();
         ParseResult result = parse(document.getCurrentVersion().getContent().getReader());
         if (result == null) {
             analysis.getDiagnostics().add(new Diagnostic(
@@ -107,6 +107,15 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
         if (result.getRoot() != null)
             doAnalyze(document.getUri(), result.getRoot(), result.getInput(), factory, analysis);
         return analysis;
+    }
+
+    /**
+     * Creates a new document analysis
+     *
+     * @return The new document analysis
+     */
+    protected DocumentAnalysis newAnalysis() {
+        return new DocumentAnalysis();
     }
 
     /**
