@@ -145,8 +145,8 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
     @Override
     public synchronized Reply send(String message, JsonRpcContext context) {
         if (context.isEmpty())
-            return sendNoReply(message);
-        return sendAndGetReply(message);
+            return sendNoReply(LspUtils.envelop(message));
+        return sendAndGetReply(LspUtils.envelop(message));
     }
 
     /**
@@ -216,7 +216,7 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
      */
     private synchronized void writeToOutput(String message) throws IOException {
         printDebug("<== " + message);
-        byte[] bytes = LspUtils.envelop(message).getBytes(IOUtils.UTF8);
+        byte[] bytes = message.getBytes(IOUtils.UTF8);
         output.write(bytes);
         output.flush();
     }
