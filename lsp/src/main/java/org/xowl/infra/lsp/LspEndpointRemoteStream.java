@@ -29,7 +29,10 @@ import org.xowl.infra.utils.json.JsonParser;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logging;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -142,8 +145,8 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
     @Override
     public synchronized Reply send(String message, JsonRpcContext context) {
         if (context.isEmpty())
-            return sendNoReply(LspUtils.envelop(message));
-        return sendAndGetReply(LspUtils.envelop(message));
+            return sendNoReply(message);
+        return sendAndGetReply(message);
     }
 
     /**
@@ -208,12 +211,12 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
     /**
      * Writes a payload to the output stream
      *
-     * @param payload The payload to write
+     * @param message The message to send
      * @throws IOException When writing failed
      */
-    private synchronized void writeToOutput(String payload) throws IOException {
-        printDebug("<== " + payload);
-        byte[] bytes = payload.getBytes(IOUtils.UTF8);
+    private synchronized void writeToOutput(String message) throws IOException {
+        printDebug("<== " + message);
+        byte[] bytes = LspUtils.envelop(message).getBytes(IOUtils.UTF8);
         output.write(bytes);
         output.flush();
     }
@@ -260,10 +263,13 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
             } catch (Exception exception) {
                 // stream has been closed
                 if (debug != null) {
-                    StringWriter stringWriter = new StringWriter();
-                    PrintWriter writer = new PrintWriter(stringWriter);
+                    PrintWriter writer = new PrintWriter(debug);
                     exception.printStackTrace(writer);
-                    printDebug(stringWriter.toString());
+                    try {
+                        debug.flush();
+                    } catch (IOException exception2) {
+                        // do nothing
+                    }
                 }
                 return;
             }
