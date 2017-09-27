@@ -158,7 +158,7 @@ public class LspEndpointRemoteStream extends JsonRpcClientBase implements LspEnd
         if (debug == null)
             return;
         try {
-            debug.write(TextUtils.escapeStringBaseDoubleQuote(message).getBytes(IOUtils.CHARSET));
+            debug.write(TextUtils.escapeStringSpecials(message).getBytes(IOUtils.CHARSET));
             debug.write(IOUtils.LINE_SEPARATOR.getBytes(IOUtils.CHARSET));
             debug.flush();
         } catch (IOException exception) {

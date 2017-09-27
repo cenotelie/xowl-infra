@@ -227,4 +227,36 @@ public class TextUtils {
         }
         return builder.toString();
     }
+
+    /**
+     * Escapes basic special characters in the specified string
+     * All characters are copied as-is, except for the following, which are escaped with a reverse solidus (\) prefix:
+     * special control characters \0, \a, \t, \r, \n, \b, \f.
+     *
+     * @param value The value to escape
+     * @return The escaped value
+     */
+    public static String escapeStringSpecials(String value) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == '\u0000')
+                builder.append("\\0");
+            else if (c == '\u0007')
+                builder.append("\\a");
+            else if (c == '\t')
+                builder.append("\\t");
+            else if (c == '\r')
+                builder.append("\\r");
+            else if (c == '\n')
+                builder.append("\\n");
+            else if (c == '\b')
+                builder.append("\\b");
+            else if (c == '\f')
+                builder.append("\\f");
+            else
+                builder.append(c);
+        }
+        return builder.toString();
+    }
 }
