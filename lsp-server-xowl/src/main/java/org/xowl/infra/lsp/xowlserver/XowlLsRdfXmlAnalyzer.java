@@ -82,7 +82,7 @@ public class XowlLsRdfXmlAnalyzer implements Identifiable, DocumentAnalyzer {
 
     @Override
     public DocumentAnalysis analyze(SymbolFactory factory, Document document) {
-        DocumentAnalysis analysis = new DocumentAnalysis();
+        DocumentAnalysis analysis = new DocumentAnalysis(document.getCurrentVersion());
         org.w3c.dom.Document xmlDocument;
         try {
             xmlDocument = Xml.parse(document.getCurrentVersion().getContent().getReader());

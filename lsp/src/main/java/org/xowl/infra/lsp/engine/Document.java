@@ -42,6 +42,10 @@ public class Document {
      * The last analysis of this document
      */
     private DocumentAnalysis lastAnalysis;
+    /**
+     * The last successful analysis of this document
+     */
+    private DocumentAnalysis lastSuccessfulAnalysis;
 
     /**
      * Gets the document's URI
@@ -80,12 +84,23 @@ public class Document {
     }
 
     /**
+     * Gets the last successful analysis of this document
+     *
+     * @return The last successful analysis of this document
+     */
+    public DocumentAnalysis getLastSuccessfulAnalysis() {
+        return lastSuccessfulAnalysis;
+    }
+
+    /**
      * Sets the result of the last analysis performed on this document
      *
      * @param analysis The last performed analysis
      */
     public void setLastAnalysis(DocumentAnalysis analysis) {
         this.lastAnalysis = analysis;
+        if (analysis.isSuccessful())
+            this.lastSuccessfulAnalysis = analysis;
     }
 
     /**

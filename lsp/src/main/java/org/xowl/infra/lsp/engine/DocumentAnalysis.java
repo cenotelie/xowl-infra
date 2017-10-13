@@ -30,6 +30,10 @@ import java.util.List;
  */
 public class DocumentAnalysis {
     /**
+     * The version of the document used for this analysis
+     */
+    protected final DocumentVersion version;
+    /**
      * The symbols for the document
      */
     protected final DocumentSymbols symbols;
@@ -41,6 +45,19 @@ public class DocumentAnalysis {
      * The links within the document
      */
     protected final List<DocumentLink> links;
+    /**
+     * Whether the document analysis has been successfully completed
+     */
+    protected boolean isSuccessful;
+
+    /**
+     * Gets the version of the document used for this analysis
+     *
+     * @return The version of the document used for this analysis
+     */
+    public DocumentVersion getVersion() {
+        return version;
+    }
 
     /**
      * Gets the symbols for the document
@@ -70,11 +87,33 @@ public class DocumentAnalysis {
     }
 
     /**
-     * Initializes this analysis
+     * Gets whether the document analysis has been successfully completed
+     *
+     * @return Whether the document analysis has been successfully completed
      */
-    public DocumentAnalysis() {
+    public boolean isSuccessful() {
+        return isSuccessful;
+    }
+
+    /**
+     * Sets whether the document analysis has been successfully completed
+     *
+     * @param isSuccessful Whether the document analysis has been successfully completed
+     */
+    public void setIsSuccessful(boolean isSuccessful) {
+        this.isSuccessful = isSuccessful;
+    }
+
+    /**
+     * Initializes this analysis
+     *
+     * @param version The version of the document used for this analysis
+     */
+    public DocumentAnalysis(DocumentVersion version) {
+        this.version = version;
         this.symbols = new DocumentSymbols();
         this.diagnostics = new ArrayList<>();
         this.links = new ArrayList<>();
+        this.isSuccessful = false;
     }
 }
