@@ -104,11 +104,10 @@ public abstract class DocumentAnalyzerHime implements Identifiable, DocumentAnal
                     error.getMessage()
             ));
         }
-        analysis.setIsSuccessful(result.getErrors().isEmpty());
+        analysis.setParseResult(result);
 
         if (result.getRoot() != null) {
             doAnalyze(document.getUri(), result.getRoot(), result.getInput(), factory, analysis);
-            analysis.setRoot(result.getRoot());
         }
         return analysis;
     }

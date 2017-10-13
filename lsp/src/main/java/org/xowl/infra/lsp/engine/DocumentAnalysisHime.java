@@ -17,7 +17,7 @@
 
 package org.xowl.infra.lsp.engine;
 
-import fr.cenotelie.hime.redist.ASTNode;
+import fr.cenotelie.hime.redist.ParseResult;
 
 /**
  * Represents the result of a document analysis, supplemented by the AST produced by the Hime parser associated to the document
@@ -26,26 +26,27 @@ import fr.cenotelie.hime.redist.ASTNode;
  */
 public class DocumentAnalysisHime extends DocumentAnalysis {
     /**
-     * The root node for the document's AST
+     * The document's parse result
      */
-    protected ASTNode root;
+    protected ParseResult parseResult;
 
     /**
-     * Gets the root node for the document's AST
+     * Gets the document's parse result
      *
-     * @return The root node for the document's AST
+     * @return The document's parse result
      */
-    public ASTNode getRoot() {
-        return root;
+    public ParseResult getParseResult() {
+        return parseResult;
     }
 
     /**
-     * Sets the root node for the document's AST
+     * Sets the document's parse result
      *
-     * @param root The root node for the document's AST
+     * @param parseResult The document's parse result
      */
-    public void setRoot(ASTNode root) {
-        this.root = root;
+    public void setParseResult(ParseResult parseResult) {
+        this.parseResult = parseResult;
+        this.isSuccessful = parseResult.isSuccess();
     }
 
     /**
