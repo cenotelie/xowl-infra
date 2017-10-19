@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.collections.ConcatenatedIterator;
+import fr.cenotelie.commons.utils.collections.SingleIterator;
 import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
-import org.xowl.infra.utils.collections.ConcatenatedIterator;
-import org.xowl.infra.utils.collections.SingleIterator;
 
 import java.util.ArrayList;
 import java.util.Collection;

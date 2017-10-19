@@ -17,9 +17,9 @@
 
 package org.xowl.infra.server.base;
 
+import fr.cenotelie.commons.utils.TextUtils;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
-import org.xowl.infra.utils.TextUtils;
 
 /**
  * The base implementation of a rule

@@ -17,9 +17,9 @@
 
 package org.xowl.infra.server.remote;
 
+import fr.cenotelie.commons.utils.api.Reply;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.base.BaseUser;
-import org.xowl.infra.utils.api.Reply;
 
 /**
  * Represents a user on a remote xOWL server

@@ -17,13 +17,13 @@
 
 package org.xowl.infra.server.base;
 
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.store.loaders.SPARQLLoader;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.StringReader;
 import java.util.ArrayList;

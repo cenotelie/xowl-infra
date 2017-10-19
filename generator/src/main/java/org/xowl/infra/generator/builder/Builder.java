@@ -17,8 +17,8 @@
 
 package org.xowl.infra.generator.builder;
 
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.logging.Logger;
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.logging.Logger;
 
 import javax.tools.*;
 import java.io.File;

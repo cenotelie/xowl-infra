@@ -18,8 +18,8 @@
 package org.xowl.infra.engine;
 
 import clojure.lang.IFn;
+import fr.cenotelie.commons.utils.TextUtils;
 import org.xowl.infra.store.execution.ExecutableFunction;
-import org.xowl.infra.utils.TextUtils;
 
 /**
  * Represents the definition of a Clojure function

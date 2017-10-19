@@ -17,10 +17,10 @@
 
 package org.xowl.infra.server.embedded;
 
+import fr.cenotelie.commons.utils.api.Reply;
 import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.ControllerUser;
 import org.xowl.infra.server.impl.UserImpl;
-import org.xowl.infra.utils.api.Reply;
 
 /**
  * Represents a user when embedded within another application

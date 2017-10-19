@@ -19,12 +19,12 @@ package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.http.HttpConstants;
-import org.xowl.infra.utils.logging.Logging;
-import org.xowl.infra.utils.product.EmbeddedDependency;
-import org.xowl.infra.utils.product.Product;
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.http.HttpConstants;
+import fr.cenotelie.commons.utils.logging.Logging;
+import fr.cenotelie.commons.utils.product.EmbeddedDependency;
+import fr.cenotelie.commons.utils.product.Product;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

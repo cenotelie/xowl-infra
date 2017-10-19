@@ -16,10 +16,10 @@
  ******************************************************************************/
 package org.xowl.infra.generator;
 
+import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.infra.utils.config.Configuration;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 /**
  * Tests for the generator

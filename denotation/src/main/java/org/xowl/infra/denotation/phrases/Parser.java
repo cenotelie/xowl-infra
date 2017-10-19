@@ -17,7 +17,7 @@
 
 package org.xowl.infra.denotation.phrases;
 
-import org.xowl.infra.utils.Identifiable;
+import fr.cenotelie.commons.utils.Identifiable;
 
 /**
  * Represents a parser for phrase produced by users

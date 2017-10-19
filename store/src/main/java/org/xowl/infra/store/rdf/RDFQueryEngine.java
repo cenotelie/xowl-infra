@@ -17,12 +17,12 @@
 
 package org.xowl.infra.store.rdf;
 
+import fr.cenotelie.commons.utils.collections.FastBuffer;
 import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
 import org.xowl.infra.store.storage.Dataset;
-import org.xowl.infra.utils.collections.FastBuffer;
 
 import java.util.*;
 

@@ -16,10 +16,10 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.RepositoryRDF;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 /**
  * Tests for the functional loaders

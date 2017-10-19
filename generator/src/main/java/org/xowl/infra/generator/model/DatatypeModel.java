@@ -17,9 +17,9 @@
 
 package org.xowl.infra.generator.model;
 
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.runtime.Datatype;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;

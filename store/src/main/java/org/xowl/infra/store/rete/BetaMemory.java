@@ -17,10 +17,10 @@
 
 package org.xowl.infra.store.rete;
 
+import fr.cenotelie.commons.utils.collections.*;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.collections.*;
 
 import java.util.*;
 

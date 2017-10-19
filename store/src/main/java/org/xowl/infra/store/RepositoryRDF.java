@@ -17,6 +17,12 @@
 
 package org.xowl.infra.store;
 
+import fr.cenotelie.commons.utils.collections.Adapter;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.SingleIterator;
+import fr.cenotelie.commons.utils.collections.SkippableIterator;
+import fr.cenotelie.commons.utils.logging.Logger;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
@@ -35,12 +41,6 @@ import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
-import org.xowl.infra.utils.collections.Adapter;
-import org.xowl.infra.utils.collections.AdaptingIterator;
-import org.xowl.infra.utils.collections.SingleIterator;
-import org.xowl.infra.utils.collections.SkippableIterator;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.StringReader;
 import java.util.*;
@@ -49,7 +49,7 @@ import java.util.*;
  * Represents a repository of xOWL ontologies base on RDF
  *
  * @author Laurent Wouters
- *         Modified by
+ * Modified by
  * @author Stephen Creff
  */
 public class RepositoryRDF extends Repository {

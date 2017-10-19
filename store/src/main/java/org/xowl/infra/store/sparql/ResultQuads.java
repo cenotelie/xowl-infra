@@ -17,10 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.Writer;

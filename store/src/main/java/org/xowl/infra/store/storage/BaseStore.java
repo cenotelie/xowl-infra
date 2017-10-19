@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.utils.metrics.Metric;
+import fr.cenotelie.commons.utils.metrics.MetricComposite;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshot;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshotComposite;
 import org.xowl.infra.store.execution.ExecutionManager;
-import org.xowl.infra.utils.metrics.Metric;
-import org.xowl.infra.utils.metrics.MetricComposite;
-import org.xowl.infra.utils.metrics.MetricSnapshot;
-import org.xowl.infra.utils.metrics.MetricSnapshotComposite;
 
 /**
  * Represents the public API of a data store (a dataset and a node manager)

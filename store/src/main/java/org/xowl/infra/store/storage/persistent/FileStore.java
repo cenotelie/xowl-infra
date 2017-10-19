@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.logging.Logging;
-import org.xowl.infra.utils.metrics.Metric;
-import org.xowl.infra.utils.metrics.MetricComposite;
-import org.xowl.infra.utils.metrics.MetricSnapshot;
-import org.xowl.infra.utils.metrics.MetricSnapshotComposite;
+import fr.cenotelie.commons.utils.logging.Logging;
+import fr.cenotelie.commons.utils.metrics.Metric;
+import fr.cenotelie.commons.utils.metrics.MetricComposite;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshot;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshotComposite;
 
 import java.io.File;
 import java.io.IOException;

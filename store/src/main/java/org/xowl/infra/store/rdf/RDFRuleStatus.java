@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.utils.Serializable;
+import fr.cenotelie.commons.utils.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collection;

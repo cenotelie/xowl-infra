@@ -17,12 +17,12 @@
 
 package org.xowl.infra.denotation;
 
+import fr.cenotelie.commons.utils.AutoReader;
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.denotation.rules.DenotationRule;
 import org.xowl.infra.denotation.rules.DenotationRuleLoader;
-import org.xowl.infra.utils.AutoReader;
-import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.io.IOException;
 import java.io.InputStream;

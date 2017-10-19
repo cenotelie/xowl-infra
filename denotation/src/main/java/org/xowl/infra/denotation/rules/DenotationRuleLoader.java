@@ -17,16 +17,16 @@
 
 package org.xowl.infra.denotation.rules;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.http.URIUtils;
+import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.hime.redist.*;
 import org.xowl.infra.denotation.phrases.PhraseVocabulary;
 import org.xowl.infra.denotation.phrases.SignProperty;
 import org.xowl.infra.denotation.phrases.SignRelation;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Owl2Factory;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.http.URIUtils;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -17,15 +17,15 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.http.URIUtils;
+import fr.cenotelie.commons.utils.logging.Logger;
+import fr.cenotelie.commons.utils.xml.Xml;
+import fr.cenotelie.commons.utils.xml.XmlElement;
 import fr.cenotelie.hime.redist.ParseResult;
 import org.w3c.dom.Document;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.http.URIUtils;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.xml.Xml;
-import org.xowl.infra.utils.xml.XmlElement;
 
 import java.io.Reader;
 import java.util.*;

@@ -16,9 +16,9 @@
  ******************************************************************************/
 package org.xowl.infra.store.owl;
 
+import fr.cenotelie.commons.utils.collections.Couple;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.utils.collections.Couple;
 
 import java.util.Collection;
 import java.util.HashMap;

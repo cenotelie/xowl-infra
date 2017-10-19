@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.infra.utils.api.Reply;
+import fr.cenotelie.commons.utils.api.Reply;
 
 import java.io.Closeable;
 

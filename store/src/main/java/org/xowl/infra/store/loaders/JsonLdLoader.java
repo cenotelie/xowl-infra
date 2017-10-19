@@ -17,6 +17,13 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.http.URIUtils;
+import fr.cenotelie.commons.utils.json.Json;
+import fr.cenotelie.commons.utils.json.JsonLexer;
+import fr.cenotelie.commons.utils.json.JsonParser;
+import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.TextContext;
@@ -24,13 +31,6 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.http.URIUtils;
-import org.xowl.infra.utils.json.Json;
-import org.xowl.infra.utils.json.JsonLexer;
-import org.xowl.infra.utils.json.JsonParser;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Reader;
 import java.util.*;

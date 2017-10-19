@@ -17,8 +17,8 @@
 
 package org.xowl.infra.store.rdf;
 
+import fr.cenotelie.commons.utils.http.URIUtils;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.http.URIUtils;
 
 /**
  * A variable resolver that resolves variable with:

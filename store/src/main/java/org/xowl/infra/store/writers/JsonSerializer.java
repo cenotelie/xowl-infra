@@ -17,10 +17,10 @@
 
 package org.xowl.infra.store.writers;
 
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Writer;

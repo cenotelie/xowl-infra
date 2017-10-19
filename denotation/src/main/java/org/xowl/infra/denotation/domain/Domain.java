@@ -17,6 +17,8 @@
 
 package org.xowl.infra.denotation.domain;
 
+import fr.cenotelie.commons.utils.Identifiable;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
@@ -26,8 +28,6 @@ import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.Identifiable;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Collection;

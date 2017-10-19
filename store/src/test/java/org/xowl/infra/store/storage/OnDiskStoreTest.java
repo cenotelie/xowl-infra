@@ -17,12 +17,12 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

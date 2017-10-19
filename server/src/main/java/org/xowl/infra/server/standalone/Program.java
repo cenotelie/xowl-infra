@@ -17,12 +17,12 @@
 
 package org.xowl.infra.server.standalone;
 
+import fr.cenotelie.commons.utils.logging.ConsoleLogger;
+import fr.cenotelie.commons.utils.logging.DispatchLogger;
+import fr.cenotelie.commons.utils.logging.FileLogger;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.impl.ControllerServer;
-import org.xowl.infra.utils.logging.ConsoleLogger;
-import org.xowl.infra.utils.logging.DispatchLogger;
-import org.xowl.infra.utils.logging.FileLogger;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;

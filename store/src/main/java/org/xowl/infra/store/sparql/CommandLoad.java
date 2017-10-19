@@ -17,10 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.util.Map;
 

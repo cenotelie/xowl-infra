@@ -18,12 +18,12 @@
 package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.*;
+import fr.cenotelie.commons.utils.SSLGenerator;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.ApiV1;
 import org.xowl.infra.server.impl.ControllerServer;
-import org.xowl.infra.utils.SSLGenerator;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logging;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;

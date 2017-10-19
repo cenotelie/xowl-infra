@@ -17,9 +17,9 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.collections.Couple;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.xowl.infra.utils.collections.Couple;
 
 /**
  * All SPARQL tests

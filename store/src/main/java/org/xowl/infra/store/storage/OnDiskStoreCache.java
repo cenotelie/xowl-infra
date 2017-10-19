@@ -17,13 +17,13 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedDataset;
 import org.xowl.infra.store.storage.impl.DatasetImpl;
 import org.xowl.infra.store.storage.impl.MQuad;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.Collection;
 import java.util.Iterator;

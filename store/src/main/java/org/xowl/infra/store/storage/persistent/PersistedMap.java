@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.logging.Logging;
+import fr.cenotelie.commons.utils.logging.Logging;
 
 import java.util.Arrays;
 import java.util.Iterator;

@@ -17,10 +17,10 @@
 
 package org.xowl.infra.generator.model;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.*;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;

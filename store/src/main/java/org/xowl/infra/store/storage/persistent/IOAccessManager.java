@@ -17,10 +17,10 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.logging.Logging;
-import org.xowl.infra.utils.metrics.Metric;
-import org.xowl.infra.utils.metrics.MetricSnapshotComposite;
-import org.xowl.infra.utils.metrics.MetricSnapshotLong;
+import fr.cenotelie.commons.utils.logging.Logging;
+import fr.cenotelie.commons.utils.metrics.Metric;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshotComposite;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshotLong;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongArray;

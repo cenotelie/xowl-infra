@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.owl;
 
+import fr.cenotelie.commons.utils.collections.Adapter;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
 import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.actions.OpaqueExpression;
@@ -30,8 +32,6 @@ import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.collections.Adapter;
-import org.xowl.infra.utils.collections.AdaptingIterator;
 
 import java.util.*;
 

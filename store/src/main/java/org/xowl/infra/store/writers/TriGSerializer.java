@@ -17,12 +17,12 @@
 
 package org.xowl.infra.store.writers;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.collections.Couple;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Property;
 import org.xowl.infra.store.rdf.SubjectNode;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.collections.Couple;
 
 import java.io.IOException;
 import java.io.Writer;

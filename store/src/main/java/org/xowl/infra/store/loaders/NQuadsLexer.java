@@ -36,6 +36,7 @@ public class NQuadsLexer extends ContextFreeLexer {
      * The automaton for this lexer
      */
     private static final Automaton commonAutomaton = Automaton.find(NQuadsLexer.class, "NQuadsLexer.bin");
+
     /**
      * Contains the constant IDs for the terminals for this lexer
      */
@@ -73,6 +74,7 @@ public class NQuadsLexer extends ContextFreeLexer {
          */
         public static final int BLANK_NODE_LABEL = 0x000D;
     }
+
     /**
      * Contains the constant IDs for the contexts for this lexer
      */
@@ -82,25 +84,27 @@ public class NQuadsLexer extends ContextFreeLexer {
          */
         public static final int DEFAULT = 0;
     }
+
     /**
      * The collection of terminals matched by this lexer
-     *
+     * <p>
      * The terminals are in an order consistent with the automaton,
      * so that terminal indices in the automaton can be used to retrieve the terminals in this table
      */
     private static final Symbol[] terminals = {
-        new Symbol(0x0001, "ε"),
-        new Symbol(0x0002, "$"),
-        new Symbol(0x0016, "."),
-        new Symbol(0x0006, "BLANK"),
-        new Symbol(0x0003, "NEW_LINE"),
-        new Symbol(0x0004, "WHITE_SPACE"),
-        new Symbol(0x0005, "COMMENT"),
-        new Symbol(0x0007, "LANGTAG"),
-        new Symbol(0x0008, "IRIREF"),
-        new Symbol(0x0009, "STRING_LITERAL_QUOTE"),
-        new Symbol(0x0017, "^^"),
-        new Symbol(0x000D, "BLANK_NODE_LABEL") };
+            new Symbol(0x0001, "ε"),
+            new Symbol(0x0002, "$"),
+            new Symbol(0x0016, "."),
+            new Symbol(0x0006, "BLANK"),
+            new Symbol(0x0003, "NEW_LINE"),
+            new Symbol(0x0004, "WHITE_SPACE"),
+            new Symbol(0x0005, "COMMENT"),
+            new Symbol(0x0007, "LANGTAG"),
+            new Symbol(0x0008, "IRIREF"),
+            new Symbol(0x0009, "STRING_LITERAL_QUOTE"),
+            new Symbol(0x0017, "^^"),
+            new Symbol(0x000D, "BLANK_NODE_LABEL")};
+
     /**
      * Initializes a new instance of the lexer
      *
@@ -109,6 +113,7 @@ public class NQuadsLexer extends ContextFreeLexer {
     public NQuadsLexer(String input) {
         super(commonAutomaton, terminals, 0x0006, input);
     }
+
     /**
      * Initializes a new instance of the lexer
      *

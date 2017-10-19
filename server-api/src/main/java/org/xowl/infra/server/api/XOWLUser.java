@@ -17,9 +17,9 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.infra.utils.Identifiable;
-import org.xowl.infra.utils.Serializable;
-import org.xowl.infra.utils.api.Reply;
+import fr.cenotelie.commons.utils.Identifiable;
+import fr.cenotelie.commons.utils.Serializable;
+import fr.cenotelie.commons.utils.api.Reply;
 
 /**
  * Represents a user on this server

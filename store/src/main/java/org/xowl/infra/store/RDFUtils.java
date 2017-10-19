@@ -17,6 +17,10 @@
 
 package org.xowl.infra.store;
 
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.logging.Logger;
+import fr.cenotelie.commons.utils.logging.Logging;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.*;
@@ -26,10 +30,6 @@ import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.writers.*;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.StringWriter;

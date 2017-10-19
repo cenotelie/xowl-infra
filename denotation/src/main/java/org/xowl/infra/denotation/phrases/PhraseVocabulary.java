@@ -17,7 +17,7 @@
 
 package org.xowl.infra.denotation.phrases;
 
-import org.xowl.infra.utils.Serializable;
+import fr.cenotelie.commons.utils.Serializable;
 
 import java.util.Collection;
 import java.util.HashMap;

@@ -17,6 +17,9 @@
 
 package org.xowl.infra.engine;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.lang.owl2.IRI;
@@ -33,9 +36,6 @@ import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultSolutions;
 import org.xowl.infra.store.sparql.Solutions;
 import org.xowl.infra.store.storage.StoreFactory;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.logging.BufferedLogger;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
 import java.io.InputStream;

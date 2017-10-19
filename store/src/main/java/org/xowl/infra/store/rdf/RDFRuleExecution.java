@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.rdf;
 
+import fr.cenotelie.commons.utils.Serializable;
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.utils.Serializable;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.StringWriter;

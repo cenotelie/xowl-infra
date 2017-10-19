@@ -17,12 +17,12 @@
 
 package org.xowl.infra.store.entailment;
 
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.RepositoryRDF;
-import org.xowl.infra.utils.logging.BufferedLogger;
-import org.xowl.infra.utils.logging.Logging;
 
 /**
  * Test suite to ensure the ability for basic reasoning

@@ -17,6 +17,7 @@
 
 package org.xowl.infra.server.remote;
 
+import fr.cenotelie.commons.utils.api.Reply;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
@@ -25,7 +26,6 @@ import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.base.BaseDatabase;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.api.Reply;
 
 import java.util.Collection;
 import java.util.List;

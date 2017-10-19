@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.storage.cache;
 
+import fr.cenotelie.commons.utils.collections.*;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.DatasetImpl;
 import org.xowl.infra.store.storage.impl.MQuad;
-import org.xowl.infra.utils.collections.*;
 
 import java.util.*;
 

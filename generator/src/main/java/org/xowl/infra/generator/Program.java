@@ -17,15 +17,15 @@
 
 package org.xowl.infra.generator;
 
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.logging.ConsoleLogger;
+import fr.cenotelie.commons.utils.logging.Logger;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.generator.builder.Builder;
 import org.xowl.infra.generator.model.Model;
 import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RepositoryDirectSemantics;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.config.Configuration;
-import org.xowl.infra.utils.logging.ConsoleLogger;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;

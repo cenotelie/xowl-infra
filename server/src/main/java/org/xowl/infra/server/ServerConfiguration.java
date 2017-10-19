@@ -17,10 +17,10 @@
 
 package org.xowl.infra.server;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.server.standalone.Program;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.config.Configuration;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;

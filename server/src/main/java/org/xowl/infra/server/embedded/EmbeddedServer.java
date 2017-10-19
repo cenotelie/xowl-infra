@@ -17,15 +17,15 @@
 
 package org.xowl.infra.server.embedded;
 
+import fr.cenotelie.commons.utils.api.Reply;
+import fr.cenotelie.commons.utils.api.ReplySuccess;
+import fr.cenotelie.commons.utils.api.ReplyUnsupported;
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.*;
-import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplySuccess;
-import org.xowl.infra.utils.api.ReplyUnsupported;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;

@@ -16,13 +16,13 @@
  ******************************************************************************/
 package org.xowl.infra.store.rete;
 
+import fr.cenotelie.commons.utils.collections.SingleIterator;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.collections.SingleIterator;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.Collection;
 import java.util.Iterator;

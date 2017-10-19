@@ -16,8 +16,8 @@
  ******************************************************************************/
 package org.xowl.infra.store.rete;
 
-import org.xowl.infra.utils.Serializable;
-import org.xowl.infra.utils.TextUtils;
+import fr.cenotelie.commons.utils.Serializable;
+import fr.cenotelie.commons.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.StringWriter;

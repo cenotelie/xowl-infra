@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store;
 
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.owl2.*;
@@ -32,7 +33,6 @@ import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
 

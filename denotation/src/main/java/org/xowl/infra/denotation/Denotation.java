@@ -17,6 +17,7 @@
 
 package org.xowl.infra.denotation;
 
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.denotation.phrases.Phrase;
 import org.xowl.infra.denotation.phrases.Sign;
 import org.xowl.infra.denotation.rules.DenotationRule;
@@ -26,7 +27,6 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 

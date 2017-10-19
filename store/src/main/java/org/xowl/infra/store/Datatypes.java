@@ -17,9 +17,9 @@
 
 package org.xowl.infra.store;
 
+import fr.cenotelie.commons.utils.collections.Couple;
 import org.xowl.infra.lang.owl2.Literal;
 import org.xowl.infra.store.rdf.LiteralNode;
-import org.xowl.infra.utils.collections.Couple;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

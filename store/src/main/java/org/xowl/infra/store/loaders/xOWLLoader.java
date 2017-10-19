@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.ParseError;
 import fr.cenotelie.hime.redist.ParseResult;
@@ -34,8 +36,6 @@ import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.lang.rules.RulesFactory;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.TextUtils;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.StringWriter;

@@ -17,7 +17,7 @@
 
 package org.xowl.infra.generator.model;
 
-import org.xowl.infra.utils.IOUtils;
+import fr.cenotelie.commons.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.Writer;

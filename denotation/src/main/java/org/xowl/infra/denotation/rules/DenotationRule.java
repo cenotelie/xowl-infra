@@ -17,11 +17,11 @@
 
 package org.xowl.infra.denotation.rules;
 
+import fr.cenotelie.commons.utils.Identifiable;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.RDFRule;
 import org.xowl.infra.store.rdf.RDFRuleSimple;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.Identifiable;
 
 import java.util.ArrayList;
 import java.util.Collections;

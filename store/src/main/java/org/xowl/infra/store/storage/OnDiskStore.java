@@ -17,6 +17,9 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.utils.logging.Logging;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshot;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshotComposite;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
@@ -25,9 +28,6 @@ import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
 import org.xowl.infra.store.storage.persistent.PersistedNodes;
 import org.xowl.infra.store.storage.persistent.StorageException;
-import org.xowl.infra.utils.logging.Logging;
-import org.xowl.infra.utils.metrics.MetricSnapshot;
-import org.xowl.infra.utils.metrics.MetricSnapshotComposite;
 
 import java.io.File;
 import java.io.IOException;

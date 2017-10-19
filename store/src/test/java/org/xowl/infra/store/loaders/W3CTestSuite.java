@@ -16,6 +16,8 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.logging.Logger;
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,8 +27,6 @@ import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
 import java.io.Reader;

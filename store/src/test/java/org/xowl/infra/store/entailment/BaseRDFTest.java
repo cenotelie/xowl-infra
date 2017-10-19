@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.entailment;
 
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.RepositoryRDF;
@@ -25,7 +26,6 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.util.ArrayList;
 import java.util.Iterator;

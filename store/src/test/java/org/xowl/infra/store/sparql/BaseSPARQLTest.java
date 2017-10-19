@@ -17,6 +17,11 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.logging.Logger;
+import fr.cenotelie.commons.utils.logging.SinkLogger;
+import fr.cenotelie.commons.utils.xml.Xml;
 import org.junit.Assert;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -30,11 +35,6 @@ import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.logging.SinkLogger;
-import org.xowl.infra.utils.xml.Xml;
 
 import java.io.*;
 import java.util.*;

@@ -17,9 +17,9 @@
 
 package org.xowl.infra.store.rete;
 
+import fr.cenotelie.commons.utils.collections.FastBuffer;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.Dataset;
-import org.xowl.infra.utils.collections.FastBuffer;
 
 import java.util.Collection;
 import java.util.Iterator;

@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store;
 
-import org.xowl.infra.utils.IOUtils;
+import fr.cenotelie.commons.utils.IOUtils;
 
 import java.io.*;
 import java.net.URL;

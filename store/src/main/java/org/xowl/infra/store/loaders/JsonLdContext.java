@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.http.URIUtils;
+import fr.cenotelie.commons.utils.json.JsonLexer;
+import fr.cenotelie.commons.utils.json.JsonParser;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.http.URIUtils;
-import org.xowl.infra.utils.json.JsonLexer;
-import org.xowl.infra.utils.json.JsonParser;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -17,6 +17,15 @@
 
 package org.xowl.infra.server.impl;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.SHA1;
+import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.json.Json;
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
+import fr.cenotelie.commons.utils.logging.Logger;
+import fr.cenotelie.commons.utils.metrics.Metric;
+import fr.cenotelie.commons.utils.metrics.MetricComposite;
+import fr.cenotelie.commons.utils.metrics.MetricSnapshot;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
@@ -38,15 +47,6 @@ import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.SHA1;
-import org.xowl.infra.utils.config.Configuration;
-import org.xowl.infra.utils.json.Json;
-import org.xowl.infra.utils.logging.BufferedLogger;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.metrics.Metric;
-import org.xowl.infra.utils.metrics.MetricComposite;
-import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.io.*;
 import java.util.*;

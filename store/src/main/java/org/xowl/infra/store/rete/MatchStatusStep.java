@@ -16,12 +16,12 @@
  ******************************************************************************/
 package org.xowl.infra.store.rete;
 
+import fr.cenotelie.commons.utils.TextUtils;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.Writer;

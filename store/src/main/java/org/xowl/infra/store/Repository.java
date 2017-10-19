@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store;
 
+import fr.cenotelie.commons.utils.http.HttpConstants;
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -33,8 +35,6 @@ import org.xowl.infra.store.rdf.RDFQueryEngine;
 import org.xowl.infra.store.rdf.RDFRuleEngine;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.writers.*;
-import org.xowl.infra.utils.http.HttpConstants;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -47,7 +47,7 @@ import java.util.*;
  * This class is thread-safe.
  *
  * @author Laurent Wouters
- *         Modification
+ * Modification
  * @author Stephen Creff
  */
 public abstract class Repository {

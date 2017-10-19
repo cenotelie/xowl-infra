@@ -17,8 +17,8 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.utils.collections.ConcatenatedIterator;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.utils.collections.ConcatenatedIterator;
 
 import java.util.*;
 

@@ -17,11 +17,11 @@
 
 package org.xowl.infra.denotation.phrases;
 
+import fr.cenotelie.commons.utils.TextUtils;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.TextUtils;
 
 /**
  * Represents the "position" property for a textual sign

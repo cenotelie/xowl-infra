@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.rete;
 
+import fr.cenotelie.commons.utils.collections.Adapter;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.FastBuffer;
+import fr.cenotelie.commons.utils.collections.SkippableIterator;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.collections.Adapter;
-import org.xowl.infra.utils.collections.AdaptingIterator;
-import org.xowl.infra.utils.collections.FastBuffer;
-import org.xowl.infra.utils.collections.SkippableIterator;
 
 import java.util.*;
 

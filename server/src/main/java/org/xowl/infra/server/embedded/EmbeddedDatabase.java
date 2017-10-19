@@ -17,6 +17,9 @@
 
 package org.xowl.infra.server.embedded;
 
+import fr.cenotelie.commons.utils.api.*;
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.impl.ControllerDatabase;
 import org.xowl.infra.server.impl.ControllerServer;
@@ -27,9 +30,6 @@ import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
-import org.xowl.infra.utils.api.*;
-import org.xowl.infra.utils.logging.BufferedLogger;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.util.Collection;

@@ -17,6 +17,7 @@
 
 package org.xowl.infra.generator.model;
 
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.runtime.Class;
@@ -24,7 +25,6 @@ import org.xowl.infra.lang.runtime.*;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryDirectSemantics;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;

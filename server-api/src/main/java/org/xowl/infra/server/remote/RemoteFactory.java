@@ -17,12 +17,12 @@
 
 package org.xowl.infra.server.remote;
 
+import fr.cenotelie.commons.utils.api.ApiFactory;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.base.BaseDatabasePrivileges;
 import org.xowl.infra.server.base.BaseRule;
 import org.xowl.infra.server.base.BaseUserPrivileges;
-import org.xowl.infra.utils.api.ApiFactory;
 
 /**
  * Implements the API remote objects factory

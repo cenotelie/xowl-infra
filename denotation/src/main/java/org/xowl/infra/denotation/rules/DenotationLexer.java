@@ -19,6 +19,7 @@ class DenotationLexer extends ContextFreeLexer {
      * The automaton for this lexer
      */
     private static final Automaton commonAutomaton = Automaton.find(DenotationLexer.class, "DenotationLexer.bin");
+
     /**
      * Contains the constant IDs for the terminals for this lexer
      */
@@ -172,6 +173,7 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int RELATION = 0x0024;
     }
+
     /**
      * Contains the constant IDs for the contexts for this lexer
      */
@@ -181,52 +183,54 @@ class DenotationLexer extends ContextFreeLexer {
          */
         public static final int DEFAULT = 0;
     }
+
     /**
      * The collection of terminals matched by this lexer
-     *
+     * <p>
      * The terminals are in an order consistent with the automaton,
      * so that terminal indices in the automaton can be used to retrieve the terminals in this table
      */
     private static final Symbol[] terminals = {
-        new Symbol(0x0001, "ε"),
-        new Symbol(0x0002, "$"),
-        new Symbol(0x0016, "OP_EQ"),
-        new Symbol(0x0018, "OP_MEMBER"),
-        new Symbol(0x0028, "A"),
-        new Symbol(0x002B, "LP"),
-        new Symbol(0x002C, "RP"),
-        new Symbol(0x002D, "LCB"),
-        new Symbol(0x002E, "RCB"),
-        new Symbol(0x002F, "LB"),
-        new Symbol(0x0030, "RB"),
-        new Symbol(0x0031, "COMMA"),
-        new Symbol(0x0032, "COLON"),
-        new Symbol(0x000E, "PNAME_NS"),
-        new Symbol(0x0006, "BLANK"),
-        new Symbol(0x0010, "INTEGER"),
-        new Symbol(0x0007, "IRIREF"),
-        new Symbol(0x0017, "OP_NEQ"),
-        new Symbol(0x0011, "DECIMAL"),
-        new Symbol(0x0019, "VARIABLE"),
-        new Symbol(0x0027, "TO"),
-        new Symbol(0x001F, "IS"),
-        new Symbol(0x0029, "ID"),
-        new Symbol(0x002A, "AS"),
-        new Symbol(0x000F, "PNAME_LN"),
-        new Symbol(0x0015, "STRING"),
-        new Symbol(0x0022, "AND"),
-        new Symbol(0x0012, "DOUBLE"),
-        new Symbol(0x001A, "BASE"),
-        new Symbol(0x0026, "BIND"),
-        new Symbol(0x001C, "TRUE"),
-        new Symbol(0x001E, "RULE"),
-        new Symbol(0x0020, "SIGN"),
-        new Symbol(0x0021, "SEME"),
-        new Symbol(0x0023, "WITH"),
-        new Symbol(0x0025, "BOUND"),
-        new Symbol(0x001D, "FALSE"),
-        new Symbol(0x001B, "PREFIX"),
-        new Symbol(0x0024, "RELATION") };
+            new Symbol(0x0001, "ε"),
+            new Symbol(0x0002, "$"),
+            new Symbol(0x0016, "OP_EQ"),
+            new Symbol(0x0018, "OP_MEMBER"),
+            new Symbol(0x0028, "A"),
+            new Symbol(0x002B, "LP"),
+            new Symbol(0x002C, "RP"),
+            new Symbol(0x002D, "LCB"),
+            new Symbol(0x002E, "RCB"),
+            new Symbol(0x002F, "LB"),
+            new Symbol(0x0030, "RB"),
+            new Symbol(0x0031, "COMMA"),
+            new Symbol(0x0032, "COLON"),
+            new Symbol(0x000E, "PNAME_NS"),
+            new Symbol(0x0006, "BLANK"),
+            new Symbol(0x0010, "INTEGER"),
+            new Symbol(0x0007, "IRIREF"),
+            new Symbol(0x0017, "OP_NEQ"),
+            new Symbol(0x0011, "DECIMAL"),
+            new Symbol(0x0019, "VARIABLE"),
+            new Symbol(0x0027, "TO"),
+            new Symbol(0x001F, "IS"),
+            new Symbol(0x0029, "ID"),
+            new Symbol(0x002A, "AS"),
+            new Symbol(0x000F, "PNAME_LN"),
+            new Symbol(0x0015, "STRING"),
+            new Symbol(0x0022, "AND"),
+            new Symbol(0x0012, "DOUBLE"),
+            new Symbol(0x001A, "BASE"),
+            new Symbol(0x0026, "BIND"),
+            new Symbol(0x001C, "TRUE"),
+            new Symbol(0x001E, "RULE"),
+            new Symbol(0x0020, "SIGN"),
+            new Symbol(0x0021, "SEME"),
+            new Symbol(0x0023, "WITH"),
+            new Symbol(0x0025, "BOUND"),
+            new Symbol(0x001D, "FALSE"),
+            new Symbol(0x001B, "PREFIX"),
+            new Symbol(0x0024, "RELATION")};
+
     /**
      * Initializes a new instance of the lexer
      *
@@ -235,6 +239,7 @@ class DenotationLexer extends ContextFreeLexer {
     public DenotationLexer(String input) {
         super(commonAutomaton, terminals, 0x0006, input);
     }
+
     /**
      * Initializes a new instance of the lexer
      *

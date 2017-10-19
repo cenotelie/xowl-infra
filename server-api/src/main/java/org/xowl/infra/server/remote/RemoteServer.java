@@ -17,6 +17,13 @@
 
 package org.xowl.infra.server.remote;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.api.*;
+import fr.cenotelie.commons.utils.http.HttpConnection;
+import fr.cenotelie.commons.utils.http.HttpConstants;
+import fr.cenotelie.commons.utils.http.HttpResponse;
+import fr.cenotelie.commons.utils.http.URIUtils;
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.store.EntailmentRegime;
@@ -25,13 +32,6 @@ import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.writers.NQuadsSerializer;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.api.*;
-import org.xowl.infra.utils.http.HttpConnection;
-import org.xowl.infra.utils.http.HttpConstants;
-import org.xowl.infra.utils.http.HttpResponse;
-import org.xowl.infra.utils.http.URIUtils;
-import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

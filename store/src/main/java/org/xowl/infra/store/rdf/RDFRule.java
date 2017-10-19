@@ -17,13 +17,13 @@
 
 package org.xowl.infra.store.rdf;
 
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Collection;

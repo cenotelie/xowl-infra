@@ -18,10 +18,10 @@
 package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.concurrent.SafeRunnable;
-import org.xowl.infra.utils.http.HttpConstants;
-import org.xowl.infra.utils.logging.Logging;
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.concurrent.SafeRunnable;
+import fr.cenotelie.commons.utils.http.HttpConstants;
+import fr.cenotelie.commons.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.InputStream;

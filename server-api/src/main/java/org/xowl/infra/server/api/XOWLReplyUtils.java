@@ -17,16 +17,16 @@
 
 package org.xowl.infra.server.api;
 
+import fr.cenotelie.commons.utils.api.ApiDeserializer;
+import fr.cenotelie.commons.utils.api.Reply;
+import fr.cenotelie.commons.utils.api.ReplyResult;
+import fr.cenotelie.commons.utils.api.ReplyUtils;
+import fr.cenotelie.commons.utils.http.HttpConstants;
+import fr.cenotelie.commons.utils.http.HttpResponse;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.sparql.ResultUtils;
-import org.xowl.infra.utils.api.ApiDeserializer;
-import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplyResult;
-import org.xowl.infra.utils.api.ReplyUtils;
-import org.xowl.infra.utils.http.HttpConstants;
-import org.xowl.infra.utils.http.HttpResponse;
 
 import java.io.IOException;
 import java.io.StringWriter;

@@ -17,6 +17,10 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.http.URIUtils;
+import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.hime.redist.*;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
@@ -26,10 +30,6 @@ import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.GraphPattern;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.http.URIUtils;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;

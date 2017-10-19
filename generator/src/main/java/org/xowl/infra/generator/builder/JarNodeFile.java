@@ -16,7 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.generator.builder;
 
-import org.xowl.infra.utils.IOUtils;
+import fr.cenotelie.commons.utils.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;

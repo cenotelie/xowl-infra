@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.rdf;
 
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.IRIs;
@@ -27,7 +28,6 @@ import org.xowl.infra.store.loaders.RDFLoaderResult;
 import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.loaders.xRDFLoader;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.StringReader;
 import java.util.ArrayList;

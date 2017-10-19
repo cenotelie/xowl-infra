@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.parsers.BaseLRParser;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
-import org.xowl.infra.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.Reader;

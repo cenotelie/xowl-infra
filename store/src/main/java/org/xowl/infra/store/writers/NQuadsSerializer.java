@@ -16,9 +16,9 @@
  ******************************************************************************/
 package org.xowl.infra.store.writers;
 
+import fr.cenotelie.commons.utils.IOUtils;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.Writer;

@@ -17,6 +17,11 @@
 
 package org.xowl.infra.server.impl;
 
+import fr.cenotelie.commons.utils.Base64;
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.api.*;
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.*;
@@ -26,11 +31,6 @@ import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Result;
-import org.xowl.infra.utils.Base64;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.api.*;
-import org.xowl.infra.utils.logging.BufferedLogger;
-import org.xowl.infra.utils.logging.Logger;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;

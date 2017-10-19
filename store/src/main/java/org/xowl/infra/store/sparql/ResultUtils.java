@@ -17,6 +17,12 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.json.Json;
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
+import fr.cenotelie.commons.utils.logging.DispatchLogger;
+import fr.cenotelie.commons.utils.logging.Logging;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
@@ -28,12 +34,6 @@ import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.store.storage.cache.CachedNodes;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.json.Json;
-import org.xowl.infra.utils.logging.BufferedLogger;
-import org.xowl.infra.utils.logging.DispatchLogger;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.StringReader;
 import java.util.ArrayList;

@@ -17,12 +17,12 @@
 
 package org.xowl.infra.generator.model;
 
+import fr.cenotelie.commons.utils.IOUtils;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.lang.runtime.Interpretation;
 import org.xowl.infra.lang.runtime.Property;
-import org.xowl.infra.utils.IOUtils;
 
 import java.io.File;
 import java.io.IOException;

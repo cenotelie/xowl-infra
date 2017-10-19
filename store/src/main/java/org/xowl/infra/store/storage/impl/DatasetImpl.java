@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.storage.impl;
 
+import fr.cenotelie.commons.utils.collections.SingleIterator;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
@@ -24,8 +26,6 @@ import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.collections.SingleIterator;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 

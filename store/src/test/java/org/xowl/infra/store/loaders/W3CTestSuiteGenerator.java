@@ -16,14 +16,14 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
 import java.io.InputStream;

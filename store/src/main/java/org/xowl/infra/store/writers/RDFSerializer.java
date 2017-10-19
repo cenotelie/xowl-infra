@@ -16,8 +16,8 @@
  ******************************************************************************/
 package org.xowl.infra.store.writers;
 
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.logging.Logger;
 
 import java.util.Iterator;
 

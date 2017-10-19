@@ -17,16 +17,16 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.logging.Logger;
+import fr.cenotelie.commons.utils.xml.Xml;
+import fr.cenotelie.commons.utils.xml.XmlElement;
 import fr.cenotelie.hime.redist.ParseResult;
 import org.w3c.dom.Document;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.xml.Xml;
-import org.xowl.infra.utils.xml.XmlElement;
 
 import java.io.Reader;
 import java.util.*;

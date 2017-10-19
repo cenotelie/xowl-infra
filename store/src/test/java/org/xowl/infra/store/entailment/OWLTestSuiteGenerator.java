@@ -16,11 +16,11 @@
  ******************************************************************************/
 package org.xowl.infra.store.entailment;
 
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.ResourceAccess;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
 import java.io.Writer;

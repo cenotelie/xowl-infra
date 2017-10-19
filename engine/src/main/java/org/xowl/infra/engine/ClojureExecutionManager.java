@@ -19,14 +19,14 @@ package org.xowl.infra.engine;
 
 import clojure.lang.Compiler;
 import clojure.lang.*;
+import fr.cenotelie.commons.utils.IOUtils;
+import fr.cenotelie.commons.utils.TextUtils;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.execution.ExecutableFunction;
 import org.xowl.infra.store.execution.ExecutionManager;
-import org.xowl.infra.utils.IOUtils;
-import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.Reader;

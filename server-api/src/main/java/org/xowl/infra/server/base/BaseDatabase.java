@@ -17,14 +17,14 @@
 
 package org.xowl.infra.server.base;
 
+import fr.cenotelie.commons.utils.TextUtils;
+import fr.cenotelie.commons.utils.api.Reply;
+import fr.cenotelie.commons.utils.api.ReplyUnsupported;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
-import org.xowl.infra.utils.TextUtils;
-import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplyUnsupported;
 
 import java.util.Collection;
 import java.util.List;

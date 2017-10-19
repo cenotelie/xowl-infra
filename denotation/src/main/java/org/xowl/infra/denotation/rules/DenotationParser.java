@@ -5,14 +5,9 @@
 
 package org.xowl.infra.denotation.rules;
 
-import fr.cenotelie.hime.redist.SemanticAction;
-import fr.cenotelie.hime.redist.SemanticBody;
 import fr.cenotelie.hime.redist.Symbol;
-import fr.cenotelie.hime.redist.parsers.InitializationException;
 import fr.cenotelie.hime.redist.parsers.LRkAutomaton;
 import fr.cenotelie.hime.redist.parsers.LRkParser;
-
-import java.util.Map;
 
 /**
  * Represents a parser
@@ -22,6 +17,7 @@ class DenotationParser extends LRkParser {
      * The automaton for this parser
      */
     private static final LRkAutomaton commonAutomaton = LRkAutomaton.find(DenotationParser.class, "DenotationParser.bin");
+
     /**
      * Contains the constant IDs for the variables and virtuals in this parser
      */
@@ -179,70 +175,72 @@ class DenotationParser extends LRkParser {
          */
         public static final int __axiom = 0x0063;
     }
+
     /**
      * The collection of variables matched by this parser
-     *
+     * <p>
      * The variables are in an order consistent with the automaton,
      * so that variable indices in the automaton can be used to retrieve the variables in this table
      */
     private static final Symbol[] variables = {
-        new Symbol(0x0033, "denotation"), 
-        new Symbol(0x0034, "prologue"), 
-        new Symbol(0x0035, "decl_base"), 
-        new Symbol(0x0036, "decl_prefix"), 
-        new Symbol(0x0037, "denotation_rules"), 
-        new Symbol(0x0038, "rule"), 
-        new Symbol(0x0039, "signs"), 
-        new Symbol(0x003A, "sign_static"), 
-        new Symbol(0x003B, "sign_patterns"), 
-        new Symbol(0x003C, "sign_pattern"), 
-        new Symbol(0x003D, "sign_pattern_properties"), 
-        new Symbol(0x003E, "sign_pattern_property"), 
-        new Symbol(0x003F, "sign_pattern_relations"), 
-        new Symbol(0x0040, "sign_pattern_relation"), 
-        new Symbol(0x0041, "sign_pattern_binding"), 
-        new Symbol(0x0042, "sign_property_value"), 
-        new Symbol(0x0043, "semes"), 
-        new Symbol(0x0044, "seme"), 
-        new Symbol(0x0045, "seme_static"), 
-        new Symbol(0x0046, "seme_matched"), 
-        new Symbol(0x0047, "seme_template"), 
-        new Symbol(0x0048, "seme_id"), 
-        new Symbol(0x0049, "seme_id_part"), 
-        new Symbol(0x004A, "seme_alias"), 
-        new Symbol(0x004B, "seme_properties"), 
-        new Symbol(0x004C, "seme_property"), 
-        new Symbol(0x004D, "seme_property_value"), 
-        new Symbol(0x004E, "seme_bindings"), 
-        new Symbol(0x004F, "seme_binding"), 
-        new Symbol(0x0050, "seme_binding_target"), 
-        new Symbol(0x0051, "iri"), 
-        new Symbol(0x0052, "prefixedName"), 
-        new Symbol(0x0053, "literal"), 
-        new Symbol(0x0054, "json_object"), 
-        new Symbol(0x0055, "json_object_member"), 
-        new Symbol(0x0056, "json_array"), 
-        new Symbol(0x0057, "json_value"), 
-        new Symbol(0x0058, "__V88"), 
-        new Symbol(0x0059, "__V89"), 
-        new Symbol(0x005A, "__V90"), 
-        new Symbol(0x005B, "__V91"), 
-        new Symbol(0x005C, "__V92"), 
-        new Symbol(0x005D, "__V93"), 
-        new Symbol(0x005E, "__V94"), 
-        new Symbol(0x005F, "__V95"), 
-        new Symbol(0x0060, "__V96"), 
-        new Symbol(0x0061, "__V97"), 
-        new Symbol(0x0062, "__V98"), 
-        new Symbol(0x0063, "__axiom") };
+            new Symbol(0x0033, "denotation"),
+            new Symbol(0x0034, "prologue"),
+            new Symbol(0x0035, "decl_base"),
+            new Symbol(0x0036, "decl_prefix"),
+            new Symbol(0x0037, "denotation_rules"),
+            new Symbol(0x0038, "rule"),
+            new Symbol(0x0039, "signs"),
+            new Symbol(0x003A, "sign_static"),
+            new Symbol(0x003B, "sign_patterns"),
+            new Symbol(0x003C, "sign_pattern"),
+            new Symbol(0x003D, "sign_pattern_properties"),
+            new Symbol(0x003E, "sign_pattern_property"),
+            new Symbol(0x003F, "sign_pattern_relations"),
+            new Symbol(0x0040, "sign_pattern_relation"),
+            new Symbol(0x0041, "sign_pattern_binding"),
+            new Symbol(0x0042, "sign_property_value"),
+            new Symbol(0x0043, "semes"),
+            new Symbol(0x0044, "seme"),
+            new Symbol(0x0045, "seme_static"),
+            new Symbol(0x0046, "seme_matched"),
+            new Symbol(0x0047, "seme_template"),
+            new Symbol(0x0048, "seme_id"),
+            new Symbol(0x0049, "seme_id_part"),
+            new Symbol(0x004A, "seme_alias"),
+            new Symbol(0x004B, "seme_properties"),
+            new Symbol(0x004C, "seme_property"),
+            new Symbol(0x004D, "seme_property_value"),
+            new Symbol(0x004E, "seme_bindings"),
+            new Symbol(0x004F, "seme_binding"),
+            new Symbol(0x0050, "seme_binding_target"),
+            new Symbol(0x0051, "iri"),
+            new Symbol(0x0052, "prefixedName"),
+            new Symbol(0x0053, "literal"),
+            new Symbol(0x0054, "json_object"),
+            new Symbol(0x0055, "json_object_member"),
+            new Symbol(0x0056, "json_array"),
+            new Symbol(0x0057, "json_value"),
+            new Symbol(0x0058, "__V88"),
+            new Symbol(0x0059, "__V89"),
+            new Symbol(0x005A, "__V90"),
+            new Symbol(0x005B, "__V91"),
+            new Symbol(0x005C, "__V92"),
+            new Symbol(0x005D, "__V93"),
+            new Symbol(0x005E, "__V94"),
+            new Symbol(0x005F, "__V95"),
+            new Symbol(0x0060, "__V96"),
+            new Symbol(0x0061, "__V97"),
+            new Symbol(0x0062, "__V98"),
+            new Symbol(0x0063, "__axiom")};
     /**
      * The collection of virtuals matched by this parser
-     *
+     * <p>
      * The virtuals are in an order consistent with the automaton,
      * so that virtual indices in the automaton can be used to retrieve the virtuals in this table
      */
     private static final Symbol[] virtuals = {
- };
+    };
+
     /**
      * Initializes a new instance of the parser
      *

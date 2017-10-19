@@ -17,8 +17,8 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.metrics.*;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.metrics.*;
 
 import java.io.Closeable;
 import java.io.File;

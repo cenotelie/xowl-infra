@@ -21,7 +21,7 @@ import clojure.lang.Compiler;
 import clojure.lang.RT;
 import clojure.lang.Symbol;
 import clojure.lang.Var;
-import org.xowl.infra.utils.logging.Logging;
+import fr.cenotelie.commons.utils.logging.Logging;
 
 /**
  * Initialization code for Clojure

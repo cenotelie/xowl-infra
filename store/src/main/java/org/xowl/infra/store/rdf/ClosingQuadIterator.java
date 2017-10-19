@@ -17,9 +17,9 @@
 
 package org.xowl.infra.store.rdf;
 
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Iterator;

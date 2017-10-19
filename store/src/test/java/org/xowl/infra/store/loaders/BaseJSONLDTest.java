@@ -29,7 +29,7 @@ import java.io.IOException;
  * Base class for the JSON-LD loader tests
  *
  * @author Laurent Wouters
- *         Modified to add fromRDF tests
+ * Modified to add fromRDF tests
  * @author Stephen Creff
  */
 public abstract class BaseJSONLDTest extends W3CTestSuite {

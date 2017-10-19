@@ -17,16 +17,16 @@
 
 package org.xowl.infra.server;
 
+import fr.cenotelie.commons.utils.api.Reply;
+import fr.cenotelie.commons.utils.api.ReplyResult;
+import fr.cenotelie.commons.utils.api.ReplyResultCollection;
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.embedded.EmbeddedServer;
-import org.xowl.infra.utils.api.Reply;
-import org.xowl.infra.utils.api.ReplyResult;
-import org.xowl.infra.utils.api.ReplyResultCollection;
-import org.xowl.infra.utils.logging.BufferedLogger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

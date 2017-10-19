@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.rdf;
 
+import fr.cenotelie.commons.utils.collections.FastBuffer;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
@@ -26,8 +28,6 @@ import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.collections.FastBuffer;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 

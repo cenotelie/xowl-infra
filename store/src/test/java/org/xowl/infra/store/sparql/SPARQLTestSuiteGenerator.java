@@ -17,12 +17,12 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.ResourceAccess;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -17,9 +17,9 @@
 
 package org.xowl.infra.server.base;
 
+import fr.cenotelie.commons.utils.api.ApiFactory;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
-import org.xowl.infra.utils.api.ApiFactory;
 
 /**
  * The factory for base objects

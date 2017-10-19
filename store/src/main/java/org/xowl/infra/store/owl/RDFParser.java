@@ -16,6 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.store.owl;
 
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
@@ -27,7 +28,6 @@ import org.xowl.infra.store.rete.TokenActivable;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 

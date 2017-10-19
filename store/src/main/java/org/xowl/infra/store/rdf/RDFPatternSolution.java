@@ -17,8 +17,8 @@
 
 package org.xowl.infra.store.rdf;
 
+import fr.cenotelie.commons.utils.collections.Couple;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;

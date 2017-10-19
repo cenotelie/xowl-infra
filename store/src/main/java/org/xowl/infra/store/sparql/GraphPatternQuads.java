@@ -17,9 +17,9 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.collections.Couple;
 import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;

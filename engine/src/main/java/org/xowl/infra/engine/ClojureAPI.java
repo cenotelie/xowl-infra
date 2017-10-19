@@ -17,6 +17,8 @@
 
 package org.xowl.infra.engine;
 
+import fr.cenotelie.commons.utils.logging.BufferedLogger;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Owl2Factory;
 import org.xowl.infra.store.RDFUtils;
@@ -30,8 +32,6 @@ import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.BufferedLogger;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.io.StringReader;
 import java.util.ArrayList;

@@ -17,15 +17,15 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.utils.collections.Adapter;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.ConcatenatedIterator;
+import fr.cenotelie.commons.utils.collections.SkippableIterator;
+import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedDataset;
 import org.xowl.infra.store.storage.impl.DatasetImpl;
 import org.xowl.infra.store.storage.impl.MQuad;
-import org.xowl.infra.utils.collections.Adapter;
-import org.xowl.infra.utils.collections.AdaptingIterator;
-import org.xowl.infra.utils.collections.ConcatenatedIterator;
-import org.xowl.infra.utils.collections.SkippableIterator;
-import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Collection;

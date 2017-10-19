@@ -21,7 +21,7 @@
            (org.xowl.infra.store.rdf RDFPatternSolution Node)
            (org.xowl.infra.store.sparql Result ResultSolutions)
            (org.xowl.infra.lang.owl2 IRI)
-           (org.xowl.infra.utils.logging Logging)))
+           (fr.cenotelie.commons.utils.logging Logging)))
 
 (defn rdfIriNode? [^Node node]
   (if (nil? node)
