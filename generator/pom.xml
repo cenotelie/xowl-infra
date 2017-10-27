@@ -44,13 +44,13 @@
                             <Bundle-License>http://www.gnu.org/licenses/lgpl.txt</Bundle-License>
                             <Bundle-Vendor>${project.organization.name}</Bundle-Vendor>
                             <Bundle-DocURL>${project.organization.url}</Bundle-DocURL>
-                            <XOWL-Product-Link>${project.url}</XOWL-Product-Link>
-                            <XOWL-SCM-Tag>${changeSet}</XOWL-SCM-Tag>
-                            <XOWL-Build-Tag>${env.BUILD_TAG}</XOWL-Build-Tag>
-                            <XOWL-Build-Timestamp>${timestamp}</XOWL-Build-Timestamp>
-                            <XOWL-License-Name>LGPL v3</XOWL-License-Name>
-                            <XOWL-License-Resource>/META-INF/dependencies/fr.cenotelie.hime.redist.license</XOWL-License-Resource>
-                            <XOWL-Dependencies>fr.cenotelie.hime.redist; org.w3c.www.schemas.rdf; org.w3c.www.schemas.rdfs; org.w3c.www.schemas.owl</XOWL-Dependencies>
+                            <Bundle-Product-Link>${project.url}</Bundle-Product-Link>
+                            <Bundle-SCM-Tag>${changeSet}</Bundle-SCM-Tag>
+                            <Bundle-Build-Tag>${env.BUILD_TAG}</Bundle-Build-Tag>
+                            <Bundle-Build-Timestamp>${timestamp}</Bundle-Build-Timestamp>
+                            <Bundle-License-Name>LGPL v3</Bundle-License-Name>
+                            <Bundle-License-Resource>/META-INF/dependencies/fr.cenotelie.commons.license</Bundle-License-Resource>
+                            <Bundle-Dependencies>fr.cenotelie.hime.redist; fr.cenotelie.commons; org.w3c.www.schemas.rdf; org.w3c.www.schemas.rdfs; org.w3c.www.schemas.owl</Bundle-Dependencies>
                         </manifestEntries>
                     </archive>
                     <descriptorRefs>
