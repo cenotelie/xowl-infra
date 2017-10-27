@@ -59,6 +59,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <charset>UTF-8</charset>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
