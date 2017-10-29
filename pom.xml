@@ -26,9 +26,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:hg:https://bitbucket.org/xowl/xowl-infra</connection>
+        <connection>scm:hg:https://bitbucket.org/cenotelie/xowl-infra</connection>
         <developerConnection>scm:hg:ssh://hg@bitbucket.org:xowl/xowl-infra</developerConnection>
-        <url>https://bitbucket.org/xowl/xowl-infra</url>
+        <url>https://bitbucket.org/cenotelie/xowl-infra</url>
         <tag>HEAD</tag>
     </scm>
     <distributionManagement>

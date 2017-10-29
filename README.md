@@ -51,7 +51,7 @@ To use the xOWL Infrastructure as a triple store server, either use the download
 
 ### Downloadable distribution ###
 
-[Download](https://bitbucket.org/xowl/xowl-infra/downloads) the distribution and launch with (Java 8 required):
+[Download](https://bitbucket.org/cenotelie/xowl-infra/downloads) the distribution and launch with (Java 8 required):
 
 ```
 $ java -jar xowl-server.jar
