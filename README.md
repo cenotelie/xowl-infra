@@ -22,16 +22,17 @@ Ontology( <http://xowl.org/infra/engine/tests/Sample>
 )
 ```
 
-## Java libraries ##
+## How do I use this software? ##
+
+### As Java libraries ###
 
 The xOWL Infrastructure can be used as embeddable Java libraries. With Maven, most features can be included with:
 
 ```
-#!xml
 <dependency>
     <groupId>org.xowl.infra</groupId>
     <artifactId>xowl-store</artifactId>
-    <version>1.0.2</version>
+    <version>2.1.0-SNAPSHOT</version>
     <scope>compile</scope>
 </dependency>
 ```
@@ -45,16 +46,18 @@ For the inclusion of the expression and execution of behavior in ontologies, als
 
 All libraries in the xOWL Infrastructure and their dependencies are OSGi bundles that can be readily deployed on OSGi platforms such as [Apache Felix](http://felix.apache.org/), or [Eclipse Equinox](http://www.eclipse.org/equinox/).
 
-## Triple Store Server ##
+### Triple Store Server ###
 
-To use the xOWL Infrastructure as a triple store server, either use the downloadable distribution, or the Docker image.
+The xOWL Infrastructure also implements a triple store server that can be used through the [downloadable distribution](https://bitbucket.org/cenotelie/xowl-infra/downloads) or by using the Docker image.
 
-### Downloadable distribution ###
-
-[Download](https://bitbucket.org/cenotelie/xowl-infra/downloads) the distribution and launch with (Java 8 required):
+To use the [downloadable distribution](https://bitbucket.org/cenotelie/xowl-infra/downloads) (Java 8 required), simply download it.
+Then to administer the server, use the provided `admin.sh` script:
 
 ```
-$ java -jar xowl-server.jar
+# Launch the server
+$ ./admin.sh start
+# Stop the server
+$ ./admin.sh stop
 ```
 
 With a web-browser, go to [https://localhost:3443/web/](https://localhost:3443/web/).
@@ -74,44 +77,49 @@ $ sudo service xowl-server stop
 $ sudo service xowl-server restart
 ```
 
-### Docker image ###
+The triple store server is also available as a Docker image at `nexus.cenotelie.fr/xowl/xowl-server:latest`.
+To run the latest image:
 
 ```
-$ docker run -d -p 3443:3443/tcp --name my-xowl-instance -v /path/to/host/data:/xowl-data xowl/xowl-server:latest
+$ docker run -d -p 3443:3443/tcp --name my-xowl-instance -v /path/to/host/data:/xowl-data nexus.cenotelie.fr/xowl/xowl-server:latest
 ```
 
 Replace the `/path/to/host/data` to a path where to store the databases on your system.
 With a web-browser, go to [https://localhost:3443/web/](https://localhost:3443/web/).
 The default administrator login and password are `admin` and `admin`.
 
-## License ##
-
-This software is licenced under the Lesser General Public License (LGPL) v3.
-Refers to the `LICENSE.txt` file at the root of the repository for the full text, or to [the online version](http://www.gnu.org/licenses/lgpl-3.0.html).
-
 
 ## How to build ##
 
-### Build Java libraries ###
-
-To simply build the xOWL libraries, use maven (GPG key required):
-
-```
-$ mvn clean install
-```
-
-Or without GPG signing:
+To build the artifacts in this repository using Maven:
 
 ```
 $ mvn clean install -Dgpg.skip=true
 ```
 
-### Build redistributable artifacts ###
-
-To build the redistributable artifacts (server, client, Docker image, etc.):
+Then, to build the other redistributable artifacts (redistributable package and Docker image):
 
 ```
 $ ./.releng/build.sh
 ```
 
 For this, Docker must be locally installed.
+
+
+## How can I contribute? ##
+
+The simplest way to contribute is to:
+
+* Fork this repository on [Bitbucket](https://bitbucket.org/cenotelie/xowl-infra).
+* Fix [some issue](https://bitbucket.org/cenotelie/xowl-infra/issues?status=new&status=open) or implement a new feature.
+* Create a pull request on Bitbucket.
+
+Patches can also be submitted by email, or through the [issue management system](https://bitbucket.org/cenotelie/xowl-infra/issues).
+
+The [isse tracker](https://bitbucket.org/cenotelie/xowl-infra/issues) may contain tickets that are accessible to newcomers. Look for tickets with `[beginner]` in the title. These tickets are good ways to become more familiar with the project and the codebase.
+
+
+## License ##
+
+This software is licenced under the Lesser General Public License (LGPL) v3.
+Refers to the `LICENSE.txt` file at the root of the repository for the full text, or to [the online version](http://www.gnu.org/licenses/lgpl-3.0.html).
