@@ -27,7 +27,6 @@ import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
 import org.xowl.infra.store.storage.persistent.PersistedNodes;
-import org.xowl.infra.store.storage.persistent.StorageException;
 
 import java.io.File;
 import java.io.IOException;
