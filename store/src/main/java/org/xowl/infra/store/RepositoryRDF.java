@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store;
 
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.utils.collections.Adapter;
 import fr.cenotelie.commons.utils.collections.AdaptingIterator;
 import fr.cenotelie.commons.utils.collections.SingleIterator;
@@ -35,10 +36,7 @@ import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
-import org.xowl.infra.store.storage.QuadStore;
-import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.QuadStoreFactory;
-import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.store.storage.*;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
 
@@ -137,7 +135,11 @@ public class RepositoryRDF extends Repository {
     public RepositoryRDF(QuadStore store, IRIMapper mapper, boolean resolveDependencies) {
         super(mapper, resolveDependencies);
         this.backend = store;
-        this.backend.setExecutionManager(executionManager);
+        try (QuadTransaction transaction = store.newTransaction(false)) {
+            this.backend.setExecutionManager(executionManager);
+        } catch (ConcurrentWriteException exception) {
+            // cannot happen
+        }
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
     }

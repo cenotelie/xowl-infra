@@ -17,6 +17,7 @@
 
 package org.xowl.infra.engine;
 
+import fr.cenotelie.commons.storage.Transaction;
 import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import fr.cenotelie.commons.utils.logging.SinkLogger;
@@ -72,19 +73,20 @@ public class ExecutionTest {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF(QuadStoreFactory.create().onDisk(p.toFile()).make());
         repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/engine/testSimpleExecution.xowl");
-        try {
+        try (Transaction transaction = repository.getStore().newTransaction(true, true)) {
             repository.load(logger, "http://xowl.org/infra/engine/tests");
         } catch (Exception exception) {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-        repository.getStore().commit();
         repository.getStore().close();
 
         repository = new RepositoryRDF(QuadStoreFactory.create().onDisk(p.toFile()).make());
-        Object result = repository.getExecutionManager().execute("http://xowl.org/infra/engine/tests#sayHello");
-        Assert.assertFalse("Failed to execute the function", logger.isOnError());
-        Assert.assertEquals("Hello World", result);
+        try (Transaction transaction = repository.getStore().newTransaction(false)) {
+            Object result = repository.getExecutionManager().execute("http://xowl.org/infra/engine/tests#sayHello");
+            Assert.assertFalse("Failed to execute the function", logger.isOnError());
+            Assert.assertEquals("Hello World", result);
+        }
     }
 
     @Test

@@ -18,7 +18,7 @@
 package org.xowl.infra.generator;
 
 import fr.cenotelie.commons.utils.collections.Couple;
-import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.ini.IniDocument;
 import fr.cenotelie.commons.utils.logging.ConsoleLogger;
 import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.commons.utils.logging.Logging;
@@ -80,7 +80,7 @@ public class Program {
             logger.error("No config file in parameters");
             return;
         }
-        Configuration config = new Configuration();
+        IniDocument config = new IniDocument();
         try {
             config.load(args[0]);
         } catch (IOException ex) {
@@ -130,7 +130,7 @@ public class Program {
      * @param logger        The logger to use
      * @param configuration The configuration
      */
-    public Program(Logger logger, Configuration configuration) {
+    public Program(Logger logger, IniDocument configuration) {
         this.logger = logger;
         this.repositories = new ArrayList<>();
         this.inputs = new ArrayList<>();
@@ -143,7 +143,7 @@ public class Program {
      *
      * @param config The configuration to load
      */
-    private void loadConfig(Configuration config) {
+    private void loadConfig(IniDocument config) {
         List<String> values = config.getAll(null, CONFIG_REPOSITORY);
         for (String val : values) {
             String[] parts = val.split("\\|");
