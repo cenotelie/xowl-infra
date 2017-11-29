@@ -64,27 +64,6 @@ public class PersistedDataset extends DatasetImpl {
     private static final int GINDEX_ENTRY_SIZE = 8 + 4 + 4 + GINDEX_ENTRY_MAX_ITEM_COUNT * (4 + 4);
 
     /**
-     * Entry for the next blank value data
-     */
-    private static final long DATA_MAP_SUBJECT_IRI_ENTRY = Constants.PAGE_SIZE + ObjectStore.OBJECT_HEADER_SIZE;
-    /**
-     * Entry for the string map data
-     */
-    private static final long DATA_MAP_SUBJECT_BLANK_ENTRY = DATA_MAP_SUBJECT_IRI_ENTRY + StoredMap.NODE_SIZE + ObjectStore.OBJECT_HEADER_SIZE;
-    /**
-     * Entry for the literal map data
-     */
-    private static final long DATA_MAP_SUBJECT_ANON_ENTRY = DATA_MAP_SUBJECT_BLANK_ENTRY + StoredMap.NODE_SIZE + ObjectStore.OBJECT_HEADER_SIZE;
-    /**
-     * Entry for the string map data
-     */
-    private static final long DATA_MAP_INDEX_IRI_ENTRY = DATA_MAP_SUBJECT_ANON_ENTRY + StoredMap.NODE_SIZE + ObjectStore.OBJECT_HEADER_SIZE;
-    /**
-     * Entry for the literal map data
-     */
-    private static final long DATA_MAP_INDEX_BLANK_ENTRY = DATA_MAP_INDEX_IRI_ENTRY + StoredMap.NODE_SIZE + ObjectStore.OBJECT_HEADER_SIZE;
-
-    /**
      * Gets the key radical for the specified key
      *
      * @param key A key
@@ -307,17 +286,17 @@ public class PersistedDataset extends DatasetImpl {
         StoredMap tempMapIndexIRI;
         StoredMap tempMapIndexBlank;
         if (initialize) {
-            tempMapSubjectIRI = StoredMap.create(store);
-            tempMapSubjectBlank = StoredMap.create(store);
-            tempMapSubjectAnon = StoredMap.create(store);
-            tempMapIndexIRI = StoredMap.create(store);
-            tempMapIndexBlank = StoredMap.create(store);
+            tempMapSubjectIRI = store.register("subj-iri", StoredMap.create(store));
+            tempMapSubjectBlank = store.register("subj-blk", StoredMap.create(store));
+            tempMapSubjectAnon = store.register("subj-ano", StoredMap.create(store));
+            tempMapIndexIRI = store.register("indx-iri", StoredMap.create(store));
+            tempMapIndexBlank = store.register("indx-blk", StoredMap.create(store));
         } else {
-            tempMapSubjectIRI = new StoredMap(store, DATA_MAP_SUBJECT_IRI_ENTRY);
-            tempMapSubjectBlank = new StoredMap(store, DATA_MAP_SUBJECT_BLANK_ENTRY);
-            tempMapSubjectAnon = new StoredMap(store, DATA_MAP_SUBJECT_ANON_ENTRY);
-            tempMapIndexIRI = new StoredMap(store, DATA_MAP_INDEX_IRI_ENTRY);
-            tempMapIndexBlank = new StoredMap(store, DATA_MAP_INDEX_BLANK_ENTRY);
+            tempMapSubjectIRI = new StoredMap(store, store.getObject("subj-iri"));
+            tempMapSubjectBlank = new StoredMap(store, store.getObject("subj-blk"));
+            tempMapSubjectAnon = new StoredMap(store, store.getObject("subj-ano"));
+            tempMapIndexIRI = new StoredMap(store, store.getObject("indx-iri"));
+            tempMapIndexBlank = new StoredMap(store, store.getObject("indx-blk"));
         }
         mapSubjectIRI = tempMapSubjectIRI;
         mapSubjectBlank = tempMapSubjectBlank;

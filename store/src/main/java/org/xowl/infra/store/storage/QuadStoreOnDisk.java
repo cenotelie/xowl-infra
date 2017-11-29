@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage;
 
 import fr.cenotelie.commons.storage.NoTransactionException;
+import fr.cenotelie.commons.storage.Transaction;
 import fr.cenotelie.commons.storage.TransactionalStorage;
 import fr.cenotelie.commons.storage.files.RawFile;
 import fr.cenotelie.commons.storage.files.RawFileBuffered;
@@ -87,8 +88,12 @@ class QuadStoreOnDisk extends QuadStore {
         );
         boolean doInit = storage.getSize() == 0;
         ObjectStore objectStore = new ObjectStoreTransactional(storage);
-        this.persistedNodes = new PersistedNodes(objectStore, doInit);
-        this.persistedDataset = new PersistedDataset(persistedNodes, objectStore, doInit);
+        try (Transaction transaction = storage.newTransaction(doInit)) {
+            this.persistedNodes = new PersistedNodes(objectStore, doInit);
+            this.persistedDataset = new PersistedDataset(persistedNodes, objectStore, doInit);
+            if (doInit)
+                transaction.commit();
+        }
         this.cacheNodes = new CachedNodes();
         this.cacheDataset = new QuadStoreOnDiskCache(persistedDataset);
     }

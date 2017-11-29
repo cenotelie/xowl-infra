@@ -49,15 +49,19 @@ public class QuadStoreOnDiskTest {
         SinkLogger logger = new SinkLogger();
         QuadStoreOnDisk store = new QuadStoreOnDisk(p.toFile(), false);
         RepositoryRDF repo = new RepositoryRDF(store);
-        repo.load(logger, IRIs.RDF);
+        try (QuadTransaction transaction = repo.getStore().newTransaction(true, true)) {
+            repo.load(logger, IRIs.RDF);
+        }
         store.close();
         Assert.assertFalse("Failed to load", logger.isOnError());
 
         store = new QuadStoreOnDisk(p.toFile(), true);
-        Iterator<Quad> iterator = store.getAll();
-        while (iterator.hasNext()) {
-            Quad quad = iterator.next();
-            //System.out.println(quad);
+        try (QuadTransaction transaction = store.newTransaction(false)) {
+            Iterator<Quad> iterator = store.getAll();
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                //System.out.println(quad);
+            }
         }
         store.close();
     }
@@ -81,12 +85,16 @@ public class QuadStoreOnDiskTest {
                 store.getIRINode("http://xowl.org/infra/tests/y2")
         );
 
-        repo.getStore().add(quad1);
-        repo.getStore().add(quad2);
-        Iterator<Quad> iterator = store.getAll(quad1.getSubject(), quad1.getProperty(), null);
-        while (iterator.hasNext()) {
-            Quad quad = iterator.next();
-            //System.out.println(quad);
+        try (QuadTransaction transaction = repo.getStore().newTransaction(true, true)) {
+            repo.getStore().add(quad1);
+            repo.getStore().add(quad2);
+        }
+        try (QuadTransaction transaction = store.newTransaction(false)) {
+            Iterator<Quad> iterator = store.getAll(quad1.getSubject(), quad1.getProperty(), null);
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                //System.out.println(quad);
+            }
         }
         store.close();
     }

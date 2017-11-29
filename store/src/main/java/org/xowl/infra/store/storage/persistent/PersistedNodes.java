@@ -40,19 +40,6 @@ import java.util.Arrays;
  */
 public class PersistedNodes extends NodeManagerImpl {
     /**
-     * Entry for the next blank value data
-     */
-    private static final long DATA_NEXT_BLANK_ENTRY = Constants.PAGE_SIZE + ObjectStore.OBJECT_HEADER_SIZE;
-    /**
-     * Entry for the string map data
-     */
-    private static final long DATA_STRING_MAP_ENTRY = DATA_NEXT_BLANK_ENTRY + 8 + ObjectStore.OBJECT_HEADER_SIZE;
-    /**
-     * Entry for the literal map data
-     */
-    private static final long DATA_LITERAL_MAP_ENTRY = DATA_STRING_MAP_ENTRY + StoredMap.NODE_SIZE + ObjectStore.OBJECT_HEADER_SIZE;
-
-    /**
      * The size of the overhead for a string entry
      * long: next entry
      * long: ref count
@@ -137,14 +124,14 @@ public class PersistedNodes extends NodeManagerImpl {
         StoredLong tempNextBlank;
         StoredMap tempStringMap;
         StoredMap tempLiteralsMap;
-        if (store.getSize() <= Constants.PAGE_SIZE) {
-            tempNextBlank = StoredLong.create(store, 0);
-            tempStringMap = StoredMap.create(store);
-            tempLiteralsMap = StoredMap.create(store);
+        if (initialize) {
+            tempNextBlank = store.register("nodes-bk", StoredLong.create(store, 0));
+            tempStringMap = store.register("nodes-sm", StoredMap.create(store));
+            tempLiteralsMap = store.register("nodes-lm", StoredMap.create(store));
         } else {
-            tempNextBlank = new StoredLong(store, DATA_NEXT_BLANK_ENTRY);
-            tempStringMap = new StoredMap(store, DATA_STRING_MAP_ENTRY);
-            tempLiteralsMap = new StoredMap(store, DATA_LITERAL_MAP_ENTRY);
+            tempNextBlank = new StoredLong(store, store.getObject("nodes-bk"));
+            tempStringMap = new StoredMap(store, store.getObject("nodes-sm"));
+            tempLiteralsMap = new StoredMap(store, store.getObject("nodes-lm"));
         }
         nextBlank = tempNextBlank;
         mapStrings = tempStringMap;
