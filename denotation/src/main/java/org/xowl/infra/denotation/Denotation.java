@@ -25,7 +25,7 @@ import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.QuadStoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.*;
@@ -101,7 +101,7 @@ public class Denotation {
         this.phrase = phrase;
         this.rules = new HashMap<>();
         this.rdfRules = new HashMap<>();
-        this.repository = new RepositoryRDF(StoreFactory.create().inMemory().make());
+        this.repository = new RepositoryRDF(QuadStoreFactory.create().inMemory().make());
         this.graphSigns = repository.getStore().getIRINode(GRAPH_SIGNS);
         this.graphSemes = repository.getStore().getIRINode(graphSemes);
         this.graphMetadata = repository.getStore().getIRINode(IRIs.GRAPH_META);

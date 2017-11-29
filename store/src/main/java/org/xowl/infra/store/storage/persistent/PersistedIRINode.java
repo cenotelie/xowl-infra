@@ -51,13 +51,8 @@ class PersistedIRINode extends IRINode implements PersistedNode {
 
     @Override
     public String getIRIValue() {
-        if (value == null) {
-            try {
-                value = backend.retrieveString(key);
-            } catch (StorageException exception) {
-                value = "#error#";
-            }
-        }
+        if (value == null)
+            value = backend.retrieveString(key);
         return value;
     }
 
@@ -72,12 +67,12 @@ class PersistedIRINode extends IRINode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() throws StorageException {
+    public void incrementRefCount() {
         backend.onRefCountString(key, 1);
     }
 
     @Override
-    public void decrementRefCount() throws StorageException {
+    public void decrementRefCount() {
         backend.onRefCountString(key, -1);
     }
 

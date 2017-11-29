@@ -24,7 +24,7 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
-import org.xowl.infra.store.storage.BaseStore;
+import org.xowl.infra.store.storage.QuadStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -366,7 +366,7 @@ public class RDFRuleEngine implements ChangeListener {
     /**
      * The RDF store for the output
      */
-    private final BaseStore outputStore;
+    private final QuadStore outputStore;
     /**
      * A RETE network for the pattern matching of queries
      */
@@ -391,7 +391,7 @@ public class RDFRuleEngine implements ChangeListener {
      * @param outputStore The RDF store for the output
      * @param evaluator   The evaluator for this engine
      */
-    public RDFRuleEngine(Dataset inputStore, BaseStore outputStore, Evaluator evaluator) {
+    public RDFRuleEngine(Dataset inputStore, QuadStore outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
         this.rete = new RETENetwork(inputStore);
         this.evaluator = evaluator;

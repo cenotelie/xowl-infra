@@ -68,9 +68,7 @@ public class CommandDeleteWhere implements Command {
             for (RDFPatternSolution solution : solutions)
                 Utils.instantiate(context, solution, quads, toRemove);
             repository.getStore().insert(Changeset.fromRemoved(toRemove));
-            repository.getStore().commit();
         } catch (UnsupportedNodeType | EvaluationException exception) {
-            repository.getStore().rollback();
             return new ResultFailure(exception.getMessage());
         }
         return ResultSuccess.INSTANCE;

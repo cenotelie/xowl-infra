@@ -17,9 +17,15 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.utils.logging.Logging;
-import fr.cenotelie.commons.utils.metrics.MetricSnapshot;
-import fr.cenotelie.commons.utils.metrics.MetricSnapshotComposite;
+import fr.cenotelie.commons.storage.NoTransactionException;
+import fr.cenotelie.commons.storage.TransactionalStorage;
+import fr.cenotelie.commons.storage.files.RawFile;
+import fr.cenotelie.commons.storage.files.RawFileBuffered;
+import fr.cenotelie.commons.storage.files.RawFileFactory;
+import fr.cenotelie.commons.storage.files.RawFileSplit;
+import fr.cenotelie.commons.storage.stores.ObjectStore;
+import fr.cenotelie.commons.storage.stores.ObjectStoreTransactional;
+import fr.cenotelie.commons.storage.wal.WriteAheadLog;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
@@ -40,7 +46,11 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-class OnDiskStore extends BaseStore {
+class QuadStoreOnDisk extends QuadStore {
+    /**
+     * The storage system
+     */
+    private final TransactionalStorage storage;
     /**
      * The store for the nodes
      */
@@ -56,31 +66,31 @@ class OnDiskStore extends BaseStore {
     /**
      * The caching dataset
      */
-    private final OnDiskStoreCache cacheDataset;
+    private final QuadStoreOnDiskCache cacheDataset;
 
     /**
      * Initializes this store
      *
      * @param directory  The parent directory containing the backing files
      * @param isReadonly Whether this store is in readonly mode
-     * @throws IOException      When the backing files cannot be accessed
-     * @throws StorageException When the storage is in a bad state
+     * @throws IOException When the backing files cannot be accessed
      */
-    public OnDiskStore(File directory, boolean isReadonly) throws IOException, StorageException {
-        persistedNodes = new PersistedNodes(directory, isReadonly);
-        persistedDataset = new PersistedDataset(persistedNodes, directory, isReadonly);
-        cacheNodes = new CachedNodes();
-        cacheDataset = new OnDiskStoreCache(persistedDataset);
-        metricStore.addPart(persistedNodes.getMetric());
-        metricStore.addPart(persistedDataset.getMetric());
-    }
-
-    @Override
-    public MetricSnapshot getMetricSnapshot(long timestamp) {
-        MetricSnapshotComposite snapshot = new MetricSnapshotComposite(timestamp);
-        snapshot.addPart(persistedNodes.getMetric(), persistedNodes.getMetricSnapshot(timestamp));
-        snapshot.addPart(persistedDataset.getMetric(), persistedDataset.getMetricSnapshot(timestamp));
-        return snapshot;
+    public QuadStoreOnDisk(File directory, boolean isReadonly) throws IOException {
+        this.storage = new WriteAheadLog(
+                new RawFileSplit(directory, "xowl-", ".dat", new RawFileFactory() {
+                    @Override
+                    public RawFile newStorage(File file, boolean writable) throws IOException {
+                        return new RawFileBuffered(file, writable);
+                    }
+                }, !isReadonly, 1 << 30),
+                new RawFileBuffered(new File(directory, "xowl-log.dat"), !isReadonly)
+        );
+        boolean doInit = storage.getSize() == 0;
+        ObjectStore objectStore = new ObjectStoreTransactional(storage);
+        this.persistedNodes = new PersistedNodes(objectStore, doInit);
+        this.persistedDataset = new PersistedDataset(persistedNodes, objectStore, doInit);
+        this.cacheNodes = new CachedNodes();
+        this.cacheDataset = new QuadStoreOnDiskCache(persistedDataset);
     }
 
     @Override
@@ -92,29 +102,18 @@ class OnDiskStore extends BaseStore {
     }
 
     @Override
-    public boolean commit() {
-        boolean success = persistedNodes.flush();
-        success &= persistedDataset.flush();
-        return success;
+    public QuadTransaction newTransaction(boolean writable, boolean autocommit) {
+        return new QuadStoreOnDiskTransaction(storage.newTransaction(writable, autocommit));
+    }
+
+    @Override
+    public QuadTransaction getTransaction() throws NoTransactionException {
+        return new QuadStoreOnDiskTransaction(storage.getTransaction());
     }
 
     @Override
     public void close() throws Exception {
-        Exception toThrow = null;
-        try {
-            persistedNodes.close();
-        } catch (Exception exception) {
-            toThrow = exception;
-        }
-        try {
-            persistedDataset.close();
-        } catch (Exception exception) {
-            if (toThrow != null)
-                Logging.get().error(toThrow);
-            toThrow = exception;
-        }
-        if (toThrow != null)
-            throw toThrow;
+        storage.close();
     }
 
     @Override

@@ -33,8 +33,8 @@ import org.xowl.infra.store.ResourceAccess;
 import org.xowl.infra.store.loaders.SPARQLLoader;
 import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.BaseStore;
-import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.QuadStore;
+import org.xowl.infra.store.storage.QuadStoreFactory;
 
 import java.io.*;
 import java.util.*;
@@ -114,7 +114,7 @@ public abstract class BaseSPARQLTest {
      */
     protected void testPositiveSyntax(String resource) {
         SinkLogger logger = new SinkLogger();
-        BaseStore store = StoreFactory.create().make();
+        QuadStore store = QuadStoreFactory.create().make();
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/org/w3c/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);
@@ -135,7 +135,7 @@ public abstract class BaseSPARQLTest {
      */
     protected void testNegativeSyntax(String resource) {
         SinkLogger logger = new SinkLogger();
-        BaseStore store = StoreFactory.create().make();
+        QuadStore store = QuadStoreFactory.create().make();
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/org/w3c/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);

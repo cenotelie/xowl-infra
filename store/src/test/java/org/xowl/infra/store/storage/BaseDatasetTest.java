@@ -33,7 +33,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testMultiplicityEmpty(BaseStore store) {
+    protected void testMultiplicityEmpty(QuadStore store) {
         Quad quad = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x"),
@@ -53,7 +53,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testMultiplicitySingle(BaseStore store) throws UnsupportedNodeType {
+    protected void testMultiplicitySingle(QuadStore store) throws UnsupportedNodeType {
         Quad quad = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x"),
@@ -70,7 +70,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testMultiplicityMore(BaseStore store) throws UnsupportedNodeType {
+    protected void testMultiplicityMore(QuadStore store) throws UnsupportedNodeType {
         Quad quad = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x"),
@@ -89,7 +89,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testMultiplicityOther(BaseStore store) throws UnsupportedNodeType {
+    protected void testMultiplicityOther(QuadStore store) throws UnsupportedNodeType {
         Quad quad1 = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x1"),
@@ -112,7 +112,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testGetAllEmpty(BaseStore store) {
+    protected void testGetAllEmpty(QuadStore store) {
         Iterator<Quad> iterator = store.getAll();
         Assert.assertFalse(iterator.hasNext());
     }
@@ -122,7 +122,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testGetAllSingle(BaseStore store) throws UnsupportedNodeType {
+    protected void testGetAllSingle(QuadStore store) throws UnsupportedNodeType {
         Quad quad1 = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x1"),

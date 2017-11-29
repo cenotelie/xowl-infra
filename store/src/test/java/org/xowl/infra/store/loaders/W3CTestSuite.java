@@ -25,8 +25,8 @@ import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.BaseStore;
-import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.QuadStore;
+import org.xowl.infra.store.storage.QuadStoreFactory;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -48,7 +48,7 @@ public abstract class W3CTestSuite {
     /**
      * The store to use
      */
-    protected BaseStore store;
+    protected QuadStore store;
     /**
      * The IRI mapper
      */
@@ -57,13 +57,13 @@ public abstract class W3CTestSuite {
     @Before
     public void setup() throws IOException {
         logger = new SinkLogger();
-        store = StoreFactory.create().make();
+        store = QuadStoreFactory.create().make();
         mapper = IRIMapper.getDefault();
     }
 
     @After
     public void cleanup() {
-        store = StoreFactory.create().make();
+        store = QuadStoreFactory.create().make();
         logger.reset();
     }
 

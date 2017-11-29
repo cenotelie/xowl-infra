@@ -33,12 +33,12 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class OnDiskStoreTest {
+public class QuadStoreOnDiskTest {
 
     @Test
     public void testCreation() throws Exception {
         Path p = Files.createTempDirectory("testCreation");
-        OnDiskStore store = new OnDiskStore(p.toFile(), false);
+        QuadStoreOnDisk store = new QuadStoreOnDisk(p.toFile(), false);
         Assert.assertNotNull(store);
         store.close();
     }
@@ -47,14 +47,13 @@ public class OnDiskStoreTest {
     public void testInsert() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
         SinkLogger logger = new SinkLogger();
-        OnDiskStore store = new OnDiskStore(p.toFile(), false);
+        QuadStoreOnDisk store = new QuadStoreOnDisk(p.toFile(), false);
         RepositoryRDF repo = new RepositoryRDF(store);
         repo.load(logger, IRIs.RDF);
-        store.commit();
         store.close();
         Assert.assertFalse("Failed to load", logger.isOnError());
 
-        store = new OnDiskStore(p.toFile(), true);
+        store = new QuadStoreOnDisk(p.toFile(), true);
         Iterator<Quad> iterator = store.getAll();
         while (iterator.hasNext()) {
             Quad quad = iterator.next();
@@ -66,7 +65,7 @@ public class OnDiskStoreTest {
     @Test
     public void testInsert2() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
-        OnDiskStore store = new OnDiskStore(p.toFile(), false);
+        QuadStoreOnDisk store = new QuadStoreOnDisk(p.toFile(), false);
         RepositoryRDF repo = new RepositoryRDF(store);
 
         Quad quad1 = new Quad(
@@ -89,7 +88,6 @@ public class OnDiskStoreTest {
             Quad quad = iterator.next();
             //System.out.println(quad);
         }
-        store.commit();
         store.close();
     }
 }

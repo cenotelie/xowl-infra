@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import fr.cenotelie.commons.storage.Constants;
+
 import java.lang.ref.WeakReference;
 
 /**
@@ -70,7 +72,7 @@ class PersistedNodeCache<T extends PersistedNode> {
             if (keys[i] == key) {
                 T result = nodes[i].get();
                 if (result == null) {
-                    keys[i] = FileStore.KEY_NULL;
+                    keys[i] = Constants.KEY_NULL;
                     nodes[i] = null;
                 }
                 return result;
@@ -80,7 +82,7 @@ class PersistedNodeCache<T extends PersistedNode> {
             if (keys[i] == key) {
                 T result = nodes[i].get();
                 if (result == null) {
-                    keys[i] = FileStore.KEY_NULL;
+                    keys[i] = Constants.KEY_NULL;
                     nodes[i] = null;
                 }
                 return result;

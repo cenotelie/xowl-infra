@@ -35,9 +35,9 @@ import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
-import org.xowl.infra.store.storage.BaseStore;
+import org.xowl.infra.store.storage.QuadStore;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.QuadStoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
@@ -58,14 +58,14 @@ public class RepositoryRDF extends Repository {
      *
      * @return A new default store
      */
-    private static BaseStore getDefaultStore() {
-        return StoreFactory.create().make();
+    private static QuadStore getDefaultStore() {
+        return QuadStoreFactory.create().make();
     }
 
     /**
      * The backend store
      */
-    private final BaseStore backend;
+    private final QuadStore backend;
     /**
      * The ontologies in this repository
      */
@@ -88,7 +88,7 @@ public class RepositoryRDF extends Repository {
      *
      * @return the backend store
      */
-    public BaseStore getStore() {
+    public QuadStore getStore() {
         return backend;
     }
 
@@ -104,7 +104,7 @@ public class RepositoryRDF extends Repository {
      *
      * @param store The store to use as backend
      */
-    public RepositoryRDF(BaseStore store) {
+    public RepositoryRDF(QuadStore store) {
         this(store, IRIMapper.getDefault(), false);
     }
 
@@ -134,7 +134,7 @@ public class RepositoryRDF extends Repository {
      * @param mapper              The IRI mapper to use
      * @param resolveDependencies Whether dependencies should be resolved when loading resources
      */
-    public RepositoryRDF(BaseStore store, IRIMapper mapper, boolean resolveDependencies) {
+    public RepositoryRDF(QuadStore store, IRIMapper mapper, boolean resolveDependencies) {
         super(mapper, resolveDependencies);
         this.backend = store;
         this.backend.setExecutionManager(executionManager);

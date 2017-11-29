@@ -55,11 +55,7 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
      * Caches the content of the literal
      */
     private void doCache() {
-        try {
-            cache = backend.retrieveLiteral(key);
-        } catch (StorageException exception) {
-            cache = new String[]{"", null, null};
-        }
+        cache = backend.retrieveLiteral(key);
     }
 
     @Override
@@ -94,12 +90,12 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() throws StorageException {
+    public void incrementRefCount() {
         backend.onRefCountLiteral(key, 1);
     }
 
     @Override
-    public void decrementRefCount() throws StorageException {
+    public void decrementRefCount() {
         backend.onRefCountLiteral(key, -1);
     }
 

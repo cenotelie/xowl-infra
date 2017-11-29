@@ -76,7 +76,6 @@ public class CommandMove implements Command {
         GraphNode graphTarget = repository.getStore().getIRINode(target);
         try {
             repository.getStore().move(graphOrigin, graphTarget);
-            repository.getStore().commit();
             return ResultSuccess.INSTANCE;
         } catch (UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());

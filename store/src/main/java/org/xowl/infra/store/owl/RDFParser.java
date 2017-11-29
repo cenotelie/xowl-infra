@@ -25,8 +25,8 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
-import org.xowl.infra.store.storage.BaseStore;
-import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.QuadStore;
+import org.xowl.infra.store.storage.QuadStoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.*;
@@ -40,7 +40,7 @@ public class RDFParser {
     /**
      * The xOWL store to use
      */
-    private BaseStore store;
+    private QuadStore store;
     /**
      * The graph node to use for building pattern quads
      */
@@ -78,7 +78,7 @@ public class RDFParser {
      * @throws UnsupportedNodeType When a node cannot be translated
      */
     public Collection<Axiom> translate(Collection<Quad> quads) throws UnsupportedNodeType {
-        store = StoreFactory.create().make();
+        store = QuadStoreFactory.create().make();
         graphNode = new VariableNode("__graph__");
         store.insert(Changeset.fromAdded(quads));
         execute(quads);
@@ -92,7 +92,7 @@ public class RDFParser {
      * @param quads The quads
      * @return The equivalent axioms
      */
-    public Collection<Axiom> translate(BaseStore store, Collection<Quad> quads) {
+    public Collection<Axiom> translate(QuadStore store, Collection<Quad> quads) {
         this.store = store;
         this.graphNode = new VariableNode("__graph__");
         execute(quads);
@@ -106,7 +106,7 @@ public class RDFParser {
      * @param graph The graph
      * @return The equivalent axioms
      */
-    public Collection<Axiom> translate(BaseStore store, GraphNode graph) {
+    public Collection<Axiom> translate(QuadStore store, GraphNode graph) {
         this.store = store;
         this.graphNode = graph;
         Collection<Quad> quads = new ArrayList<>();

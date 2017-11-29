@@ -73,11 +73,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     public AnonymousIndividual getIndividual() {
         if (individual == null) {
             individual = Owl2Factory.newAnonymousIndividual();
-            try {
-                individual.setNodeID(backend.retrieveString(key));
-            } catch (StorageException exception) {
-                individual.setNodeID("#error#");
-            }
+            individual.setNodeID(backend.retrieveString(key));
         }
         return individual;
     }
@@ -93,12 +89,12 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() throws StorageException {
+    public void incrementRefCount() {
         backend.onRefCountString(key, 1);
     }
 
     @Override
-    public void decrementRefCount() throws StorageException {
+    public void decrementRefCount() {
         backend.onRefCountString(key, -1);
     }
 

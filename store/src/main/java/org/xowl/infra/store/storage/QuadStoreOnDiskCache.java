@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Laurent Wouters
  */
-class OnDiskStoreCache extends DatasetImpl {
+class QuadStoreOnDiskCache extends DatasetImpl {
     /**
      * The maximum number of cached subjects
      */
@@ -63,7 +63,7 @@ class OnDiskStoreCache extends DatasetImpl {
      *
      * @param persisted The base persisted dataset
      */
-    public OnDiskStoreCache(PersistedDataset persisted) {
+    public QuadStoreOnDiskCache(PersistedDataset persisted) {
         this.persisted = persisted;
         this.cachedSubjects = new ConcurrentHashMap<>(MAX_CACHED_SUBJECTS);
         this.cachedGraphs = new ConcurrentHashMap<>(MAX_CACHED_GRAPHS);

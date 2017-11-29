@@ -21,8 +21,8 @@ import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.BaseStore;
-import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.QuadStore;
+import org.xowl.infra.store.storage.QuadStoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.io.IOException;
@@ -72,7 +72,7 @@ public class W3CTestSuiteGenerator {
      * @param manifest The path to a manifest
      */
     public void generate(String manifest) {
-        BaseStore store = StoreFactory.create().make();
+        QuadStore store = QuadStoreFactory.create().make();
         SinkLogger logger = new SinkLogger();
 
         InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);
@@ -126,7 +126,7 @@ public class W3CTestSuiteGenerator {
      * @param entry       The entry node
      * @param syntax      The syntax to be tested
      */
-    private void generateTestEval(BaseStore graph, String resourceURI, SubjectNode entry, String syntax) {
+    private void generateTestEval(QuadStore graph, String resourceURI, SubjectNode entry, String syntax) {
         String name = ((LiteralNode) getValue(graph, entry, MF + "name")).getLexicalValue();
         name = name.replace("-", "_");
 
@@ -147,7 +147,7 @@ public class W3CTestSuiteGenerator {
      * @param entry       The entry node
      * @param syntax      The syntax to be tested
      */
-    private void generateTestPositiveSyntax(BaseStore graph, String resourceURI, SubjectNode entry, String syntax) {
+    private void generateTestPositiveSyntax(QuadStore graph, String resourceURI, SubjectNode entry, String syntax) {
         String name = ((LiteralNode) getValue(graph, entry, MF + "name")).getLexicalValue();
         name = name.replace("-", "_");
 
@@ -165,7 +165,7 @@ public class W3CTestSuiteGenerator {
      * @param entry       The entry node
      * @param syntax      The syntax to be tested
      */
-    private void generateTestNegativeSyntax(BaseStore graph, String resourceURI, SubjectNode entry, String syntax) {
+    private void generateTestNegativeSyntax(QuadStore graph, String resourceURI, SubjectNode entry, String syntax) {
         String name = ((LiteralNode) getValue(graph, entry, MF + "name")).getLexicalValue();
         name = name.replace("-", "_");
 
@@ -183,7 +183,7 @@ public class W3CTestSuiteGenerator {
      * @param property A property
      * @return The corresponding value
      */
-    private Node getValue(BaseStore graph, SubjectNode node, String property) {
+    private Node getValue(QuadStore graph, SubjectNode node, String property) {
         try {
             Iterator<Quad> entries = graph.getAll(node, graph.getIRINode(property), null);
             if (!entries.hasNext())

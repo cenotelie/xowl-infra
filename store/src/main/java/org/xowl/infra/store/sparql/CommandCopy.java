@@ -89,7 +89,6 @@ public class CommandCopy implements Command {
                 }
             }
         }
-        repository.getStore().commit();
         return ResultSuccess.INSTANCE;
     }
 

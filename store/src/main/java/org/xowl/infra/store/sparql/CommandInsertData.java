@@ -65,10 +65,8 @@ public class CommandInsertData implements Command {
     public Result execute(RepositoryRDF repository) {
         try {
             repository.getStore().insert(Changeset.fromAdded(quads));
-            repository.getStore().commit();
             return ResultSuccess.INSTANCE;
         } catch (UnsupportedNodeType exception) {
-            repository.getStore().rollback();
             return new ResultFailure(exception.getMessage());
         }
     }

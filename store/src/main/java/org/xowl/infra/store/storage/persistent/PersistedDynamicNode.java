@@ -56,12 +56,7 @@ public class PersistedDynamicNode extends DynamicNode implements PersistedNode {
      * Caches the content of the literal
      */
     private void doCache() {
-        String source = null;
-        try {
-            source = backend.retrieveString(key);
-        } catch (StorageException exception) {
-            // do nothing
-        }
+        String source = backend.retrieveString(key);
         cache = backend.getEvaluableExpression(source);
     }
 
@@ -83,12 +78,12 @@ public class PersistedDynamicNode extends DynamicNode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() throws StorageException {
+    public void incrementRefCount() {
         backend.onRefCountLiteral(key, 1);
     }
 
     @Override
-    public void decrementRefCount() throws StorageException {
+    public void decrementRefCount() {
         backend.onRefCountLiteral(key, -1);
     }
 

@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
+import fr.cenotelie.commons.storage.NoTransactionException;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
@@ -26,14 +28,16 @@ import org.xowl.infra.store.storage.cache.CachedNodes;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.WeakHashMap;
 
 /**
  * Concrete implementation of an in-memory data store
  * This implementation delegates all its behavior to caching stores
+ * This quad storage system is NOT transactional.
  *
  * @author Laurent Wouters
  */
-class InMemoryStore extends BaseStore {
+class QuadStoreInMemory extends QuadStore {
     /**
      * The store for the nodes
      */
@@ -42,18 +46,47 @@ class InMemoryStore extends BaseStore {
      * The store for the dataset
      */
     private final CachedDataset dataset;
+    /**
+     * The currently running transactions by thread
+     */
+    private final WeakHashMap<Thread, QuadTransaction> transactionsByThread;
 
     /**
      * Initializes this store
      */
-    public InMemoryStore() {
+    public QuadStoreInMemory() {
         nodes = new CachedNodes();
         dataset = new CachedDataset();
+        transactionsByThread = new WeakHashMap<>();
     }
 
     public void setExecutionManager(ExecutionManager executionManager) {
         nodes.setExecutionManager(executionManager);
         dataset.setExecutionManager(executionManager);
+    }
+
+    @Override
+    public QuadTransaction newTransaction(boolean writable, boolean autocommit) {
+        QuadTransaction transaction = new QuadTransaction(writable, autocommit) {
+            @Override
+            protected void doCommit() throws ConcurrentWriteException {
+                // do nothing
+            }
+
+            @Override
+            protected void onClose() {
+                transactionsByThread.remove(Thread.currentThread());
+            }
+        };
+        synchronized (transactionsByThread) {
+            transactionsByThread.put(Thread.currentThread(), transaction);
+        }
+        return transaction;
+    }
+
+    @Override
+    public QuadTransaction getTransaction() throws NoTransactionException {
+        return transactionsByThread.get(Thread.currentThread());
     }
 
     @Override

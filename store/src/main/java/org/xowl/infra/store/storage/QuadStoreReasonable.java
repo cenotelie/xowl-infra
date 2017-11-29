@@ -17,8 +17,7 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.utils.metrics.Metric;
-import fr.cenotelie.commons.utils.metrics.MetricSnapshot;
+import fr.cenotelie.commons.storage.NoTransactionException;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
@@ -36,15 +35,15 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class BaseReasonableStore extends BaseStore {
+class QuadStoreReasonable extends QuadStore {
     /**
      * The store for the ground data
      */
-    protected final BaseStore groundStore;
+    protected final QuadStore groundStore;
     /**
      * The store for the volatile data
      */
-    protected final BaseStore volatileStore;
+    protected final QuadStore volatileStore;
     /**
      * The aggregating dataset
      */
@@ -63,21 +62,12 @@ class BaseReasonableStore extends BaseStore {
      *
      * @param ground The store for the ground data
      */
-    public BaseReasonableStore(BaseStore ground) {
+    public QuadStoreReasonable(QuadStore ground) {
         this.groundStore = ground;
-        this.volatileStore = new InMemoryStore();
+        this.volatileStore = new QuadStoreInMemory();
         this.aggregate = new AggregateDataset(groundStore, volatileStore);
         this.graphInference = volatileStore.getIRINode(IRIs.GRAPH_INFERENCE);
         this.graphMeta = volatileStore.getIRINode(IRIs.GRAPH_META);
-    }
-
-    public Metric getMetric() {
-        return groundStore.getMetric();
-    }
-
-    @Override
-    public MetricSnapshot getMetricSnapshot(long timestamp) {
-        return groundStore.getMetricSnapshot(timestamp);
     }
 
     @Override
@@ -87,17 +77,13 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public boolean commit() {
-        boolean r1 = groundStore.commit();
-        boolean r2 = volatileStore.commit();
-        return r1 && r2;
+    public QuadTransaction newTransaction(boolean writable, boolean autocommit) {
+        return groundStore.newTransaction(writable, autocommit);
     }
 
     @Override
-    public boolean rollback() {
-        boolean r1 = groundStore.rollback();
-        boolean r2 = volatileStore.rollback();
-        return r1 && r2;
+    public QuadTransaction getTransaction() throws NoTransactionException {
+        return groundStore.getTransaction();
     }
 
     @Override

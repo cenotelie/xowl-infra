@@ -29,7 +29,7 @@ import java.util.UUID;
  *
  * @author Laurent Wouters
  */
-public class StoreFactory {
+public class QuadStoreFactory {
     /**
      * The primary type of storage
      */
@@ -122,27 +122,27 @@ public class StoreFactory {
          *
          * @return The store
          */
-        public BaseStore make() {
-            BaseStore primary = null;
+        public QuadStore make() {
+            QuadStore primary = null;
             switch (primaryStorage) {
                 case InMemory:
-                    primary = new InMemoryStore();
+                    primary = new QuadStoreInMemory();
                     break;
                 case OnDisk: {
                     try {
                         if (location == null)
                             location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
-                        primary = new OnDiskStore(location, isReadonly);
-                    } catch (IOException | StorageException exception) {
+                        primary = new QuadStoreOnDisk(location, isReadonly);
+                    } catch (IOException exception) {
                         Logging.get().error(exception);
                         return null;
                     }
                     break;
                 }
             }
-            BaseStore result = primary;
+            QuadStore result = primary;
             if (supportReasoning)
-                result = new BaseReasonableStore(result);
+                result = new QuadStoreReasonable(result);
             return result;
         }
     }

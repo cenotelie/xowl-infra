@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,44 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.storage.persistent;
+package org.xowl.infra.store.storage;
 
-import org.xowl.infra.store.rdf.Node;
+import fr.cenotelie.commons.storage.Access;
+import fr.cenotelie.commons.storage.Transaction;
 
 /**
- * Represents the common API for the persisted node
+ * Represents a transaction for an interaction with a store of quads
  *
  * @author Laurent Wouters
  */
-interface PersistedNode extends Node {
+public abstract class QuadTransaction extends Transaction {
     /**
-     * The size in bytes of the serialized form of a node
-     * int: node type
-     * long: key to node data
-     */
-    int SERIALIZED_SIZE = 8 + 4;
-
-    /**
-     * Gets the store that maintains this node
+     * Initializes this transaction
      *
-     * @return The store that maintains this node
+     * @param writable   Whether this transaction allows writing
+     * @param autocommit Whether this transaction should commit when being closed
      */
-    PersistedNodes getStore();
+    public QuadTransaction(boolean writable, boolean autocommit) {
+        super(writable, autocommit);
+    }
 
-    /**
-     * Gets the key identifying this node
-     *
-     * @return The key identifying this node
-     */
-    long getKey();
-
-    /**
-     * Increments the reference count for this node
-     */
-    void incrementRefCount();
-
-    /**
-     * Decrements the reference count for this node
-     */
-    void decrementRefCount();
+    @Override
+    protected Access newAccess(long index, int length, boolean writable) {
+        // do not allow direct access to the storage
+        throw new UnsupportedOperationException();
+    }
 }
