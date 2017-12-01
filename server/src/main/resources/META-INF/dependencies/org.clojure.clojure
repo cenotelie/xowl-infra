@@ -1,7 +1,0 @@
-type = Java Library
-name = Clojure Runtime
-version = 1.8.0
-copyright = Copyright (c) Rich Hickey
-link = http://clojure.org
-licenseName = EPL v1.0
-licenseText = /META-INF/dependencies/org.clojure.clojure.license
