@@ -30,7 +30,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class AggregateDataset implements Dataset {
+class DatasetAggregate implements Dataset {
     /**
      * The aggregated datasets
      */
@@ -45,7 +45,7 @@ class AggregateDataset implements Dataset {
      *
      * @param content The aggregated datasets
      */
-    public AggregateDataset(Dataset... content) {
+    public DatasetAggregate(Dataset... content) {
         this.content = Arrays.copyOf(content, content.length);
         this.listeners = new ArrayList<>();
         ChangeListener inner = new ChangeListener() {

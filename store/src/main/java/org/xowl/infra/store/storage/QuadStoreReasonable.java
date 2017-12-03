@@ -48,7 +48,7 @@ class QuadStoreReasonable implements QuadStore {
     /**
      * The aggregating dataset
      */
-    private final AggregateDataset aggregate;
+    private final DatasetAggregate aggregate;
     /**
      * The graph for inferences
      */
@@ -66,7 +66,7 @@ class QuadStoreReasonable implements QuadStore {
     public QuadStoreReasonable(QuadStore ground) {
         this.groundStore = ground;
         this.volatileStore = new QuadStoreInMemory();
-        this.aggregate = new AggregateDataset(groundStore, volatileStore);
+        this.aggregate = new DatasetAggregate(groundStore, volatileStore);
         this.graphInference = volatileStore.getIRINode(IRIs.GRAPH_INFERENCE);
         this.graphMeta = volatileStore.getIRINode(IRIs.GRAPH_META);
     }

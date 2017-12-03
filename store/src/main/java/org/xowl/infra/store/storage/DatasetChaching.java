@@ -29,11 +29,11 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Represents the caching part of a a on-disk persistent data store
+ * Implements a dataset that interface another one by caching the content of the original
  *
  * @author Laurent Wouters
  */
-class QuadStoreOnDiskCache extends DatasetImpl {
+class DatasetChaching extends DatasetImpl {
     /**
      * The maximum number of cached subjects
      */
@@ -44,9 +44,9 @@ class QuadStoreOnDiskCache extends DatasetImpl {
     private static final int MAX_CACHED_GRAPHS = 4;
 
     /**
-     * The base persisted dataset
+     * The original dataset
      */
-    private final PersistedDataset persisted;
+    private final DatasetImpl original;
     /**
      * Collection of the cached subjects
      */
@@ -59,10 +59,10 @@ class QuadStoreOnDiskCache extends DatasetImpl {
     /**
      * Initializes this cache
      *
-     * @param persisted The base persisted dataset
+     * @param original The original dataset
      */
-    public QuadStoreOnDiskCache(PersistedDataset persisted) {
-        this.persisted = persisted;
+    public DatasetChaching(PersistedDataset original) {
+        this.original = original;
         this.cachedSubjects = new ConcurrentHashMap<>(MAX_CACHED_SUBJECTS);
         this.cachedGraphs = new ConcurrentHashMap<>(MAX_CACHED_GRAPHS);
     }
@@ -79,7 +79,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
 
         dataset = new CachedDataset();
         try {
-            Iterator<Quad> iterator = persisted.getAll(null, subject, null, null);
+            Iterator<? extends Quad> iterator = original.getAll(null, subject, null, null);
             while (iterator.hasNext())
                 dataset.add(iterator.next());
         } catch (UnsupportedNodeType exception) {
@@ -101,7 +101,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
 
         dataset = new CachedDataset();
         try {
-            Iterator<? extends Quad> iterator = persisted.getAll(graph);
+            Iterator<? extends Quad> iterator = original.getAll(graph);
             while (iterator.hasNext())
                 dataset.add(iterator.next());
         } catch (UnsupportedNodeType exception) {
@@ -144,7 +144,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
 
     @Override
     public int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        int result = persisted.doAddQuad(graph, subject, property, value);
+        int result = original.doAddQuad(graph, subject, property, value);
         if (result == ADD_RESULT_NEW) {
             invalidate(subject);
             invalidate(graph);
@@ -154,7 +154,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
 
     @Override
     public int doRemoveQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        int result = persisted.doRemoveQuad(graph, subject, property, value);
+        int result = original.doRemoveQuad(graph, subject, property, value);
         if (result >= REMOVE_RESULT_REMOVED) {
             invalidate(subject);
             invalidate(graph);
@@ -164,7 +164,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
 
     @Override
     public void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
-        persisted.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
+        original.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
         for (MQuad quad : bufferRemoved) {
             invalidate(quad.getSubject());
             invalidate(quad.getGraph());
@@ -173,13 +173,13 @@ class QuadStoreOnDiskCache extends DatasetImpl {
 
     @Override
     public void doClear(List<MQuad> buffer) {
-        persisted.doClear(buffer);
+        original.doClear(buffer);
         invalidate();
     }
 
     @Override
     public void doClear(GraphNode graph, List<MQuad> buffer) throws UnsupportedNodeType {
-        persisted.doClear(graph, buffer);
+        original.doClear(graph, buffer);
         invalidate(graph);
         for (MQuad quad : buffer) {
             invalidate(quad.getSubject());
@@ -189,7 +189,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
     @Override
     public void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
         try {
-            persisted.doCopy(origin, target, bufferOld, bufferNew, overwrite);
+            original.doCopy(origin, target, bufferOld, bufferNew, overwrite);
             invalidate(origin);
             invalidate(target);
             for (MQuad quad : bufferOld) {
@@ -206,7 +206,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
     @Override
     public void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
         try {
-            persisted.doMove(origin, target, bufferOld, bufferNew);
+            original.doMove(origin, target, bufferOld, bufferNew);
             invalidate(origin);
             invalidate(target);
             for (MQuad quad : bufferOld) {
@@ -227,7 +227,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
             CachedDataset cache = getCache(subject);
             return cache.getAll(graph, subject, property, object);
@@ -235,13 +235,13 @@ class QuadStoreOnDiskCache extends DatasetImpl {
             CachedDataset cache = getCache(graph);
             return cache.getAll(graph, subject, property, object);
         } else {
-            return persisted.getAll(graph, subject, property, object);
+            return original.getAll(graph, subject, property, object);
         }
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        return persisted.getGraphs();
+        return original.getGraphs();
     }
 
     @Override
@@ -253,7 +253,7 @@ class QuadStoreOnDiskCache extends DatasetImpl {
             CachedDataset cache = getCache(graph);
             return cache.count(graph, subject, property, object);
         } else {
-            return persisted.count(graph, subject, property, object);
+            return original.count(graph, subject, property, object);
         }
     }
 }
