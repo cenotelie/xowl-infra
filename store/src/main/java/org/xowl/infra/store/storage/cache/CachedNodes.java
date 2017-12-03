@@ -20,7 +20,7 @@ package org.xowl.infra.store.storage.cache;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.impl.NodeManagerImpl;
+import org.xowl.infra.store.storage.NodeManagerImpl;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;

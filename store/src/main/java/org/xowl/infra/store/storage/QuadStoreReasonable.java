@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.storage.NoTransactionException;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
@@ -31,31 +30,33 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Represents a data store that is composed of a backend store for ground data and a volatile store for data coming from reasoning facilities
+ * Represents a quad store that is composed of:
+ * - a backend store for ground quads and
+ * - a volatile store for quads coming from reasoning facilities
  *
  * @author Laurent Wouters
  */
-class QuadStoreReasonable extends QuadStore {
+class QuadStoreReasonable implements QuadStore {
     /**
      * The store for the ground data
      */
-    protected final QuadStore groundStore;
+    private final QuadStore groundStore;
     /**
      * The store for the volatile data
      */
-    protected final QuadStore volatileStore;
+    private final QuadStore volatileStore;
     /**
      * The aggregating dataset
      */
-    protected final AggregateDataset aggregate;
+    private final AggregateDataset aggregate;
     /**
      * The graph for inferences
      */
-    protected final GraphNode graphInference;
+    private final GraphNode graphInference;
     /**
      * The graph for meta data
      */
-    protected final GraphNode graphMeta;
+    private final GraphNode graphMeta;
 
     /**
      * Initializes this store
@@ -74,16 +75,6 @@ class QuadStoreReasonable extends QuadStore {
     public void setExecutionManager(ExecutionManager executionManager) {
         groundStore.setExecutionManager(executionManager);
         volatileStore.setExecutionManager(executionManager);
-    }
-
-    @Override
-    public QuadTransaction newTransaction(boolean writable, boolean autocommit) {
-        return groundStore.newTransaction(writable, autocommit);
-    }
-
-    @Override
-    public QuadTransaction getTransaction() throws NoTransactionException {
-        return groundStore.getTransaction();
     }
 
     @Override
@@ -118,12 +109,12 @@ class QuadStoreReasonable extends QuadStore {
     }
 
     @Override
-    public Iterator<Quad> getAll() {
+    public Iterator<? extends Quad> getAll() {
         return aggregate.getAll();
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return getAll();
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
@@ -132,12 +123,12 @@ class QuadStoreReasonable extends QuadStore {
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return aggregate.getAll(subject, property, object);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return getAll(subject, property, object);
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
@@ -192,65 +183,47 @@ class QuadStoreReasonable extends QuadStore {
 
         // nope, try to discriminate
         boolean[] addedIsVolatile = new boolean[changeset.getAdded().size()];
-        boolean addedAllVolatile = true;
-        boolean addedAllGround = true;
+        int addedVolatile = 0;
+        int addedGround = 0;
         int i = 0;
         for (Quad quad : changeset.getAdded()) {
             addedIsVolatile[i] = (RDFUtils.same(graphInference, quad.getGraph()) || RDFUtils.same(graphMeta, quad.getGraph()));
-            addedAllVolatile &= addedIsVolatile[i];
-            addedAllGround &= !addedIsVolatile[i];
+            if (addedIsVolatile[i])
+                addedVolatile++;
+            else
+                addedGround++;
             i++;
         }
 
         boolean[] removedIsVolatile = new boolean[changeset.getRemoved().size()];
-        boolean removedAllVolatile = true;
-        boolean removedAllGround = true;
+        int removedVolatile = 0;
+        int removedGround = 0;
         i = 0;
         for (Quad quad : changeset.getRemoved()) {
             removedIsVolatile[i] = (RDFUtils.same(graphInference, quad.getGraph()) || RDFUtils.same(graphMeta, quad.getGraph()));
-            removedAllVolatile &= removedIsVolatile[i];
-            removedAllGround &= !removedIsVolatile[i];
+            if (removedIsVolatile[i])
+                removedVolatile++;
+            else
+                removedGround++;
             i++;
         }
 
-        if (addedAllVolatile && removedAllVolatile) {
+        if (addedGround == 0 && removedGround == 0) {
+            // all volatile
             volatileStore.insert(changeset);
             return;
         }
-        if (addedAllGround && removedAllGround) {
+        if (addedVolatile == 0 && removedVolatile == 0) {
+            // all ground
             groundStore.insert(changeset);
             return;
         }
 
-        boolean addedIsHandled = true;
-        if (addedIsVolatile.length > 0) {
-            if (addedAllVolatile) {
-                volatileStore.insert(Changeset.fromAdded(changeset.getAdded()));
-            } else if (addedAllGround) {
-                groundStore.insert(Changeset.fromAdded(changeset.getAdded()));
-            } else {
-                addedIsHandled = false;
-            }
-        }
-
-        boolean removedIsHandled = true;
-        if (removedIsVolatile.length > 0) {
-            if (removedAllVolatile) {
-                volatileStore.insert(Changeset.fromRemoved(changeset.getRemoved()));
-            } else if (removedAllGround) {
-                groundStore.insert(Changeset.fromRemoved(changeset.getRemoved()));
-            } else {
-                removedIsHandled = false;
-            }
-        }
-
-        if (addedIsHandled && removedIsHandled)
-            return;
-
-        List<Quad> addedForVolatile = addedIsVolatile.length > 0 ? new ArrayList<>(addedIsVolatile.length) : null;
-        List<Quad> addedForGround = addedIsVolatile.length > 0 ? new ArrayList<>(addedIsVolatile.length) : null;
-        List<Quad> removedForVolatile = removedIsVolatile.length > 0 ? new ArrayList<>(removedIsVolatile.length) : null;
-        List<Quad> removedForGround = removedIsVolatile.length > 0 ? new ArrayList<>(removedIsVolatile.length) : null;
+        // split into volatile and grounds
+        List<Quad> addedForVolatile = new ArrayList<>(addedVolatile);
+        List<Quad> addedForGround = new ArrayList<>(addedGround);
+        List<Quad> removedForVolatile = new ArrayList<>(removedVolatile);
+        List<Quad> removedForGround = new ArrayList<>(removedGround);
         i = 0;
         for (Quad quad : changeset.getAdded()) {
             (addedIsVolatile[i++] ? addedForVolatile : addedForGround).add(quad);
@@ -259,23 +232,24 @@ class QuadStoreReasonable extends QuadStore {
             (removedIsVolatile[i++] ? removedForVolatile : removedForGround).add(quad);
         }
 
-        if (addedForVolatile != null) {
-            if (removedForVolatile != null) {
+        // dispatch
+        if (addedVolatile > 0) {
+            if (removedVolatile > 0) {
                 volatileStore.insert(Changeset.fromAddedRemoved(addedForVolatile, removedForVolatile));
             } else {
-                volatileStore.insert(Changeset.fromRemoved(addedForVolatile));
+                volatileStore.insert(Changeset.fromAdded(addedForVolatile));
             }
-        } else if (removedForVolatile != null) {
+        } else if (removedVolatile > 0) {
             volatileStore.insert(Changeset.fromRemoved(removedForVolatile));
         }
 
-        if (addedForGround != null) {
-            if (removedForGround != null) {
+        if (addedGround > 0) {
+            if (removedGround > 0) {
                 groundStore.insert(Changeset.fromAddedRemoved(addedForGround, removedForGround));
             } else {
-                groundStore.insert(Changeset.fromRemoved(addedForGround));
+                groundStore.insert(Changeset.fromAdded(addedForGround));
             }
-        } else if (removedForGround != null) {
+        } else if (removedGround > 0) {
             groundStore.insert(Changeset.fromRemoved(removedForGround));
         }
     }

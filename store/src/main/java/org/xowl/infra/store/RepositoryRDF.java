@@ -135,7 +135,7 @@ public class RepositoryRDF extends Repository {
     public RepositoryRDF(QuadStore store, IRIMapper mapper, boolean resolveDependencies) {
         super(mapper, resolveDependencies);
         this.backend = store;
-        try (QuadTransaction transaction = backend.newTransaction(false)) {
+        try (QuadStoreTransaction transaction = backend.newTransaction(false)) {
             this.backend.setExecutionManager(executionManager);
         } catch (ConcurrentWriteException exception) {
             // cannot happen
@@ -151,7 +151,7 @@ public class RepositoryRDF extends Repository {
      */
     public void runAsTransaction(Runnable task) {
         while (true) {
-            try (QuadTransaction transaction = backend.newTransaction(true, false)) {
+            try (QuadStoreTransaction transaction = backend.newTransaction(true, false)) {
                 task.run();
                 transaction.commit();
                 return;
@@ -177,7 +177,7 @@ public class RepositoryRDF extends Repository {
      */
     public <T> T runAsTransaction(Callable<T> task) throws Exception {
         while (true) {
-            try (QuadTransaction transaction = backend.newTransaction(true, false)) {
+            try (QuadStoreTransaction transaction = backend.newTransaction(true, false)) {
                 T result = task.call();
                 transaction.commit();
                 return result;

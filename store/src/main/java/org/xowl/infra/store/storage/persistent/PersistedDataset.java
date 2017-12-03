@@ -27,9 +27,9 @@ import fr.cenotelie.commons.utils.collections.ConcatenatedIterator;
 import fr.cenotelie.commons.utils.collections.SingleIterator;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.store.storage.DatasetImpl;
+import org.xowl.infra.store.storage.MQuad;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.store.storage.impl.DatasetImpl;
-import org.xowl.infra.store.storage.impl.MQuad;
 
 import java.util.ArrayList;
 import java.util.Collection;

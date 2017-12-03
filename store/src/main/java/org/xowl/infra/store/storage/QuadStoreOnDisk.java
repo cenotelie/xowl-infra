@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.storage.NoTransactionException;
 import fr.cenotelie.commons.storage.Transaction;
 import fr.cenotelie.commons.storage.TransactionalStorage;
 import fr.cenotelie.commons.storage.files.RawFile;
@@ -47,7 +46,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-class QuadStoreOnDisk extends QuadStore {
+class QuadStoreOnDisk implements QuadStore {
     /**
      * The storage system
      */
@@ -64,10 +63,6 @@ class QuadStoreOnDisk extends QuadStore {
      * The node manager for the cache
      */
     private final CachedNodes cacheNodes;
-    /**
-     * The caching dataset
-     */
-    private final QuadStoreOnDiskCache cacheDataset;
 
     /**
      * Initializes this store
@@ -95,7 +90,6 @@ class QuadStoreOnDisk extends QuadStore {
                 transaction.commit();
         }
         this.cacheNodes = new CachedNodes();
-        this.cacheDataset = new QuadStoreOnDiskCache(persistedDataset);
     }
 
     @Override
@@ -103,133 +97,117 @@ class QuadStoreOnDisk extends QuadStore {
         persistedNodes.setExecutionManager(executionManager);
         persistedDataset.setExecutionManager(executionManager);
         cacheNodes.setExecutionManager(executionManager);
-        cacheDataset.setExecutionManager(executionManager);
-    }
-
-    @Override
-    public QuadTransaction newTransaction(boolean writable, boolean autocommit) {
-        return new QuadStoreOnDiskTransaction(storage.newTransaction(writable, autocommit));
-    }
-
-    @Override
-    public QuadTransaction getTransaction() throws NoTransactionException {
-        return new QuadStoreOnDiskTransaction(storage.getTransaction());
-    }
-
-    @Override
-    public void close() throws Exception {
-        storage.close();
     }
 
     @Override
     public void addListener(ChangeListener listener) {
-        cacheDataset.addListener(listener);
+        persistedDataset.addListener(listener);
     }
 
     @Override
     public void removeListener(ChangeListener listener) {
-        cacheDataset.removeListener(listener);
+        persistedDataset.removeListener(listener);
     }
 
     @Override
     public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
-        return cacheDataset.getMultiplicity(quad);
+        return persistedDataset.getMultiplicity(quad);
     }
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return cacheDataset.getMultiplicity(graph, subject, property, object);
+        return persistedDataset.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
-    public Iterator<Quad> getAll() {
-        return cacheDataset.getAll();
+    public Iterator<? extends Quad> getAll() {
+        return persistedDataset.getAll();
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
-        return cacheDataset.getAll(graph);
+    public Iterator<? extends Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
+        return persistedDataset.getAll(graph);
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return cacheDataset.getAll(subject, property, object);
+    public Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+        return persistedDataset.getAll(subject, property, object);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return cacheDataset.getAll(graph, subject, property, object);
+    public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+        return persistedDataset.getAll(graph, subject, property, object);
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        return cacheDataset.getGraphs();
+        return persistedDataset.getGraphs();
     }
 
     @Override
     public long count() {
-        return cacheDataset.count();
+        return persistedDataset.count();
     }
 
     @Override
     public long count(GraphNode graph) throws UnsupportedNodeType {
-        return cacheDataset.count(graph);
+        return persistedDataset.count(graph);
     }
 
     @Override
     public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return cacheDataset.count(subject, property, object);
+        return persistedDataset.count(subject, property, object);
     }
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return cacheDataset.count(graph, subject, property, object);
+        return persistedDataset.count(graph, subject, property, object);
     }
 
 
     @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {
-        cacheDataset.insert(changeset);
+        persistedDataset.insert(changeset);
     }
 
     @Override
     public void add(Quad quad) throws UnsupportedNodeType {
-        cacheDataset.add(quad);
+        persistedDataset.add(quad);
     }
 
     @Override
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        cacheDataset.add(graph, subject, property, value);
+        persistedDataset.add(graph, subject, property, value);
     }
 
     @Override
     public void remove(Quad quad) throws UnsupportedNodeType {
-        cacheDataset.remove(quad);
+        persistedDataset.remove(quad);
     }
 
     @Override
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        cacheDataset.remove(graph, subject, property, value);
+        persistedDataset.remove(graph, subject, property, value);
     }
 
     @Override
     public void clear() {
-        cacheDataset.clear();
+        persistedDataset.clear();
     }
 
     @Override
     public void clear(GraphNode graph) throws UnsupportedNodeType {
-        cacheDataset.clear(graph);
+        persistedDataset.clear(graph);
     }
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
-        cacheDataset.copy(origin, target, overwrite);
+        persistedDataset.copy(origin, target, overwrite);
     }
 
     @Override
     public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
-        cacheDataset.move(origin, target);
+        persistedDataset.move(origin, target);
     }
 
     @Override
@@ -265,5 +243,10 @@ class QuadStoreOnDisk extends QuadStore {
     @Override
     public DynamicNode getDynamicNode(EvaluableExpression evaluable) {
         return cacheNodes.getDynamicNode(evaluable);
+    }
+
+    @Override
+    public void close() throws Exception {
+        storage.close();
     }
 }

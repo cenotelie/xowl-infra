@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,17 +15,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.storage.impl;
+package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.utils.collections.SingleIterator;
-import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.Dataset;
-import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.*;
 
@@ -88,16 +84,12 @@ public abstract class DatasetImpl implements Dataset {
     public void setExecutionManager(ExecutionManager executionManager) {
         this.executionManager = executionManager;
         if (executionManager != null) {
-            try {
-                IRINode definedAs = ((RepositoryRDF) executionManager.getRepository()).getStore().getIRINode(Vocabulary.xowlDefinedAs);
-                Iterator<Quad> iterator = getAll(null, definedAs, null);
-                while (iterator.hasNext()) {
-                    Quad quad = iterator.next();
-                    if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
-                        registerFunctionDefinition((IRINode) quad.getSubject(), (DynamicNode) quad.getObject());
-                }
-            } catch (UnsupportedNodeType exception) {
-                Logging.get().error(exception);
+            IRINode definedAs = ((RepositoryRDF) executionManager.getRepository()).getStore().getIRINode(Vocabulary.xowlDefinedAs);
+            Iterator<? extends Quad> iterator = getAll(null, definedAs, null);
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
+                    registerFunctionDefinition((IRINode) quad.getSubject(), (DynamicNode) quad.getObject());
             }
         }
     }
@@ -113,88 +105,65 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
+    public long getMultiplicity(Quad quad) {
         return getMultiplicity(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
     }
 
     @Override
-    public Iterator<Quad> getAll() {
-        try {
-            return getAll(null, null, null, null);
-        } catch (UnsupportedNodeType exception) {
-            Logging.get().error(exception);
-            return new SingleIterator<>(null);
-        }
+    public Iterator<? extends Quad> getAll() {
+        return getAll(null, null, null, null);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(GraphNode graph) {
         return getAll(graph, null, null, null);
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object) {
         return getAll(null, subject, property, object);
     }
 
     @Override
     public long count() {
-        try {
-            return count(null, null, null, null);
-        } catch (UnsupportedNodeType exception) {
-            Logging.get().error(exception);
-            return 0;
-        }
+        return count(null, null, null, null);
     }
 
     @Override
-    public long count(GraphNode graph) throws UnsupportedNodeType {
+    public long count(GraphNode graph) {
         return count(graph, null, null, null);
     }
 
     @Override
-    public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public long count(SubjectNode subject, Property property, Node object) {
         return count(null, subject, property, object);
     }
 
     @Override
-    public void insert(Changeset changeset) throws UnsupportedNodeType {
+    public void insert(Changeset changeset) {
         Collection<Quad> incremented = new ArrayList<>();
         Collection<Quad> decremented = new ArrayList<>();
         Collection<Quad> added = new ArrayList<>();
         Collection<Quad> removed = new ArrayList<>();
-        try {
-            for (Quad quad : changeset.getAdded()) {
-                int result = doAddQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-                if (result == ADD_RESULT_NEW) {
-                    added.add(quad);
-                    if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
-                        registerFunctionDefinition((IRINode) quad.getSubject(), (DynamicNode) quad.getObject());
-                } else if (result == ADD_RESULT_INCREMENT) {
-                    incremented.add(quad);
-                }
+        for (Quad quad : changeset.getAdded()) {
+            int result = doAddQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            if (result == ADD_RESULT_NEW) {
+                added.add(quad);
+                if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
+                    registerFunctionDefinition((IRINode) quad.getSubject(), (DynamicNode) quad.getObject());
+            } else if (result == ADD_RESULT_INCREMENT) {
+                incremented.add(quad);
             }
-            for (Quad quad : changeset.getRemoved()) {
-                int result = doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-                if (result >= REMOVE_RESULT_REMOVED) {
-                    if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
-                        unregisterFunctionDefinition((IRINode) quad.getSubject());
-                    removed.add(quad);
-                } else if (result == REMOVE_RESULT_DECREMENT) {
-                    decremented.add(quad);
-                }
+        }
+        for (Quad quad : changeset.getRemoved()) {
+            int result = doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            if (result >= REMOVE_RESULT_REMOVED) {
+                if (isFunctionDefinition(quad.getSubject(), quad.getProperty(), quad.getObject()))
+                    unregisterFunctionDefinition((IRINode) quad.getSubject());
+                removed.add(quad);
+            } else if (result == REMOVE_RESULT_DECREMENT) {
+                decremented.add(quad);
             }
-        } catch (UnsupportedNodeType exception) {
-            // rollback the previously inserted quads
-            for (Quad quad : incremented)
-                doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            for (Quad quad : added)
-                doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            for (Quad quad : decremented)
-                doAddQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            for (Quad quad : removed)
-                doAddQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            throw exception;
         }
         if (!incremented.isEmpty() || !decremented.isEmpty() || !added.isEmpty() || !removed.isEmpty()) {
             // transmit the changes only if a there are some!
@@ -205,7 +174,7 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void add(Quad quad) throws UnsupportedNodeType {
+    public void add(Quad quad) {
         int result = doAddQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
         if (result < DatasetImpl.ADD_RESULT_INCREMENT)
             return;
@@ -221,7 +190,7 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public void add(GraphNode graph, SubjectNode subject, Property property, Node value) {
         int result = doAddQuad(graph, subject, property, value);
         Quad quad = new Quad(graph, subject, property, value);
         if (result < DatasetImpl.ADD_RESULT_INCREMENT)
@@ -238,7 +207,7 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void remove(Quad quad) throws UnsupportedNodeType {
+    public void remove(Quad quad) {
         if (quad.getGraph() != null && quad.getSubject() != null && quad.getProperty() != null && quad.getObject() != null) {
             // remove a single quad
             int result = doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
@@ -262,7 +231,7 @@ public abstract class DatasetImpl implements Dataset {
                     if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
                         unregisterFunctionDefinition((IRINode) removed.getSubject());
                 }
-                Changeset changeset = new Changeset(Collections.emptyList(), Collections.emptyList(), (Collection) bufferDecremented, (Collection) bufferRemoved);
+                Changeset changeset = new Changeset(Collections.emptyList(), Collections.emptyList(), bufferDecremented, bufferRemoved);
                 for (ChangeListener listener : listeners) {
                     listener.onChange(changeset);
                 }
@@ -271,7 +240,7 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) {
         if (graph != null && subject != null && property != null && value != null) {
             // remove a single quad
             int result = doRemoveQuad(graph, subject, property, value);
@@ -296,7 +265,7 @@ public abstract class DatasetImpl implements Dataset {
                     if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
                         unregisterFunctionDefinition((IRINode) removed.getSubject());
                 }
-                Changeset changeset = new Changeset(Collections.emptyList(), Collections.emptyList(), (Collection) bufferDecremented, (Collection) bufferRemoved);
+                Changeset changeset = new Changeset(Collections.emptyList(), Collections.emptyList(), bufferDecremented, bufferRemoved);
                 for (ChangeListener listener : listeners) {
                     listener.onChange(changeset);
                 }
@@ -313,7 +282,7 @@ public abstract class DatasetImpl implements Dataset {
                 if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
                     unregisterFunctionDefinition((IRINode) removed.getSubject());
             }
-            Changeset changeset = Changeset.fromRemoved((Collection) buffer);
+            Changeset changeset = Changeset.fromRemoved(buffer);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
@@ -321,7 +290,7 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void clear(GraphNode graph) throws UnsupportedNodeType {
+    public void clear(GraphNode graph) {
         if (graph == null) {
             clear();
             return;
@@ -333,7 +302,7 @@ public abstract class DatasetImpl implements Dataset {
                 if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
                     unregisterFunctionDefinition((IRINode) removed.getSubject());
             }
-            Changeset changeset = Changeset.fromRemoved((Collection) buffer);
+            Changeset changeset = Changeset.fromRemoved(buffer);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
@@ -341,14 +310,14 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
         if (RDFUtils.same(origin, target))
             return;
         List<MQuad> bufferOld = new ArrayList<>();
         List<MQuad> bufferNew = new ArrayList<>();
         doCopy(origin, target, bufferOld, bufferNew, overwrite);
         if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
-            Changeset changeset = Changeset.fromAddedRemoved((Collection) bufferNew, (Collection) bufferOld);
+            Changeset changeset = Changeset.fromAddedRemoved(bufferNew, bufferOld);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
@@ -356,14 +325,14 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
+    public void move(GraphNode origin, GraphNode target) {
         if (RDFUtils.same(origin, target))
             return;
         List<MQuad> bufferOld = new ArrayList<>();
         List<MQuad> bufferNew = new ArrayList<>();
         doMove(origin, target, bufferOld, bufferNew);
         if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
-            Changeset changeset = Changeset.fromAddedRemoved((Collection) bufferNew, (Collection) bufferOld);
+            Changeset changeset = Changeset.fromAddedRemoved(bufferNew, bufferOld);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
@@ -415,9 +384,8 @@ public abstract class DatasetImpl implements Dataset {
      * @param property The quad property
      * @param value    The quad value
      * @return The operation result
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType;
+    public abstract int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value);
 
     /**
      * Executes the removal operation of a single instance of a quad from this store
@@ -427,9 +395,8 @@ public abstract class DatasetImpl implements Dataset {
      * @param property The quad property
      * @param value    The quad value
      * @return The operation result
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract int doRemoveQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType;
+    public abstract int doRemoveQuad(GraphNode graph, SubjectNode subject, Property property, Node value);
 
     /**
      * Executes the removal operation of quads matching the specified elements from this store
@@ -440,9 +407,8 @@ public abstract class DatasetImpl implements Dataset {
      * @param value             The quad value
      * @param bufferDecremented The buffer for the decremented quads
      * @param bufferRemoved     The buffer for the removed quads
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType;
+    public abstract void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved);
 
     /**
      * Executes the clear operation removing all quads from this store
@@ -456,9 +422,8 @@ public abstract class DatasetImpl implements Dataset {
      *
      * @param graph  The graph to clear
      * @param buffer The buffer for the removed quads
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doClear(GraphNode graph, List<MQuad> buffer) throws UnsupportedNodeType;
+    public abstract void doClear(GraphNode graph, List<MQuad> buffer);
 
     /**
      * Copies all the quads with the specified origin graph, to quads with the target graph.
@@ -471,9 +436,8 @@ public abstract class DatasetImpl implements Dataset {
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      * @param overwrite Whether to overwrite quads from the target graph
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) throws UnsupportedNodeType;
+    public abstract void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite);
 
     /**
      * Moves all the quads with the specified origin graph, to quads with the target graph.
@@ -485,7 +449,6 @@ public abstract class DatasetImpl implements Dataset {
      * @param target    The target graph
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) throws UnsupportedNodeType;
+    public abstract void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew);
 }

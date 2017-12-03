@@ -22,8 +22,8 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Property;
-import org.xowl.infra.store.storage.impl.DatasetImpl;
-import org.xowl.infra.store.storage.impl.MQuad;
+import org.xowl.infra.store.storage.DatasetImpl;
+import org.xowl.infra.store.storage.MQuad;
 
 import java.util.Arrays;
 import java.util.Collection;

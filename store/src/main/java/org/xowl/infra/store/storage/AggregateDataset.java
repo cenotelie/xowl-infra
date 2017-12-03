@@ -110,32 +110,32 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public Iterator<Quad> getAll() {
-        Iterator<Quad>[] iterators = new Iterator[content.length];
+    public Iterator<? extends Quad> getAll() {
+        Iterator<? extends Quad>[] iterators = new Iterator[content.length];
         for (int i = 0; i != content.length; i++)
             iterators[i] = content[i].getAll();
         return new ConcatenatedIterator<>(iterators);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
-        Iterator<Quad>[] iterators = new Iterator[content.length];
+    public Iterator<? extends Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
+        Iterator<? extends Quad>[] iterators = new Iterator[content.length];
         for (int i = 0; i != content.length; i++)
             iterators[i] = content[i].getAll(graph);
         return new ConcatenatedIterator<>(iterators);
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        Iterator<Quad>[] iterators = new Iterator[content.length];
+    public Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+        Iterator<? extends Quad>[] iterators = new Iterator[content.length];
         for (int i = 0; i != content.length; i++)
             iterators[i] = content[i].getAll(subject, property, object);
         return new ConcatenatedIterator<>(iterators);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        Iterator<Quad>[] iterators = new Iterator[content.length];
+    public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+        Iterator<? extends Quad>[] iterators = new Iterator[content.length];
         for (int i = 0; i != content.length; i++)
             iterators[i] = content[i].getAll(graph, subject, property, object);
         return new ConcatenatedIterator<>(iterators);

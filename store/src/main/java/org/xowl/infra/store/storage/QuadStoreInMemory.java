@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.storage.ConcurrentWriteException;
-import fr.cenotelie.commons.storage.NoTransactionException;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
@@ -28,16 +26,15 @@ import org.xowl.infra.store.storage.cache.CachedNodes;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.WeakHashMap;
 
 /**
- * Concrete implementation of an in-memory data store
+ * Concrete implementation of a basic in-memory quad store
  * This implementation delegates all its behavior to caching stores
  * This quad storage system is NOT transactional.
  *
  * @author Laurent Wouters
  */
-class QuadStoreInMemory extends QuadStore {
+class QuadStoreInMemory implements QuadStore {
     /**
      * The store for the nodes
      */
@@ -46,10 +43,7 @@ class QuadStoreInMemory extends QuadStore {
      * The store for the dataset
      */
     private final CachedDataset dataset;
-    /**
-     * The currently running transactions by thread
-     */
-    private final WeakHashMap<Thread, QuadTransaction> transactionsByThread;
+
 
     /**
      * Initializes this store
@@ -57,36 +51,12 @@ class QuadStoreInMemory extends QuadStore {
     public QuadStoreInMemory() {
         nodes = new CachedNodes();
         dataset = new CachedDataset();
-        transactionsByThread = new WeakHashMap<>();
     }
 
+    @Override
     public void setExecutionManager(ExecutionManager executionManager) {
         nodes.setExecutionManager(executionManager);
         dataset.setExecutionManager(executionManager);
-    }
-
-    @Override
-    public QuadTransaction newTransaction(boolean writable, boolean autocommit) {
-        QuadTransaction transaction = new QuadTransaction(writable, autocommit) {
-            @Override
-            protected void doCommit() throws ConcurrentWriteException {
-                // do nothing
-            }
-
-            @Override
-            protected void onClose() {
-                transactionsByThread.remove(Thread.currentThread());
-            }
-        };
-        synchronized (transactionsByThread) {
-            transactionsByThread.put(Thread.currentThread(), transaction);
-        }
-        return transaction;
-    }
-
-    @Override
-    public QuadTransaction getTransaction() throws NoTransactionException {
-        return transactionsByThread.get(Thread.currentThread());
     }
 
     @Override
@@ -110,22 +80,22 @@ class QuadStoreInMemory extends QuadStore {
     }
 
     @Override
-    public Iterator<Quad> getAll() {
+    public Iterator<? extends Quad> getAll() {
         return dataset.getAll();
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
         return dataset.getAll(graph);
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return dataset.getAll(subject, property, object);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
         return dataset.getAll(graph, subject, property, object);
     }
 
@@ -233,5 +203,10 @@ class QuadStoreInMemory extends QuadStore {
     @Override
     public DynamicNode getDynamicNode(EvaluableExpression evaluable) {
         return nodes.getDynamicNode(evaluable);
+    }
+
+    @Override
+    public void close() throws Exception {
+        // do nothing
     }
 }

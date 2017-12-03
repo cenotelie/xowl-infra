@@ -47,9 +47,8 @@ public interface Dataset {
      *
      * @param quad The quad
      * @return The multiplicity in this store
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    long getMultiplicity(Quad quad) throws UnsupportedNodeType;
+    long getMultiplicity(Quad quad);
 
     /**
      * Gets the multiplicity of a quad
@@ -59,25 +58,23 @@ public interface Dataset {
      * @param property The property
      * @param object   The object
      * @return The multiplicity in this store
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType;
+    long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object);
 
     /**
      * Gets an iterator over all the quads in this dataset
      *
      * @return An iterator over the results
      */
-    Iterator<Quad> getAll();
+    Iterator<? extends Quad> getAll();
 
     /**
      * Gets an iterator over all the quads in this dataset that are in the specified graph
      *
      * @param graph A containing graph to match, or null
      * @return An iterator over the results
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType;
+    Iterator<? extends Quad> getAll(GraphNode graph);
 
     /**
      * Gets an iterator over all the quads in this dataset that matches the given values
@@ -86,9 +83,8 @@ public interface Dataset {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return An iterator over the results
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType;
+    Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object);
 
     /**
      * Gets an iterator over all the quads in this dataset that matches the given values
@@ -98,9 +94,8 @@ public interface Dataset {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return An iterator over the results
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType;
+    Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object);
 
     /**
      * Gets the graphs in this dataset
@@ -121,9 +116,8 @@ public interface Dataset {
      *
      * @param graph A containing graph to match, or null
      * @return The number of different quads
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    long count(GraphNode graph) throws UnsupportedNodeType;
+    long count(GraphNode graph);
 
     /**
      * Gets the number of different quads in this dataset that matches the given values
@@ -132,9 +126,8 @@ public interface Dataset {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return The number of different quads
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType;
+    long count(SubjectNode subject, Property property, Node object);
 
     /**
      * Gets the number of different quads in this dataset that matches the given values
@@ -144,27 +137,24 @@ public interface Dataset {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return The number of different quads
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType;
+    long count(GraphNode graph, SubjectNode subject, Property property, Node object);
 
 
     /**
      * Applies the specified changeset to this dataset
      *
      * @param changeset A changeset
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    void insert(Changeset changeset) throws UnsupportedNodeType;
+    void insert(Changeset changeset);
 
     /**
      * Adds a single instance of the specified quad to this dataset.
      * If the quad is already in the dataset, its multiplicity is increased; listeners will not be notified.
      *
      * @param quad A quad
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    void add(Quad quad) throws UnsupportedNodeType;
+    void add(Quad quad);
 
     /**
      * Adds a single instance of the specified quad to this dataset.
@@ -174,9 +164,8 @@ public interface Dataset {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType;
+    void add(GraphNode graph, SubjectNode subject, Property property, Node value);
 
     /**
      * Removes a single instance of the matching quads from this dataset
@@ -185,9 +174,8 @@ public interface Dataset {
      * Listeners are notified of the completely removed quads only.
      *
      * @param quad A quad
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    void remove(Quad quad) throws UnsupportedNodeType;
+    void remove(Quad quad);
 
     /**
      * Removes a single instance of the matching quads from this dataset
@@ -199,9 +187,8 @@ public interface Dataset {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType;
+    void remove(GraphNode graph, SubjectNode subject, Property property, Node value);
 
     /**
      * Removes all the quads from this dataset
@@ -212,9 +199,8 @@ public interface Dataset {
      * Removes all the quads from this dataset for the specified graph
      *
      * @param graph A graph
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    void clear(GraphNode graph) throws UnsupportedNodeType;
+    void clear(GraphNode graph);
 
     /**
      * Copies all the quads with the specified origin graph, to quads with the target graph.
@@ -225,9 +211,8 @@ public interface Dataset {
      * @param origin    The origin graph
      * @param target    The target graph
      * @param overwrite Whether to overwrite quads from the target graph
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType;
+    void copy(GraphNode origin, GraphNode target, boolean overwrite);
 
     /**
      * Moves all the quads with the specified origin graph, to quads with the target graph.
@@ -237,7 +222,6 @@ public interface Dataset {
      *
      * @param origin The origin graph
      * @param target The target graph
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType;
+    void move(GraphNode origin, GraphNode target);
 }

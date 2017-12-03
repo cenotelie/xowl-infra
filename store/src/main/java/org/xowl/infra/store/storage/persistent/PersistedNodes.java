@@ -27,14 +27,15 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.store.storage.NodeManagerImpl;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.store.storage.impl.NodeManagerImpl;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
 /**
  * Represents a persistent store of nodes
+ * This structure is thread-safe provided that the backing object store is thread-safe.
  *
  * @author Laurent Wouters
  */
@@ -498,7 +499,7 @@ public class PersistedNodes extends NodeManagerImpl {
                     return (PersistedDynamicNode) getDynamicNode(((DynamicNode) node).getEvaluable());
                 return (PersistedDynamicNode) getExistingDynamicNode(((DynamicNode) node).getEvaluable());
         }
-        throw new UnsupportedNodeType(node, "Persistable nodes are IRI, Blank, Anonymous, Literal and Dynamic");
+        throw new UnsupportedNodeType(node, QuadField.ANY);
     }
 
     /**

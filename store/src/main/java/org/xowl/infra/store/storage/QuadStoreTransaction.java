@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage;
 
 import fr.cenotelie.commons.storage.Access;
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.storage.Transaction;
 
 /**
@@ -25,15 +26,34 @@ import fr.cenotelie.commons.storage.Transaction;
  *
  * @author Laurent Wouters
  */
-public abstract class QuadTransaction extends Transaction {
+public class QuadStoreTransaction extends Transaction {
+    /**
+     * The interface to use for the store
+     */
+    private final QuadStore store;
+
+    /**
+     * Gets the interface to use for the store
+     *
+     * @return The interface to use for the store
+     */
+    public QuadStore getStore() {
+        return store;
+    }
+
     /**
      * Initializes this transaction
      *
      * @param writable   Whether this transaction allows writing
      * @param autocommit Whether this transaction should commit when being closed
      */
-    public QuadTransaction(boolean writable, boolean autocommit) {
+    public QuadStoreTransaction(QuadStore store, boolean writable, boolean autocommit) {
         super(writable, autocommit);
+    }
+
+    @Override
+    protected void doCommit() throws ConcurrentWriteException {
+
     }
 
     @Override

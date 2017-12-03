@@ -18,28 +18,32 @@
 package org.xowl.infra.store.storage;
 
 import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.rdf.QuadField;
 
 /**
  * Exception thrown when the given RDF node is of an unsupported type
  *
  * @author Laurent Wouters
  */
-public class UnsupportedNodeType extends Exception {
-
+public class UnsupportedNodeType extends RuntimeException {
     /**
      * The node that was unexpected
      */
     private final Node node;
+    /**
+     * The field of the unexpected node
+     */
+    private final QuadField field;
 
     /**
      * Initializes this exception
      *
-     * @param node    The unexpected node
-     * @param message The exception's message
+     * @param node  The unexpected node
+     * @param field The field of the unexpected node
      */
-    public UnsupportedNodeType(Node node, String message) {
-        super(message);
+    public UnsupportedNodeType(Node node, QuadField field) {
         this.node = node;
+        this.field = field;
     }
 
     /**
@@ -49,5 +53,14 @@ public class UnsupportedNodeType extends Exception {
      */
     public Node getNode() {
         return node;
+    }
+
+    /**
+     * Gets the field of the unexpected node
+     *
+     * @return The field of the unexpected node
+     */
+    public QuadField getField() {
+        return field;
     }
 }

@@ -23,8 +23,6 @@ import fr.cenotelie.commons.utils.collections.SkippableIterator;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedDataset;
-import org.xowl.infra.store.storage.impl.DatasetImpl;
-import org.xowl.infra.store.storage.impl.MQuad;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +34,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class DiffDataset extends DatasetImpl {
+class DatasetDiff extends DatasetImpl {
     /**
      * The original dataset
      */
@@ -59,7 +57,7 @@ class DiffDataset extends DatasetImpl {
      *
      * @param original The original dataset
      */
-    public DiffDataset(DatasetImpl original) {
+    public DatasetDiff(DatasetImpl original) {
         this.original = original;
         this.size = 0;
     }
@@ -80,8 +78,8 @@ class DiffDataset extends DatasetImpl {
      * @param positive The iterator coming from the positive dataset
      * @return The combined iterator
      */
-    private Iterator<Quad> combine(Iterator<Quad> base, Iterator<Quad> positive) {
-        Iterator<Quad> result = base;
+    private Iterator<? extends Quad> combine(Iterator<? extends Quad> base, Iterator<? extends Quad> positive) {
+        Iterator<? extends Quad> result = base;
         if (diffNegatives != null) {
             result = new SkippableIterator<>(new AdaptingIterator<>(base, quad -> {
                 try {
@@ -116,7 +114,7 @@ class DiffDataset extends DatasetImpl {
      * Commits all outstanding changes to the origin dataset
      */
     public void commit() {
-        Iterator<Quad> iterator;
+        Iterator<? extends Quad> iterator;
         if (diffPositives != null) {
             iterator = diffPositives.getAll();
             while (iterator.hasNext()) {
@@ -165,7 +163,7 @@ class DiffDataset extends DatasetImpl {
     public Changeset getChangeset() {
         List<Quad> added = new ArrayList<>();
         List<Quad> removed = new ArrayList<>();
-        Iterator<Quad> iterator;
+        Iterator<? extends Quad> iterator;
         if (diffPositives != null) {
             iterator = diffPositives.getAll();
             while (iterator.hasNext()) {
@@ -196,7 +194,7 @@ class DiffDataset extends DatasetImpl {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return combine(
                 original.getAll(graph, subject, property, object),
                 diffPositives == null ? null : diffPositives.getAll(graph, subject, property, object)
@@ -215,7 +213,7 @@ class DiffDataset extends DatasetImpl {
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        Iterator<Quad> iterator = getAll(graph, subject, property, object);
+        Iterator<? extends Quad> iterator = getAll(graph, subject, property, object);
         long result = 0;
         while (iterator.hasNext()) {
             result++;
@@ -274,7 +272,7 @@ class DiffDataset extends DatasetImpl {
     @Override
     public void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
         List<MQuad> toRemove = new ArrayList<>();
-        Iterator<Quad> iterator = getAll(graph, subject, property, value);
+        Iterator<? extends Quad> iterator = getAll(graph, subject, property, value);
         while (iterator.hasNext()) {
             toRemove.add((MQuad) iterator.next());
         }
@@ -291,7 +289,7 @@ class DiffDataset extends DatasetImpl {
     public void doClear(List<MQuad> buffer) {
         try {
             int originalSize = buffer.size();
-            Iterator<Quad> iterator = getAll(null, null, null, null);
+            Iterator<? extends Quad> iterator = getAll(null, null, null, null);
             while (iterator.hasNext()) {
                 buffer.add((MQuad) iterator.next());
             }
@@ -308,7 +306,7 @@ class DiffDataset extends DatasetImpl {
     @Override
     public void doClear(GraphNode graph, List<MQuad> buffer) throws UnsupportedNodeType {
         int originalSize = buffer.size();
-        Iterator<Quad> iterator = getAll(graph, null, null, null);
+        Iterator<? extends Quad> iterator = getAll(graph, null, null, null);
         while (iterator.hasNext()) {
             buffer.add((MQuad) iterator.next());
         }
