@@ -291,9 +291,11 @@ public class IRIMapper {
      *
      * @param iri      The iri prefix to match
      * @param location The physical pattern's root
+     * @return This mapper
      */
-    public void addSimpleMap(String iri, String location) {
+    public IRIMapper addSimpleMap(String iri, String location) {
         entries.add(new SimpleEntry(iri, location));
+        return this;
     }
 
     /**
@@ -302,9 +304,11 @@ public class IRIMapper {
      * @param priority The priority of this mapping
      * @param iri      The iri prefix to match
      * @param location The physical pattern's root
+     * @return This mapper
      */
-    public void addSimpleMap(int priority, String iri, String location) {
+    public IRIMapper addSimpleMap(int priority, String iri, String location) {
         entries.add(new SimpleEntry(priority, iri, location));
+        return this;
     }
 
     /**
@@ -312,9 +316,11 @@ public class IRIMapper {
      *
      * @param prefix   The iri prefix to match
      * @param location The physical pattern's root
+     * @return This mapper
      */
-    public void addPrefixMap(String prefix, String location) {
+    public IRIMapper addPrefixMap(String prefix, String location) {
         entries.add(new PrefixEntry(prefix, location));
+        return this;
     }
 
     /**
@@ -323,9 +329,11 @@ public class IRIMapper {
      * @param priority The priority of this mapping
      * @param prefix   The iri prefix to match
      * @param location The physical pattern's root
+     * @return This mapper
      */
-    public void addPrefixMap(int priority, String prefix, String location) {
+    public IRIMapper addPrefixMap(int priority, String prefix, String location) {
         entries.add(new PrefixEntry(priority, prefix, location));
+        return this;
     }
 
     /**
@@ -333,9 +341,11 @@ public class IRIMapper {
      *
      * @param pattern  The regular expression to be matched by an iri
      * @param location The template for the physical location
+     * @return This mapper
      */
-    public void addRegexpMap(String pattern, String location) {
+    public IRIMapper addRegexpMap(String pattern, String location) {
         entries.add(new RegExpEntry(pattern, location));
+        return this;
     }
 
     /**
@@ -344,25 +354,32 @@ public class IRIMapper {
      * @param priority The priority of this mapping
      * @param pattern  The regular expression to be matched by an iri
      * @param location The template for the physical location
+     * @return This mapper
      */
-    public void addRegexpMap(int priority, String pattern, String location) {
+    public IRIMapper addRegexpMap(int priority, String pattern, String location) {
         entries.add(new RegExpEntry(priority, pattern, location));
+        return this;
     }
 
     /**
      * Adds a mapping of HTTP URIs to themselves
+     *
+     * @return This mapper
      */
-    public void addHTTPMap() {
+    public IRIMapper addHTTPMap() {
         entries.add(new HTTPEntry());
+        return this;
     }
 
     /**
      * Adds a mapping of HTTP URIs to themselves
      *
      * @param priority The priority of this mapping
+     * @return This mapper
      */
-    public void addHTTPMap(int priority) {
+    public IRIMapper addHTTPMap(int priority) {
         entries.add(new HTTPEntry(priority));
+        return this;
     }
 
     /**
@@ -392,13 +409,13 @@ public class IRIMapper {
     public static IRIMapper getDefault() {
         IRIMapper mapper = new IRIMapper();
         // map the owl2, rdf and rdfs ontologies to the embarked one
-        mapper.addSimpleMap(IRIs.RDF, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/1999/02/22-rdf-syntax-ns.ttl");
-        mapper.addSimpleMap(IRIs.RDFS, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2000/01/rdf-schema.ttl");
-        mapper.addSimpleMap(IRIs.OWL2, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2002/07/owl.ttl");
-        // map the xOWL abstract syntax
-        mapper.addRegexpMap(IRIs.XOWL_LANG + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/lang/defs/\\1.fs");
-        // map the OWL2 RL reasoning rules
-        mapper.addRegexpMap(IRIs.XOWL_RULES + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/store/rules/\\1.xrdf");
-        return mapper;
+        return mapper
+                .addSimpleMap(IRIs.RDF, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/1999/02/22-rdf-syntax-ns.ttl")
+                .addSimpleMap(IRIs.RDFS, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2000/01/rdf-schema.ttl")
+                .addSimpleMap(IRIs.OWL2, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2002/07/owl.ttl")
+                // map the xOWL abstract syntax
+                .addRegexpMap(IRIs.XOWL_LANG + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/lang/defs/\\1.fs")
+                // map the OWL2 RL reasoning rules
+                .addRegexpMap(IRIs.XOWL_RULES + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/store/rules/\\1.xrdf");
     }
 }
