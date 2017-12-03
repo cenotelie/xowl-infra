@@ -17,7 +17,10 @@
 
 package org.xowl.infra.store.storage.cache;
 
-import fr.cenotelie.commons.utils.collections.*;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.IndexIterator;
+import fr.cenotelie.commons.utils.collections.SingleIterator;
+import fr.cenotelie.commons.utils.collections.SparseIterator;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
@@ -334,20 +337,16 @@ class EdgeTarget implements Iterable<GraphNode> {
      */
     public Iterator<MQuad> getAll(GraphNode graph) {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new IndexIterator<GraphNode>(graphs) {
-                @Override
-                public void remove() {
-                    graphs[lastResult] = null;
-                    multiplicities[lastResult] = 0;
-                    size--;
-                }
-            }, new Adapter<MQuad>() {
-                @Override
-                public <X> MQuad adapt(X element) {
-                    int index = (Integer) element;
-                    return new MQuad(graphs[index], multiplicities[index]);
-                }
-            });
+            return new AdaptingIterator<>(
+                    new IndexIterator<GraphNode>(graphs) {
+                        @Override
+                        public void remove() {
+                            graphs[lastResult] = null;
+                            multiplicities[lastResult] = 0;
+                            size--;
+                        }
+                    },
+                    element -> new MQuad(graphs[element], multiplicities[element]));
         }
 
         for (int i = 0; i != graphs.length; i++) {

@@ -100,8 +100,8 @@ public class SPARQLLoader {
      */
     public SPARQLLoader(NodeManager store, Collection<String> defaultIRIs, Collection<String> namedIRIs) {
         this.store = store;
-        this.defaultIRIs = new ArrayList<>(defaultIRIs);
-        this.namedIRIs = new ArrayList<>(namedIRIs);
+        this.defaultIRIs = new ArrayList<>(defaultIRIs == null ? Collections.emptyList() : defaultIRIs);
+        this.namedIRIs = new ArrayList<>(namedIRIs == null ? Collections.emptyList() : namedIRIs);
     }
 
     /**

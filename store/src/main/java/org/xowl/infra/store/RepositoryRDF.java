@@ -18,7 +18,6 @@
 package org.xowl.infra.store;
 
 import fr.cenotelie.commons.storage.ConcurrentWriteException;
-import fr.cenotelie.commons.utils.collections.Adapter;
 import fr.cenotelie.commons.utils.collections.AdaptingIterator;
 import fr.cenotelie.commons.utils.collections.SingleIterator;
 import fr.cenotelie.commons.utils.collections.SkippableIterator;
@@ -42,6 +41,7 @@ import org.xowl.infra.store.writers.RDFSerializer;
 
 import java.io.StringReader;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * Represents a repository of xOWL ontologies base on RDF
@@ -135,13 +135,62 @@ public class RepositoryRDF extends Repository {
     public RepositoryRDF(QuadStore store, IRIMapper mapper, boolean resolveDependencies) {
         super(mapper, resolveDependencies);
         this.backend = store;
-        try (QuadTransaction transaction = store.newTransaction(false)) {
+        try (QuadTransaction transaction = backend.newTransaction(false)) {
             this.backend.setExecutionManager(executionManager);
         } catch (ConcurrentWriteException exception) {
             // cannot happen
         }
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
+    }
+
+    /**
+     * Runs a task as a transaction on this repository
+     *
+     * @param task The task to run
+     */
+    public void runAsTransaction(Runnable task) {
+        while (true) {
+            try (QuadTransaction transaction = backend.newTransaction(true, false)) {
+                task.run();
+                transaction.commit();
+                return;
+            } catch (ConcurrentWriteException exception) {
+                // failed to commit
+            }
+            // retry in a bit
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException exception) {
+                // do nothing
+            }
+        }
+    }
+
+    /**
+     * Runs a task as a transaction on this repository
+     *
+     * @param task The task to run
+     * @param <T>  The type of the return value
+     * @return The result of the callable
+     * @throws Exception when the callable failed
+     */
+    public <T> T runAsTransaction(Callable<T> task) throws Exception {
+        while (true) {
+            try (QuadTransaction transaction = backend.newTransaction(true, false)) {
+                T result = task.call();
+                transaction.commit();
+                return result;
+            } catch (ConcurrentWriteException exception) {
+                // failed to commit
+            }
+            // retry in a bit
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException exception) {
+                // do nothing
+            }
+        }
     }
 
     /**
@@ -205,17 +254,14 @@ public class RepositoryRDF extends Repository {
         try {
             Iterator<Quad> quads = backend.getAll(getGraph(ontology));
             final HashSet<SubjectNode> known = new HashSet<>();
-            return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<ProxyObject>() {
-                @Override
-                public <X> ProxyObject adapt(X element) {
-                    SubjectNode subject = ((Quad) element).getSubject();
-                    if (subject.getNodeType() != Node.TYPE_IRI && subject.getNodeType() != Node.TYPE_BLANK)
-                        return null;
-                    if (known.contains(subject))
-                        return null;
-                    known.add(subject);
-                    return resolveProxy(ontology, subject);
-                }
+            return new SkippableIterator<>(new AdaptingIterator<>(quads, element -> {
+                SubjectNode subject = element.getSubject();
+                if (subject.getNodeType() != Node.TYPE_IRI && subject.getNodeType() != Node.TYPE_BLANK)
+                    return null;
+                if (known.contains(subject))
+                    return null;
+                known.add(subject);
+                return resolveProxy(ontology, subject);
             }));
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);

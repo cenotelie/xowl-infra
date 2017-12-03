@@ -34,20 +34,6 @@ import java.util.List;
  */
 public interface XOWLDatabase extends Identifiable, Serializable {
     /**
-     * Gets the definition of the metrics for this database
-     *
-     * @return The definition of the metrics for this database
-     */
-    Reply getMetric();
-
-    /**
-     * Gets a snapshot of the metrics for this database
-     *
-     * @return A snapshot of the metrics for this database
-     */
-    Reply getMetricSnapshot();
-
-    /**
      * Executes a SPARQL command
      *
      * @param sparql      The SPARQL command(s)

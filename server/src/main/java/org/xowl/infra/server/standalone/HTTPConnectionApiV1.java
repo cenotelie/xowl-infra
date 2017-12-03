@@ -20,7 +20,10 @@ package org.xowl.infra.server.standalone;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import fr.cenotelie.commons.utils.IOUtils;
-import fr.cenotelie.commons.utils.api.*;
+import fr.cenotelie.commons.utils.api.Reply;
+import fr.cenotelie.commons.utils.api.ReplyApiError;
+import fr.cenotelie.commons.utils.api.ReplyResult;
+import fr.cenotelie.commons.utils.api.ReplyUnauthenticated;
 import fr.cenotelie.commons.utils.concurrent.SafeRunnable;
 import fr.cenotelie.commons.utils.http.HttpConstants;
 import fr.cenotelie.commons.utils.http.HttpResponse;
@@ -240,10 +243,6 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 if (!method.equals(HttpConstants.METHOD_GET))
                     return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
                 return response(new ReplyResult<>(Utils.getProduct()));
-            case "/server/product/dependencies":
-                if (!method.equals(HttpConstants.METHOD_GET))
-                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-                return response(new ReplyResultCollection<>(Utils.getDependencies()));
             case "/server/shutdown":
                 if (!method.equals(HttpConstants.METHOD_POST))
                     return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
@@ -302,10 +301,6 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             if (rest.startsWith("/procedures"))
                 return handleResourceDatabaseProcedures(name, method, rest);
             switch (rest) {
-                case "/metric":
-                    return handleResourceDatabaseMetric(name, method);
-                case "/statistics":
-                    return handleResourceDatabaseMetricSnapshot(name, method);
                 case "/sparql":
                     return handleResourceDatabaseSPARQL(name, method);
                 case "/entailment":
@@ -355,32 +350,6 @@ class HTTPConnectionApiV1 extends SafeRunnable {
             return response(new ReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         return response(controller.upload(client, name, contentType, body));
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param name   The database's name
-     * @param method The HTTP method
-     * @return The response code
-     */
-    private int handleResourceDatabaseMetric(String name, String method) {
-        if (!method.equals(HttpConstants.METHOD_GET))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-        return response(controller.getDatabaseMetric(client, name));
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param name   The database's name
-     * @param method The HTTP method
-     * @return The response code
-     */
-    private int handleResourceDatabaseMetricSnapshot(String name, String method) {
-        if (!method.equals(HttpConstants.METHOD_GET))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-        return response(controller.getDatabaseMetricSnapshot(client, name));
     }
 
     /**

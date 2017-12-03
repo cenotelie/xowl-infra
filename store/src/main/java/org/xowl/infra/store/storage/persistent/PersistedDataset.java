@@ -21,7 +21,10 @@ import fr.cenotelie.commons.storage.Access;
 import fr.cenotelie.commons.storage.Constants;
 import fr.cenotelie.commons.storage.stores.ObjectStore;
 import fr.cenotelie.commons.storage.stores.StoredMap;
-import fr.cenotelie.commons.utils.collections.*;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.CombiningIterator;
+import fr.cenotelie.commons.utils.collections.ConcatenatedIterator;
+import fr.cenotelie.commons.utils.collections.SingleIterator;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -380,13 +383,9 @@ public class PersistedDataset extends DatasetImpl {
             return new SingleIterator<>(null);
         try (Access entry = store.access(current, false)) {
             long bucket = entry.seek(8 + 4 + 8).readLong();
-            return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), new Adapter<Quad>() {
-                @Override
-                public <X> Quad adapt(X element) {
-                    MQuad quad = (MQuad) element;
-                    quad.setSubject(subject);
-                    return quad;
-                }
+            return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), quad -> {
+                quad.setSubject(subject);
+                return quad;
             });
         }
     }
@@ -409,28 +408,20 @@ public class PersistedDataset extends DatasetImpl {
         if (bucket == Constants.KEY_NULL)
             return new SingleIterator<>(null);
         Iterator<Long> iteratorSubjects = new GraphQNodeIterator(store, bucket);
-        return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Iterator<MQuad>>() {
-            @Override
-            public <X> Iterator<MQuad> adapt(X element) {
-                long subjectKey = ((Long) element);
-                try (Access entry = store.access(subjectKey, false)) {
-                    long propertyBucket = entry.seek(8 + 4 + 8).readLong();
-                    return getAllOnProperty(propertyBucket, property, object, (GraphNode) pGraph);
-                } catch (UnsupportedNodeType exception) {
-                    Logging.get().error(exception);
-                    return null;
-                }
+        return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, subjectKey -> {
+            try (Access entry = store.access(subjectKey, false)) {
+                long propertyBucket = entry.seek(8 + 4 + 8).readLong();
+                return getAllOnProperty(propertyBucket, property, object, (GraphNode) pGraph);
+            } catch (UnsupportedNodeType exception) {
+                Logging.get().error(exception);
+                return null;
             }
-        }), new Adapter<Quad>() {
-            @Override
-            public <X> Quad adapt(X element) {
-                Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
-                long subjectKey = couple.x;
-                try (Access entry = store.access(subjectKey, false)) {
-                    couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
-                }
-                return couple.y;
+        }), couple -> {
+            long subjectKey = couple.x;
+            try (Access entry = store.access(subjectKey, false)) {
+                couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
             }
+            return couple.y;
         });
     }
 
@@ -442,27 +433,19 @@ public class PersistedDataset extends DatasetImpl {
      * @return An iterator over the results
      */
     private Iterator<Quad> getAllDefault(final Property property, final Node object) {
-        return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
-            @Override
-            public <X> Iterator<MQuad> adapt(X element) {
-                long subjectKey = (Long) element;
-                try (Access entry = store.access(subjectKey, false)) {
-                    long propertyBucket = entry.seek(8 + 4 + 8).readLong();
-                    return getAllOnProperty(propertyBucket, property, object, null);
-                } catch (UnsupportedNodeType exception) {
-                    Logging.get().error(exception);
-                    return null;
-                }
+        return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), subjectKey -> {
+            try (Access entry = store.access(subjectKey, false)) {
+                long propertyBucket = entry.seek(8 + 4 + 8).readLong();
+                return getAllOnProperty(propertyBucket, property, object, null);
+            } catch (UnsupportedNodeType exception) {
+                Logging.get().error(exception);
+                return null;
             }
-        }), new Adapter<Quad>() {
-            @Override
-            public <X> Quad adapt(X element) {
-                Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
-                long subjectKey = couple.x;
-                try (Access entry = store.access(subjectKey, false)) {
-                    couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
-                    return couple.y;
-                }
+        }), couple -> {
+            long subjectKey = couple.x;
+            try (Access entry = store.access(subjectKey, false)) {
+                couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
+                return couple.y;
             }
         });
     }
@@ -479,31 +462,23 @@ public class PersistedDataset extends DatasetImpl {
      */
     private Iterator<MQuad> getAllOnProperty(long bucket, final Property property, final Node object, final GraphNode graph) throws UnsupportedNodeType {
         if (property == null || property.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), new Adapter<Iterator<MQuad>>() {
-                @Override
-                public <X> Iterator<MQuad> adapt(X element) {
-                    long key = ((Long) element);
-                    try (Access entry = store.access(key, false)) {
-                        entry.seek(8 + 4 + 8);
-                        long objectKey = entry.readLong();
-                        return getAllOnObject(objectKey, object, graph);
-                    } catch (UnsupportedNodeType exception) {
-                        Logging.get().error(exception);
-                        return null;
-                    }
+            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), key -> {
+                try (Access entry = store.access(key, false)) {
+                    entry.seek(8 + 4 + 8);
+                    long objectKey = entry.readLong();
+                    return getAllOnObject(objectKey, object, graph);
+                } catch (UnsupportedNodeType exception) {
+                    Logging.get().error(exception);
+                    return null;
                 }
-            }), new Adapter<MQuad>() {
-                @Override
-                public <X> MQuad adapt(X element) {
-                    Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
-                    long key = couple.x;
-                    try (Access entry = store.access(key, false)) {
-                        entry.seek(8);
-                        PersistedNode node = getNode(entry.readInt(), entry.readLong());
-                        couple.y.setProperty((Property) node);
-                    }
-                    return couple.y;
+            }), couple -> {
+                long key = couple.x;
+                try (Access entry = store.access(key, false)) {
+                    entry.seek(8);
+                    PersistedNode node = getNode(entry.readInt(), entry.readLong());
+                    couple.y.setProperty((Property) node);
                 }
+                return couple.y;
             });
         }
         PersistedNode pProperty = nodes.getPersistent(property, false);
@@ -517,13 +492,9 @@ public class PersistedDataset extends DatasetImpl {
                 long key = entry.readLong();
                 long child = entry.readLong();
                 if (type == pProperty.getNodeType() && key == pProperty.getKey()) {
-                    return new AdaptingIterator<>(getAllOnObject(child, object, graph), new Adapter<MQuad>() {
-                        @Override
-                        public <X> MQuad adapt(X element) {
-                            MQuad quad = (MQuad) element;
-                            quad.setProperty(property);
-                            return quad;
-                        }
+                    return new AdaptingIterator<>(getAllOnObject(child, object, graph), quad -> {
+                        quad.setProperty(property);
+                        return quad;
                     });
                 }
             }
@@ -542,31 +513,23 @@ public class PersistedDataset extends DatasetImpl {
      */
     private Iterator<MQuad> getAllOnObject(long bucket, final Node object, final GraphNode graph) throws UnsupportedNodeType {
         if (object == null || object.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), new Adapter<Iterator<MQuad>>() {
-                @Override
-                public <X> Iterator<MQuad> adapt(X element) {
-                    long key = ((Long) element);
-                    try (Access entry = store.access(key, false)) {
-                        entry.seek(8 + 4 + 8);
-                        long graphKey = entry.readLong();
-                        return getAllOnGraph(graphKey, graph);
-                    } catch (UnsupportedNodeType exception) {
-                        Logging.get().error(exception);
-                        return null;
-                    }
+            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), key -> {
+                try (Access entry = store.access(key, false)) {
+                    entry.seek(8 + 4 + 8);
+                    long graphKey = entry.readLong();
+                    return getAllOnGraph(graphKey, graph);
+                } catch (UnsupportedNodeType exception) {
+                    Logging.get().error(exception);
+                    return null;
                 }
-            }), new Adapter<MQuad>() {
-                @Override
-                public <X> MQuad adapt(X element) {
-                    Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
-                    long key = couple.x;
-                    try (Access entry = store.access(key, false)) {
-                        entry.seek(8);
-                        PersistedNode node = getNode(entry.readInt(), entry.readLong());
-                        couple.y.setObject(node);
-                    }
-                    return couple.y;
+            }), couple -> {
+                long key = couple.x;
+                try (Access entry = store.access(key, false)) {
+                    entry.seek(8);
+                    PersistedNode node = getNode(entry.readInt(), entry.readLong());
+                    couple.y.setObject(node);
                 }
+                return couple.y;
             });
         }
         PersistedNode pObject = nodes.getPersistent(object, false);
@@ -580,13 +543,9 @@ public class PersistedDataset extends DatasetImpl {
                 long key = entry.readLong();
                 long child = entry.readLong();
                 if (type == pObject.getNodeType() && key == pObject.getKey()) {
-                    return new AdaptingIterator<>(getAllOnGraph(child, graph), new Adapter<MQuad>() {
-                        @Override
-                        public <X> MQuad adapt(X element) {
-                            MQuad quad = (MQuad) element;
-                            quad.setObject(object);
-                            return quad;
-                        }
+                    return new AdaptingIterator<>(getAllOnGraph(child, graph), quad -> {
+                        quad.setObject(object);
+                        return quad;
                     });
                 }
             }
@@ -604,16 +563,12 @@ public class PersistedDataset extends DatasetImpl {
      */
     private Iterator<MQuad> getAllOnGraph(long bucket, GraphNode graph) throws UnsupportedNodeType {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new QNodeIterator(store, bucket), new Adapter<MQuad>() {
-                @Override
-                public <X> MQuad adapt(X element) {
-                    long key = ((Long) element);
-                    try (Access entry = store.access(key, false)) {
-                        entry.seek(8);
-                        PersistedNode node = getNode(entry.readInt(), entry.readLong());
-                        long multiplicity = entry.readLong();
-                        return new MQuad((GraphNode) node, multiplicity);
-                    }
+            return new AdaptingIterator<>(new QNodeIterator(store, bucket), key -> {
+                try (Access entry = store.access(key, false)) {
+                    entry.seek(8);
+                    PersistedNode node = getNode(entry.readInt(), entry.readLong());
+                    long multiplicity = entry.readLong();
+                    return new MQuad((GraphNode) node, multiplicity);
                 }
             });
         }
@@ -2670,7 +2625,7 @@ public class PersistedDataset extends DatasetImpl {
      * @return The iterator
      */
     private Iterator<Long> getAllSubjects() {
-        return new ConcatenatedIterator<>(new Iterator[]{
+        return new ConcatenatedIterator<Long>(new Iterator[]{
                 getSubjectIterator(mapSubjectIRI),
                 getSubjectIterator(mapSubjectBlank),
                 getSubjectIterator(mapSubjectAnon)
@@ -2684,12 +2639,6 @@ public class PersistedDataset extends DatasetImpl {
      * @return The iterator
      */
     private Iterator<Long> getSubjectIterator(StoredMap map) {
-        return new AdaptingIterator<>(map.entries(), new Adapter<Long>() {
-            @Override
-            public <X> Long adapt(X element) {
-                StoredMap.Entry mapEntry = (StoredMap.Entry) element;
-                return mapEntry.value;
-            }
-        });
+        return new AdaptingIterator<>(map.entries(), mapEntry -> mapEntry.value);
     }
 }

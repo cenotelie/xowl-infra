@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.utils.collections.Adapter;
 import fr.cenotelie.commons.utils.collections.AdaptingIterator;
 import fr.cenotelie.commons.utils.collections.ConcatenatedIterator;
 import fr.cenotelie.commons.utils.collections.SkippableIterator;
@@ -84,33 +83,25 @@ class DiffDataset extends DatasetImpl {
     private Iterator<Quad> combine(Iterator<Quad> base, Iterator<Quad> positive) {
         Iterator<Quad> result = base;
         if (diffNegatives != null) {
-            result = new SkippableIterator<>(new AdaptingIterator<>(base, new Adapter<Quad>() {
-                @Override
-                public <X> Quad adapt(X element) {
-                    MQuad quad = (MQuad) element;
-                    try {
-                        long mn = diffNegatives.getMultiplicity(quad);
-                        long mp = diffPositives == null ? 0 : diffPositives.getMultiplicity(quad);
-                        return (quad.modifyMultiplicity(mp - mn) <= 0) ? null : quad;
-                    } catch (UnsupportedNodeType exception) {
-                        Logging.get().error(exception);
-                        return quad;
-                    }
+            result = new SkippableIterator<>(new AdaptingIterator<>(base, quad -> {
+                try {
+                    long mn = diffNegatives.getMultiplicity(quad);
+                    long mp = diffPositives == null ? 0 : diffPositives.getMultiplicity(quad);
+                    return (((MQuad) quad).modifyMultiplicity(mp - mn) <= 0) ? null : quad;
+                } catch (UnsupportedNodeType exception) {
+                    Logging.get().error(exception);
+                    return quad;
                 }
             }));
         }
         if (diffPositives != null) {
-            Iterator<Quad> filteredPositive = new SkippableIterator<>(new AdaptingIterator<>(positive, new Adapter<Quad>() {
-                @Override
-                public <X> Quad adapt(X element) {
-                    MQuad quad = (MQuad) element;
-                    try {
-                        long m = original.getMultiplicity(quad);
-                        return (m > 0) ? null : quad;
-                    } catch (UnsupportedNodeType exception) {
-                        Logging.get().error(exception);
-                        return quad;
-                    }
+            Iterator<Quad> filteredPositive = new SkippableIterator<>(new AdaptingIterator<>(positive, quad -> {
+                try {
+                    long m = original.getMultiplicity(quad);
+                    return (m > 0) ? null : quad;
+                } catch (UnsupportedNodeType exception) {
+                    Logging.get().error(exception);
+                    return quad;
                 }
             }));
             result = new ConcatenatedIterator<>(new Iterator[]{

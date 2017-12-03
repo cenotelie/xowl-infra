@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.rete;
 
-import fr.cenotelie.commons.utils.collections.Adapter;
 import fr.cenotelie.commons.utils.collections.AdaptingIterator;
 import fr.cenotelie.commons.utils.collections.FastBuffer;
 import fr.cenotelie.commons.utils.collections.SkippableIterator;
@@ -93,13 +92,9 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
 
             @Override
             public Iterator<Token> iterator() {
-                return new SkippableIterator<>(new AdaptingIterator<>(matches.entrySet().iterator(), new Adapter<Token>() {
-                    @Override
-                    public <X> Token adapt(X element) {
-                        Map.Entry<Token, Counter> entry = (Map.Entry<Token, Counter>) element;
-                        return (entry.getValue().value == 0 ? entry.getKey() : null);
-                    }
-                }));
+                return new SkippableIterator<>(new AdaptingIterator<>(
+                        matches.entrySet().iterator(),
+                        entry -> (entry.getValue().value == 0 ? entry.getKey() : null)));
             }
         };
     }

@@ -153,22 +153,14 @@ public class HTTPServer implements Closeable {
         }
         if (temp != null && sslContext != null) {
             server = temp;
-            server.createContext(ApiV1.URI_PREFIX, new HttpHandler() {
-                @Override
-                public void handle(HttpExchange httpExchange) throws IOException {
-                    try {
-                        ((new HTTPConnectionApiV1(controller, httpExchange))).run();
-                    } catch (Exception exception) {
-                        Logging.get().error(exception);
-                    }
+            server.createContext(ApiV1.URI_PREFIX, httpExchange -> {
+                try {
+                    ((new HTTPConnectionApiV1(controller, httpExchange))).run();
+                } catch (Exception exception) {
+                    Logging.get().error(exception);
                 }
             });
-            server.createContext(URI_PREFIX_WEB, new HttpHandler() {
-                @Override
-                public void handle(HttpExchange httpExchange) throws IOException {
-                    ((new HTTPConnectionWeb(httpExchange))).run();
-                }
-            });
+            server.createContext(URI_PREFIX_WEB, httpExchange -> ((new HTTPConnectionWeb(httpExchange))).run());
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
                 @Override
                 public void configure(HttpsParameters params) {

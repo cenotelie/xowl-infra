@@ -19,13 +19,11 @@ package org.xowl.infra.server.impl;
 
 import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.commons.utils.SHA1;
-import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.ini.IniDocument;
 import fr.cenotelie.commons.utils.json.Json;
 import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import fr.cenotelie.commons.utils.logging.Logger;
-import fr.cenotelie.commons.utils.metrics.Metric;
-import fr.cenotelie.commons.utils.metrics.MetricComposite;
-import fr.cenotelie.commons.utils.metrics.MetricSnapshot;
+import fr.cenotelie.commons.utils.logging.Logging;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
@@ -50,7 +48,9 @@ import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 /**
  * Implements a controller for a database.
@@ -132,7 +132,7 @@ public class ControllerDatabase implements Closeable {
     /**
      * The current configuration for this database
      */
-    private final Configuration configuration;
+    private final IniDocument configuration;
     /**
      * The cache of procedures for this database
      */
@@ -145,10 +145,6 @@ public class ControllerDatabase implements Closeable {
      * The current number of threads on this database
      */
     private final AtomicInteger currentThreads;
-    /**
-     * The composite metric for this database
-     */
-    protected final MetricComposite metricDB;
 
     /**
      * Gets the repository backing this database
@@ -157,6 +153,15 @@ public class ControllerDatabase implements Closeable {
      */
     protected RepositoryRDF getRepository() {
         return repository;
+    }
+
+    /**
+     * Gets the name of the database
+     *
+     * @return The name of the database
+     */
+    public String getName() {
+        return name;
     }
 
     /**
@@ -177,7 +182,6 @@ public class ControllerDatabase implements Closeable {
         this.procedures = new HashMap<>();
         this.maxThreads = getMaxThreads(defaultMaxThread, configuration);
         this.currentThreads = new AtomicInteger(0);
-        this.metricDB = new MetricComposite((MetricComposite) repository.getStore().getMetric(), "Database " + location.getAbsolutePath());
         initRepository();
     }
 
@@ -197,7 +201,6 @@ public class ControllerDatabase implements Closeable {
         this.procedures = new HashMap<>();
         this.maxThreads = getMaxThreads(defaultMaxThread, configuration);
         this.currentThreads = new AtomicInteger(0);
-        this.metricDB = new MetricComposite((MetricComposite) repository.getStore().getMetric(), "Database " + location.getAbsolutePath());
         initRepository();
         this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + adminDbName);
     }
@@ -209,13 +212,13 @@ public class ControllerDatabase implements Closeable {
      * @return The configuration
      * @throws IOException When the location cannot be accessed
      */
-    private static Configuration loadConfiguration(File location) throws IOException {
+    private static IniDocument loadConfiguration(File location) throws IOException {
         if (!location.exists()) {
             if (!location.mkdirs()) {
                 throw new IOException("Failed to create the directory for repository at " + location.getPath());
             }
         }
-        Configuration configuration = new Configuration();
+        IniDocument configuration = new IniDocument();
         File configFile = new File(location, REPO_CONF_NAME);
         if (configFile.exists()) {
             configuration.load(configFile);
@@ -230,7 +233,7 @@ public class ControllerDatabase implements Closeable {
      * @param location      The database location
      * @return The repository
      */
-    private static RepositoryRDF createRepository(Configuration configuration, File location) {
+    private static RepositoryRDF createRepository(IniDocument configuration, File location) {
         QuadStore store = Objects.equals(configuration.get(CONFIG_STORAGE), CONFIG_STORAGE_MEMORY) ?
                 QuadStoreFactory.create().inMemory().withReasoning().make() :
                 QuadStoreFactory.create().onDisk(location).withReasoning().make();
@@ -243,7 +246,7 @@ public class ControllerDatabase implements Closeable {
      * @param defaultMaxThread The default maximum number of threads
      * @return The maximum number of concurrent threads for this database
      */
-    private static int getMaxThreads(int defaultMaxThread, Configuration configuration) {
+    private static int getMaxThreads(int defaultMaxThread, IniDocument configuration) {
         String property = configuration.get(CONFIG_MAX_THREADS);
         if (property == null)
             return defaultMaxThread;
@@ -298,30 +301,54 @@ public class ControllerDatabase implements Closeable {
     }
 
     /**
-     * Gets the name of the database
+     * Runs a task as a transaction on this database
      *
-     * @return The name of the database
+     * @param task The task to run
      */
-    public String getName() {
-        return name;
+    private void runAsTransaction(Runnable task) {
+        onThreadEnter();
+        try {
+            repository.runAsTransaction(task);
+        } finally {
+            onThreadExit();
+        }
     }
 
     /**
-     * Gets the composite metric for this database
+     * Runs a task as a transaction on this database
      *
-     * @return The metric for this database
+     * @param task The task to run
+     * @param <T>  The type of the return value
+     * @return The result of the callable
+     * @throws Exception when the callable failed
      */
-    public Metric getMetric() {
-        return metricDB;
+    private <T> T runAsTransaction(Callable<T> task) throws Exception {
+        onThreadEnter();
+        try {
+            return repository.runAsTransaction(task);
+        } finally {
+            onThreadExit();
+        }
     }
 
     /**
-     * Gets a snapshot of the metrics for this database
+     * Runs a (safe) task as a transaction on this database
      *
-     * @return The snapshot
+     * @param task    The task to run
+     * @param toError A function to translate any catch exception to an error
+     * @param <T>     The type of the return value
+     * @return The result of the callable
      */
-    public MetricSnapshot getMetricSnapshot() {
-        return repository.getStore().getMetricSnapshot(System.nanoTime());
+    private <T> T runAsTransaction(Callable<T> task, Function<Exception, T> toError) {
+        onThreadEnter();
+        try {
+            return repository.runAsTransaction(task);
+        } catch (Exception exception) {
+            Logging.get().error(exception);
+            return toError.apply(exception);
+        } finally {
+            onThreadExit();
+        }
     }
 
     /**
@@ -334,15 +361,12 @@ public class ControllerDatabase implements Closeable {
      * @return The SPARQL result
      */
     public Result sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs, boolean isReadonly) {
-        onThreadEnter();
-        try {
+        return runAsTransaction(() -> {
+            // load the command
             BufferedLogger bufferedLogger = new BufferedLogger();
-            if (defaultIRIs == null)
-                defaultIRIs = Collections.emptyList();
-            if (namedIRIs == null)
-                namedIRIs = Collections.emptyList();
             SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
             Command command = loader.load(bufferedLogger, new StringReader(sparql));
+            // check the command
             if (command == null) {
                 // ill-formed request
                 bufferedLogger.error("Failed to parse and load the request");
@@ -350,13 +374,9 @@ public class ControllerDatabase implements Closeable {
             }
             if (command.isUpdateCommand() && isReadonly)
                 return new ResultFailure("Database is read-only");
-            Result result = command.execute(repository);
-            if (command.isUpdateCommand())
-                repository.getStore().commit();
-            return result;
-        } finally {
-            onThreadExit();
-        }
+            // execute the command
+            return command.execute(repository);
+        }, exception -> new ResultFailure(exception.getMessage()));
     }
 
     /**
@@ -367,23 +387,18 @@ public class ControllerDatabase implements Closeable {
      * @return The SPARQL result
      */
     public Result sparql(Command sparql, boolean isReadonly) {
-        onThreadEnter();
-        try {
-            if (sparql == null) {
-                // ill-formed request
-                BufferedLogger bufferedLogger = new BufferedLogger();
-                bufferedLogger.error("Failed to parse and load the request");
-                return new ResultFailure(bufferedLogger.getErrorsAsString());
-            }
-            if (sparql.isUpdateCommand() && isReadonly)
-                return new ResultFailure("Database is read-only");
-            Result result = sparql.execute(repository);
-            if (sparql.isUpdateCommand())
-                repository.getStore().commit();
-            return result;
-        } finally {
-            onThreadExit();
+        if (sparql == null) {
+            // ill-formed request
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            bufferedLogger.error("Failed to parse and load the request");
+            return new ResultFailure(bufferedLogger.getErrorsAsString());
         }
+        if (sparql.isUpdateCommand() && isReadonly)
+            return new ResultFailure("Database is read-only");
+
+        return runAsTransaction(
+                () -> sparql.execute(repository),
+                exception -> new ResultFailure(exception.getMessage()));
     }
 
     /**
@@ -399,31 +414,26 @@ public class ControllerDatabase implements Closeable {
      * Sets the entailment regime
      *
      * @param regime The entailment regime
-     * @throws IllegalArgumentException When the specified entailment regime cannot be set
-     * @throws IOException              When an IO operation fails
+     * @throws Exception When the specified entailment regime cannot be set
      */
     public void setEntailmentRegime(EntailmentRegime regime) throws Exception {
-        onThreadEnter();
-        try {
+        runAsTransaction(() -> {
             // try to set the entailment regime
             repository.setEntailmentRegime(regime);
-            repository.getStore().commit();
             // save the configuration to disk
             synchronized (configuration) {
                 configuration.set(CONFIG_ENTAILMENT, regime.toString());
                 configuration.save((new File(location, REPO_CONF_NAME)));
             }
-        } finally {
-            onThreadExit();
-        }
+            return null;
+        });
     }
 
     /**
      * Sets the entailment regime
      *
      * @param regime The entailment regime
-     * @throws IllegalArgumentException When the specified entailment regime cannot be set
-     * @throws IOException              When an IO operation fails
+     * @throws Exception When the specified entailment regime cannot be set
      */
     public void setEntailmentRegime(String regime) throws Exception {
         setEntailmentRegime(EntailmentRegime.valueOf(regime));
@@ -484,12 +494,10 @@ public class ControllerDatabase implements Closeable {
      * @param content  The rule's content
      * @param activate Whether to readily activate the rule
      * @return The added rule
-     * @throws IOException              When the rule cannot be written
-     * @throws IllegalArgumentException When the rule definition is not valid
+     * @throws Exception When the operation failed
      */
-    public XOWLRule addRule(String content, boolean activate) throws IOException, IllegalArgumentException {
-        onThreadEnter();
-        try {
+    public XOWLRule addRule(String content, boolean activate) throws Exception {
+        return runAsTransaction(() -> {
             File folder = new File(location, REPO_RULES);
             if (!folder.exists()) {
                 if (!folder.mkdirs())
@@ -527,21 +535,17 @@ public class ControllerDatabase implements Closeable {
                 repository.getRDFRuleEngine().flush();
             }
             return new BaseRule(rule.getIRI(), rule.getSource(), activate);
-        } finally {
-            onThreadExit();
-        }
+        });
     }
 
     /**
      * Removes a rule from this database
      *
      * @param iri The name of the rule to remove
-     * @throws IOException              When the rule definition cannot be removed
-     * @throws IllegalArgumentException When the rule is not in this database
+     * @throws Exception When the operation failed
      */
-    public void removeRule(String iri) throws IOException, IllegalArgumentException {
-        onThreadEnter();
-        try {
+    public void removeRule(String iri) throws Exception {
+        runAsTransaction(() -> {
             boolean removeFromEngine = false;
             synchronized (configuration) {
                 if (!configuration.hasValue(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, iri))
@@ -559,21 +563,18 @@ public class ControllerDatabase implements Closeable {
                 throw new IOException("Failed to delete " + file.getAbsolutePath());
             if (removeFromEngine)
                 repository.getRDFRuleEngine().remove(iri);
-        } finally {
-            onThreadExit();
-        }
+            return null;
+        });
     }
 
     /**
      * Activates an existing rule in this database
      *
      * @param iri The name of the rule to activate
-     * @throws IOException              When the rule definition cannot be read
-     * @throws IllegalArgumentException When the rule is not in this database
+     * @throws Exception When the operation failed
      */
-    public void activateRule(String iri) throws IOException, IllegalArgumentException {
-        onThreadEnter();
-        try {
+    public void activateRule(String iri) throws Exception {
+        runAsTransaction(() -> {
             synchronized (configuration) {
                 if (!configuration.hasValue(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, iri))
                     throw new IllegalArgumentException("Rule does not exist: " + iri);
@@ -583,9 +584,8 @@ public class ControllerDatabase implements Closeable {
                 configuration.save((new File(location, REPO_CONF_NAME)));
             }
             doActivateRule(iri);
-        } finally {
-            onThreadExit();
-        }
+            return null;
+        });
     }
 
     /**
@@ -613,12 +613,10 @@ public class ControllerDatabase implements Closeable {
      * Deactivates an existing rule in this database
      *
      * @param iri The name of the rule to deactivate
-     * @throws IOException              When the configuration cannot be written
-     * @throws IllegalArgumentException When the rule is not in this database
+     * @throws Exception When the operation failed
      */
-    public void deactivateRule(String iri) throws IOException, IllegalArgumentException {
-        onThreadEnter();
-        try {
+    public void deactivateRule(String iri) throws Exception {
+        runAsTransaction(() -> {
             synchronized (configuration) {
                 if (!configuration.hasValue(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, iri))
                     throw new IllegalArgumentException("Rule does not exist: " + iri);
@@ -628,9 +626,8 @@ public class ControllerDatabase implements Closeable {
                 configuration.save((new File(location, REPO_CONF_NAME)));
             }
             repository.getRDFRuleEngine().remove(iri);
-        } finally {
-            onThreadExit();
-        }
+            return null;
+        });
     }
 
     /**
@@ -638,9 +635,8 @@ public class ControllerDatabase implements Closeable {
      *
      * @param iri The name of the rule to inquire
      * @return The status of the rule, or null if the rule is not active
-     * @throws IllegalArgumentException When the rule is not in this database
      */
-    public RDFRuleStatus getRuleStatus(String iri) throws IllegalArgumentException {
+    public RDFRuleStatus getRuleStatus(String iri) {
         synchronized (configuration) {
             if (!configuration.hasValue(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, iri))
                 throw new IllegalArgumentException("Rule does not exist: " + iri);
@@ -712,7 +708,7 @@ public class ControllerDatabase implements Closeable {
                 if (procedure == null)
                     cacheProcedure(name);
             }
-            return new ArrayList<XOWLStoredProcedure>(procedures.values());
+            return new ArrayList<>(procedures.values());
         }
     }
 

@@ -16,7 +16,10 @@
  ******************************************************************************/
 package org.xowl.infra.store;
 
-import fr.cenotelie.commons.utils.collections.*;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.collections.SingleIterator;
+import fr.cenotelie.commons.utils.collections.SkippableIterator;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Ontology;
@@ -347,22 +350,18 @@ public class ProxyObject {
     private Iterator<Couple<String, Object>> queryProperties() {
         try {
             Iterator<Quad> base = repository.getStore().getAll(subject, null, null);
-            return new SkippableIterator<>(new AdaptingIterator<>(base, new Adapter<Couple<String, Object>>() {
-                @Override
-                public <X> Couple<String, Object> adapt(X element) {
-                    Quad quad = (Quad) element;
-                    Node nodeProperty = quad.getProperty();
-                    if (nodeProperty.getNodeType() != Node.TYPE_IRI)
-                        return null;
-                    String property = ((IRINode) nodeProperty).getIRIValue();
-                    Node nodeValue = quad.getObject();
-                    if (nodeValue.getNodeType() == Node.TYPE_IRI) {
-                        return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
-                    } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
-                        return new Couple<>(property, decode((LiteralNode) nodeValue));
-                    }
+            return new SkippableIterator<>(new AdaptingIterator<>(base, quad -> {
+                Node nodeProperty = quad.getProperty();
+                if (nodeProperty.getNodeType() != Node.TYPE_IRI)
                     return null;
+                String property = ((IRINode) nodeProperty).getIRIValue();
+                Node nodeValue = quad.getObject();
+                if (nodeValue.getNodeType() == Node.TYPE_IRI) {
+                    return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
+                } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
+                    return new Couple<>(property, decode((LiteralNode) nodeValue));
                 }
+                return null;
             }));
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);

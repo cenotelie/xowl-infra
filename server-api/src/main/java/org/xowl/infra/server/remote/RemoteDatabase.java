@@ -64,16 +64,6 @@ class RemoteDatabase extends BaseDatabase {
     }
 
     @Override
-    public Reply getMetric() {
-        return server.dbGetMetric(identifier);
-    }
-
-    @Override
-    public Reply getMetricSnapshot() {
-        return server.dbGetMetricSnapshot(identifier);
-    }
-
-    @Override
     public Reply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         return server.dbSPARQL(identifier, sparql, defaultIRIs, namedIRIs);
     }
