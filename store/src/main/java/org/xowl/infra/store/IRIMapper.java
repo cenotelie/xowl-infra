@@ -380,7 +380,7 @@ public class IRIMapper {
         }
         if (matches.isEmpty())
             return null;
-        matches.sort(Comparator.comparingInt(BaseEntry::getPriority));
+        matches.sort(Comparator.comparingInt(BaseEntry::getPriority).reversed());
         return matches.get(0).getLocationFor(iri);
     }
 

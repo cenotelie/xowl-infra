@@ -113,7 +113,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
         } catch (Exception exception) {
             logger.error(exception);
         }
-        Assert.assertFalse("Failed to generated the target", logger.isOnError());
+        Assert.assertFalse("Failed to generate the target", logger.isOnError());
         return file;
     }
 }
