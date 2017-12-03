@@ -191,7 +191,7 @@ public class RepositoryDirectSemantics extends Repository {
     public Ontology resolveOntology(String iri) {
         Ontology result = super.resolveOntology(iri);
         if (!mapEntities.containsKey(result))
-            mapEntities.put(result, new HashMap<String, Entity>());
+            mapEntities.put(result, new HashMap<>());
         return result;
     }
 
@@ -1068,8 +1068,7 @@ public class RepositoryDirectSemantics extends Repository {
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectUnionOf(ObjectUnionOf expression) {
         List<org.xowl.infra.lang.runtime.Class> unified = new ArrayList<>();
-        for (org.xowl.infra.lang.runtime.Class exp : toEvaluatedList(expression.getClassSeq()))
-            unified.add(exp);
+        unified.addAll(toEvaluatedList(expression.getClassSeq()));
         // Try to find previously resolved class
         for (org.xowl.infra.lang.runtime.Class previous : classUnions) {
             if (previous.getAllClassUnionOf().size() != unified.size())
@@ -1100,8 +1099,7 @@ public class RepositoryDirectSemantics extends Repository {
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectIntersectionOf(ObjectIntersectionOf expression) {
         List<org.xowl.infra.lang.runtime.Class> intersected = new ArrayList<>();
-        for (org.xowl.infra.lang.runtime.Class exp : toEvaluatedList(expression.getClassSeq()))
-            intersected.add(exp);
+        intersected.addAll(toEvaluatedList(expression.getClassSeq()));
         // Try to find previously resolved class
         for (org.xowl.infra.lang.runtime.Class previous : classIntersections) {
             if (previous.getAllClassIntersectionOf().size() != intersected.size())
@@ -1132,8 +1130,7 @@ public class RepositoryDirectSemantics extends Repository {
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectOneOf(ObjectOneOf expression) {
         List<org.xowl.infra.lang.runtime.Individual> individuals = new ArrayList<>();
-        for (org.xowl.infra.lang.runtime.Individual exp : toEvaluatedList(expression.getIndividualSeq()))
-            individuals.add(exp);
+        individuals.addAll(toEvaluatedList(expression.getIndividualSeq()));
         // Try to find previously resolved class
         for (org.xowl.infra.lang.runtime.Class previous : classOneOfs) {
             if (previous.getAllClassOneOf().size() != individuals.size())
@@ -1506,8 +1503,7 @@ public class RepositoryDirectSemantics extends Repository {
      */
     private org.xowl.infra.lang.runtime.Datatype evalExpDataIntersectionOf(DataIntersectionOf expression) {
         List<org.xowl.infra.lang.runtime.Datatype> intersected = new ArrayList<>();
-        for (org.xowl.infra.lang.runtime.Datatype exp : toEvaluatedList(expression.getDatarangeSeq()))
-            intersected.add(exp);
+        intersected.addAll(toEvaluatedList(expression.getDatarangeSeq()));
         // Try to find previously resolved datatype
         for (org.xowl.infra.lang.runtime.Datatype previous : dataIntersections) {
             if (previous.getAllDataIntersectionOf().size() != intersected.size())
@@ -1584,8 +1580,7 @@ public class RepositoryDirectSemantics extends Repository {
      */
     private org.xowl.infra.lang.runtime.Datatype evalExpDataUnionOf(DataUnionOf expression) {
         List<org.xowl.infra.lang.runtime.Datatype> unified = new ArrayList<>();
-        for (org.xowl.infra.lang.runtime.Datatype exp : toEvaluatedList(expression.getDatarangeSeq()))
-            unified.add(exp);
+        unified.addAll(toEvaluatedList(expression.getDatarangeSeq()));
         // Try to find previously resolved datatype
         for (org.xowl.infra.lang.runtime.Datatype previous : dataUnions) {
             if (previous.getAllDataUnionOf().size() != unified.size())
@@ -1705,7 +1700,7 @@ public class RepositoryDirectSemantics extends Repository {
     private List<org.xowl.infra.lang.runtime.Class> toEvaluatedList(ClassSequenceExpression expression) {
         List<org.xowl.infra.lang.runtime.Class> result = new ArrayList<>();
         List<ClassElement> elements = new ArrayList<>(((ClassSequence) expression).getAllClassElements());
-        sortElements(elements);
+        elements.sort(Comparator.comparingInt(SequenceElement::getIndex));
         for (ClassElement elem : elements)
             result.add(evalClass(elem.getClasse()));
         return result;
@@ -1720,7 +1715,7 @@ public class RepositoryDirectSemantics extends Repository {
     private List<org.xowl.infra.lang.runtime.ObjectProperty> toEvaluatedList(ObjectPropertySequenceExpression expression) {
         List<org.xowl.infra.lang.runtime.ObjectProperty> result = new ArrayList<>();
         List<ObjectPropertyElement> elements = new ArrayList<>(((ObjectPropertySequence) expression).getAllObjectPropertyElements());
-        sortElements(elements);
+        elements.sort(Comparator.comparingInt(SequenceElement::getIndex));
         for (ObjectPropertyElement elem : elements)
             result.add(evalObjectProperty(elem.getObjectProperty()));
         return result;
@@ -1735,7 +1730,7 @@ public class RepositoryDirectSemantics extends Repository {
     private List<org.xowl.infra.lang.runtime.DataProperty> toEvaluatedList(DataPropertySequenceExpression expression) {
         List<org.xowl.infra.lang.runtime.DataProperty> result = new ArrayList<>();
         List<DataPropertyElement> elements = new ArrayList<>(((DataPropertySequence) expression).getAllDataPropertyElements());
-        sortElements(elements);
+        elements.sort(Comparator.comparingInt(SequenceElement::getIndex));
         for (DataPropertyElement elem : elements)
             result.add(evalDataProperty(elem.getDataProperty()));
         return result;
@@ -1750,7 +1745,7 @@ public class RepositoryDirectSemantics extends Repository {
     private List<org.xowl.infra.lang.runtime.Individual> toEvaluatedList(IndividualSequenceExpression expression) {
         List<org.xowl.infra.lang.runtime.Individual> result = new ArrayList<>();
         List<IndividualElement> elements = new ArrayList<>(((IndividualSequence) expression).getAllIndividualElements());
-        sortElements(elements);
+        elements.sort(Comparator.comparingInt(SequenceElement::getIndex));
         for (IndividualElement elem : elements)
             result.add(evalIndividual(elem.getIndividual()));
         return result;
@@ -1765,7 +1760,7 @@ public class RepositoryDirectSemantics extends Repository {
     private List<org.xowl.infra.lang.runtime.Datatype> toEvaluatedList(DatarangeSequenceExpression expression) {
         List<org.xowl.infra.lang.runtime.Datatype> result = new ArrayList<>();
         List<DatarangeElement> elements = new ArrayList<>(((DatarangeSequence) expression).getAllDatarangeElements());
-        sortElements(elements);
+        elements.sort(Comparator.comparingInt(SequenceElement::getIndex));
         for (DatarangeElement elem : elements)
             result.add(evalDatatype(elem.getDatarange()));
         return result;
@@ -1780,23 +1775,9 @@ public class RepositoryDirectSemantics extends Repository {
     private List<org.xowl.infra.lang.runtime.Literal> toEvaluatedList(LiteralSequenceExpression expression) {
         List<org.xowl.infra.lang.runtime.Literal> result = new ArrayList<>();
         List<LiteralElement> elements = new ArrayList<>(((LiteralSequence) expression).getAllLiteralElements());
-        sortElements(elements);
+        elements.sort(Comparator.comparingInt(SequenceElement::getIndex));
         for (LiteralElement elem : elements)
             result.add(evalLiteral(elem.getLiteral()));
         return result;
-    }
-
-    /**
-     * Sorts the sequence elements by indices
-     *
-     * @param elements The elements to sort
-     */
-    private void sortElements(List<? extends SequenceElement> elements) {
-        Collections.sort(elements, new Comparator<SequenceElement>() {
-            @Override
-            public int compare(SequenceElement left, SequenceElement right) {
-                return Integer.compare(left.getIndex(), right.getIndex());
-            }
-        });
     }
 }

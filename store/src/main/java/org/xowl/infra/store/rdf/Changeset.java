@@ -33,7 +33,7 @@ public class Changeset {
      * @return The changeset
      */
     public static Changeset fromAdded(Collection<Quad> quads) {
-        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, quads, Collections.EMPTY_LIST);
+        return new Changeset(Collections.emptyList(), Collections.emptyList(), quads, Collections.emptyList());
     }
 
     /**
@@ -43,7 +43,7 @@ public class Changeset {
      * @return The changeset
      */
     public static Changeset fromRemoved(Collection<Quad> quads) {
-        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, quads);
+        return new Changeset(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), quads);
     }
 
     /**
@@ -54,7 +54,7 @@ public class Changeset {
      * @return The changeset
      */
     public static Changeset fromAddedRemoved(Collection<Quad> added, Collection<Quad> removed) {
-        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, added, removed);
+        return new Changeset(Collections.emptyList(), Collections.emptyList(), added, removed);
     }
 
     /**

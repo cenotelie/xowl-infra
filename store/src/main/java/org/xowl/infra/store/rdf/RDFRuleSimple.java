@@ -112,7 +112,7 @@ public class RDFRuleSimple extends RDFRule {
     public void addConsequentNegative(Quad quad) {
         Collection<Collection<Quad>> negatives = consequents.getNegatives();
         if (negatives.isEmpty())
-            negatives.add(new ArrayList<Quad>());
+            negatives.add(new ArrayList<>());
         negatives.iterator().next().add(quad);
     }
 

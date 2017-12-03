@@ -23,9 +23,6 @@ import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.actions.OpaqueExpression;
 import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.*;
-import org.xowl.infra.lang.runtime.Class;
-import org.xowl.infra.lang.runtime.Function;
-import org.xowl.infra.lang.runtime.ObjectProperty;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
@@ -880,7 +877,7 @@ public class Translator {
      */
     protected SubjectNode translateClassExpression(ClassExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
-            return context.resolve((QueryVariable) expression, Class.class);
+            return context.resolve((QueryVariable) expression);
         if (expression instanceof OpaqueExpression)
             return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
@@ -1282,7 +1279,7 @@ public class Translator {
      */
     protected SubjectNode translateObjectPropertyExpression(ObjectPropertyExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
-            return context.resolve((QueryVariable) expression, ObjectProperty.class);
+            return context.resolve((QueryVariable) expression);
         if (expression instanceof OpaqueExpression)
             return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
@@ -1325,7 +1322,7 @@ public class Translator {
      */
     protected SubjectNode translateDataPropertyExpression(DataPropertyExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
-            return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.DataProperty.class);
+            return context.resolve((QueryVariable) expression);
         if (expression instanceof OpaqueExpression)
             return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI) return translateDataPropertyIRI((IRI) expression);
@@ -1351,7 +1348,7 @@ public class Translator {
      */
     protected SubjectNode translateDatarange(Datarange expression) throws TranslationException {
         if (expression instanceof QueryVariable)
-            return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Datatype.class);
+            return context.resolve((QueryVariable) expression);
         if (expression instanceof OpaqueExpression)
             return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
@@ -1493,7 +1490,7 @@ public class Translator {
      */
     protected SubjectNode translateIndividualExpression(IndividualExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
-            return context.resolve((org.xowl.infra.lang.actions.QueryVariable) expression, org.xowl.infra.lang.runtime.Individual.class);
+            return context.resolve((org.xowl.infra.lang.actions.QueryVariable) expression);
         if (expression instanceof OpaqueExpression)
             return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)
@@ -1531,7 +1528,7 @@ public class Translator {
      */
     protected Node translateLiteralExpression(LiteralExpression expression) {
         if (expression instanceof QueryVariable)
-            return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Literal.class);
+            return context.resolve((QueryVariable) expression);
         if (expression instanceof OpaqueExpression)
             return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof Literal)
@@ -1558,7 +1555,7 @@ public class Translator {
      */
     protected SubjectNode translateFunctionExpression(FunctionExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable)
-            return context.resolve((QueryVariable) expression, Function.class);
+            return context.resolve((QueryVariable) expression);
         if (expression instanceof OpaqueExpression)
             return translateOpaqueExpression((OpaqueExpression) expression);
         if (expression instanceof IRI)

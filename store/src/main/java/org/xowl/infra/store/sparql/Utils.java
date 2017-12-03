@@ -355,18 +355,15 @@ class Utils {
      */
     private static void orderBy(Couple<RDFPatternSolution, Double>[] buffer, int first, int last, List<Couple<Expression, Boolean>> conditions, int ci, EvalContext context) {
         final boolean isDescending = conditions.get(ci).y;
-        Arrays.sort(buffer, first, last, new Comparator<Couple<RDFPatternSolution, Double>>() {
-            @Override
-            public int compare(Couple<RDFPatternSolution, Double> item1, Couple<RDFPatternSolution, Double> item2) {
-                if (item1.y == null) {
-                    if (item2 != null)
-                        return isDescending ? 1 : -1;
-                    return 0;
-                } else if (item2.y == null) {
-                    return isDescending ? -1 : 1;
-                } else {
-                    return isDescending ? item2.y.compareTo(item1.y) : item1.y.compareTo(item2.y);
-                }
+        Arrays.sort(buffer, first, last, (item1, item2) -> {
+            if (item1.y == null) {
+                if (item2 != null)
+                    return isDescending ? 1 : -1;
+                return 0;
+            } else if (item2.y == null) {
+                return isDescending ? -1 : 1;
+            } else {
+                return isDescending ? item2.y.compareTo(item1.y) : item1.y.compareTo(item2.y);
             }
         });
         if (ci + 1 == conditions.size())

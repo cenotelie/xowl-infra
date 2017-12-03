@@ -85,11 +85,7 @@ public class RDFRuleSelect extends RDFRule {
          */
         public void addMatch(RDFPattern pattern, RDFPatternMatch match) {
             synchronized (matches) {
-                Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
-                if (patternMatches == null) {
-                    patternMatches = new ArrayList<>();
-                    matches.put(pattern, patternMatches);
-                }
+                Collection<RDFPatternMatch> patternMatches = matches.computeIfAbsent(pattern, k -> new ArrayList<>());
                 patternMatches.add(match);
             }
         }
@@ -192,7 +188,7 @@ public class RDFRuleSelect extends RDFRule {
     public void addConsequentNegative(Quad quad) {
         Collection<Collection<Quad>> negatives = consequents.getNegatives();
         if (negatives.isEmpty())
-            negatives.add(new ArrayList<Quad>());
+            negatives.add(new ArrayList<>());
         negatives.iterator().next().add(quad);
     }
 

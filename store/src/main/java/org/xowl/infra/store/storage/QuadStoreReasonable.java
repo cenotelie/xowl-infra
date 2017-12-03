@@ -247,10 +247,10 @@ class QuadStoreReasonable extends QuadStore {
         if (addedIsHandled && removedIsHandled)
             return;
 
-        List<Quad> addedForVolatile = addedIsVolatile.length > 0 ? new ArrayList<Quad>(addedIsVolatile.length) : null;
-        List<Quad> addedForGround = addedIsVolatile.length > 0 ? new ArrayList<Quad>(addedIsVolatile.length) : null;
-        List<Quad> removedForVolatile = removedIsVolatile.length > 0 ? new ArrayList<Quad>(removedIsVolatile.length) : null;
-        List<Quad> removedForGround = removedIsVolatile.length > 0 ? new ArrayList<Quad>(removedIsVolatile.length) : null;
+        List<Quad> addedForVolatile = addedIsVolatile.length > 0 ? new ArrayList<>(addedIsVolatile.length) : null;
+        List<Quad> addedForGround = addedIsVolatile.length > 0 ? new ArrayList<>(addedIsVolatile.length) : null;
+        List<Quad> removedForVolatile = removedIsVolatile.length > 0 ? new ArrayList<>(removedIsVolatile.length) : null;
+        List<Quad> removedForGround = removedIsVolatile.length > 0 ? new ArrayList<>(removedIsVolatile.length) : null;
         i = 0;
         for (Quad quad : changeset.getAdded()) {
             (addedIsVolatile[i++] ? addedForVolatile : addedForGround).add(quad);

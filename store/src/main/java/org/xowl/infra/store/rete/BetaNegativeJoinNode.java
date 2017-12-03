@@ -159,11 +159,7 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
 
     @Override
     public void activateTokens(Collection<Token> tokens) {
-        Iterator<Token> iterator = tokens.iterator();
-        while (iterator.hasNext()) {
-            if (!onTokenActivated(iterator.next()))
-                iterator.remove();
-        }
+        tokens.removeIf(token -> !onTokenActivated(token));
         int size = tokens.size();
         if (size != 0) {
             if (size == 1)
@@ -175,11 +171,7 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
 
     @Override
     public void deactivateTokens(Collection<Token> tokens) {
-        Iterator<Token> iterator = tokens.iterator();
-        while (iterator.hasNext()) {
-            if (!onTokenDeactivated(iterator.next()))
-                iterator.remove();
-        }
+        tokens.removeIf(token -> !onTokenDeactivated(token));
         int size = tokens.size();
         if (size != 0) {
             if (size == 1)

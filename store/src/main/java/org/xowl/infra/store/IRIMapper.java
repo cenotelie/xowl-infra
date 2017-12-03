@@ -17,7 +17,6 @@
 package org.xowl.infra.store;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -381,12 +380,7 @@ public class IRIMapper {
         }
         if (matches.isEmpty())
             return null;
-        Collections.sort(matches, new Comparator<BaseEntry>() {
-            @Override
-            public int compare(BaseEntry e1, BaseEntry e2) {
-                return e2.getPriority() - e1.getPriority();
-            }
-        });
+        matches.sort(Comparator.comparingInt(BaseEntry::getPriority));
         return matches.get(0).getLocationFor(iri);
     }
 

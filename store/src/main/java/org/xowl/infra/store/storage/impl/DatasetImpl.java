@@ -262,7 +262,7 @@ public abstract class DatasetImpl implements Dataset {
                     if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
                         unregisterFunctionDefinition((IRINode) removed.getSubject());
                 }
-                Changeset changeset = new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, (Collection) bufferDecremented, (Collection) bufferRemoved);
+                Changeset changeset = new Changeset(Collections.emptyList(), Collections.emptyList(), (Collection) bufferDecremented, (Collection) bufferRemoved);
                 for (ChangeListener listener : listeners) {
                     listener.onChange(changeset);
                 }
@@ -296,7 +296,7 @@ public abstract class DatasetImpl implements Dataset {
                     if (isFunctionDefinition(removed.getSubject(), removed.getProperty(), removed.getObject()))
                         unregisterFunctionDefinition((IRINode) removed.getSubject());
                 }
-                Changeset changeset = new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, (Collection) bufferDecremented, (Collection) bufferRemoved);
+                Changeset changeset = new Changeset(Collections.emptyList(), Collections.emptyList(), (Collection) bufferDecremented, (Collection) bufferRemoved);
                 for (ChangeListener listener : listeners) {
                     listener.onChange(changeset);
                 }

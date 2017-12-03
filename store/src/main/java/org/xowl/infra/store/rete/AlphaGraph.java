@@ -162,12 +162,8 @@ class AlphaGraph extends AlphaMemoryBucket {
             matchMemories(buffer, quad);
             for (int i = 0; i != buffer.size(); i++) {
                 AlphaMemory memory = buffer.get(i);
-                Collection<Quad> collec = map.get(memory);
-                if (collec == null) {
-                    collec = new ArrayList<>();
-                    map.put(memory, collec);
-                }
-                collec.add(quad);
+                Collection<Quad> collection = map.computeIfAbsent(memory, k -> new ArrayList<>());
+                collection.add(quad);
             }
             buffer.clear();
         }

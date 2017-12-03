@@ -198,11 +198,6 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
             sub2.put(v3, sub3);
             return sub3;
         }
-        Collection<LEFT> sub3 = sub2.get(v3);
-        if (sub3 == null) {
-            sub3 = new ArrayList<>();
-            sub2.put(v3, sub3);
-        }
-        return sub3;
+        return sub2.computeIfAbsent(v3, k -> new ArrayList<>());
     }
 }

@@ -278,11 +278,7 @@ public class RepositoryRDF extends Repository {
      */
     public ProxyObject resolveProxy(Ontology ontology, SubjectNode subject) {
         synchronized (proxies) {
-            Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
-            if (sub == null) {
-                sub = new HashMap<>();
-                proxies.put(ontology, sub);
-            }
+            Map<SubjectNode, ProxyObject> sub = proxies.computeIfAbsent(ontology, k -> new HashMap<>());
             ProxyObject proxy = sub.get(subject);
             if (proxy != null)
                 return proxy;
@@ -324,11 +320,7 @@ public class RepositoryRDF extends Repository {
      */
     public ProxyObject newObject(Ontology ontology) {
         synchronized (proxies) {
-            Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
-            if (sub == null) {
-                sub = new HashMap<>();
-                proxies.put(ontology, sub);
-            }
+            Map<SubjectNode, ProxyObject> sub = proxies.computeIfAbsent(ontology, k -> new HashMap<>());
             IRINode entity = backend.getIRINode(getGraph(ontology));
             ProxyObject proxy = new ProxyObject(this, ontology, entity);
             sub.put(entity, proxy);

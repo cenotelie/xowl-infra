@@ -24,9 +24,9 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
-import org.xowl.infra.store.storage.QuadStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.storage.QuadStore;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.*;
@@ -232,7 +232,7 @@ public class RDFRuleEngine implements ChangeListener {
          * @return The positive quads to be injected
          */
         public Collection<Quad> checkoutPositivesQuads() {
-            Collection<Quad> result = bufferPositives == null ? Collections.<Quad>emptyList() : bufferPositives;
+            Collection<Quad> result = bufferPositives == null ? Collections.emptyList() : bufferPositives;
             bufferPositives = null;
             return result;
         }
@@ -243,7 +243,7 @@ public class RDFRuleEngine implements ChangeListener {
          * @return The negative quads to be injected
          */
         public Collection<Quad> checkoutNegativeQuads() {
-            Collection<Quad> result = bufferNegatives == null ? Collections.<Quad>emptyList() : bufferNegatives;
+            Collection<Quad> result = bufferNegatives == null ? Collections.emptyList() : bufferNegatives;
             bufferNegatives = null;
             return result;
         }
@@ -254,7 +254,7 @@ public class RDFRuleEngine implements ChangeListener {
          * @return The requests to fire
          */
         public Collection<RDFRuleExecution> checkoutRequestsToFire() {
-            Collection<RDFRuleExecution> result = requestsToFire == null ? Collections.<RDFRuleExecution>emptyList() : requestsToFire;
+            Collection<RDFRuleExecution> result = requestsToFire == null ? Collections.emptyList() : requestsToFire;
             requestsToFire = null;
             return result;
         }
@@ -265,7 +265,7 @@ public class RDFRuleEngine implements ChangeListener {
          * @return The requests to un-fire
          */
         public Collection<RDFRuleExecution> checkoutRequestsToUnfire() {
-            Collection<RDFRuleExecution> result = requestsToUnfire == null ? Collections.<RDFRuleExecution>emptyList() : requestsToUnfire;
+            Collection<RDFRuleExecution> result = requestsToUnfire == null ? Collections.emptyList() : requestsToUnfire;
             requestsToUnfire = null;
             return result;
         }

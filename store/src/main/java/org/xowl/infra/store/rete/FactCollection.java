@@ -119,8 +119,7 @@ class FactCollection implements Collection<Quad> {
         // the quad matches the pattern
         try {
             Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            boolean result = iterator.hasNext();
-            return result;
+            return iterator.hasNext();
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);
             return false;

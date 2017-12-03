@@ -140,12 +140,7 @@ public class RDFParser {
             network.addRule(rule);
         network.injectPositives(quads);
 
-        Collections.sort(triggers, new Comparator<RDFParserTrigger>() {
-            @Override
-            public int compare(RDFParserTrigger trigger1, RDFParserTrigger trigger2) {
-                return trigger1.rule.priority - trigger2.rule.priority;
-            }
-        });
+        triggers.sort(Comparator.comparingInt(trigger -> trigger.rule.priority));
         for (RDFParserTrigger trigger : triggers)
             trigger.execute();
     }
@@ -591,13 +586,10 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
                 final Node y = getValue(bindings, "y");
-                expObjProperties.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectInverseOf value = Owl2Factory.newObjectInverseOf();
-                        value.setInverse(getExpressionObjectProperty(y));
-                        return value;
-                    }
+                expObjProperties.put(x, () -> {
+                    ObjectInverseOf value = Owl2Factory.newObjectInverseOf();
+                    value.setInverse(getExpressionObjectProperty(y));
+                    return value;
                 });
             }
         });
@@ -618,13 +610,10 @@ public class RDFParser {
                 Node x = getValue(bindings, "x");
                 Node y = getValue(bindings, "y");
                 final List<Node> intersected = getListUnordered(y);
-                expDatarange.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataIntersectionOf value = Owl2Factory.newDataIntersectionOf();
-                        value.setDatarangeSeq(getSequenceDatarange(intersected));
-                        return value;
-                    }
+                expDatarange.put(x, () -> {
+                    DataIntersectionOf value = Owl2Factory.newDataIntersectionOf();
+                    value.setDatarangeSeq(getSequenceDatarange(intersected));
+                    return value;
                 });
             }
         });
@@ -645,13 +634,10 @@ public class RDFParser {
                 Node x = getValue(bindings, "x");
                 Node y = getValue(bindings, "y");
                 final List<Node> unioned = getListUnordered(y);
-                expDatarange.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataUnionOf value = Owl2Factory.newDataUnionOf();
-                        value.setDatarangeSeq(getSequenceDatarange(unioned));
-                        return value;
-                    }
+                expDatarange.put(x, () -> {
+                    DataUnionOf value = Owl2Factory.newDataUnionOf();
+                    value.setDatarangeSeq(getSequenceDatarange(unioned));
+                    return value;
                 });
             }
         });
@@ -671,13 +657,10 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
                 final Node y = getValue(bindings, "y");
-                expDatarange.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataComplementOf value = Owl2Factory.newDataComplementOf();
-                        value.setDatarange(getExpressionDatarange(y));
-                        return value;
-                    }
+                expDatarange.put(x, () -> {
+                    DataComplementOf value = Owl2Factory.newDataComplementOf();
+                    value.setDatarange(getExpressionDatarange(y));
+                    return value;
                 });
             }
         });
@@ -698,13 +681,10 @@ public class RDFParser {
                 Node x = getValue(bindings, "x");
                 Node y = getValue(bindings, "y");
                 final List<Node> individuals = getListUnordered(y);
-                expDatarange.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataOneOf value = Owl2Factory.newDataOneOf();
-                        value.setLiteralSeq(getSequenceLiteral(individuals));
-                        return value;
-                    }
+                expDatarange.put(x, () -> {
+                    DataOneOf value = Owl2Factory.newDataOneOf();
+                    value.setLiteralSeq(getSequenceLiteral(individuals));
+                    return value;
                 });
             }
         });
@@ -727,20 +707,17 @@ public class RDFParser {
                 final Node y = getValue(bindings, "y");
                 Node z = getValue(bindings, "z");
                 final List<Node> restrictions = getListUnordered(z);
-                expDatarange.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DatatypeRestriction value = Owl2Factory.newDatatypeRestriction();
-                        value.setDatarange(getExpressionDatarange(y));
-                        for (Node restrictNode : restrictions) {
-                            FacetRestriction facet = Owl2Factory.newFacetRestriction();
-                            Quad triple = getTriple((SubjectNode) restrictNode);
-                            facet.setConstrainingFacet((IRI) RDFUtils.getOWL(triple.getProperty()));
-                            facet.setConstrainingValue((Literal) getExpressionLiteral(triple.getObject()));
-                            value.addFacetRestrictions(facet);
-                        }
-                        return value;
+                expDatarange.put(x, () -> {
+                    DatatypeRestriction value = Owl2Factory.newDatatypeRestriction();
+                    value.setDatarange(getExpressionDatarange(y));
+                    for (Node restrictNode : restrictions) {
+                        FacetRestriction facet = Owl2Factory.newFacetRestriction();
+                        Quad triple = getTriple((SubjectNode) restrictNode);
+                        facet.setConstrainingFacet((IRI) RDFUtils.getOWL(triple.getProperty()));
+                        facet.setConstrainingValue((Literal) getExpressionLiteral(triple.getObject()));
+                        value.addFacetRestrictions(facet);
                     }
+                    return value;
                 });
             }
         });
@@ -761,13 +738,10 @@ public class RDFParser {
                 Node x = getValue(bindings, "x");
                 Node y = getValue(bindings, "y");
                 final List<Node> intersected = getListUnordered(y);
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectIntersectionOf value = Owl2Factory.newObjectIntersectionOf();
-                        value.setClassSeq(getSequenceClass(intersected));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectIntersectionOf value = Owl2Factory.newObjectIntersectionOf();
+                    value.setClassSeq(getSequenceClass(intersected));
+                    return value;
                 });
             }
         });
@@ -788,13 +762,10 @@ public class RDFParser {
                 Node x = getValue(bindings, "x");
                 Node y = getValue(bindings, "y");
                 final List<Node> unified = getListUnordered(y);
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectUnionOf value = Owl2Factory.newObjectUnionOf();
-                        value.setClassSeq(getSequenceClass(unified));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectUnionOf value = Owl2Factory.newObjectUnionOf();
+                    value.setClassSeq(getSequenceClass(unified));
+                    return value;
                 });
             }
         });
@@ -814,13 +785,10 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
                 final Node y = getValue(bindings, "y");
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectComplementOf value = Owl2Factory.newObjectComplementOf();
-                        value.setClasse(getExpressionClass(y));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectComplementOf value = Owl2Factory.newObjectComplementOf();
+                    value.setClasse(getExpressionClass(y));
+                    return value;
                 });
             }
         });
@@ -841,13 +809,10 @@ public class RDFParser {
                 Node x = getValue(bindings, "x");
                 Node y = getValue(bindings, "y");
                 final List<Node> unified = getListUnordered(y);
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectOneOf value = Owl2Factory.newObjectOneOf();
-                        value.setIndividualSeq(getSequenceIndividual(unified));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectOneOf value = Owl2Factory.newObjectOneOf();
+                    value.setIndividualSeq(getSequenceIndividual(unified));
+                    return value;
                 });
             }
         });
@@ -871,14 +836,11 @@ public class RDFParser {
                 final Node z = getValue(bindings, "z");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectAllValuesFrom value = Owl2Factory.newObjectAllValuesFrom();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setClasse(getExpressionClass(z));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectAllValuesFrom value = Owl2Factory.newObjectAllValuesFrom();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setClasse(getExpressionClass(z));
+                    return value;
                 });
             }
         });
@@ -902,14 +864,11 @@ public class RDFParser {
                 final Node z = getValue(bindings, "z");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectSomeValuesFrom value = Owl2Factory.newObjectSomeValuesFrom();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setClasse(getExpressionClass(z));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectSomeValuesFrom value = Owl2Factory.newObjectSomeValuesFrom();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setClasse(getExpressionClass(z));
+                    return value;
                 });
             }
         });
@@ -933,14 +892,11 @@ public class RDFParser {
                 final Node z = getValue(bindings, "z");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectHasValue value = Owl2Factory.newObjectHasValue();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setIndividual(getExpressionIndividual(z));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectHasValue value = Owl2Factory.newObjectHasValue();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setIndividual(getExpressionIndividual(z));
+                    return value;
                 });
             }
         });
@@ -961,13 +917,10 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
                 final Node y = getValue(bindings, "y");
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectHasSelf value = Owl2Factory.newObjectHasSelf();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectHasSelf value = Owl2Factory.newObjectHasSelf();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    return value;
                 });
             }
         });
@@ -993,15 +946,12 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectMinCardinality value = Owl2Factory.newObjectMinCardinality();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setClasse(getExpressionClass(z));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectMinCardinality value = Owl2Factory.newObjectMinCardinality();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setClasse(getExpressionClass(z));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1027,15 +977,12 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectMaxCardinality value = Owl2Factory.newObjectMaxCardinality();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setClasse(getExpressionClass(z));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectMaxCardinality value = Owl2Factory.newObjectMaxCardinality();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setClasse(getExpressionClass(z));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1060,15 +1007,12 @@ public class RDFParser {
                 final Node y = getValue(bindings, "y");
                 final Node z = getValue(bindings, "z");
                 final Node n = getValue(bindings, "n");
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectExactCardinality value = Owl2Factory.newObjectExactCardinality();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setClasse(getExpressionClass(z));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectExactCardinality value = Owl2Factory.newObjectExactCardinality();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setClasse(getExpressionClass(z));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1092,14 +1036,11 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectMinCardinality value = Owl2Factory.newObjectMinCardinality();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectMinCardinality value = Owl2Factory.newObjectMinCardinality();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1123,14 +1064,11 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectMaxCardinality value = Owl2Factory.newObjectMaxCardinality();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectMaxCardinality value = Owl2Factory.newObjectMaxCardinality();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1154,14 +1092,11 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        ObjectExactCardinality value = Owl2Factory.newObjectExactCardinality();
-                        value.setObjectProperty(getExpressionObjectProperty(y));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    ObjectExactCardinality value = Owl2Factory.newObjectExactCardinality();
+                    value.setObjectProperty(getExpressionObjectProperty(y));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1185,14 +1120,11 @@ public class RDFParser {
                 final Node z = getValue(bindings, "z");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataHasValue value = Owl2Factory.newDataHasValue();
-                        value.setDataProperty(getExpressionDataProperty(y));
-                        value.setLiteral(getExpressionLiteral(z));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataHasValue value = Owl2Factory.newDataHasValue();
+                    value.setDataProperty(getExpressionDataProperty(y));
+                    value.setLiteral(getExpressionLiteral(z));
+                    return value;
                 });
             }
         });
@@ -1216,16 +1148,13 @@ public class RDFParser {
                 final Node z = getValue(bindings, "z");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataAllValuesFrom value = Owl2Factory.newDataAllValuesFrom();
-                        List<Node> list = new ArrayList<>();
-                        list.add(y);
-                        value.setDataPropertySeq(getSequenceDataProperty(list));
-                        value.setDatarange(getExpressionDatarange(z));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataAllValuesFrom value = Owl2Factory.newDataAllValuesFrom();
+                    List<Node> list = new ArrayList<>();
+                    list.add(y);
+                    value.setDataPropertySeq(getSequenceDataProperty(list));
+                    value.setDatarange(getExpressionDatarange(z));
+                    return value;
                 });
             }
         });
@@ -1249,16 +1178,13 @@ public class RDFParser {
                 final Node z = getValue(bindings, "z");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataSomeValuesFrom value = Owl2Factory.newDataSomeValuesFrom();
-                        List<Node> list = new ArrayList<>();
-                        list.add(y);
-                        value.setDataPropertySeq(getSequenceDataProperty(list));
-                        value.setDatarange(getExpressionDatarange(z));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataSomeValuesFrom value = Owl2Factory.newDataSomeValuesFrom();
+                    List<Node> list = new ArrayList<>();
+                    list.add(y);
+                    value.setDataPropertySeq(getSequenceDataProperty(list));
+                    value.setDatarange(getExpressionDatarange(z));
+                    return value;
                 });
             }
         });
@@ -1283,14 +1209,11 @@ public class RDFParser {
                 final List<Node> list = getListUnordered(y);
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataAllValuesFrom value = Owl2Factory.newDataAllValuesFrom();
-                        value.setDataPropertySeq(getSequenceDataProperty(list));
-                        value.setDatarange(getExpressionDatarange(z));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataAllValuesFrom value = Owl2Factory.newDataAllValuesFrom();
+                    value.setDataPropertySeq(getSequenceDataProperty(list));
+                    value.setDatarange(getExpressionDatarange(z));
+                    return value;
                 });
             }
         });
@@ -1315,14 +1238,11 @@ public class RDFParser {
                 final List<Node> list = getListUnordered(y);
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataSomeValuesFrom value = Owl2Factory.newDataSomeValuesFrom();
-                        value.setDataPropertySeq(getSequenceDataProperty(list));
-                        value.setDatarange(getExpressionDatarange(z));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataSomeValuesFrom value = Owl2Factory.newDataSomeValuesFrom();
+                    value.setDataPropertySeq(getSequenceDataProperty(list));
+                    value.setDatarange(getExpressionDatarange(z));
+                    return value;
                 });
             }
         });
@@ -1348,15 +1268,12 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataMinCardinality value = Owl2Factory.newDataMinCardinality();
-                        value.setDataProperty(getExpressionDataProperty(y));
-                        value.setDatarange(getExpressionDatarange(z));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataMinCardinality value = Owl2Factory.newDataMinCardinality();
+                    value.setDataProperty(getExpressionDataProperty(y));
+                    value.setDatarange(getExpressionDatarange(z));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1382,15 +1299,12 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataMaxCardinality value = Owl2Factory.newDataMaxCardinality();
-                        value.setDataProperty(getExpressionDataProperty(y));
-                        value.setDatarange(getExpressionDatarange(z));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataMaxCardinality value = Owl2Factory.newDataMaxCardinality();
+                    value.setDataProperty(getExpressionDataProperty(y));
+                    value.setDatarange(getExpressionDatarange(z));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1416,15 +1330,12 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataExactCardinality value = Owl2Factory.newDataExactCardinality();
-                        value.setDataProperty(getExpressionDataProperty(y));
-                        value.setDatarange(getExpressionDatarange(z));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataExactCardinality value = Owl2Factory.newDataExactCardinality();
+                    value.setDataProperty(getExpressionDataProperty(y));
+                    value.setDatarange(getExpressionDatarange(z));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1448,14 +1359,11 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataMinCardinality value = Owl2Factory.newDataMinCardinality();
-                        value.setDataProperty(getExpressionDataProperty(y));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataMinCardinality value = Owl2Factory.newDataMinCardinality();
+                    value.setDataProperty(getExpressionDataProperty(y));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1479,14 +1387,11 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataMaxCardinality value = Owl2Factory.newDataMaxCardinality();
-                        value.setDataProperty(getExpressionDataProperty(y));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataMaxCardinality value = Owl2Factory.newDataMaxCardinality();
+                    value.setDataProperty(getExpressionDataProperty(y));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
@@ -1510,14 +1415,11 @@ public class RDFParser {
                 final Node n = getValue(bindings, "n");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                expClasses.put(x, new RDFParserExpressionSolver() {
-                    @Override
-                    public Expression getExpression() {
-                        DataExactCardinality value = Owl2Factory.newDataExactCardinality();
-                        value.setDataProperty(getExpressionDataProperty(y));
-                        value.setCardinality(getExpressionLiteral(n));
-                        return value;
-                    }
+                expClasses.put(x, () -> {
+                    DataExactCardinality value = Owl2Factory.newDataExactCardinality();
+                    value.setDataProperty(getExpressionDataProperty(y));
+                    value.setCardinality(getExpressionLiteral(n));
+                    return value;
                 });
             }
         });
