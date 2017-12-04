@@ -150,8 +150,10 @@ class DatasetDiff extends DatasetImpl {
      * Drops all outstanding changes
      */
     public void rollback() {
-        diffPositives.clear();
-        diffNegatives.clear();
+        if (diffPositives != null)
+            diffPositives.clear();
+        if (diffNegatives != null)
+            diffNegatives.clear();
         size = 0;
     }
 

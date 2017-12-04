@@ -27,29 +27,21 @@ import fr.cenotelie.commons.storage.Transaction;
  */
 public abstract class QuadStoreTransaction extends Transaction {
     /**
-     * The interface to use for the store
+     * Initializes this transaction
+     *
+     * @param writable   Whether this transaction allows writing
+     * @param autocommit Whether this transaction should commit when being closed
      */
-    private final QuadStore store;
+    public QuadStoreTransaction(boolean writable, boolean autocommit) {
+        super(writable, autocommit);
+    }
 
     /**
      * Gets the interface to use for the store
      *
      * @return The interface to use for the store
      */
-    public QuadStore getStore() {
-        return store;
-    }
-
-    /**
-     * Initializes this transaction
-     *
-     * @param writable   Whether this transaction allows writing
-     * @param autocommit Whether this transaction should commit when being closed
-     */
-    public QuadStoreTransaction(QuadStore store, boolean writable, boolean autocommit) {
-        super(writable, autocommit);
-        this.store = store;
-    }
+    public abstract QuadStore getStore();
 
     @Override
     protected Access newAccess(long index, int length, boolean writable) {

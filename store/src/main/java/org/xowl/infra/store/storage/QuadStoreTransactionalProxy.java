@@ -18,7 +18,6 @@
 package org.xowl.infra.store.storage;
 
 import fr.cenotelie.commons.storage.NoTransactionException;
-import org.xowl.infra.store.execution.ExecutionManager;
 
 import java.util.WeakHashMap;
 
@@ -27,7 +26,7 @@ import java.util.WeakHashMap;
  *
  * @author Laurent Wouters
  */
-public class QuadStoreTransactionalProxy extends QuadStoreTransactional {
+class QuadStoreTransactionalProxy implements QuadStoreTransactional {
     /**
      * The original store to be protected by this interface
      */
@@ -53,6 +52,14 @@ public class QuadStoreTransactionalProxy extends QuadStoreTransactional {
      */
     private volatile int indexLength;
 
+    /**
+     * Initializes this proxy
+     *
+     * @param base The original store to be protected by this interface
+     */
+    public QuadStoreTransactionalProxy(QuadStore base) {
+        this.base = base;
+    }
 
     @Override
     public QuadStoreTransaction newTransaction(boolean writable, boolean autocommit) {
@@ -62,11 +69,6 @@ public class QuadStoreTransactionalProxy extends QuadStoreTransactional {
     @Override
     public QuadStoreTransaction getTransaction() throws NoTransactionException {
         return null;
-    }
-
-    @Override
-    public void setExecutionManager(ExecutionManager executionManager) {
-
     }
 
     @Override

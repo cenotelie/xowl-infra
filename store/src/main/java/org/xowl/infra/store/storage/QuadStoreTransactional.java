@@ -20,10 +20,10 @@ package org.xowl.infra.store.storage;
 import fr.cenotelie.commons.storage.NoTransactionException;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Represents a transactional quad store.
@@ -32,6 +32,28 @@ import java.util.Iterator;
  * @author Laurent Wouters
  */
 public abstract class QuadStoreTransactional implements QuadStore {
+    /**
+     * The currently running transactions
+     */
+    protected volatile QuadStoreTransaction[] transactions;
+    /**
+     * The currently running transactions by thread
+     */
+    protected final WeakHashMap<Thread, QuadStoreTransaction> transactionsByThread;
+    /**
+     * The number of running transactions
+     */
+    protected volatile int transactionsCount;
+
+    /**
+     * Initializes this store
+     */
+    protected QuadStoreTransactional() {
+        this.transactions = new QuadStoreTransaction[8];
+        this.transactionsByThread = new WeakHashMap<>();
+        this.transactionsCount = 0;
+    }
+
     /**
      * Starts a new transaction
      * The transaction must be ended by a call to the transaction's close method.
@@ -52,7 +74,34 @@ public abstract class QuadStoreTransactional implements QuadStore {
      * @param autocommit Whether this transaction should commit when being closed
      * @return The new transaction
      */
-    public abstract QuadStoreTransaction newTransaction(boolean writable, boolean autocommit);
+    public QuadStoreTransaction newTransaction(boolean writable, boolean autocommit) {
+        QuadStoreTransaction transaction = createNewTransaction(writable, autocommit);
+        synchronized (transactionsByThread) {
+            transactionsByThread.put(Thread.currentThread(), transaction);
+            if (transactionsCount >= transactions.length) {
+                transactions = Arrays.copyOf(transactions, transactions.length * 2);
+                transactions[transactionsCount++] = transaction;
+                return transaction;
+            }
+            for (int i = 0; i != transactions.length; i++) {
+                if (transactions[i] == null) {
+                    transactions[i] = transaction;
+                    transactionsCount++;
+                    return transaction;
+                }
+            }
+            throw new ConcurrentModificationException();
+        }
+    }
+
+    /**
+     * Creates a new transaction
+     *
+     * @param writable   Whether the transaction shall support writing
+     * @param autocommit Whether this transaction should commit when being closed
+     * @return The new transaction
+     */
+    protected abstract QuadStoreTransaction createNewTransaction(boolean writable, boolean autocommit);
 
     /**
      * Gets the currently running transactions for the current thread
@@ -60,16 +109,18 @@ public abstract class QuadStoreTransactional implements QuadStore {
      * @return The current transaction
      * @throws NoTransactionException when the current thread does not use a transaction
      */
-    public abstract QuadStoreTransaction getTransaction() throws NoTransactionException;
-
-    @Override
-    public void addListener(ChangeListener listener) {
-        getTransaction().getStore().addListener(listener);
+    public QuadStoreTransaction getTransaction() throws NoTransactionException {
+        synchronized (transactionsByThread) {
+            QuadStoreTransaction transaction = transactionsByThread.get(Thread.currentThread());
+            if (transaction == null)
+                throw new NoTransactionException();
+            return transaction;
+        }
     }
 
     @Override
-    public void removeListener(ChangeListener listener) {
-        getTransaction().getStore().removeListener(listener);
+    public void setExecutionManager(ExecutionManager executionManager) {
+        getTransaction().getStore().setExecutionManager(executionManager);
     }
 
     @Override

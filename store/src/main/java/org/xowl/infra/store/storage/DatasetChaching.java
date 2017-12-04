@@ -21,7 +21,6 @@ import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedDataset;
-import org.xowl.infra.store.storage.persistent.PersistedDataset;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -61,7 +60,7 @@ class DatasetChaching extends DatasetImpl {
      *
      * @param original The original dataset
      */
-    public DatasetChaching(PersistedDataset original) {
+    public DatasetChaching(DatasetImpl original) {
         this.original = original;
         this.cachedSubjects = new ConcurrentHashMap<>(MAX_CACHED_SUBJECTS);
         this.cachedGraphs = new ConcurrentHashMap<>(MAX_CACHED_GRAPHS);

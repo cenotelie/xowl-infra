@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.storage.Transaction;
 import fr.cenotelie.commons.storage.TransactionalStorage;
 import fr.cenotelie.commons.storage.files.RawFile;
@@ -26,9 +27,6 @@ import fr.cenotelie.commons.storage.files.RawFileSplit;
 import fr.cenotelie.commons.storage.stores.ObjectStore;
 import fr.cenotelie.commons.storage.stores.ObjectStoreTransactional;
 import fr.cenotelie.commons.storage.wal.WriteAheadLog;
-import org.xowl.infra.lang.owl2.AnonymousIndividual;
-import org.xowl.infra.store.execution.EvaluableExpression;
-import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
@@ -44,23 +42,229 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class QuadStoreOnDiskTransactional implements QuadStore {
+class QuadStoreOnDiskTransactional extends QuadStoreTransactional {
     /**
-     * The storage system
+     * Base store for storage
      */
-    private final TransactionalStorage storage;
+    private static class StoreBase extends QuadStoreOnDisk {
+        /**
+         * The storage system
+         */
+        private final TransactionalStorage storage;
+
+        /**
+         * Initializes this store
+         *
+         * @param directory  The parent directory containing the backing files
+         * @param isReadonly Whether this store is in readonly mode
+         * @throws IOException When the backing files cannot be accessed
+         */
+        public StoreBase(File directory, boolean isReadonly) throws IOException {
+            this.storage = new WriteAheadLog(
+                    new RawFileSplit(directory, "xowl-", ".dat", new RawFileFactory() {
+                        @Override
+                        public RawFile newStorage(File file, boolean writable) throws IOException {
+                            return new RawFileBuffered(file, writable);
+                        }
+                    }, !isReadonly, 1 << 30),
+                    new RawFileBuffered(new File(directory, "xowl-log.dat"), !isReadonly)
+            );
+            boolean doInit = storage.getSize() == 0;
+            ObjectStore objectStore = new ObjectStoreTransactional(storage);
+            try (Transaction transaction = storage.newTransaction(doInit)) {
+                this.persistedNodes = new PersistedNodes(objectStore, doInit);
+                this.persistedDataset = new PersistedDataset(persistedNodes, objectStore, doInit);
+                if (doInit)
+                    transaction.commit();
+            }
+            this.cacheNodes = new CachedNodes();
+        }
+
+        @Override
+        public void close() throws IOException {
+            storage.close();
+        }
+    }
+
     /**
-     * The store for the nodes
+     * Interface store for transactions
      */
-    private final PersistedNodes persistedNodes;
+    private static class StoreInterface extends QuadStoreOnDisk {
+        /**
+         * The cache to use for the dataset
+         */
+        private final DatasetChaching cache;
+        /**
+         * The diff-ing dataset for the transaction
+         */
+        private final DatasetDiff diff;
+
+        /**
+         * Initializes this interface
+         *
+         * @param toCopy The interface to copy
+         */
+        public StoreInterface(QuadStoreOnDisk toCopy) {
+            super(toCopy);
+            this.cache = new DatasetChaching(toCopy.persistedDataset);
+            this.diff = new DatasetDiff(this.cache);
+        }
+
+        @Override
+        public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
+            return diff.getMultiplicity(quad);
+        }
+
+        @Override
+        public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+            return diff.getMultiplicity(graph, subject, property, object);
+        }
+
+        @Override
+        public Iterator<? extends Quad> getAll() {
+            return diff.getAll();
+        }
+
+        @Override
+        public Iterator<? extends Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
+            return diff.getAll(graph);
+        }
+
+        @Override
+        public Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+            return diff.getAll(subject, property, object);
+        }
+
+        @Override
+        public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+            return diff.getAll(graph, subject, property, object);
+        }
+
+        @Override
+        public Collection<GraphNode> getGraphs() {
+            return diff.getGraphs();
+        }
+
+        @Override
+        public long count() {
+            return diff.count();
+        }
+
+        @Override
+        public long count(GraphNode graph) throws UnsupportedNodeType {
+            return diff.count(graph);
+        }
+
+        @Override
+        public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+            return diff.count(subject, property, object);
+        }
+
+        @Override
+        public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+            return diff.count(graph, subject, property, object);
+        }
+
+
+        @Override
+        public void insert(Changeset changeset) throws UnsupportedNodeType {
+            diff.insert(changeset);
+        }
+
+        @Override
+        public void add(Quad quad) throws UnsupportedNodeType {
+            diff.add(quad);
+        }
+
+        @Override
+        public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+            diff.add(graph, subject, property, value);
+        }
+
+        @Override
+        public void remove(Quad quad) throws UnsupportedNodeType {
+            diff.remove(quad);
+        }
+
+        @Override
+        public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+            diff.remove(graph, subject, property, value);
+        }
+
+        @Override
+        public void clear() {
+            diff.clear();
+        }
+
+        @Override
+        public void clear(GraphNode graph) throws UnsupportedNodeType {
+            diff.clear(graph);
+        }
+
+        @Override
+        public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
+            diff.copy(origin, target, overwrite);
+        }
+
+        @Override
+        public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
+            diff.move(origin, target);
+        }
+
+        @Override
+        public void close() throws Exception {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     /**
-     * The store for the dataset
+     * Implementation of a transaction for this store
      */
-    private final PersistedDataset persistedDataset;
+    private static class StoreTransaction extends QuadStoreTransaction {
+        /**
+         * The interface store for this transaction
+         */
+        private final StoreInterface storeInterface;
+        /**
+         * The transaction from the backing storage system
+         */
+        private final Transaction transaction;
+
+        /**
+         * Initializes this transaction
+         *
+         * @param storeBase  The base store
+         * @param writable   Whether this transaction allows writing
+         * @param autocommit Whether this transaction should commit when being closed
+         */
+        public StoreTransaction(StoreBase storeBase, boolean writable, boolean autocommit) {
+            super(writable, autocommit);
+            this.storeInterface = new StoreInterface(storeBase);
+            this.transaction = storeBase.storage.newTransaction(writable, autocommit);
+        }
+
+        @Override
+        public QuadStore getStore() {
+            return storeInterface;
+        }
+
+        @Override
+        protected void doCommit() throws ConcurrentWriteException {
+            storeInterface.diff.commit();
+            transaction.commit();
+        }
+
+        @Override
+        protected void doAbort() {
+            storeInterface.diff.rollback();
+            transaction.abort();
+        }
+    }
+
     /**
-     * The node manager for the cache
+     * The base store
      */
-    private final CachedNodes cacheNodes;
+    private final StoreBase base;
 
     /**
      * Initializes this store
@@ -70,181 +274,26 @@ public class QuadStoreOnDiskTransactional implements QuadStore {
      * @throws IOException When the backing files cannot be accessed
      */
     public QuadStoreOnDiskTransactional(File directory, boolean isReadonly) throws IOException {
-        this.storage = new WriteAheadLog(
-                new RawFileSplit(directory, "xowl-", ".dat", new RawFileFactory() {
-                    @Override
-                    public RawFile newStorage(File file, boolean writable) throws IOException {
-                        return new RawFileBuffered(file, writable);
-                    }
-                }, !isReadonly, 1 << 30),
-                new RawFileBuffered(new File(directory, "xowl-log.dat"), !isReadonly)
-        );
-        boolean doInit = storage.getSize() == 0;
-        ObjectStore objectStore = new ObjectStoreTransactional(storage);
-        try (Transaction transaction = storage.newTransaction(doInit)) {
-            this.persistedNodes = new PersistedNodes(objectStore, doInit);
-            this.persistedDataset = new PersistedDataset(persistedNodes, objectStore, doInit);
-            if (doInit)
-                transaction.commit();
-        }
-        this.cacheNodes = new CachedNodes();
+        this.base = new StoreBase(directory, isReadonly);
     }
 
     @Override
-    public void setExecutionManager(ExecutionManager executionManager) {
-        persistedNodes.setExecutionManager(executionManager);
-        persistedDataset.setExecutionManager(executionManager);
-        cacheNodes.setExecutionManager(executionManager);
+    protected QuadStoreTransaction createNewTransaction(boolean writable, boolean autocommit) {
+        return new StoreTransaction(base, writable, autocommit);
+    }
+
+    @Override
+    public void close() throws IOException {
+        base.close();
     }
 
     @Override
     public void addListener(ChangeListener listener) {
-        persistedDataset.addListener(listener);
+        base.addListener(listener);
     }
 
     @Override
     public void removeListener(ChangeListener listener) {
-        persistedDataset.removeListener(listener);
-    }
-
-    @Override
-    public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
-        return persistedDataset.getMultiplicity(quad);
-    }
-
-    @Override
-    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return persistedDataset.getMultiplicity(graph, subject, property, object);
-    }
-
-    @Override
-    public Iterator<? extends Quad> getAll() {
-        return persistedDataset.getAll();
-    }
-
-    @Override
-    public Iterator<? extends Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
-        return persistedDataset.getAll(graph);
-    }
-
-    @Override
-    public Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return persistedDataset.getAll(subject, property, object);
-    }
-
-    @Override
-    public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return persistedDataset.getAll(graph, subject, property, object);
-    }
-
-    @Override
-    public Collection<GraphNode> getGraphs() {
-        return persistedDataset.getGraphs();
-    }
-
-    @Override
-    public long count() {
-        return persistedDataset.count();
-    }
-
-    @Override
-    public long count(GraphNode graph) throws UnsupportedNodeType {
-        return persistedDataset.count(graph);
-    }
-
-    @Override
-    public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return persistedDataset.count(subject, property, object);
-    }
-
-    @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        return persistedDataset.count(graph, subject, property, object);
-    }
-
-
-    @Override
-    public void insert(Changeset changeset) throws UnsupportedNodeType {
-        persistedDataset.insert(changeset);
-    }
-
-    @Override
-    public void add(Quad quad) throws UnsupportedNodeType {
-        persistedDataset.add(quad);
-    }
-
-    @Override
-    public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        persistedDataset.add(graph, subject, property, value);
-    }
-
-    @Override
-    public void remove(Quad quad) throws UnsupportedNodeType {
-        persistedDataset.remove(quad);
-    }
-
-    @Override
-    public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        persistedDataset.remove(graph, subject, property, value);
-    }
-
-    @Override
-    public void clear() {
-        persistedDataset.clear();
-    }
-
-    @Override
-    public void clear(GraphNode graph) throws UnsupportedNodeType {
-        persistedDataset.clear(graph);
-    }
-
-    @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
-        persistedDataset.copy(origin, target, overwrite);
-    }
-
-    @Override
-    public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
-        persistedDataset.move(origin, target);
-    }
-
-    @Override
-    public IRINode getIRINode(GraphNode graph) {
-        return cacheNodes.getIRINode(graph);
-    }
-
-    @Override
-    public IRINode getIRINode(String iri) {
-        return cacheNodes.getIRINode(iri);
-    }
-
-    @Override
-    public IRINode getExistingIRINode(String iri) {
-        return persistedNodes.getExistingIRINode(iri);
-    }
-
-    @Override
-    public BlankNode getBlankNode() {
-        return persistedNodes.getBlankNode();
-    }
-
-    @Override
-    public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
-        return cacheNodes.getLiteralNode(lex, datatype, lang);
-    }
-
-    @Override
-    public AnonymousNode getAnonNode(AnonymousIndividual individual) {
-        return cacheNodes.getAnonNode(individual);
-    }
-
-    @Override
-    public DynamicNode getDynamicNode(EvaluableExpression evaluable) {
-        return cacheNodes.getDynamicNode(evaluable);
-    }
-
-    @Override
-    public void close() throws Exception {
-        storage.close();
+        base.removeListener(listener);
     }
 }
