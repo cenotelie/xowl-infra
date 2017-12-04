@@ -17,56 +17,21 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.storage.NoTransactionException;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
-import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.WeakHashMap;
 
 /**
  * Represents a transactional quad store.
  * Accessing quads within this store requires the creation of a transaction.
- * This store provides the following guarantees:
- * - Atomicity: either a transaction full commits to the store, or nothing is changed
- * - Consistency: the store is in a consistent state before a transaction begins and after the transaction commits
- * - Isolation: transactions can only see the state of the store as of the time of the transaction's launch, with the changes of all fully committed previous transactions (snapshot isolation).
- * Transactions cannot see the changes of other transactions started after itself.
- * - Durability: the store guarantees that a transaction is durable after the transaction has been fully committed (the commit function returned), as long as the base store provides such guarantee.
  *
  * @author Laurent Wouters
  */
-public class QuadStoreTransactional implements QuadStore {
-    /**
-     * The original store to be protected by this interface
-     */
-    private final QuadStore base;
-    /**
-     * The currently running transactions
-     */
-    private volatile QuadStoreTransaction[] transactions;
-    /**
-     * The currently running transactions by thread
-     */
-    private final WeakHashMap<Thread, QuadStoreTransaction> transactionsByThread;
-    /**
-     * The number of running transactions
-     */
-    private volatile int transactionsCount;
-    /**
-     * The index of transaction data currently in the log
-     */
-    private volatile DatasetDiff[] index;
-    /**
-     * The number of transaction data in the index
-     */
-    private volatile int indexLength;
-
-
+public abstract class QuadStoreTransactional implements QuadStore {
     /**
      * Starts a new transaction
      * The transaction must be ended by a call to the transaction's close method.
@@ -87,23 +52,7 @@ public class QuadStoreTransactional implements QuadStore {
      * @param autocommit Whether this transaction should commit when being closed
      * @return The new transaction
      */
-    public QuadStoreTransaction newTransaction(boolean writable, boolean autocommit) {
-        QuadStoreTransaction transaction = new QuadStoreTransaction(writable, autocommit) {
-            @Override
-            protected void doCommit() throws ConcurrentWriteException {
-                // do nothing
-            }
-
-            @Override
-            protected void onClose() {
-                transactionsByThread.remove(Thread.currentThread());
-            }
-        };
-        synchronized (transactionsByThread) {
-            transactionsByThread.put(Thread.currentThread(), transaction);
-        }
-        return transaction;
-    }
+    public abstract QuadStoreTransaction newTransaction(boolean writable, boolean autocommit);
 
     /**
      * Gets the currently running transactions for the current thread
@@ -111,163 +60,150 @@ public class QuadStoreTransactional implements QuadStore {
      * @return The current transaction
      * @throws NoTransactionException when the current thread does not use a transaction
      */
-    public QuadStoreTransaction getTransaction() throws NoTransactionException {
-        return transactionsByThread.get(Thread.currentThread());
-    }
-
-
-    @Override
-    public void setExecutionManager(ExecutionManager executionManager) {
-
-    }
-
-    @Override
-    public void close() throws Exception {
-
-    }
+    public abstract QuadStoreTransaction getTransaction() throws NoTransactionException;
 
     @Override
     public void addListener(ChangeListener listener) {
-
+        getTransaction().getStore().addListener(listener);
     }
 
     @Override
     public void removeListener(ChangeListener listener) {
-
+        getTransaction().getStore().removeListener(listener);
     }
 
     @Override
     public long getMultiplicity(Quad quad) {
-        return 0;
+        return getTransaction().getStore().getMultiplicity(quad);
     }
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return 0;
+        return getTransaction().getStore().getMultiplicity(graph, subject, property, object);
     }
 
     @Override
     public Iterator<? extends Quad> getAll() {
-        return null;
+        return getTransaction().getStore().getAll();
     }
 
     @Override
     public Iterator<? extends Quad> getAll(GraphNode graph) {
-        return null;
+        return getTransaction().getStore().getAll(graph);
     }
 
     @Override
     public Iterator<? extends Quad> getAll(SubjectNode subject, Property property, Node object) {
-        return null;
+        return getTransaction().getStore().getAll(subject, property, object);
     }
 
     @Override
     public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return null;
+        return getTransaction().getStore().getAll(graph, subject, property, object);
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        return null;
+        return getTransaction().getStore().getGraphs();
     }
 
     @Override
     public long count() {
-        return 0;
+        return getTransaction().getStore().count();
     }
 
     @Override
     public long count(GraphNode graph) {
-        return 0;
+        return getTransaction().getStore().count(graph);
     }
 
     @Override
     public long count(SubjectNode subject, Property property, Node object) {
-        return 0;
+        return getTransaction().getStore().count(subject, property, object);
     }
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return 0;
+        return getTransaction().getStore().count(graph, subject, property, object);
     }
 
     @Override
     public void insert(Changeset changeset) {
-
+        getTransaction().getStore().insert(changeset);
     }
 
     @Override
     public void add(Quad quad) {
-
+        getTransaction().getStore().add(quad);
     }
 
     @Override
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) {
-
+        getTransaction().getStore().add(graph, subject, property, value);
     }
 
     @Override
     public void remove(Quad quad) {
-
+        getTransaction().getStore().remove(quad);
     }
 
     @Override
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) {
-
+        getTransaction().getStore().remove(graph, subject, property, value);
     }
 
     @Override
     public void clear() {
-
+        getTransaction().getStore().clear();
     }
 
     @Override
     public void clear(GraphNode graph) {
-
+        getTransaction().getStore().clear(graph);
     }
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
-
+        getTransaction().getStore().copy(origin, target, overwrite);
     }
 
     @Override
     public void move(GraphNode origin, GraphNode target) {
-
+        getTransaction().getStore().move(origin, target);
     }
 
     @Override
     public IRINode getIRINode(GraphNode graph) {
-        return null;
+        return getTransaction().getStore().getIRINode(graph);
     }
 
     @Override
     public IRINode getIRINode(String iri) {
-        return null;
+        return getTransaction().getStore().getIRINode(iri);
     }
 
     @Override
     public IRINode getExistingIRINode(String iri) {
-        return null;
+        return getTransaction().getStore().getExistingIRINode(iri);
     }
 
     @Override
     public BlankNode getBlankNode() {
-        return null;
+        return getTransaction().getStore().getBlankNode();
     }
 
     @Override
     public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
-        return null;
+        return getTransaction().getStore().getLiteralNode(lex, datatype, lang);
     }
 
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
-        return null;
+        return getTransaction().getStore().getAnonNode(individual);
     }
 
     @Override
     public DynamicNode getDynamicNode(EvaluableExpression evaluable) {
-        return null;
+        return getTransaction().getStore().getDynamicNode(evaluable);
     }
 }

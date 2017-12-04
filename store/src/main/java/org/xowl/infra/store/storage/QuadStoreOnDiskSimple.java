@@ -17,15 +17,10 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.storage.Transaction;
-import fr.cenotelie.commons.storage.TransactionalStorage;
-import fr.cenotelie.commons.storage.files.RawFile;
+import fr.cenotelie.commons.storage.Storage;
 import fr.cenotelie.commons.storage.files.RawFileBuffered;
-import fr.cenotelie.commons.storage.files.RawFileFactory;
-import fr.cenotelie.commons.storage.files.RawFileSplit;
 import fr.cenotelie.commons.storage.stores.ObjectStore;
-import fr.cenotelie.commons.storage.stores.ObjectStoreTransactional;
-import fr.cenotelie.commons.storage.wal.WriteAheadLog;
+import fr.cenotelie.commons.storage.stores.ObjectStoreSimple;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
@@ -41,16 +36,16 @@ import java.util.Iterator;
 
 /**
  * Concrete implementation of a persisted data store.
- * This class is NOT thread safe.
+ * This class is thread safe.
  * This store uses a cache mechanism to improve its performance.
  *
  * @author Laurent Wouters
  */
-class QuadStoreOnDisk implements QuadStore {
+class QuadStoreOnDiskSimple implements QuadStore {
     /**
      * The storage system
      */
-    private final TransactionalStorage storage;
+    private final Storage storage;
     /**
      * The store for the nodes
      */
@@ -67,28 +62,16 @@ class QuadStoreOnDisk implements QuadStore {
     /**
      * Initializes this store
      *
-     * @param directory  The parent directory containing the backing files
+     * @param file       The backing file
      * @param isReadonly Whether this store is in readonly mode
      * @throws IOException When the backing files cannot be accessed
      */
-    public QuadStoreOnDisk(File directory, boolean isReadonly) throws IOException {
-        this.storage = new WriteAheadLog(
-                new RawFileSplit(directory, "xowl-", ".dat", new RawFileFactory() {
-                    @Override
-                    public RawFile newStorage(File file, boolean writable) throws IOException {
-                        return new RawFileBuffered(file, writable);
-                    }
-                }, !isReadonly, 1 << 30),
-                new RawFileBuffered(new File(directory, "xowl-log.dat"), !isReadonly)
-        );
+    public QuadStoreOnDiskSimple(File file, boolean isReadonly) throws IOException {
+        this.storage = new RawFileBuffered(file, !isReadonly);
         boolean doInit = storage.getSize() == 0;
-        ObjectStore objectStore = new ObjectStoreTransactional(storage);
-        try (Transaction transaction = storage.newTransaction(doInit)) {
-            this.persistedNodes = new PersistedNodes(objectStore, doInit);
-            this.persistedDataset = new PersistedDataset(persistedNodes, objectStore, doInit);
-            if (doInit)
-                transaction.commit();
-        }
+        ObjectStore objectStore = new ObjectStoreSimple(storage);
+        this.persistedNodes = new PersistedNodes(objectStore, doInit);
+        this.persistedDataset = new PersistedDataset(persistedNodes, objectStore, doInit);
         this.cacheNodes = new CachedNodes();
     }
 

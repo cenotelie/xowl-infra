@@ -132,7 +132,7 @@ public class QuadStoreFactory {
                     try {
                         if (location == null)
                             location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
-                        primary = new QuadStoreOnDisk(location, isReadonly);
+                        primary = new QuadStoreOnDiskSimple(location, isReadonly);
                     } catch (IOException exception) {
                         Logging.get().error(exception);
                         return null;
