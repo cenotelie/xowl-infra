@@ -32,106 +32,25 @@ import java.util.UUID;
  */
 public class StoreFactory {
     /**
-     * Creates a new store
+     * Creates a new in-memory store
      *
-     * @return The configuration element for the store
+     * @return The new in-memory store
      */
-    public static StoreFactory create() {
-        return new StoreFactory();
+    public static Store newInMemory() {
+        return new StoreImplSimpleProxy(new CachedDataset());
     }
 
     /**
-     * The primary type of storage
-     */
-    private StoreType primaryStorage;
-    /**
-     * The location of the on-disk storage, if necessary
-     */
-    private File location;
-    /**
-     * Whether the store is read-only
-     */
-    private boolean isReadonly;
-    /**
-     * Whether the store shall support reasoning
-     * When reasoning is explicitly supported, the volatile inferred quads will never be committed to the primary storage
-     */
-    private boolean supportReasoning;
-
-    /**
-     * Initializes this configuration element
-     */
-    private StoreFactory() {
-        primaryStorage = StoreType.InMemory;
-    }
-
-    /**
-     * Selects an in-memory storage system
+     * Creates a new persisted store
      *
-     * @return This configuration element
+     * @param location   The location for the store
+     * @param isReadonly Whether the store is read-only
+     * @return The new store
+     * @throws IOException when an error occurred while accessing the storage
      */
-    public StoreFactory inMemory() {
-        primaryStorage = StoreType.InMemory;
-        return this;
-    }
-
-    /**
-     * Selects a persisted storage system
-     *
-     * @param location The target folder location
-     * @return This configuration element
-     */
-    public StoreFactory persisted(File location) {
-        primaryStorage = StoreType.Persisted;
-        this.location = location;
-        return this;
-    }
-
-    /**
-     * Makes the storage system read-only
-     * This only makes sense with persisted storage systems.
-     *
-     * @return This configuration element
-     */
-    public StoreFactory readonly() {
-        isReadonly = true;
-        return this;
-    }
-
-    /**
-     * Activates the support of reasoning
-     * When reasoning is explicitly supported, the volatile inferred quads will never be committed to the primary storage
-     *
-     * @return This configuration element
-     */
-    public StoreFactory withReasoning() {
-        supportReasoning = true;
-        return this;
-    }
-
-    /**
-     * Makes the store
-     *
-     * @return The store
-     * @throws IOException when failed to access the specified location
-     */
-    public Store make() throws IOException {
-        Store primary = null;
-        switch (primaryStorage) {
-            case InMemory: {
-                if (supportReasoning)
-                    return new StoreImplSimpleProxy(new DatasetReasonable(new CachedDataset()));
-                return new StoreImplSimpleProxy(new CachedDataset());
-            }
-            case Persisted: {
-                if (location == null)
-                    location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
-                if (supportReasoning)
-                    return new StoreImplTransactional(new DatasetReasonableTransactional(new PersistedDatasetTransactional(location, isReadonly)));
-                return new StoreImplTransactional(new PersistedDatasetTransactional(location, isReadonly));
-            }
-            default:
-                return null;
-        }
+    public static Store newPersisted(File location, boolean isReadonly) throws IOException {
+        if (location == null)
+            location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
+        return new StoreImplTransactional(new DatasetReasonableTransactional(new PersistedDatasetTransactional(location, isReadonly)));
     }
 }

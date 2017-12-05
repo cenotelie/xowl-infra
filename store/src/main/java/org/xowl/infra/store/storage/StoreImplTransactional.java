@@ -33,6 +33,10 @@ class StoreImplTransactional extends StoreImpl {
      */
     private static class MyTransaction extends StoreTransaction {
         /**
+         * The parent store
+         */
+        private final StoreImpl parent;
+        /**
          * The interface store for this transaction
          */
         private final DatasetForTransaction dataset;
@@ -44,12 +48,14 @@ class StoreImplTransactional extends StoreImpl {
         /**
          * Initializes this transaction
          *
+         * @param parent     The parent store
          * @param base       The base dataset
          * @param writable   Whether this transaction allows writing
          * @param autocommit Whether this transaction should commit when being closed
          */
-        public MyTransaction(DatasetTransactional base, boolean writable, boolean autocommit) {
+        public MyTransaction(StoreImpl parent, DatasetTransactional base, boolean writable, boolean autocommit) {
             super(writable, autocommit);
+            this.parent = parent;
             this.dataset = new DatasetForTransaction((DatasetImpl) base, true);
             this.transaction = base.newTransaction(writable, autocommit);
         }
@@ -70,6 +76,11 @@ class StoreImplTransactional extends StoreImpl {
             dataset.rollback();
             transaction.abort();
         }
+
+        @Override
+        protected void onClose() {
+            parent.onTransactionEnd(this);
+        }
     }
 
     /**
@@ -87,13 +98,8 @@ class StoreImplTransactional extends StoreImpl {
     }
 
     @Override
-    protected MyTransaction createNewTransaction(boolean writable, boolean autocommit) {
-        return new MyTransaction(base, writable, autocommit);
-    }
-
-    @Override
-    public void close() throws Exception {
-        base.close();
+    protected StoreTransaction createNewTransaction(boolean writable, boolean autocommit) {
+        return new MyTransaction(this, base, writable, autocommit);
     }
 
     @Override
@@ -104,5 +110,10 @@ class StoreImplTransactional extends StoreImpl {
     @Override
     public void removeListener(ChangeListener listener) {
         base.removeListener(listener);
+    }
+
+    @Override
+    protected void onClose() throws Exception {
+        base.close();
     }
 }

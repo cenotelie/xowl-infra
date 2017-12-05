@@ -17,11 +17,12 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.storage.NoTransactionException;
 
 import java.util.Arrays;
-import java.util.ConcurrentModificationException;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Basic implementation for a storage system of RDF quads
@@ -30,17 +31,40 @@ import java.util.WeakHashMap;
  */
 abstract class StoreImpl implements Store {
     /**
+     * The storage system is now closed
+     */
+    private static final int STATE_CLOSED = -1;
+    /**
+     * The storage system is ready for IO
+     */
+    private static final int STATE_READY = 0;
+    /**
+     * State flag for locking the log due to its closing
+     * In this state, new transactions cannot be created.
+     * Ongoing transactions must terminate.
+     */
+    private static final int STATE_FLAG_CLOSING_LOCK = 1;
+    /**
+     * State flag for locking access to the transactions register
+     */
+    private static final int STATE_FLAG_TRANSACTIONS_LOCK = 2;
+
+    /**
+     * The current state of the log
+     */
+    protected final AtomicInteger state;
+    /**
      * The currently running transactions
      */
-    protected volatile StoreTransaction[] transactions;
+    private volatile StoreTransaction[] transactions;
     /**
      * The currently running transactions by thread
      */
-    protected final WeakHashMap<Thread, StoreTransaction> transactionsByThread;
+    private final WeakHashMap<Thread, StoreTransaction> transactionsByThread;
     /**
      * The number of running transactions
      */
-    protected volatile int transactionsCount;
+    private volatile int transactionsCount;
 
     /**
      * Initializes this store
@@ -49,26 +73,58 @@ abstract class StoreImpl implements Store {
         this.transactions = new StoreTransaction[8];
         this.transactionsByThread = new WeakHashMap<>();
         this.transactionsCount = 0;
+        this.state = new AtomicInteger(STATE_READY);
+    }
+
+    /**
+     * Releases the lock on a resource in this log
+     *
+     * @param flag The flag used for locking the resource
+     */
+    protected void stateRelease(int flag) {
+        while (true) {
+            int s = state.get();
+            int target = s & (~flag);
+            if (state.compareAndSet(s, target))
+                break;
+        }
     }
 
     @Override
     public StoreTransaction newTransaction(boolean writable, boolean autocommit) {
-        StoreTransaction transaction = createNewTransaction(writable, autocommit);
-        synchronized (transactionsByThread) {
-            transactionsByThread.put(Thread.currentThread(), transaction);
+        while (true) {
+            int s = state.get();
+            if (s == STATE_CLOSED)
+                // already closed ...
+                throw new IllegalStateException();
+            if ((s & STATE_FLAG_CLOSING_LOCK) == STATE_FLAG_CLOSING_LOCK)
+                // flag is already used, someone is already closing this log ...
+                throw new IllegalStateException();
+            if ((s & STATE_FLAG_TRANSACTIONS_LOCK) == STATE_FLAG_TRANSACTIONS_LOCK)
+                // flag is already used by another thread
+                continue;
+            if (state.compareAndSet(s, s | STATE_FLAG_TRANSACTIONS_LOCK))
+                break;
+        }
+        try {
+            StoreTransaction transaction = createNewTransaction(writable, autocommit);
+            // register this transaction
             if (transactionsCount >= transactions.length) {
                 transactions = Arrays.copyOf(transactions, transactions.length * 2);
-                transactions[transactionsCount++] = transaction;
-                return transaction;
-            }
-            for (int i = 0; i != transactions.length; i++) {
-                if (transactions[i] == null) {
-                    transactions[i] = transaction;
-                    transactionsCount++;
-                    return transaction;
+                transactions[transactionsCount] = transaction;
+            } else {
+                for (int i = 0; i != transactions.length; i++) {
+                    if (transactions[i] == null) {
+                        transactions[i] = transaction;
+                        break;
+                    }
                 }
             }
-            throw new ConcurrentModificationException();
+            transactionsCount++;
+            transactionsByThread.put(Thread.currentThread(), transaction);
+            return transaction;
+        } finally {
+            stateRelease(STATE_FLAG_TRANSACTIONS_LOCK);
         }
     }
 
@@ -83,18 +139,112 @@ abstract class StoreImpl implements Store {
 
     @Override
     public StoreTransaction getTransaction() throws NoTransactionException {
-        synchronized (transactionsByThread) {
-            StoreTransaction transaction = transactionsByThread.get(Thread.currentThread());
-            if (transaction == null)
-                throw new NoTransactionException();
-            return transaction;
+        StoreTransaction transaction = transactionsByThread.get(Thread.currentThread());
+        if (transaction == null)
+            throw new NoTransactionException();
+        return transaction;
+    }
+
+    /**
+     * When the transaction ended
+     * Unregisters this transaction
+     *
+     * @param transaction The transaction that ended
+     */
+    public void onTransactionEnd(StoreTransaction transaction) {
+        while (true) {
+            int s = state.get();
+            if (s == STATE_CLOSED)
+                // already closed ...
+                throw new IllegalStateException();
+            if ((s & STATE_FLAG_TRANSACTIONS_LOCK) == STATE_FLAG_TRANSACTIONS_LOCK)
+                // flag is already used by another thread
+                continue;
+            if (state.compareAndSet(s, s | STATE_FLAG_TRANSACTIONS_LOCK))
+                break;
+        }
+        try {
+            for (int i = 0; i != transactions.length; i++) {
+                if (transactions[i] == transaction) {
+                    transactions[i] = null;
+                    transactionsCount--;
+                    transactionsByThread.remove(transaction.getThread());
+                    break;
+                }
+            }
+        } finally {
+            stateRelease(STATE_FLAG_TRANSACTIONS_LOCK);
+        }
+    }
+
+    /**
+     * Kills the orphaned transactions
+     */
+    private void cleanupKillOrphans() {
+        // cleanup dead transactions
+        while (true) {
+            int s = state.get();
+            if (s == STATE_CLOSED)
+                // already closed ...
+                throw new IllegalStateException();
+            if ((s & STATE_FLAG_TRANSACTIONS_LOCK) == STATE_FLAG_TRANSACTIONS_LOCK)
+                // flag is already used by another thread
+                continue;
+            if (state.compareAndSet(s, s | STATE_FLAG_TRANSACTIONS_LOCK))
+                break;
+        }
+        StoreTransaction[] toKill = null;
+        int toKillCount = 0;
+        try {
+            for (int i = 0; i != transactions.length; i++) {
+                if (transactions[i] != null && transactions[i].isOrphan()) {
+                    if (toKill == null)
+                        toKill = new StoreTransaction[4];
+                    if (toKillCount == toKill.length)
+                        toKill = Arrays.copyOf(toKill, toKill.length * 2);
+                    toKill[toKillCount++] = transactions[i];
+                }
+            }
+        } finally {
+            stateRelease(STATE_FLAG_TRANSACTIONS_LOCK);
+        }
+        // kill the orphaned transactions
+        for (int i = 0; i != toKillCount; i++) {
+            transactions[i].abort();
+            try {
+                transactions[i].close();
+            } catch (ConcurrentWriteException exception) {
+                // cannot happen because we aborted the transaction before
+            }
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        while (true) {
+            int s = state.get();
+            if (s == STATE_CLOSED)
+                // already closed ...
+                throw new IllegalStateException();
+            if ((s & STATE_FLAG_CLOSING_LOCK) == STATE_FLAG_CLOSING_LOCK)
+                // flag is already used, someone is already closing this log ...
+                throw new IllegalStateException();
+            if (state.compareAndSet(s, s | STATE_FLAG_CLOSING_LOCK))
+                break;
+        }
+        try {
+            cleanupKillOrphans();
+            onClose();
+        } finally {
+            state.set(STATE_CLOSED);
         }
     }
 
     /**
      * When the store is closing
+     *
+     * @throws Exception when an error occurred
      */
-    protected void onClose() {
-        // TODO: wait for the transactions here
+    protected void onClose() throws Exception {
     }
 }
