@@ -22,7 +22,6 @@ import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.sparql.*;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.*;
 
@@ -60,7 +59,7 @@ public class RDFRuleSelect extends RDFRule {
         /**
          * The node manager for the output
          */
-        private final NodeManager nodes;
+        private final DatasetNodes nodes;
         /**
          * The known pattern matches
          */
@@ -110,7 +109,7 @@ public class RDFRuleSelect extends RDFRule {
         }
 
         @Override
-        public NodeManager getNodes() {
+        public DatasetNodes getNodes() {
             return nodes;
         }
 
@@ -302,7 +301,7 @@ public class RDFRuleSelect extends RDFRule {
     }
 
     @Override
-    public Changeset produce(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator) {
+    public Changeset produce(RDFRuleExecution execution, DatasetNodes nodes, Evaluator evaluator) {
         return produceQuads(execution, nodes, evaluator, consequents);
     }
 }

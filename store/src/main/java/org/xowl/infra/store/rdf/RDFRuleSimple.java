@@ -19,7 +19,6 @@ package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.Evaluator;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.*;
 
@@ -157,7 +156,7 @@ public class RDFRuleSimple extends RDFRule {
     }
 
     @Override
-    public Changeset produce(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator) {
+    public Changeset produce(RDFRuleExecution execution, DatasetNodes nodes, Evaluator evaluator) {
         return produceQuads(execution, nodes, evaluator, consequents);
     }
 }

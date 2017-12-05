@@ -27,7 +27,7 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.util.*;
 
@@ -40,7 +40,7 @@ public class Translator {
     /**
      * The node manager for the creation of new RDF nodes
      */
-    protected final NodeManager nodeManager;
+    protected final DatasetNodes nodeManager;
     /**
      * The graph that contains the translated input
      */
@@ -60,7 +60,7 @@ public class Translator {
      * @param context     The existing translation context, or null if a new one shall be used
      * @param nodeManager The node manager for the creation of new RDF nodes
      */
-    public Translator(TranslationContext context, NodeManager nodeManager) {
+    public Translator(TranslationContext context, DatasetNodes nodeManager) {
         this.nodeManager = nodeManager;
         this.context = context;
         if (this.context == null)

@@ -22,7 +22,7 @@ import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.RDFPattern;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.RDFQuery;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.util.Collection;
 
@@ -52,7 +52,7 @@ public class EvalContextRepository implements EvalContext {
     }
 
     @Override
-    public NodeManager getNodes() {
+    public DatasetNodes getNodes() {
         return repository.getStore();
     }
 

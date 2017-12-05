@@ -29,8 +29,8 @@ import org.xowl.infra.store.owl.OWLQueryEngine;
 import org.xowl.infra.store.owl.OWLRuleEngine;
 import org.xowl.infra.store.rdf.RDFQueryEngine;
 import org.xowl.infra.store.rdf.RDFRuleEngine;
-import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.store.rdf.DatasetNodes;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
 
@@ -45,7 +45,7 @@ public class RepositoryDirectSemantics extends Repository {
     /**
      * The node manager used for loading
      */
-    private final NodeManager nodeManager;
+    private final DatasetNodes nodeManager;
     /**
      * The entities contained by the ontologies
      */
@@ -99,7 +99,7 @@ public class RepositoryDirectSemantics extends Repository {
      */
     public RepositoryDirectSemantics(IRIMapper mapper, boolean resolveDependencies) {
         super(mapper, resolveDependencies);
-        this.nodeManager = new CachedNodes();
+        this.nodeManager = new CachedDatasetNodes();
         this.mapEntities = new HashMap<>();
         this.classUnions = new ArrayList<>();
         this.classIntersections = new ArrayList<>();
@@ -139,7 +139,7 @@ public class RepositoryDirectSemantics extends Repository {
     }
 
     @Override
-    protected NodeManager getNodeManager() {
+    protected DatasetNodes getNodeManager() {
         return nodeManager;
     }
 

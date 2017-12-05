@@ -15,49 +15,35 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.storage.cache;
+package org.xowl.infra.store.storage;
 
-import org.xowl.infra.store.storage.DatasetImpl;
-import org.xowl.infra.store.storage.DatasetNodesImpl;
-import org.xowl.infra.store.storage.DatasetQuadsImpl;
+import fr.cenotelie.commons.storage.Transaction;
 
 /**
- * Concrete implementation of a basic in-memory dataset of RDF quads
- * This implementation delegates all its behavior to caching stores.
- * This quad storage system is NOT transactional.
+ * Represents a dataset of RDF quads composed of
+ * - a backend dataset of ground quads
+ * - a volatile dataset for quads coming from reasoning facilities
  *
  * @author Laurent Wouters
  */
-public class CachedDataset extends DatasetImpl {
+public class DatasetReasonableTransactional extends DatasetReasonable implements DatasetTransactional {
     /**
-     * The store for the nodes
+     * The ground dataset
      */
-    private final CachedDatasetNodes nodes;
-    /**
-     * The store for the quads
-     */
-    private final CachedDatasetQuads quads;
+    private final DatasetTransactional ground;
 
     /**
      * Initializes this store
+     *
+     * @param ground The ground dataset
      */
-    public CachedDataset() {
-        nodes = new CachedDatasetNodes();
-        quads = new CachedDatasetQuads();
+    public DatasetReasonableTransactional(DatasetTransactional ground) {
+        super(ground);
+        this.ground = ground;
     }
 
     @Override
-    protected DatasetNodesImpl getNodes() {
-        return nodes;
-    }
-
-    @Override
-    protected DatasetQuadsImpl getQuads() {
-        return quads;
-    }
-
-    @Override
-    public void close() {
-        // do nothing
+    public Transaction newTransaction(boolean writable, boolean autocommit) {
+        return ground.newTransaction(writable, autocommit);
     }
 }

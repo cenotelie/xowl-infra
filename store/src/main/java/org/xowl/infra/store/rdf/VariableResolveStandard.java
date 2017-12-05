@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.storage.NodeManager;
-
 /**
  * The default variable resolver
  * Variable nodes used a graph will be resolved as IRIs, others will be resolved as blank nodes
@@ -38,7 +36,7 @@ public class VariableResolveStandard extends VariableResolver {
     }
 
     @Override
-    public Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph) {
+    public Node resolve(VariableNode variable, RDFRuleExecution execution, DatasetNodes nodes, boolean isGraph) {
         if (isGraph)
             return nodes.getIRINode((GraphNode) null);
         return nodes.getBlankNode();

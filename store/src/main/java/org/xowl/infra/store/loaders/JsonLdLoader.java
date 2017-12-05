@@ -29,8 +29,7 @@ import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.TextContext;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.Reader;
 import java.util.*;
@@ -146,9 +145,9 @@ public class JsonLdLoader implements Loader {
     }
 
     /**
-     * The RDF store to create nodes from
+     * The RDF nodes management
      */
-    private final NodeManager store;
+    private final DatasetNodes nodes;
     /**
      * The current logger
      */
@@ -183,16 +182,16 @@ public class JsonLdLoader implements Loader {
      * Initializes this loader
      */
     public JsonLdLoader() {
-        this(new CachedNodes());
+        this(new CachedDatasetNodes());
     }
 
     /**
      * Initializes this loader
      *
-     * @param store The RDF store used to create nodes
+     * @param nodes The RDF nodes management
      */
-    public JsonLdLoader(NodeManager store) {
-        this.store = store;
+    public JsonLdLoader(DatasetNodes nodes) {
+        this.nodes = nodes;
     }
 
     @Override
@@ -212,7 +211,7 @@ public class JsonLdLoader implements Loader {
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
         try {
-            loadDocument(parseResult.getRoot(), store.getIRINode(graphIRI), new JsonLdContext(this));
+            loadDocument(parseResult.getRoot(), nodes.getIRINode(graphIRI), new JsonLdContext(this));
         } catch (LoaderException exception) {
             logger.error(exception);
             logger.error("@" + exception.getOrigin().getPosition());
@@ -347,7 +346,7 @@ public class JsonLdLoader implements Loader {
                 value = current.expandID(value);
                 if (!URIUtils.isAbsolute(value))
                     return null;
-                subject = store.getIRINode(value);
+                subject = nodes.getIRINode(value);
             }
         }
 
@@ -356,7 +355,7 @@ public class JsonLdLoader implements Loader {
             if (typeNode != null || reverseNode != null || !members.isEmpty() || !markerTopLevel) {
                 // this object has properties, or it is not the top level, use the subject
                 if (subject == null)
-                    subject = store.getBlankNode();
+                    subject = nodes.getBlankNode();
                 targetGraph = (GraphNode) subject;
             } else if (subject != null) {
                 targetGraph = (GraphNode) subject;
@@ -369,7 +368,7 @@ public class JsonLdLoader implements Loader {
         markerTopLevel = false;
 
         if (subject == null)
-            subject = store.getBlankNode();
+            subject = nodes.getBlankNode();
 
         // setup the type
         if (typeNode != null) {
@@ -377,9 +376,9 @@ public class JsonLdLoader implements Loader {
             if (value != null) {
                 if (value instanceof List) {
                     for (Node type : ((List<Node>) value))
-                        quads.add(new Quad(graph, subject, store.getIRINode(Vocabulary.rdfType), type));
+                        quads.add(new Quad(graph, subject, nodes.getIRINode(Vocabulary.rdfType), type));
                 } else {
-                    quads.add(new Quad(graph, subject, store.getIRINode(Vocabulary.rdfType), (Node) value));
+                    quads.add(new Quad(graph, subject, nodes.getIRINode(Vocabulary.rdfType), (Node) value));
                 }
             }
         }
@@ -424,7 +423,7 @@ public class JsonLdLoader implements Loader {
             // property is undefined or
             // this is a blank node identifier, do not handle generalized RDF graphs
             return;
-        IRINode property = store.getIRINode(propertyIRI);
+        IRINode property = nodes.getIRINode(propertyIRI);
         Object value = loadValue(definition, graph, context, propertyInfo);
         if (value == null)
             return;
@@ -537,7 +536,7 @@ public class JsonLdLoader implements Loader {
     private BlankNode resolveBlank(String identifier) {
         BlankNode result = blanks.get(identifier);
         if (result == null) {
-            result = store.getBlankNode();
+            result = nodes.getBlankNode();
             blanks.put(identifier, result);
         }
         return result;
@@ -556,18 +555,18 @@ public class JsonLdLoader implements Loader {
             if (node != null)
                 filtered.add(node);
         if (filtered.isEmpty())
-            return store.getIRINode(Vocabulary.rdfNil);
-        SubjectNode head = store.getBlankNode();
+            return nodes.getIRINode(Vocabulary.rdfNil);
+        SubjectNode head = nodes.getBlankNode();
         SubjectNode current = head;
-        quads.add(new Quad(graph, current, store.getIRINode(Vocabulary.rdfFirst), filtered.get(0)));
+        quads.add(new Quad(graph, current, nodes.getIRINode(Vocabulary.rdfFirst), filtered.get(0)));
         for (int i = 1; i != filtered.size(); i++) {
             Node element = filtered.get(i);
-            SubjectNode proxy = store.getBlankNode();
-            quads.add(new Quad(graph, current, store.getIRINode(Vocabulary.rdfRest), proxy));
+            SubjectNode proxy = nodes.getBlankNode();
+            quads.add(new Quad(graph, current, nodes.getIRINode(Vocabulary.rdfRest), proxy));
             current = proxy;
-            quads.add(new Quad(graph, current, store.getIRINode(Vocabulary.rdfFirst), element));
+            quads.add(new Quad(graph, current, nodes.getIRINode(Vocabulary.rdfFirst), element));
         }
-        quads.add(new Quad(graph, current, store.getIRINode(Vocabulary.rdfRest), store.getIRINode(Vocabulary.rdfNil)));
+        quads.add(new Quad(graph, current, nodes.getIRINode(Vocabulary.rdfRest), nodes.getIRINode(Vocabulary.rdfNil)));
         return head;
     }
 
@@ -583,9 +582,9 @@ public class JsonLdLoader implements Loader {
         String value = node.getValue();
         if (info != null && info.valueType != null) {
             // coerced type
-            return store.getLiteralNode(value, context.expandName(info.valueType), null);
+            return nodes.getLiteralNode(value, context.expandName(info.valueType), null);
         }
-        return store.getLiteralNode(value, Vocabulary.xsdBoolean, null);
+        return nodes.getLiteralNode(value, Vocabulary.xsdBoolean, null);
     }
 
     /**
@@ -606,21 +605,21 @@ public class JsonLdLoader implements Loader {
                         case Vocabulary.xsdFloat:
                         case Vocabulary.xsdDouble:
                         case Vocabulary.xsdDecimal:
-                            return store.getLiteralNode(canonicalDouble(value), context.expandName(info.valueType), null);
+                            return nodes.getLiteralNode(canonicalDouble(value), context.expandName(info.valueType), null);
                         default:
-                            return store.getLiteralNode(value, context.expandName(info.valueType), null);
+                            return nodes.getLiteralNode(value, context.expandName(info.valueType), null);
                     }
                 }
-                return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
+                return nodes.getLiteralNode(value, Vocabulary.xsdInteger, null);
             }
             case JsonLexer.ID.LITERAL_DECIMAL:
             case JsonLexer.ID.LITERAL_DOUBLE: {
                 String value = canonicalDouble(node.getValue());
                 if (info != null && info.valueType != null) {
                     // coerced type
-                    return store.getLiteralNode(canonicalDouble(value), context.expandName(info.valueType), null);
+                    return nodes.getLiteralNode(canonicalDouble(value), context.expandName(info.valueType), null);
                 }
-                return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
+                return nodes.getLiteralNode(value, Vocabulary.xsdDouble, null);
             }
         }
         throw new LoaderException("Unexpected literal numeric", node);
@@ -647,20 +646,20 @@ public class JsonLdLoader implements Loader {
                     return resolveBlank(value.substring(2));
                 } else if (Vocabulary.JSONLD.id.equals(info.valueType)) {
                     // this is an id
-                    return store.getIRINode(context.expandID(value));
+                    return nodes.getIRINode(context.expandID(value));
                 } else {
                     // this is a resource
-                    return store.getIRINode(context.expandResource(value));
+                    return nodes.getIRINode(context.expandResource(value));
                 }
             }
             // this is a typed literal
-            return store.getLiteralNode(value, context.expandName(info.valueType), null);
+            return nodes.getLiteralNode(value, context.expandName(info.valueType), null);
         }
         String language = (info != null && info.language != null) ? info.language : context.getLanguage();
         if (language != null && Vocabulary.JSONLD.null_.equals(language))
             // explicit reset
             language = null;
-        return store.getLiteralNode(value, language == null ? Vocabulary.xsdString : Vocabulary.rdfLangString, language);
+        return nodes.getLiteralNode(value, language == null ? Vocabulary.xsdString : Vocabulary.rdfLangString, language);
     }
 
     /**
@@ -788,7 +787,7 @@ public class JsonLdLoader implements Loader {
      */
     private Node loadMultilingualValue(ASTNode definition, String language) throws LoaderException {
         String value = getValue(definition);
-        return store.getLiteralNode(value, Vocabulary.rdfLangString, language);
+        return nodes.getLiteralNode(value, Vocabulary.rdfLangString, language);
     }
 
     /**

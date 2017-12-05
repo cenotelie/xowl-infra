@@ -15,49 +15,38 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.storage.cache;
+package org.xowl.infra.store.storage;
 
-import org.xowl.infra.store.storage.DatasetImpl;
-import org.xowl.infra.store.storage.DatasetNodesImpl;
-import org.xowl.infra.store.storage.DatasetQuadsImpl;
+import fr.cenotelie.commons.storage.Access;
+import fr.cenotelie.commons.storage.Transaction;
+import org.xowl.infra.store.rdf.Dataset;
 
 /**
- * Concrete implementation of a basic in-memory dataset of RDF quads
- * This implementation delegates all its behavior to caching stores.
- * This quad storage system is NOT transactional.
+ * Represents a transaction for an interaction with a store of RDF quads
  *
  * @author Laurent Wouters
  */
-public class CachedDataset extends DatasetImpl {
+public abstract class StoreTransaction extends Transaction {
     /**
-     * The store for the nodes
+     * Initializes this transaction
+     *
+     * @param writable   Whether this transaction allows writing
+     * @param autocommit Whether this transaction should commit when being closed
      */
-    private final CachedDatasetNodes nodes;
-    /**
-     * The store for the quads
-     */
-    private final CachedDatasetQuads quads;
-
-    /**
-     * Initializes this store
-     */
-    public CachedDataset() {
-        nodes = new CachedDatasetNodes();
-        quads = new CachedDatasetQuads();
+    public StoreTransaction(boolean writable, boolean autocommit) {
+        super(writable, autocommit);
     }
 
-    @Override
-    protected DatasetNodesImpl getNodes() {
-        return nodes;
-    }
+    /**
+     * Gets the dataset to use for this transaction
+     *
+     * @return The dataset to use for this transaction
+     */
+    public abstract Dataset getDataset();
 
     @Override
-    protected DatasetQuadsImpl getQuads() {
-        return quads;
-    }
-
-    @Override
-    public void close() {
-        // do nothing
+    protected Access newAccess(long index, int length, boolean writable) {
+        // do not allow direct access to the storage
+        throw new UnsupportedOperationException();
     }
 }

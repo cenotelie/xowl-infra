@@ -42,8 +42,8 @@ import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
-import org.xowl.infra.store.storage.QuadStore;
-import org.xowl.infra.store.storage.QuadStoreFactory;
+import org.xowl.infra.store.rdf.Dataset;
+import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.io.*;
@@ -234,9 +234,9 @@ public class ControllerDatabase implements Closeable {
      * @return The repository
      */
     private static RepositoryRDF createRepository(IniDocument configuration, File location) {
-        QuadStore store = Objects.equals(configuration.get(CONFIG_STORAGE), CONFIG_STORAGE_MEMORY) ?
-                QuadStoreFactory.create().inMemory().withReasoning().make() :
-                QuadStoreFactory.create().onDisk(location).withReasoning().make();
+        Dataset store = Objects.equals(configuration.get(CONFIG_STORAGE), CONFIG_STORAGE_MEMORY) ?
+                StoreFactory.create().inMemory().withReasoning().make() :
+                StoreFactory.create().persisted(location).withReasoning().make();
         return new RepositoryRDF(store, IRIMapper.getDefault(), false);
     }
 

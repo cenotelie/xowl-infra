@@ -28,9 +28,9 @@ import java.util.Objects;
  */
 class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     /**
-     * The backend persisting the literals
+     * The backend persisting the node
      */
-    private final PersistedNodes backend;
+    private final PersistedDatasetNodes nodes;
     /**
      * The key for this literal
      */
@@ -43,11 +43,11 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     /**
      * Initializes this node
      *
-     * @param backend The backend persisting the literals
-     * @param key     The key for this literal
+     * @param nodes The backend persisting the node
+     * @param key   The key for this literal
      */
-    public PersistedLiteralNode(PersistedNodes backend, long key) {
-        this.backend = backend;
+    public PersistedLiteralNode(PersistedDatasetNodes nodes, long key) {
+        this.nodes = nodes;
         this.key = key;
     }
 
@@ -55,7 +55,7 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
      * Caches the content of the literal
      */
     private void doCache() {
-        cache = backend.retrieveLiteral(key);
+        cache = nodes.retrieveLiteral(key);
     }
 
     @Override
@@ -80,8 +80,8 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     }
 
     @Override
-    public PersistedNodes getStore() {
-        return backend;
+    public PersistedDatasetNodes getOwner() {
+        return nodes;
     }
 
     @Override
@@ -91,19 +91,19 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
 
     @Override
     public void incrementRefCount() {
-        backend.onRefCountLiteral(key, 1);
+        nodes.onRefCountLiteral(key, 1);
     }
 
     @Override
     public void decrementRefCount() {
-        backend.onRefCountLiteral(key, -1);
+        nodes.onRefCountLiteral(key, -1);
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedLiteralNode) {
             PersistedLiteralNode node = (PersistedLiteralNode) o;
-            return (node.backend == backend && node.key == key);
+            return (node.nodes == nodes && node.key == key);
         }
         if (o instanceof LiteralNode) {
             LiteralNode node = (LiteralNode) o;

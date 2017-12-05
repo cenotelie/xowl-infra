@@ -19,7 +19,7 @@ package org.xowl.infra.denotation.rules;
 
 import org.xowl.infra.denotation.Denotation;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ public class DenotationRuleContext {
     /**
      * The current node manager
      */
-    private final NodeManager nodes;
+    private final DatasetNodes nodes;
     /**
      * The graph for the signs
      */
@@ -72,7 +72,7 @@ public class DenotationRuleContext {
      * @param graphMeta  The graph for the metadata
      * @param rule       The RDF rule
      */
-    public DenotationRuleContext(NodeManager nodes, GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, RDFRuleSimple rule) {
+    public DenotationRuleContext(DatasetNodes nodes, GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, RDFRuleSimple rule) {
         this.nodes = nodes;
         this.graphSigns = graphSigns;
         this.graphSemes = graphSemes;
@@ -88,7 +88,7 @@ public class DenotationRuleContext {
      *
      * @return The current node manager
      */
-    public NodeManager getNodes() {
+    public DatasetNodes getNodes() {
         return nodes;
     }
 

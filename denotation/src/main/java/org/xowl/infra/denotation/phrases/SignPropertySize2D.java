@@ -21,7 +21,7 @@ import fr.cenotelie.commons.utils.TextUtils;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.awt.geom.Point2D;
 
@@ -65,7 +65,7 @@ public class SignPropertySize2D extends SignProperty {
     }
 
     @Override
-    public Node serializeValueRdf(NodeManager nodes, Object value) {
+    public Node serializeValueRdf(DatasetNodes nodes, Object value) {
         Point2D point = (Point2D) value;
         return nodes.getLiteralNode(Double.toString(point.getX()) + " " + Double.toString(point.getX()), Vocabulary.xsdString, null);
     }

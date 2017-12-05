@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,18 +15,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.storage;
+package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
-import org.xowl.infra.store.rdf.*;
 
 /**
- * Represents the public API of an entity that stores and manages nodes for a dataset
+ * Represents the part of the API for handling the nodes in a dataset of RDF quads
  *
  * @author Laurent Wouters
  */
-public interface NodeManager {
+public interface DatasetNodes {
     /**
      * Creates a new node with the specified graph as a prefix
      *

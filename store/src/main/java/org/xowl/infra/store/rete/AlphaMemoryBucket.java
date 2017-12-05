@@ -19,7 +19,7 @@ package org.xowl.infra.store.rete;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.rdf.DatasetQuads;
 
 import java.util.Arrays;
 
@@ -74,7 +74,7 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
      * @param store   The RDF data
      * @return A new sub-bucket
      */
-    protected abstract AlphaMemoryBucketElement createSub(Quad pattern, Dataset store);
+    protected abstract AlphaMemoryBucketElement createSub(Quad pattern, DatasetQuads store);
 
     @Override
     public void matchMemories(AlphaMemoryBuffer buffer, Quad quad) {
@@ -91,7 +91,7 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     }
 
     @Override
-    public AlphaMemory resolveMemory(Quad pattern, Dataset store) {
+    public AlphaMemory resolveMemory(Quad pattern, DatasetQuads store) {
         Node node = getNode(pattern);
         if (node == null || node.getNodeType() == Node.TYPE_VARIABLE) {
             synchronized (this) {

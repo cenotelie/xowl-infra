@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,19 +15,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.storage;
-
-import org.xowl.infra.store.rdf.*;
+package org.xowl.infra.store.rdf;
 
 import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Represents the public API of a dataset
+ * Represents the part of the API for handling the quads themselves in a dataset of RDF quads
  *
  * @author Laurent Wouters
  */
-public interface Dataset {
+public interface DatasetQuads {
     /**
      * Adds the specified listener to this dataset
      *

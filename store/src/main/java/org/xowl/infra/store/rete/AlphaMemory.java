@@ -19,7 +19,7 @@ package org.xowl.infra.store.rete;
 
 import fr.cenotelie.commons.utils.collections.FastBuffer;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.rdf.DatasetQuads;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -33,7 +33,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     /**
      * The parent RDF store
      */
-    private final Dataset store;
+    private final DatasetQuads store;
     /**
      * The pattern matched by this memory
      */
@@ -53,7 +53,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
      * @param pattern The data to match
      * @param store   The RDF data
      */
-    public AlphaMemory(Quad pattern, Dataset store) {
+    public AlphaMemory(Quad pattern, DatasetQuads store) {
         this.store = store;
         this.pattern = pattern;
         this.children = new FastBuffer<>(8);
@@ -133,7 +133,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     }
 
     @Override
-    public AlphaMemory resolveMemory(Quad pattern, Dataset store) {
+    public AlphaMemory resolveMemory(Quad pattern, DatasetQuads store) {
         return this;
     }
 }

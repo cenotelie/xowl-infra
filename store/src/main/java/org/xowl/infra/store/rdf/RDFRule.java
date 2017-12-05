@@ -23,7 +23,6 @@ import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.execution.Evaluator;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -152,7 +151,7 @@ public abstract class RDFRule {
      * @param evaluator The current evaluator
      * @return The production's changeset
      */
-    public abstract Changeset produce(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator);
+    public abstract Changeset produce(RDFRuleExecution execution, DatasetNodes nodes, Evaluator evaluator);
 
     /**
      * Determines whether this rule can be fired for the specified execution
@@ -223,7 +222,7 @@ public abstract class RDFRule {
      * @param pattern   The quads to process
      * @return The processed quad
      */
-    protected Changeset produceQuads(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, RDFPattern pattern) {
+    protected Changeset produceQuads(RDFRuleExecution execution, DatasetNodes nodes, Evaluator evaluator, RDFPattern pattern) {
         List<Quad> positives = new ArrayList<>();
         List<Quad> negatives = new ArrayList<>();
         for (Quad quad : pattern.getPositives()) {
@@ -256,7 +255,7 @@ public abstract class RDFRule {
      * @param quad      The quad to process
      * @return The processed quad
      */
-    protected Quad produceQuad(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, Quad quad) {
+    protected Quad produceQuad(RDFRuleExecution execution, DatasetNodes nodes, Evaluator evaluator, Quad quad) {
         Node nodeGraph = produceResolveNode(execution, nodes, evaluator, quad.getGraph(), true);
         Node nodeSubject = produceResolveNode(execution, nodes, evaluator, quad.getSubject(), false);
         Node nodeProperty = produceResolveNode(execution, nodes, evaluator, quad.getProperty(), false);
@@ -276,7 +275,7 @@ public abstract class RDFRule {
      * @param isGraph   Whether the node to resolve is a graph
      * @return The processed node
      */
-    private Node produceResolveNode(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, Node node, boolean isGraph) {
+    private Node produceResolveNode(RDFRuleExecution execution, DatasetNodes nodes, Evaluator evaluator, Node node, boolean isGraph) {
         if (node == null)
             return produceResolveVariable(execution, nodes, null, isGraph);
         switch (node.getNodeType()) {
@@ -298,7 +297,7 @@ public abstract class RDFRule {
      * @param isGraph   Whether the node to resolve is a graph
      * @return The variable value
      */
-    protected Node produceResolveVariable(RDFRuleExecution execution, NodeManager nodes, VariableNode variable, boolean isGraph) {
+    protected Node produceResolveVariable(RDFRuleExecution execution, DatasetNodes nodes, VariableNode variable, boolean isGraph) {
         Node result = execution.getBinding(variable);
         if (result != null)
             return result;
@@ -319,7 +318,7 @@ public abstract class RDFRule {
      * @param dynamicNode A dynamic node
      * @return The variable value
      */
-    protected Node produceResolveDynamic(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, DynamicNode dynamicNode) {
+    protected Node produceResolveDynamic(RDFRuleExecution execution, DatasetNodes nodes, Evaluator evaluator, DynamicNode dynamicNode) {
         if (evaluator == null)
             return dynamicNode;
         Node result = execution.getSpecial(dynamicNode);

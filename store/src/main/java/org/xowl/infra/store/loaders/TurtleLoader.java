@@ -20,8 +20,8 @@ package org.xowl.infra.store.loaders;
 import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.parsers.BaseLRParser;
-import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.store.rdf.DatasetNodes;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -36,7 +36,7 @@ public class TurtleLoader extends BaseTurtleLoader {
      * Initializes this loader
      */
     public TurtleLoader() {
-        this(new CachedNodes());
+        this(new CachedDatasetNodes());
     }
 
     /**
@@ -44,7 +44,7 @@ public class TurtleLoader extends BaseTurtleLoader {
      *
      * @param store The RDF store used to create nodes
      */
-    public TurtleLoader(NodeManager store) {
+    public TurtleLoader(DatasetNodes store) {
         super(store);
     }
 

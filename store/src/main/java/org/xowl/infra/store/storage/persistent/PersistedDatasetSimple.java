@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,25 +15,23 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.storage;
+package org.xowl.infra.store.storage.persistent;
 
 import fr.cenotelie.commons.storage.Storage;
 import fr.cenotelie.commons.storage.files.RawFileBuffered;
 import fr.cenotelie.commons.storage.stores.ObjectStore;
 import fr.cenotelie.commons.storage.stores.ObjectStoreSimple;
-import org.xowl.infra.store.storage.cache.CachedNodes;
-import org.xowl.infra.store.storage.persistent.PersistedDataset;
-import org.xowl.infra.store.storage.persistent.PersistedNodes;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- * Concrete implementation of a persisted data store that is NOT thread safe
+ * Simple implementation of a quad storage system that is persisted, presumably in a file on disk.
  *
  * @author Laurent Wouters
  */
-class QuadStoreOnDiskSimple extends QuadStoreOnDisk {
+public class PersistedDatasetSimple extends PersistedDataset {
     /**
      * The backing storage system
      */
@@ -46,13 +44,13 @@ class QuadStoreOnDiskSimple extends QuadStoreOnDisk {
      * @param isReadonly Whether this store is in readonly mode
      * @throws IOException When the backing files cannot be accessed
      */
-    public QuadStoreOnDiskSimple(File file, boolean isReadonly) throws IOException {
+    public PersistedDatasetSimple(File file, boolean isReadonly) throws IOException {
         this.storage = new RawFileBuffered(file, !isReadonly);
         boolean doInit = storage.getSize() == 0;
         ObjectStore objectStore = new ObjectStoreSimple(storage);
-        this.persistedNodes = new PersistedNodes(objectStore, doInit);
-        this.persistedDataset = new PersistedDataset(persistedNodes, objectStore, doInit);
-        this.cacheNodes = new CachedNodes();
+        this.persistedNodes = new PersistedDatasetNodes(objectStore, doInit);
+        this.persistedDataset = new PersistedDatasetQuads(persistedNodes, objectStore, doInit);
+        this.cacheNodes = new CachedDatasetNodes();
     }
 
     @Override

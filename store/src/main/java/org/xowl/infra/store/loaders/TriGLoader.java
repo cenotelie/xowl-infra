@@ -24,8 +24,7 @@ import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.parsers.BaseLRParser;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -40,7 +39,7 @@ public class TriGLoader extends BaseTurtleLoader {
      * Initializes this loader
      */
     public TriGLoader() {
-        this(new CachedNodes());
+        this(new CachedDatasetNodes());
     }
 
     /**
@@ -48,7 +47,7 @@ public class TriGLoader extends BaseTurtleLoader {
      *
      * @param store The RDF store used to create nodes
      */
-    public TriGLoader(NodeManager store) {
+    public TriGLoader(DatasetNodes store) {
         super(store);
     }
 
@@ -189,28 +188,28 @@ public class TriGLoader extends BaseTurtleLoader {
 
         // No suffix, this is a naked string
         if (node.getChildren().size() <= 1)
-            return store.getLiteralNode(value, Vocabulary.xsdString, null);
+            return nodes.getLiteralNode(value, Vocabulary.xsdString, null);
 
         ASTNode suffixChild = node.getChildren().get(1);
         if (suffixChild.getSymbol().getID() == TriGLexer.ID.LANGTAG) {
             // This is a language-tagged string
             String tag = suffixChild.getValue();
-            return store.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
+            return nodes.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
         } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getValue();
             iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
-            return store.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
+            return nodes.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild, suffixChild.getValue());
-            return store.getLiteralNode(value, local, null);
+            return nodes.getLiteralNode(value, local, null);
         } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
             ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
-            return store.getLiteralNode(value, ns, null);
+            return nodes.getLiteralNode(value, ns, null);
         }
         throw new LoaderException("Unexpected node " + node.getValue(), node);
     }

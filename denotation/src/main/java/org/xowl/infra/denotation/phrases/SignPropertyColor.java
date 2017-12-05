@@ -21,7 +21,7 @@ import fr.cenotelie.commons.utils.TextUtils;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.awt.*;
 
@@ -63,7 +63,7 @@ public class SignPropertyColor extends SignProperty {
     }
 
     @Override
-    public Node serializeValueRdf(NodeManager nodes, Object value) {
+    public Node serializeValueRdf(DatasetNodes nodes, Object value) {
         Color color = (Color) value;
         return nodes.getLiteralNode(Integer.toString(color.getRGB()), Vocabulary.xsdString, null);
     }

@@ -18,7 +18,6 @@
 package org.xowl.infra.store.rdf;
 
 import fr.cenotelie.commons.utils.logging.Logging;
-import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public class ClosingQuadIterator implements Iterator<Quad> {
     /**
      * The parent store
      */
-    private Dataset store;
+    private DatasetQuads store;
     /**
      * The content iterators
      */
@@ -51,7 +50,7 @@ public class ClosingQuadIterator implements Iterator<Quad> {
      * @param store    The parent store
      * @param original The iterator over the original quads
      */
-    public ClosingQuadIterator(Dataset store, Iterator<Quad> original) {
+    public ClosingQuadIterator(DatasetQuads store, Iterator<Quad> original) {
         this.store = store;
         this.content = new Stack<>();
         this.content.push(original);

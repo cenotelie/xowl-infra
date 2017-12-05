@@ -30,11 +30,11 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class DatasetAggregate implements Dataset {
+class DatasetQuadsAggregate implements DatasetQuads {
     /**
      * The aggregated datasets
      */
-    private final Dataset[] content;
+    private final DatasetQuads[] content;
     /**
      * The listeners
      */
@@ -45,7 +45,7 @@ class DatasetAggregate implements Dataset {
      *
      * @param content The aggregated datasets
      */
-    public DatasetAggregate(Dataset... content) {
+    public DatasetQuadsAggregate(DatasetQuads... content) {
         this.content = Arrays.copyOf(content, content.length);
         this.listeners = new ArrayList<>();
         ChangeListener inner = new ChangeListener() {
@@ -79,7 +79,7 @@ class DatasetAggregate implements Dataset {
                     l.onChange(changeset);
             }
         };
-        for (Dataset dataset : this.content)
+        for (DatasetQuads dataset : this.content)
             dataset.addListener(inner);
     }
 

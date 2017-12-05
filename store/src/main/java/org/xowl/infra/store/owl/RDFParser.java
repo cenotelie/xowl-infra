@@ -25,8 +25,8 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
-import org.xowl.infra.store.storage.QuadStore;
-import org.xowl.infra.store.storage.QuadStoreFactory;
+import org.xowl.infra.store.rdf.Dataset;
+import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.*;
@@ -38,9 +38,9 @@ import java.util.*;
  */
 public class RDFParser {
     /**
-     * The xOWL store to use
+     * The target dataset to parse
      */
-    private QuadStore store;
+    private Dataset dataset;
     /**
      * The graph node to use for building pattern quads
      */
@@ -78,9 +78,9 @@ public class RDFParser {
      * @throws UnsupportedNodeType When a node cannot be translated
      */
     public Collection<Axiom> translate(Collection<Quad> quads) throws UnsupportedNodeType {
-        store = QuadStoreFactory.create().make();
+        dataset = StoreFactory.create().make();
         graphNode = new VariableNode("__graph__");
-        store.insert(Changeset.fromAdded(quads));
+        dataset.insert(Changeset.fromAdded(quads));
         execute(quads);
         return axioms;
     }
@@ -92,8 +92,8 @@ public class RDFParser {
      * @param quads The quads
      * @return The equivalent axioms
      */
-    public Collection<Axiom> translate(QuadStore store, Collection<Quad> quads) {
-        this.store = store;
+    public Collection<Axiom> translate(Dataset store, Collection<Quad> quads) {
+        this.dataset = store;
         this.graphNode = new VariableNode("__graph__");
         execute(quads);
         return axioms;
@@ -106,8 +106,8 @@ public class RDFParser {
      * @param graph The graph
      * @return The equivalent axioms
      */
-    public Collection<Axiom> translate(QuadStore store, GraphNode graph) {
-        this.store = store;
+    public Collection<Axiom> translate(Dataset store, GraphNode graph) {
+        this.dataset = store;
         this.graphNode = graph;
         Collection<Quad> quads = new ArrayList<>();
         try {
@@ -127,7 +127,7 @@ public class RDFParser {
      * @param quads The quads to parse
      */
     private void execute(Collection<Quad> quads) {
-        RETENetwork network = new RETENetwork(store);
+        RETENetwork network = new RETENetwork(dataset);
         rules = new ArrayList<>();
         triggers = new ArrayList<>();
         expDatarange = new HashMap<>();
@@ -198,7 +198,7 @@ public class RDFParser {
      * @return The quad pattern
      */
     private Quad getPattern(SubjectNode subject, String property, Node object) {
-        return new Quad(graphNode, subject, store.getIRINode(property), object);
+        return new Quad(graphNode, subject, dataset.getIRINode(property), object);
     }
 
     /**
@@ -210,7 +210,7 @@ public class RDFParser {
      * @return The quad pattern
      */
     private Quad getPattern(SubjectNode subject, String property, String object) {
-        return new Quad(graphNode, subject, store.getIRINode(property), store.getIRINode(object));
+        return new Quad(graphNode, subject, dataset.getIRINode(property), dataset.getIRINode(object));
     }
 
     /**
@@ -447,7 +447,7 @@ public class RDFParser {
     private List<Node> getValues(SubjectNode subject, String property) {
         List<Node> results = new ArrayList<>();
         try {
-            Iterator<Quad> iterator = store.getAll(subject, store.getIRINode(property), null);
+            Iterator<? extends Quad> iterator = dataset.getAll(subject, dataset.getIRINode(property), null);
             while (iterator.hasNext()) {
                 results.add(iterator.next().getObject());
             }
@@ -465,7 +465,7 @@ public class RDFParser {
      */
     private Quad getTriple(SubjectNode subject) {
         try {
-            Iterator<Quad> iterator = store.getAll(subject, null, null);
+            Iterator<? extends Quad> iterator = dataset.getAll(subject, null, null);
             if (!iterator.hasNext())
                 return null;
             return iterator.next();

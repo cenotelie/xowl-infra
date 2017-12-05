@@ -37,7 +37,7 @@ interface PersistedNode extends Node {
      *
      * @return The store that maintains this node
      */
-    PersistedNodes getStore();
+    PersistedDatasetNodes getOwner();
 
     /**
      * Gets the key identifying this node

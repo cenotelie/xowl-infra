@@ -15,49 +15,61 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.storage.cache;
-
-import org.xowl.infra.store.storage.DatasetImpl;
-import org.xowl.infra.store.storage.DatasetNodesImpl;
-import org.xowl.infra.store.storage.DatasetQuadsImpl;
+package org.xowl.infra.store.storage;
 
 /**
- * Concrete implementation of a basic in-memory dataset of RDF quads
- * This implementation delegates all its behavior to caching stores.
- * This quad storage system is NOT transactional.
+ * Implements a dataset of RDF quads that can be used within a transaction
  *
  * @author Laurent Wouters
  */
-public class CachedDataset extends DatasetImpl {
+class DatasetForTransaction extends DatasetImpl {
     /**
-     * The store for the nodes
+     * The base dataset protected by the transaction
      */
-    private final CachedDatasetNodes nodes;
+    private final DatasetImpl base;
     /**
-     * The store for the quads
+     * The diff-ing dataset for the transaction
      */
-    private final CachedDatasetQuads quads;
+    private final DatasetQuadsDiff diff;
 
     /**
-     * Initializes this store
+     * Initializes this dataset
+     *
+     * @param base     The base dataset protected by the transaction
+     * @param useCache Whether to use a cache when interacting with the base dataset
      */
-    public CachedDataset() {
-        nodes = new CachedDatasetNodes();
-        quads = new CachedDatasetQuads();
+    public DatasetForTransaction(DatasetImpl base, boolean useCache) {
+        this.base = base;
+        this.diff = new DatasetQuadsDiff(useCache ? new DatasetQuadsCaching(base.getQuads()) : base.getQuads());
     }
 
     @Override
     protected DatasetNodesImpl getNodes() {
-        return nodes;
+        return base.getNodes();
     }
 
     @Override
     protected DatasetQuadsImpl getQuads() {
-        return quads;
+        return diff;
     }
 
     @Override
     public void close() {
-        // do nothing
+        // this method should not be called
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Commits the changes made by the transaction to the base dataset
+     */
+    public void commit() {
+        diff.commit();
+    }
+
+    /**
+     * Reverts any change made by the transaction
+     */
+    public void rollback() {
+        diff.rollback();
     }
 }

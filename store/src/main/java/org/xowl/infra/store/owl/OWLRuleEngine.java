@@ -25,7 +25,7 @@ import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.QuadStore;
+import org.xowl.infra.store.rdf.Dataset;
 
 import java.util.*;
 
@@ -38,7 +38,7 @@ public class OWLRuleEngine {
     /**
      * The XOWL store for the output
      */
-    private final QuadStore outputStore;
+    private final Dataset outputStore;
     /**
      * The RDF backend
      */
@@ -68,7 +68,7 @@ public class OWLRuleEngine {
      * @param outputStore The store to output produced axioms
      * @param evaluator   The evaluator
      */
-    public OWLRuleEngine(QuadStore inputStore, QuadStore outputStore, Evaluator evaluator) {
+    public OWLRuleEngine(Dataset inputStore, Dataset outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
         this.backend = new RDFRuleEngine(inputStore, outputStore, evaluator);
         this.rdfRules = new HashMap<>();

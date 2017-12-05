@@ -22,7 +22,6 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
-import org.xowl.infra.store.storage.Dataset;
 
 import java.util.*;
 
@@ -260,7 +259,7 @@ public class RDFQueryEngine implements ChangeListener {
      *
      * @param store The RDF store to query
      */
-    public RDFQueryEngine(Dataset store) {
+    public RDFQueryEngine(DatasetQuads store) {
         this.rete = new RETENetwork(store);
         this.cache = new ArrayList<>();
         this.threadIO = new ThreadLocal<>();

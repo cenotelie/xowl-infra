@@ -26,7 +26,7 @@ import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.QuadStoreFactory;
+import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class Domain implements Identifiable {
      */
     public static Domain newEmpty(String schemaIri, String title, String description) {
         IRIMapper mapper = new IRIMapper();
-        RepositoryRDF repository = new RepositoryRDF(QuadStoreFactory.create().inMemory().make(), mapper, false);
+        RepositoryRDF repository = new RepositoryRDF(StoreFactory.create().inMemory().make(), mapper, false);
         IRINode node = repository.getStore().getIRINode(schemaIri);
         try {
             repository.getStore().add(new Quad(node,
@@ -85,7 +85,7 @@ public class Domain implements Identifiable {
     public static Domain loadDomain(String resource) {
         IRIMapper mapper = new IRIMapper();
         mapper.addSimpleMap(resource, resource);
-        RepositoryRDF repository = new RepositoryRDF(QuadStoreFactory.create().inMemory().make(), mapper, false);
+        RepositoryRDF repository = new RepositoryRDF(StoreFactory.create().inMemory().make(), mapper, false);
         try {
             repository.load(Logging.get(), resource);
         } catch (Exception exception) {

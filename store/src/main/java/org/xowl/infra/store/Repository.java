@@ -33,7 +33,7 @@ import org.xowl.infra.store.owl.OWLQueryEngine;
 import org.xowl.infra.store.owl.OWLRuleEngine;
 import org.xowl.infra.store.rdf.RDFQueryEngine;
 import org.xowl.infra.store.rdf.RDFRuleEngine;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 import org.xowl.infra.store.writers.*;
 
 import java.io.IOException;
@@ -354,7 +354,7 @@ public abstract class Repository {
      *
      * @return A node manager for this repository
      */
-    protected abstract NodeManager getNodeManager();
+    protected abstract DatasetNodes getNodeManager();
 
     /**
      * Gets an IRI for the specified value

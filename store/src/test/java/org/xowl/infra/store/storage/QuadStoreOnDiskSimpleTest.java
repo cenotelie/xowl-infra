@@ -23,6 +23,8 @@ import org.junit.Test;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.storage.persistent.PersistedDatasetSimple;
+import org.xowl.infra.store.storage.persistent.QuadStoreOnDiskSimple;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,7 +40,7 @@ public class QuadStoreOnDiskSimpleTest {
     @Test
     public void testCreation() throws Exception {
         Path p = Files.createTempDirectory("testCreation");
-        QuadStoreOnDiskSimple store = new QuadStoreOnDiskSimple(p.toFile(), false);
+        PersistedDatasetSimple store = new PersistedDatasetSimple(p.toFile(), false);
         Assert.assertNotNull(store);
         store.close();
     }
@@ -47,16 +49,16 @@ public class QuadStoreOnDiskSimpleTest {
     public void testInsert() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
         SinkLogger logger = new SinkLogger();
-        QuadStoreOnDiskSimple store = new QuadStoreOnDiskSimple(p.toFile(), false);
+        PersistedDatasetSimple store = new PersistedDatasetSimple(p.toFile(), false);
         RepositoryRDF repo = new RepositoryRDF(store);
-        try (QuadStoreTransaction transaction = repo.getStore().newTransaction(true, true)) {
+        try (StoreTransaction transaction = repo.getStore().newTransaction(true, true)) {
             repo.load(logger, IRIs.RDF);
         }
         store.close();
         Assert.assertFalse("Failed to load", logger.isOnError());
 
-        store = new QuadStoreOnDiskSimple(p.toFile(), true);
-        try (QuadStoreTransaction transaction = store.newTransaction(false)) {
+        store = new PersistedDatasetSimple(p.toFile(), true);
+        try (StoreTransaction transaction = store.newTransaction(false)) {
             Iterator<Quad> iterator = store.getAll();
             while (iterator.hasNext()) {
                 Quad quad = iterator.next();
@@ -69,7 +71,7 @@ public class QuadStoreOnDiskSimpleTest {
     @Test
     public void testInsert2() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
-        QuadStoreOnDiskSimple store = new QuadStoreOnDiskSimple(p.toFile(), false);
+        PersistedDatasetSimple store = new PersistedDatasetSimple(p.toFile(), false);
         RepositoryRDF repo = new RepositoryRDF(store);
 
         Quad quad1 = new Quad(
@@ -85,11 +87,11 @@ public class QuadStoreOnDiskSimpleTest {
                 store.getIRINode("http://xowl.org/infra/tests/y2")
         );
 
-        try (QuadStoreTransaction transaction = repo.getStore().newTransaction(true, true)) {
+        try (StoreTransaction transaction = repo.getStore().newTransaction(true, true)) {
             repo.getStore().add(quad1);
             repo.getStore().add(quad2);
         }
-        try (QuadStoreTransaction transaction = store.newTransaction(false)) {
+        try (StoreTransaction transaction = store.newTransaction(false)) {
             Iterator<Quad> iterator = store.getAll(quad1.getSubject(), quad1.getProperty(), null);
             while (iterator.hasNext()) {
                 Quad quad = iterator.next();

@@ -19,6 +19,7 @@ package org.xowl.infra.store.storage;
 
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.execution.ExecutionManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.Node;
@@ -30,7 +31,7 @@ import java.util.UUID;
  *
  * @author Laurent Wouters
  */
-public abstract class NodeManagerImpl implements NodeManager {
+public abstract class DatasetNodesImpl implements DatasetNodes {
     @Override
     public IRINode getIRINode(GraphNode graph) {
         if (graph != null && graph.getNodeType() == Node.TYPE_IRI) {

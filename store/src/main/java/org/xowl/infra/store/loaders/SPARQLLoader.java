@@ -31,7 +31,6 @@ import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.*;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -44,9 +43,9 @@ import java.util.*;
  */
 public class SPARQLLoader {
     /**
-     * The RDF store to create nodes from
+     * The RDF nodes management
      */
-    private final NodeManager store;
+    private final DatasetNodes nodes;
     /**
      * The context's default IRIs
      */
@@ -83,10 +82,10 @@ public class SPARQLLoader {
     /**
      * Initializes this loader
      *
-     * @param store The RDF store used to create nodes
+     * @param nodes The RDF nodes management
      */
-    public SPARQLLoader(NodeManager store) {
-        this.store = store;
+    public SPARQLLoader(DatasetNodes nodes) {
+        this.nodes = nodes;
         this.defaultIRIs = new ArrayList<>();
         this.namedIRIs = new ArrayList<>();
     }
@@ -94,12 +93,12 @@ public class SPARQLLoader {
     /**
      * Initializes this loader
      *
-     * @param store       The RDF store used to create nodes
+     * @param nodes       The RDF nodes management
      * @param defaultIRIs The context's default IRIs
      * @param namedIRIs   The context's named IRIs
      */
-    public SPARQLLoader(NodeManager store, Collection<String> defaultIRIs, Collection<String> namedIRIs) {
-        this.store = store;
+    public SPARQLLoader(DatasetNodes nodes, Collection<String> defaultIRIs, Collection<String> namedIRIs) {
+        this.nodes = nodes;
         this.defaultIRIs = new ArrayList<>(defaultIRIs == null ? Collections.emptyList() : defaultIRIs);
         this.namedIRIs = new ArrayList<>(namedIRIs == null ? Collections.emptyList() : namedIRIs);
     }
@@ -345,18 +344,18 @@ public class SPARQLLoader {
             case Default:
                 if (!defaultIRIs.isEmpty())
                     return new CommandDrop(GraphReferenceType.Single, new ArrayList<>(defaultIRIs), isSilent);
-                return new CommandDrop(GraphReferenceType.Default, new ArrayList<String>(0), isSilent);
+                return new CommandDrop(GraphReferenceType.Default, new ArrayList<>(0), isSilent);
             case Named:
                 if (!namedIRIs.isEmpty())
                     return new CommandDrop(GraphReferenceType.Single, new ArrayList<>(namedIRIs), isSilent);
-                return new CommandDrop(GraphReferenceType.Named, new ArrayList<String>(0), isSilent);
+                return new CommandDrop(GraphReferenceType.Named, new ArrayList<>(0), isSilent);
             case All:
                 if (!namedIRIs.isEmpty() || !defaultIRIs.isEmpty()) {
                     Collection<String> targets = new ArrayList<>(defaultIRIs);
                     targets.addAll(namedIRIs);
                     return new CommandDrop(GraphReferenceType.Single, targets, isSilent);
                 }
-                return new CommandDrop(GraphReferenceType.All, new ArrayList<String>(0), isSilent);
+                return new CommandDrop(GraphReferenceType.All, new ArrayList<>(0), isSilent);
         }
         throw new LoaderException("Unrecognized DROP command", node);
     }
@@ -377,18 +376,18 @@ public class SPARQLLoader {
             case Default:
                 if (!defaultIRIs.isEmpty())
                     return new CommandClear(GraphReferenceType.Single, new ArrayList<>(defaultIRIs), isSilent);
-                return new CommandClear(GraphReferenceType.Default, new ArrayList<String>(0), isSilent);
+                return new CommandClear(GraphReferenceType.Default, new ArrayList<>(0), isSilent);
             case Named:
                 if (!namedIRIs.isEmpty())
                     return new CommandClear(GraphReferenceType.Single, new ArrayList<>(namedIRIs), isSilent);
-                return new CommandClear(GraphReferenceType.Named, new ArrayList<String>(0), isSilent);
+                return new CommandClear(GraphReferenceType.Named, new ArrayList<>(0), isSilent);
             case All:
                 if (!namedIRIs.isEmpty() || !defaultIRIs.isEmpty()) {
                     Collection<String> targets = new ArrayList<>(defaultIRIs);
                     targets.addAll(namedIRIs);
                     return new CommandClear(GraphReferenceType.Single, targets, isSilent);
                 }
-                return new CommandClear(GraphReferenceType.All, new ArrayList<String>(0), isSilent);
+                return new CommandClear(GraphReferenceType.All, new ArrayList<>(0), isSilent);
         }
         throw new LoaderException("Unrecognized CLEAR command", node);
     }
@@ -527,7 +526,7 @@ public class SPARQLLoader {
         ASTNode clauseSelect = nodeSelect.getChildren().get(0);
         ASTNode clauseSelectMod = clauseSelect.getChildren().get(0);
 
-        SPARQLContext context = new SPARQLContext(store, true);
+        SPARQLContext context = new SPARQLContext(nodes, true);
         loadPrologue(node.getChildren().get(0));
         boolean isDistinct = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.DISTINCT);
         boolean isReduced = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.REDUCED);
@@ -571,8 +570,8 @@ public class SPARQLLoader {
         // construct1 -> CONSTRUCT! construct_template clause_dataset* clause_where modifier
         ASTNode nodeConstruct = node.getChildren().get(1);
 
-        SPARQLContext contextTemplate = new SPARQLContext(store, false);
-        SPARQLContext contextWhere = new SPARQLContext(store, true);
+        SPARQLContext contextTemplate = new SPARQLContext(nodes, false);
+        SPARQLContext contextWhere = new SPARQLContext(nodes, true);
         loadPrologue(node.getChildren().get(0));
         for (ASTNode child : nodeConstruct.getChildren()) {
             if (child.getSymbol().getID() == SPARQLParser.ID.clause_dataset) {
@@ -613,7 +612,7 @@ public class SPARQLLoader {
         // construct2 -> CONSTRUCT! clause_dataset* WHERE! '{'! triples_template? '}'! modifier
         ASTNode nodeConstruct = node.getChildren().get(1);
 
-        SPARQLContext context = new SPARQLContext(store, true);
+        SPARQLContext context = new SPARQLContext(nodes, true);
         GraphPattern template = null;
         loadPrologue(node.getChildren().get(0));
         for (ASTNode child : nodeConstruct.getChildren()) {
@@ -655,7 +654,7 @@ public class SPARQLLoader {
 
         ASTNode nodeDescribe = node.getChildren().get(1);
 
-        SPARQLContext context = new SPARQLContext(store, true);
+        SPARQLContext context = new SPARQLContext(nodes, true);
         loadPrologue(node.getChildren().get(0));
         for (ASTNode child : nodeDescribe.getChildren()) {
             if (child.getSymbol().getID() == SPARQLParser.ID.clause_dataset) {
@@ -706,7 +705,7 @@ public class SPARQLLoader {
         // ask -> ASK! clause_dataset* clause_where modifier ;
         ASTNode nodeAsk = node.getChildren().get(1);
 
-        SPARQLContext context = new SPARQLContext(store, true);
+        SPARQLContext context = new SPARQLContext(nodes, true);
         loadPrologue(node.getChildren().get(0));
         for (ASTNode child : nodeAsk.getChildren()) {
             if (child.getSymbol().getID() == SPARQLParser.ID.clause_dataset) {
@@ -736,7 +735,7 @@ public class SPARQLLoader {
      * @return The INSERT DATA command
      */
     private Command loadCommandInsertData(ASTNode node) throws LoaderException {
-        SPARQLContext context = new SPARQLContext(store);
+        SPARQLContext context = new SPARQLContext(nodes);
         for (String iri : defaultIRIs)
             context.addDefaultGraph(iri);
         for (String iri : namedIRIs)
@@ -752,7 +751,7 @@ public class SPARQLLoader {
      * @return The DELETE DATA command
      */
     private Command loadCommandDeleteData(ASTNode node) throws LoaderException {
-        SPARQLContext context = new SPARQLContext(store);
+        SPARQLContext context = new SPARQLContext(nodes);
         for (String iri : defaultIRIs)
             context.addDefaultGraph(iri);
         for (String iri : namedIRIs)
@@ -768,7 +767,7 @@ public class SPARQLLoader {
      * @return The DELETE WHERE command
      */
     private Command loadCommandDeleteWhere(ASTNode node) throws LoaderException {
-        SPARQLContext context = new SPARQLContext(store, true);
+        SPARQLContext context = new SPARQLContext(nodes, true);
         for (String iri : defaultIRIs)
             context.addDefaultGraph(iri);
         for (String iri : namedIRIs)
@@ -784,7 +783,7 @@ public class SPARQLLoader {
      * @return The INSERT/DELETE command
      */
     private Command loadCommandModify(ASTNode node) throws LoaderException {
-        SPARQLContext context = new SPARQLContext(store, true);
+        SPARQLContext context = new SPARQLContext(nodes, true);
         GraphNode templateTarget = null;
         Collection<Quad> toInsert;
         Collection<Quad> toDelete;
@@ -793,7 +792,7 @@ public class SPARQLLoader {
         ASTNode current = node.getChildren().get(index);
         if (current.getSymbol().getID() != SPARQLParser.ID.clause_delete && current.getSymbol().getID() != SPARQLParser.ID.clause_insert) {
             // this is the WITH clause
-            templateTarget = store.getIRINode(loadGraphRef(current).y);
+            templateTarget = nodes.getIRINode(loadGraphRef(current).y);
             index++;
             current = node.getChildren().get(index);
         }
@@ -975,12 +974,12 @@ public class SPARQLLoader {
                             inner = loadGraphPattern(currentContext, sub, child.getChildren().get(1));
                         } else if (targets.size() == 1) {
                             // the dataset specified exactly 1 graph: use it
-                            inner = loadGraphPattern(currentContext, store.getIRINode(targets.get(0)), child.getChildren().get(1));
+                            inner = loadGraphPattern(currentContext, nodes.getIRINode(targets.get(0)), child.getChildren().get(1));
                         } else {
                             // union of matching the underlying pattern in all the target graphs
                             Collection<GraphPattern> elements = new ArrayList<>();
                             for (String target : targets) {
-                                GraphPattern element = loadGraphPattern(currentContext, store.getIRINode(target), child.getChildren().get(1));
+                                GraphPattern element = loadGraphPattern(currentContext, nodes.getIRINode(target), child.getChildren().get(1));
                                 elements.add(element);
                             }
                             inner = new GraphPatternUnion(elements);
@@ -1367,14 +1366,14 @@ public class SPARQLLoader {
 
         if (targets.size() == 1) {
             GraphPatternQuads result = new GraphPatternQuads();
-            loadTriples(context, node, store.getIRINode(targets.get(0)), result.getPattern().getPositives(), result.getPattern().getNegatives());
+            loadTriples(context, node, nodes.getIRINode(targets.get(0)), result.getPattern().getPositives(), result.getPattern().getNegatives());
             return result;
         }
 
         Collection<GraphPattern> elements = new ArrayList<>();
         for (String target : targets) {
             GraphPatternQuads element = new GraphPatternQuads();
-            loadTriples(context, node, store.getIRINode(target), element.getPattern().getPositives(), element.getPattern().getNegatives());
+            loadTriples(context, node, nodes.getIRINode(target), element.getPattern().getPositives(), element.getPattern().getNegatives());
             elements.add(element);
         }
         return new GraphPatternUnion(elements);
@@ -1392,7 +1391,7 @@ public class SPARQLLoader {
         // quads -> triples_template? quads_supp*
         List<Quad> result = new ArrayList<>();
         if (graph != null) {
-            loadQuadsForTarget(context, node, graph, result, new ArrayList<Collection<Quad>>());
+            loadQuadsForTarget(context, node, graph, result, new ArrayList<>());
             return result;
         }
 
@@ -1403,7 +1402,7 @@ public class SPARQLLoader {
             targets.add(IRIs.GRAPH_DEFAULT);
 
         if (targets.size() == 1) {
-            loadQuadsForTarget(context, node, store.getIRINode(targets.get(0)), result, new ArrayList<Collection<Quad>>());
+            loadQuadsForTarget(context, node, nodes.getIRINode(targets.get(0)), result, new ArrayList<>());
             return result;
         }
 
@@ -1597,7 +1596,7 @@ public class SPARQLLoader {
      */
     private IRINode getNodeIsA() {
         if (cacheIsA == null)
-            cacheIsA = store.getIRINode(Vocabulary.rdfType);
+            cacheIsA = nodes.getIRINode(Vocabulary.rdfType);
         return cacheIsA;
     }
 
@@ -1608,7 +1607,7 @@ public class SPARQLLoader {
      */
     private IRINode getNodeNil() {
         if (cacheNil == null)
-            cacheNil = store.getIRINode(Vocabulary.rdfNil);
+            cacheNil = nodes.getIRINode(Vocabulary.rdfNil);
         return cacheNil;
     }
 
@@ -1621,7 +1620,7 @@ public class SPARQLLoader {
     private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getValue();
         value = TextUtils.unescape(value.substring(1, value.length() - 1));
-        return store.getIRINode(URIUtils.resolveRelative(baseURI, value));
+        return nodes.getIRINode(URIUtils.resolveRelative(baseURI, value));
     }
 
     /**
@@ -1632,7 +1631,7 @@ public class SPARQLLoader {
      */
     private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        return store.getIRINode(getIRIForLocalName(node, value));
+        return nodes.getIRINode(getIRIForLocalName(node, value));
     }
 
     /**
@@ -1645,7 +1644,7 @@ public class SPARQLLoader {
         String value = node.getValue();
         value = TextUtils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
-        return store.getIRINode(value);
+        return nodes.getIRINode(value);
     }
 
     /**
@@ -1691,7 +1690,7 @@ public class SPARQLLoader {
      * @return A new blank node
      */
     private BlankNode getNodeAnon() {
-        return store.getBlankNode();
+        return nodes.getBlankNode();
     }
 
     /**
@@ -1713,7 +1712,7 @@ public class SPARQLLoader {
      */
     private LiteralNode getNodeTrue() {
         if (cacheTrue == null)
-            cacheTrue = store.getLiteralNode("true", Vocabulary.xsdBoolean, null);
+            cacheTrue = nodes.getLiteralNode("true", Vocabulary.xsdBoolean, null);
         return cacheTrue;
     }
 
@@ -1724,7 +1723,7 @@ public class SPARQLLoader {
      */
     private LiteralNode getNodeFalse() {
         if (cacheFalse == null)
-            cacheFalse = store.getLiteralNode("false", Vocabulary.xsdBoolean, null);
+            cacheFalse = nodes.getLiteralNode("false", Vocabulary.xsdBoolean, null);
         return cacheFalse;
     }
 
@@ -1736,7 +1735,7 @@ public class SPARQLLoader {
      */
     private LiteralNode getNodeInteger(ASTNode node) {
         String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
+        return nodes.getLiteralNode(value, Vocabulary.xsdInteger, null);
     }
 
     /**
@@ -1747,7 +1746,7 @@ public class SPARQLLoader {
      */
     private LiteralNode getNodeDecimal(ASTNode node) {
         String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdDecimal, null);
+        return nodes.getLiteralNode(value, Vocabulary.xsdDecimal, null);
     }
 
     /**
@@ -1758,7 +1757,7 @@ public class SPARQLLoader {
      */
     private LiteralNode getNodeDouble(ASTNode node) {
         String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
+        return nodes.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
 
     /**
@@ -1788,28 +1787,28 @@ public class SPARQLLoader {
 
         // No suffix, this is a naked string
         if (node.getChildren().size() <= 1)
-            return store.getLiteralNode(value, Vocabulary.xsdString, null);
+            return nodes.getLiteralNode(value, Vocabulary.xsdString, null);
 
         ASTNode suffixChild = node.getChildren().get(1);
         if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.LANGTAG) {
             // This is a language-tagged string
             String tag = suffixChild.getValue();
-            return store.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
+            return nodes.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
         } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getValue();
             iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
-            return store.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
+            return nodes.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild, suffixChild.getValue());
-            return store.getLiteralNode(value, local, null);
+            return nodes.getLiteralNode(value, local, null);
         } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
             ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
-            return store.getLiteralNode(value, ns, null);
+            return nodes.getLiteralNode(value, ns, null);
         }
         throw new LoaderException("Unexpected node " + node.getValue(), node);
     }
@@ -1833,13 +1832,13 @@ public class SPARQLLoader {
 
         BlankNode[] proxies = new BlankNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
-            proxies[i] = store.getBlankNode();
-            buffer.add(new Quad(graph, proxies[i], store.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
+            proxies[i] = nodes.getBlankNode();
+            buffer.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++) {
-            buffer.add(new Quad(graph, proxies[i], store.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
+            buffer.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
         }
-        buffer.add(new Quad(graph, proxies[proxies.length - 1], store.getIRINode(Vocabulary.rdfRest), getNodeNil()));
+        buffer.add(new Quad(graph, proxies[proxies.length - 1], nodes.getIRINode(Vocabulary.rdfRest), getNodeNil()));
         return proxies[0];
     }
 
@@ -1855,7 +1854,7 @@ public class SPARQLLoader {
     private BlankNode getNodeBlankWithProperties(SPARQLContext context, ASTNode node, GraphNode graph, Collection<Quad> buffer) throws LoaderException {
         // blank_node_property_list -> '['! property_list_not_empty^ ']'!
         // property_list_not_empty	-> verb object_list (';'! (verb object_list)? )*
-        BlankNode subject = store.getBlankNode();
+        BlankNode subject = nodes.getBlankNode();
         List<ASTNode> members = node.getChildren();
         for (int i = 0; i != members.size(); i++) {
             Node verb = getNode(context, members.get(i), graph, buffer);

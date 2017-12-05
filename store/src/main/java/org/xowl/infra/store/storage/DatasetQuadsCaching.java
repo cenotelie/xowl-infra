@@ -20,7 +20,7 @@ package org.xowl.infra.store.storage;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.cache.CachedDataset;
+import org.xowl.infra.store.storage.cache.CachedDatasetQuads;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Laurent Wouters
  */
-class DatasetChaching extends DatasetImpl {
+class DatasetQuadsCaching extends DatasetQuadsImpl {
     /**
      * The maximum number of cached subjects
      */
@@ -45,22 +45,22 @@ class DatasetChaching extends DatasetImpl {
     /**
      * The original dataset
      */
-    private final DatasetImpl original;
+    private final DatasetQuadsImpl original;
     /**
      * Collection of the cached subjects
      */
-    private final ConcurrentHashMap<SubjectNode, CachedDataset> cachedSubjects;
+    private final ConcurrentHashMap<SubjectNode, CachedDatasetQuads> cachedSubjects;
     /**
      * Collection of the cached graphs
      */
-    private final ConcurrentHashMap<GraphNode, CachedDataset> cachedGraphs;
+    private final ConcurrentHashMap<GraphNode, CachedDatasetQuads> cachedGraphs;
 
     /**
      * Initializes this cache
      *
      * @param original The original dataset
      */
-    public DatasetChaching(DatasetImpl original) {
+    public DatasetQuadsCaching(DatasetQuadsImpl original) {
         this.original = original;
         this.cachedSubjects = new ConcurrentHashMap<>(MAX_CACHED_SUBJECTS);
         this.cachedGraphs = new ConcurrentHashMap<>(MAX_CACHED_GRAPHS);
@@ -71,12 +71,12 @@ class DatasetChaching extends DatasetImpl {
      *
      * @param subject The subject node
      */
-    private CachedDataset getCache(SubjectNode subject) {
-        CachedDataset dataset = cachedSubjects.get(subject);
+    private CachedDatasetQuads getCache(SubjectNode subject) {
+        CachedDatasetQuads dataset = cachedSubjects.get(subject);
         if (dataset != null)
             return dataset;
 
-        dataset = new CachedDataset();
+        dataset = new CachedDatasetQuads();
         try {
             Iterator<? extends Quad> iterator = original.getAll(null, subject, null, null);
             while (iterator.hasNext())
@@ -84,7 +84,7 @@ class DatasetChaching extends DatasetImpl {
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);
         }
-        CachedDataset old = cachedSubjects.putIfAbsent(subject, dataset);
+        CachedDatasetQuads old = cachedSubjects.putIfAbsent(subject, dataset);
         return old != null ? old : dataset;
     }
 
@@ -93,12 +93,12 @@ class DatasetChaching extends DatasetImpl {
      *
      * @param graph The graph
      */
-    private CachedDataset getCache(GraphNode graph) {
-        CachedDataset dataset = cachedGraphs.get(graph);
+    private CachedDatasetQuads getCache(GraphNode graph) {
+        CachedDatasetQuads dataset = cachedGraphs.get(graph);
         if (dataset != null)
             return dataset;
 
-        dataset = new CachedDataset();
+        dataset = new CachedDatasetQuads();
         try {
             Iterator<? extends Quad> iterator = original.getAll(graph);
             while (iterator.hasNext())
@@ -106,7 +106,7 @@ class DatasetChaching extends DatasetImpl {
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);
         }
-        CachedDataset old = cachedGraphs.putIfAbsent(graph, dataset);
+        CachedDatasetQuads old = cachedGraphs.putIfAbsent(graph, dataset);
         return old != null ? old : dataset;
     }
 
@@ -137,7 +137,7 @@ class DatasetChaching extends DatasetImpl {
     }
 
     @Override
-    public void setExecutionManager(ExecutionManager executionManager) {
+    public void setExecutionManager(Dataset parent, ExecutionManager executionManager) {
         this.executionManager = executionManager;
     }
 
@@ -221,17 +221,17 @@ class DatasetChaching extends DatasetImpl {
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        CachedDataset cache = getCache(subject);
+        CachedDatasetQuads cache = getCache(subject);
         return cache.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
     public Iterator<? extends Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
-            CachedDataset cache = getCache(subject);
+            CachedDatasetQuads cache = getCache(subject);
             return cache.getAll(graph, subject, property, object);
         } else if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE) {
-            CachedDataset cache = getCache(graph);
+            CachedDatasetQuads cache = getCache(graph);
             return cache.getAll(graph, subject, property, object);
         } else {
             return original.getAll(graph, subject, property, object);
@@ -246,10 +246,10 @@ class DatasetChaching extends DatasetImpl {
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
-            CachedDataset cache = getCache(subject);
+            CachedDatasetQuads cache = getCache(subject);
             return cache.count(graph, subject, property, object);
         } else if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE) {
-            CachedDataset cache = getCache(graph);
+            CachedDatasetQuads cache = getCache(graph);
             return cache.count(graph, subject, property, object);
         } else {
             return original.count(graph, subject, property, object);

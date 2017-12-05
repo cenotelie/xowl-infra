@@ -17,35 +17,46 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.storage.Access;
-import fr.cenotelie.commons.storage.Transaction;
+import org.xowl.infra.store.rdf.ChangeListener;
 
 /**
- * Represents a transaction for an interaction with a store of quads
+ * Implements a storage system for RDF quads that acts as a simple proxy for a common dataset
  *
  * @author Laurent Wouters
  */
-public abstract class QuadStoreTransaction extends Transaction {
+class StoreImplSimpleProxy extends StoreImpl {
     /**
-     * Initializes this transaction
-     *
-     * @param writable   Whether this transaction allows writing
-     * @param autocommit Whether this transaction should commit when being closed
+     * The base dataset
      */
-    public QuadStoreTransaction(boolean writable, boolean autocommit) {
-        super(writable, autocommit);
+    private final DatasetImpl dataset;
+
+    /**
+     * Initializes this proxy
+     *
+     * @param dataset The base dataset
+     */
+    public StoreImplSimpleProxy(DatasetImpl dataset) {
+        this.dataset = dataset;
     }
 
-    /**
-     * Gets the interface to use for the store
-     *
-     * @return The interface to use for the store
-     */
-    public abstract QuadStore getStore();
+    @Override
+    protected StoreTransaction createNewTransaction(boolean writable, boolean autocommit) {
+        return null;
+    }
 
     @Override
-    protected Access newAccess(long index, int length, boolean writable) {
-        // do not allow direct access to the storage
-        throw new UnsupportedOperationException();
+    public void addListener(ChangeListener listener) {
+        dataset.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(ChangeListener listener) {
+        dataset.removeListener(listener);
+    }
+
+    @Override
+    public void close() throws Exception {
+        onClose();
+        dataset.close();
     }
 }

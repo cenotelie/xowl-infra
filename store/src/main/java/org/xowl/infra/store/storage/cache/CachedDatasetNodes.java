@@ -20,19 +20,19 @@ package org.xowl.infra.store.storage.cache;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManagerImpl;
+import org.xowl.infra.store.storage.DatasetNodesImpl;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Represented a cached store of nodes
+ * Represented an in-memory store of RDF nodes
  * This structure is thread-safe.
  *
  * @author Laurent Wouters
  */
-public class CachedNodes extends NodeManagerImpl {
+public class CachedDatasetNodes extends DatasetNodesImpl {
     /**
      * The map of cached IRI nodes
      */
@@ -53,7 +53,7 @@ public class CachedNodes extends NodeManagerImpl {
     /**
      * Initializes this store
      */
-    public CachedNodes() {
+    public CachedDatasetNodes() {
         iris = new ConcurrentHashMap<>();
         literals = new ConcurrentHashMap<>();
         anonymous = new ConcurrentHashMap<>();

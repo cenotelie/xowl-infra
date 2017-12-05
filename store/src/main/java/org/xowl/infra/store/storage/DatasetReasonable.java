@@ -23,6 +23,7 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.store.storage.cache.CachedDataset;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,25 +31,25 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Represents a quad store that is composed of:
- * - a backend store for ground quads and
- * - a volatile store for quads coming from reasoning facilities
+ * Represents a dataset of RDF quads composed of
+ * - a backend dataset of ground quads
+ * - a volatile dataset for quads coming from reasoning facilities
  *
  * @author Laurent Wouters
  */
-class QuadStoreReasonable implements QuadStore {
+class DatasetReasonable extends DatasetImpl {
     /**
-     * The store for the ground data
+     * The ground dataset
      */
-    private final QuadStore groundStore;
+    private final Dataset groundStore;
     /**
-     * The store for the volatile data
+     * The volatile dataset
      */
-    private final QuadStore volatileStore;
+    private final Dataset volatileStore;
     /**
      * The aggregating dataset
      */
-    private final DatasetAggregate aggregate;
+    private final DatasetQuadsAggregate aggregate;
     /**
      * The graph for inferences
      */
@@ -61,20 +62,14 @@ class QuadStoreReasonable implements QuadStore {
     /**
      * Initializes this store
      *
-     * @param ground The store for the ground data
+     * @param ground The ground dataset
      */
-    public QuadStoreReasonable(QuadStore ground) {
+    public DatasetReasonable(Dataset ground) {
         this.groundStore = ground;
-        this.volatileStore = new QuadStoreInMemory();
-        this.aggregate = new DatasetAggregate(groundStore, volatileStore);
+        this.volatileStore = new CachedDataset();
+        this.aggregate = new DatasetQuadsAggregate(groundStore, volatileStore);
         this.graphInference = volatileStore.getIRINode(IRIs.GRAPH_INFERENCE);
         this.graphMeta = volatileStore.getIRINode(IRIs.GRAPH_META);
-    }
-
-    @Override
-    public void setExecutionManager(ExecutionManager executionManager) {
-        groundStore.setExecutionManager(executionManager);
-        volatileStore.setExecutionManager(executionManager);
     }
 
     @Override
@@ -82,6 +77,24 @@ class QuadStoreReasonable implements QuadStore {
         // the volatile store is probably an in-memory store, closing it do nothing so this does not throw an exception
         volatileStore.close();
         groundStore.close();
+    }
+
+    @Override
+    protected DatasetNodesImpl getNodes() {
+        // do not use this method
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected DatasetQuadsImpl getQuads() {
+        // do not use this method
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setExecutionManager(ExecutionManager executionManager) {
+        groundStore.setExecutionManager(executionManager);
+        volatileStore.setExecutionManager(executionManager);
     }
 
     @Override

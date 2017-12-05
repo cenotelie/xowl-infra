@@ -18,7 +18,6 @@
 package org.xowl.infra.store.rdf;
 
 import fr.cenotelie.commons.utils.http.URIUtils;
-import org.xowl.infra.store.storage.NodeManager;
 
 /**
  * A variable resolver that resolves variable with:
@@ -45,7 +44,7 @@ public class VariableResolverIriTemplate extends VariableResolver {
     }
 
     @Override
-    public Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph) {
+    public Node resolve(VariableNode variable, RDFRuleExecution execution, DatasetNodes nodes, boolean isGraph) {
         if (isGraph)
             return nodes.getIRINode((GraphNode) null);
         StringBuilder builder = new StringBuilder();

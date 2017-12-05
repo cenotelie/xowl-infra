@@ -26,9 +26,9 @@ import org.xowl.infra.store.rdf.IRINode;
  */
 class PersistedIRINode extends IRINode implements PersistedNode {
     /**
-     * The backend persisting the strings
+     * The backend persisting the node
      */
-    private final PersistedNodes backend;
+    private final PersistedDatasetNodes nodes;
     /**
      * The key to the IRI value
      */
@@ -41,24 +41,24 @@ class PersistedIRINode extends IRINode implements PersistedNode {
     /**
      * Initializes this node
      *
-     * @param backend The backend persisting the strings
-     * @param key     The key to the IRI value
+     * @param nodes The backend persisting the node
+     * @param key   The key to the IRI value
      */
-    public PersistedIRINode(PersistedNodes backend, long key) {
-        this.backend = backend;
+    public PersistedIRINode(PersistedDatasetNodes nodes, long key) {
+        this.nodes = nodes;
         this.key = key;
     }
 
     @Override
     public String getIRIValue() {
         if (value == null)
-            value = backend.retrieveString(key);
+            value = nodes.retrieveString(key);
         return value;
     }
 
     @Override
-    public PersistedNodes getStore() {
-        return backend;
+    public PersistedDatasetNodes getOwner() {
+        return nodes;
     }
 
     @Override
@@ -68,19 +68,19 @@ class PersistedIRINode extends IRINode implements PersistedNode {
 
     @Override
     public void incrementRefCount() {
-        backend.onRefCountString(key, 1);
+        nodes.onRefCountString(key, 1);
     }
 
     @Override
     public void decrementRefCount() {
-        backend.onRefCountString(key, -1);
+        nodes.onRefCountString(key, -1);
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedIRINode) {
             PersistedIRINode node = (PersistedIRINode) o;
-            if (node.backend == this.backend)
+            if (node.nodes == this.nodes)
                 return node.key == this.key;
         }
         return (o instanceof IRINode) && (getIRIValue().equals(((IRINode) o).getIRIValue()));

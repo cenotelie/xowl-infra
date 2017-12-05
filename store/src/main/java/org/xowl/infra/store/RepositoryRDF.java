@@ -56,14 +56,14 @@ public class RepositoryRDF extends Repository {
      *
      * @return A new default store
      */
-    private static QuadStore getDefaultStore() {
-        return QuadStoreFactory.create().make();
+    private static Dataset getDefaultStore() {
+        return StoreFactory.create().make();
     }
 
     /**
      * The backend store
      */
-    private final QuadStore backend;
+    private final Dataset backend;
     /**
      * The ontologies in this repository
      */
@@ -86,7 +86,7 @@ public class RepositoryRDF extends Repository {
      *
      * @return the backend store
      */
-    public QuadStore getStore() {
+    public Dataset getStore() {
         return backend;
     }
 
@@ -102,7 +102,7 @@ public class RepositoryRDF extends Repository {
      *
      * @param store The store to use as backend
      */
-    public RepositoryRDF(QuadStore store) {
+    public RepositoryRDF(Dataset store) {
         this(store, IRIMapper.getDefault(), false);
     }
 
@@ -132,10 +132,10 @@ public class RepositoryRDF extends Repository {
      * @param mapper              The IRI mapper to use
      * @param resolveDependencies Whether dependencies should be resolved when loading resources
      */
-    public RepositoryRDF(QuadStore store, IRIMapper mapper, boolean resolveDependencies) {
+    public RepositoryRDF(Dataset store, IRIMapper mapper, boolean resolveDependencies) {
         super(mapper, resolveDependencies);
         this.backend = store;
-        try (QuadStoreTransaction transaction = backend.newTransaction(false)) {
+        try (StoreTransaction transaction = backend.newTransaction(false)) {
             this.backend.setExecutionManager(executionManager);
         } catch (ConcurrentWriteException exception) {
             // cannot happen
@@ -151,7 +151,7 @@ public class RepositoryRDF extends Repository {
      */
     public void runAsTransaction(Runnable task) {
         while (true) {
-            try (QuadStoreTransaction transaction = backend.newTransaction(true, false)) {
+            try (StoreTransaction transaction = backend.newTransaction(true, false)) {
                 task.run();
                 transaction.commit();
                 return;
@@ -177,7 +177,7 @@ public class RepositoryRDF extends Repository {
      */
     public <T> T runAsTransaction(Callable<T> task) throws Exception {
         while (true) {
-            try (QuadStoreTransaction transaction = backend.newTransaction(true, false)) {
+            try (StoreTransaction transaction = backend.newTransaction(true, false)) {
                 T result = task.call();
                 transaction.commit();
                 return result;
@@ -406,7 +406,7 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected NodeManager getNodeManager() {
+    protected DatasetNodes getNodeManager() {
         return backend;
     }
 

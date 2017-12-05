@@ -27,19 +27,19 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManagerImpl;
+import org.xowl.infra.store.storage.DatasetNodesImpl;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
 /**
- * Represents a persistent store of nodes
+ * Represents a persisted store of RDF nodes.
  * This structure is thread-safe provided that the backing object store is thread-safe.
  *
  * @author Laurent Wouters
  */
-public class PersistedNodes extends NodeManagerImpl {
+public class PersistedDatasetNodes extends DatasetNodesImpl {
     /**
      * The size of the overhead for a string entry
      * long: next entry
@@ -119,7 +119,7 @@ public class PersistedNodes extends NodeManagerImpl {
      * @param store      backing store for the nodes' data
      * @param initialize Whether to initialize the store
      */
-    public PersistedNodes(ObjectStore store, boolean initialize) {
+    public PersistedDatasetNodes(ObjectStore store, boolean initialize) {
         this.store = store;
         this.charset = IOUtils.CHARSET;
         StoredLong tempNextBlank;
@@ -473,7 +473,7 @@ public class PersistedNodes extends NodeManagerImpl {
             return null;
         if (node instanceof PersistedNode) {
             PersistedNode persistedNode = ((PersistedNode) node);
-            if (persistedNode.getStore() == this || persistedNode.getStore() == null)
+            if (persistedNode.getOwner() == this || persistedNode.getOwner() == null)
                 // it is persisted here
                 return persistedNode;
             // not persisted here, we should resolve it here

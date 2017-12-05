@@ -27,7 +27,6 @@ import fr.cenotelie.hime.redist.TextContext;
 import fr.cenotelie.hime.redist.parsers.BaseLRParser;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -40,9 +39,9 @@ import java.util.*;
  */
 public abstract class BaseTurtleLoader implements Loader {
     /**
-     * The RDF store to create nodes from
+     * The RDF nodes management
      */
-    protected final NodeManager store;
+    protected final DatasetNodes nodes;
     /**
      * The loaded triples
      */
@@ -83,10 +82,10 @@ public abstract class BaseTurtleLoader implements Loader {
     /**
      * Initializes this loader
      *
-     * @param store The RDF store used to create nodes
+     * @param nodes The RDF nodes management
      */
-    public BaseTurtleLoader(NodeManager store) {
-        this.store = store;
+    public BaseTurtleLoader(DatasetNodes nodes) {
+        this.nodes = nodes;
     }
 
     /**
@@ -130,7 +129,7 @@ public abstract class BaseTurtleLoader implements Loader {
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         RDFLoaderResult result = new RDFLoaderResult();
         quads = result.getQuads();
-        graph = store.getIRINode(graphIRI);
+        graph = nodes.getIRINode(graphIRI);
         resource = resourceIRI;
         baseURI = resource;
         namespaces = new HashMap<>();
@@ -249,7 +248,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected IRINode getNodeIsA() {
         if (cacheIsA == null)
-            cacheIsA = store.getIRINode(Vocabulary.rdfType);
+            cacheIsA = nodes.getIRINode(Vocabulary.rdfType);
         return cacheIsA;
     }
 
@@ -262,7 +261,7 @@ public abstract class BaseTurtleLoader implements Loader {
     protected IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getValue();
         value = TextUtils.unescape(value.substring(1, value.length() - 1));
-        return store.getIRINode(URIUtils.resolveRelative(baseURI, value));
+        return nodes.getIRINode(URIUtils.resolveRelative(baseURI, value));
     }
 
     /**
@@ -273,7 +272,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected IRINode getNodePNameLN(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        return store.getIRINode(getIRIForLocalName(node, value));
+        return nodes.getIRINode(getIRIForLocalName(node, value));
     }
 
     /**
@@ -286,7 +285,7 @@ public abstract class BaseTurtleLoader implements Loader {
         String value = node.getValue();
         value = TextUtils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
-        return store.getIRINode(value);
+        return nodes.getIRINode(value);
     }
 
     /**
@@ -301,7 +300,7 @@ public abstract class BaseTurtleLoader implements Loader {
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
-        blank = store.getBlankNode();
+        blank = nodes.getBlankNode();
         blanks.put(value, blank);
         return blank;
     }
@@ -312,7 +311,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @return A new blank node
      */
     protected BlankNode getNodeAnon() {
-        return store.getBlankNode();
+        return nodes.getBlankNode();
     }
 
     /**
@@ -322,7 +321,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected LiteralNode getNodeTrue() {
         if (cacheTrue == null)
-            cacheTrue = store.getLiteralNode("true", Vocabulary.xsdBoolean, null);
+            cacheTrue = nodes.getLiteralNode("true", Vocabulary.xsdBoolean, null);
         return cacheTrue;
     }
 
@@ -333,7 +332,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected LiteralNode getNodeFalse() {
         if (cacheFalse == null)
-            cacheFalse = store.getLiteralNode("false", Vocabulary.xsdBoolean, null);
+            cacheFalse = nodes.getLiteralNode("false", Vocabulary.xsdBoolean, null);
         return cacheFalse;
     }
 
@@ -345,7 +344,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected LiteralNode getNodeInteger(ASTNode node) {
         String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
+        return nodes.getLiteralNode(value, Vocabulary.xsdInteger, null);
     }
 
     /**
@@ -356,7 +355,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected LiteralNode getNodeDecimal(ASTNode node) {
         String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdDecimal, null);
+        return nodes.getLiteralNode(value, Vocabulary.xsdDecimal, null);
     }
 
     /**
@@ -367,7 +366,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected LiteralNode getNodeDouble(ASTNode node) {
         String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
+        return nodes.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
 
     /**
@@ -397,28 +396,28 @@ public abstract class BaseTurtleLoader implements Loader {
 
         // No suffix, this is a naked string
         if (node.getChildren().size() <= 1)
-            return store.getLiteralNode(value, Vocabulary.xsdString, null);
+            return nodes.getLiteralNode(value, Vocabulary.xsdString, null);
 
         ASTNode suffixChild = node.getChildren().get(1);
         if (suffixChild.getSymbol().getID() == TurtleLexer.ID.LANGTAG) {
             // This is a language-tagged string
             String tag = suffixChild.getValue();
-            return store.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
+            return nodes.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getValue();
             iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
-            return store.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
+            return nodes.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild, suffixChild.getValue());
-            return store.getLiteralNode(value, local, null);
+            return nodes.getLiteralNode(value, local, null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
             ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
-            return store.getLiteralNode(value, ns, null);
+            return nodes.getLiteralNode(value, ns, null);
         }
         throw new LoaderException("Unexpected node " + node.getValue(), node);
     }
@@ -433,7 +432,7 @@ public abstract class BaseTurtleLoader implements Loader {
         List<Node> elements = new ArrayList<>();
         for (ASTNode child : node.getChildren())
             elements.add(getNode(child));
-        return buildRdfList(elements, graph, store, quads);
+        return buildRdfList(elements, graph, nodes, quads);
     }
 
     /**
@@ -443,7 +442,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @return The equivalent RDF blank node
      */
     protected BlankNode getNodeBlankWithProperties(ASTNode node) throws LoaderException {
-        BlankNode subject = store.getBlankNode();
+        BlankNode subject = nodes.getBlankNode();
         applyProperties(subject, node);
         return subject;
     }
@@ -494,25 +493,25 @@ public abstract class BaseTurtleLoader implements Loader {
     /**
      * Gets the RDF list node equivalent to the specified list of RDF nodes
      *
-     * @param elements    The RDF nodes in the list
-     * @param graph       The current graph
-     * @param nodeManager The node manager to use
-     * @param quads       The buffer for the created quads
+     * @param elements The RDF nodes in the list
+     * @param graph    The current graph
+     * @param nodes    The node manager to use
+     * @param quads    The buffer for the created quads
      * @return The head of the RDF list
      */
-    protected static Node buildRdfList(List<Node> elements, GraphNode graph, NodeManager nodeManager, Collection<Quad> quads) {
+    protected static Node buildRdfList(List<Node> elements, GraphNode graph, DatasetNodes nodes, Collection<Quad> quads) {
         if (elements.isEmpty())
-            return nodeManager.getIRINode(Vocabulary.rdfNil);
+            return nodes.getIRINode(Vocabulary.rdfNil);
 
         BlankNode[] proxies = new BlankNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
-            proxies[i] = nodeManager.getBlankNode();
-            quads.add(new Quad(graph, proxies[i], nodeManager.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
+            proxies[i] = nodes.getBlankNode();
+            quads.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++) {
-            quads.add(new Quad(graph, proxies[i], nodeManager.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
+            quads.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
         }
-        quads.add(new Quad(graph, proxies[proxies.length - 1], nodeManager.getIRINode(Vocabulary.rdfRest), nodeManager.getIRINode(Vocabulary.rdfNil)));
+        quads.add(new Quad(graph, proxies[proxies.length - 1], nodes.getIRINode(Vocabulary.rdfRest), nodes.getIRINode(Vocabulary.rdfNil)));
         return proxies[0];
     }
 }

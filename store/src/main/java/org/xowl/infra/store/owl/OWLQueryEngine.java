@@ -20,7 +20,7 @@ import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.QuadStore;
+import org.xowl.infra.store.rdf.Dataset;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +35,7 @@ public class OWLQueryEngine {
     /**
      * The xOWL store
      */
-    private final QuadStore store;
+    private final Dataset store;
     /**
      * The current evaluator
      */
@@ -64,7 +64,7 @@ public class OWLQueryEngine {
      * @param store     The OWL store to query
      * @param evaluator The current evaluator
      */
-    public OWLQueryEngine(QuadStore store, Evaluator evaluator) {
+    public OWLQueryEngine(Dataset store, Evaluator evaluator) {
         this.store = store;
         this.evaluator = evaluator;
         this.rdfEngine = new RDFQueryEngine(store);

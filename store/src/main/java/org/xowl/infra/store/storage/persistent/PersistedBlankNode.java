@@ -35,7 +35,7 @@ class PersistedBlankNode extends BlankNode implements PersistedNode {
     }
 
     @Override
-    public PersistedNodes getStore() {
+    public PersistedDatasetNodes getOwner() {
         return null;
     }
 

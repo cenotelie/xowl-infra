@@ -28,9 +28,9 @@ import org.xowl.infra.store.rdf.AnonymousNode;
  */
 class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     /**
-     * The backend persisting the strings
+     * The backend persisting the node
      */
-    private final PersistedNodes backend;
+    private final PersistedDatasetNodes nodes;
     /**
      * The key to the anonymous id
      */
@@ -43,12 +43,12 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     /**
      * Initializes this node
      *
-     * @param backend    The backend persisting the strings
+     * @param nodes      The backend persisting the node
      * @param key        The key to the anonymous id
      * @param individual The cached individual, if any
      */
-    public PersistedAnonNode(PersistedNodes backend, long key, AnonymousIndividual individual) {
-        this.backend = backend;
+    public PersistedAnonNode(PersistedDatasetNodes nodes, long key, AnonymousIndividual individual) {
+        this.nodes = nodes;
         this.key = key;
         this.individual = individual;
     }
@@ -56,11 +56,11 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     /**
      * Initializes this node
      *
-     * @param backend The backend persisting the strings
-     * @param key     The key to the anonymous id
+     * @param nodes The backend persisting the node
+     * @param key   The key to the anonymous id
      */
-    public PersistedAnonNode(PersistedNodes backend, long key) {
-        this.backend = backend;
+    public PersistedAnonNode(PersistedDatasetNodes nodes, long key) {
+        this.nodes = nodes;
         this.key = key;
     }
 
@@ -73,14 +73,14 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     public AnonymousIndividual getIndividual() {
         if (individual == null) {
             individual = Owl2Factory.newAnonymousIndividual();
-            individual.setNodeID(backend.retrieveString(key));
+            individual.setNodeID(nodes.retrieveString(key));
         }
         return individual;
     }
 
     @Override
-    public PersistedNodes getStore() {
-        return backend;
+    public PersistedDatasetNodes getOwner() {
+        return nodes;
     }
 
     @Override
@@ -90,19 +90,19 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
 
     @Override
     public void incrementRefCount() {
-        backend.onRefCountString(key, 1);
+        nodes.onRefCountString(key, 1);
     }
 
     @Override
     public void decrementRefCount() {
-        backend.onRefCountString(key, -1);
+        nodes.onRefCountString(key, -1);
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedAnonNode) {
             PersistedAnonNode node = (PersistedAnonNode) o;
-            if (node.backend == this.backend)
+            if (node.nodes == this.nodes)
                 return node.key == this.key;
         }
         return ((o instanceof AnonymousNode) && (getNodeID().equals(((AnonymousNode) o).getNodeID())));

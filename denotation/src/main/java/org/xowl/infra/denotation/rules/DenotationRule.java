@@ -21,7 +21,7 @@ import fr.cenotelie.commons.utils.Identifiable;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.RDFRule;
 import org.xowl.infra.store.rdf.RDFRuleSimple;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -162,7 +162,7 @@ public class DenotationRule implements Identifiable {
      * @param nodes      The node manager to use
      * @return The RDF rule
      */
-    public RDFRule buildRdfRule(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, NodeManager nodes) {
+    public RDFRule buildRdfRule(GraphNode graphSigns, GraphNode graphSemes, GraphNode graphMeta, DatasetNodes nodes) {
         RDFRuleSimple result = new RDFRuleSimple(uri, true, null);
         DenotationRuleContext context = new DenotationRuleContext(nodes, graphSigns, graphSemes, graphMeta, result);
         for (SignAntecedent antecedent : antecedents)

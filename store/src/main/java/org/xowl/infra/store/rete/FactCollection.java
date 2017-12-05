@@ -21,7 +21,7 @@ import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.rdf.DatasetQuads;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.Collection;
@@ -36,7 +36,7 @@ class FactCollection implements Collection<Quad> {
     /**
      * The parent RDF store
      */
-    private final Dataset store;
+    private final DatasetQuads store;
     /**
      * The matched pattern
      */
@@ -52,7 +52,7 @@ class FactCollection implements Collection<Quad> {
      * @param store   The parent RDF store
      * @param pattern The matched pattern
      */
-    public FactCollection(Dataset store, Quad pattern) {
+    public FactCollection(DatasetQuads store, Quad pattern) {
         this.store = store;
         this.pattern = pattern;
         this.size = -1;
@@ -65,7 +65,7 @@ class FactCollection implements Collection<Quad> {
      */
     private Iterator<Quad> getNewIterator() {
         try {
-            return store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+            return (Iterator<Quad>) store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);
             return new SingleIterator<>(null);
@@ -89,7 +89,7 @@ class FactCollection implements Collection<Quad> {
         if (size > -1) {
             return (size == 0);
         } else {
-            Iterator<Quad> iterator = getNewIterator();
+            Iterator<? extends Quad> iterator = getNewIterator();
             boolean empty = !iterator.hasNext();
             if (empty)
                 size = 0;
@@ -118,7 +118,7 @@ class FactCollection implements Collection<Quad> {
             return false;
         // the quad matches the pattern
         try {
-            Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            Iterator<? extends Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
             return iterator.hasNext();
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);

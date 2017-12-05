@@ -32,7 +32,7 @@ import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -147,7 +147,7 @@ public class ResultUtils {
                 return parseResponseJSON(content);
             } else {
                 // here assume n-quads
-                return parseResponseQuads(content, new NQuadsLoader(new CachedNodes()));
+                return parseResponseQuads(content, new NQuadsLoader(new CachedDatasetNodes()));
             }
         }
     }

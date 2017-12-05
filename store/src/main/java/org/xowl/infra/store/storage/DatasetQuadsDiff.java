@@ -22,7 +22,7 @@ import fr.cenotelie.commons.utils.collections.ConcatenatedIterator;
 import fr.cenotelie.commons.utils.collections.SkippableIterator;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.cache.CachedDataset;
+import org.xowl.infra.store.storage.cache.CachedDatasetQuads;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,19 +34,19 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class DatasetDiff extends DatasetImpl {
+class DatasetQuadsDiff extends DatasetQuadsImpl {
     /**
      * The original dataset
      */
-    private final DatasetImpl original;
+    private final DatasetQuadsImpl original;
     /**
      * The differentially positive quads
      */
-    private CachedDataset diffPositives;
+    private CachedDatasetQuads diffPositives;
     /**
      * The differentially negative quads
      */
-    private CachedDataset diffNegatives;
+    private CachedDatasetQuads diffNegatives;
     /**
      * The size of the diff
      */
@@ -57,7 +57,7 @@ class DatasetDiff extends DatasetImpl {
      *
      * @param original The original dataset
      */
-    public DatasetDiff(DatasetImpl original) {
+    public DatasetQuadsDiff(DatasetQuadsImpl original) {
         this.original = original;
         this.size = 0;
     }
@@ -239,7 +239,7 @@ class DatasetDiff extends DatasetImpl {
             }
         }
         if (diffPositives == null)
-            diffPositives = new CachedDataset();
+            diffPositives = new CachedDatasetQuads();
         long multiplicity = original.getMultiplicity(graph, subject, property, value);
         int result = diffPositives.doAddQuad(graph, subject, property, value);
         if (result == ADD_RESULT_NEW)
@@ -260,7 +260,7 @@ class DatasetDiff extends DatasetImpl {
             }
         }
         if (diffNegatives == null)
-            diffNegatives = new CachedDataset();
+            diffNegatives = new CachedDatasetQuads();
         long m1 = original.getMultiplicity(graph, subject, property, value);
         int result = diffNegatives.doAddQuad(graph, subject, property, value);
         if (result == ADD_RESULT_NEW) {

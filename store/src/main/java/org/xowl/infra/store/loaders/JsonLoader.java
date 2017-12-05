@@ -27,7 +27,6 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.io.Reader;
 import java.util.ArrayList;
@@ -48,7 +47,7 @@ public class JsonLoader implements Loader {
     /**
      * The node manager to use
      */
-    private final NodeManager nodeManager;
+    private final DatasetNodes nodes;
 
     /**
      * Initializes this loader
@@ -69,12 +68,12 @@ public class JsonLoader implements Loader {
     /**
      * Initializes this loader
      *
-     * @param repository  The repository to use
-     * @param nodeManager The node manager to use
+     * @param repository The repository to use
+     * @param nodes      The node manager to use
      */
-    public JsonLoader(Repository repository, NodeManager nodeManager) {
+    public JsonLoader(Repository repository, DatasetNodes nodes) {
         this.repository = repository;
-        this.nodeManager = nodeManager;
+        this.nodes = nodes;
     }
 
     @Override
@@ -222,7 +221,7 @@ public class JsonLoader implements Loader {
             List<Node> values = new ArrayList<>(node.getChildren().size());
             for (ASTNode child : node.getChildren())
                 values.add(RDFUtils.deserializeJSON(repository, child));
-            Node value = BaseTurtleLoader.buildRdfList(values, graph, nodeManager, buffer);
+            Node value = BaseTurtleLoader.buildRdfList(values, graph, nodes, buffer);
             buffer.add(new Quad(graph, subject, property, value));
         } else {
             Node value = RDFUtils.deserializeJSON(repository, node);

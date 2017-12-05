@@ -36,7 +36,7 @@ import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultSolutions;
 import org.xowl.infra.store.sparql.Solutions;
-import org.xowl.infra.store.storage.QuadStoreFactory;
+import org.xowl.infra.store.storage.StoreFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,7 +71,7 @@ public class ExecutionTest {
     public void testXOWLSerialization() throws Exception {
         Path p = Files.createTempDirectory("testXOWLSerialization");
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(QuadStoreFactory.create().onDisk(p.toFile()).make());
+        RepositoryRDF repository = new RepositoryRDF(StoreFactory.create().persisted(p.toFile()).make());
         repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/engine/tests", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/engine/testSimpleExecution.xowl");
         try (Transaction transaction = repository.getStore().newTransaction(true, true)) {
             repository.load(logger, "http://xowl.org/infra/engine/tests");
@@ -81,7 +81,7 @@ public class ExecutionTest {
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
         repository.getStore().close();
 
-        repository = new RepositoryRDF(QuadStoreFactory.create().onDisk(p.toFile()).make());
+        repository = new RepositoryRDF(StoreFactory.create().persisted(p.toFile()).make());
         try (Transaction transaction = repository.getStore().newTransaction(false)) {
             Object result = repository.getExecutionManager().execute("http://xowl.org/infra/engine/tests#sayHello");
             Assert.assertFalse("Failed to execute the function", logger.isOnError());

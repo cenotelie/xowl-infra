@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.storage.NodeManager;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,7 +63,7 @@ public class VariableResolverComposite extends VariableResolver {
     }
 
     @Override
-    public Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph) {
+    public Node resolve(VariableNode variable, RDFRuleExecution execution, DatasetNodes nodes, boolean isGraph) {
         VariableResolver resolver = parts.get(variable);
         if (resolver == null)
             resolver = fallback;

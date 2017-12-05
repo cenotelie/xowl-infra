@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2017 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -17,18 +17,22 @@
 
 package org.xowl.infra.store.storage;
 
-import org.xowl.infra.store.execution.ExecutionManager;
+import fr.cenotelie.commons.storage.Transaction;
+import org.xowl.infra.store.rdf.Dataset;
 
 /**
- * Represents the public API of a store of RDF quads
+ * Represents a dataset of RDF quads backed by a transactional storage system
  *
  * @author Laurent Wouters
  */
-public interface QuadStore extends Dataset, NodeManager, AutoCloseable {
+public interface DatasetTransactional extends Dataset {
     /**
-     * Sets the execution manager to use
+     * Starts a new transaction
+     * The transaction must be ended by a call to the transaction's close method.
      *
-     * @param executionManager The execution manager to use
+     * @param writable   Whether the transaction shall support writing
+     * @param autocommit Whether this transaction should commit when being closed
+     * @return The new transaction
      */
-    void setExecutionManager(ExecutionManager executionManager);
+    Transaction newTransaction(boolean writable, boolean autocommit);
 }

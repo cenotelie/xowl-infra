@@ -24,7 +24,7 @@ import fr.cenotelie.commons.utils.collections.Couple;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.util.*;
 
@@ -140,7 +140,7 @@ public class Phrase implements Identifiable, Serializable {
      * @param graph  The target graph
      * @param buffer The buffer for the produced quads
      */
-    public void serializeRdf(NodeManager nodes, GraphNode graph, Collection<Quad> buffer) {
+    public void serializeRdf(DatasetNodes nodes, GraphNode graph, Collection<Quad> buffer) {
         for (Sign sign : signs) {
             sign.serializeRdf(nodes, graph, buffer);
         }
