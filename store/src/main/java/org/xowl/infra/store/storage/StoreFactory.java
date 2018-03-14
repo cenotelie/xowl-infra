@@ -18,7 +18,7 @@
 package org.xowl.infra.store.storage;
 
 import org.xowl.infra.store.storage.cache.CachedDataset;
-import org.xowl.infra.store.storage.persistent.PersistedDatasetTransactional;
+import org.xowl.infra.store.storage.persistent.PersistedDataset;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class StoreFactory {
      * @return The new in-memory store
      */
     public static Store newInMemory() {
-        return new StoreImplSimpleProxy(new CachedDataset());
+        return new StoreImpl(new CachedDataset());
     }
 
     /**
@@ -51,6 +51,6 @@ public class StoreFactory {
     public static Store newPersisted(File location, boolean isReadonly) throws IOException {
         if (location == null)
             location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
-        return new StoreImplTransactional(new DatasetReasonableTransactional(new PersistedDatasetTransactional(location, isReadonly)));
+        return new StoreImpl(new DatasetReasonable(new PersistedDataset(location, isReadonly)));
     }
 }

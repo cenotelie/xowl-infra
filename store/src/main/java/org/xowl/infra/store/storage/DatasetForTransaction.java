@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.storage.Transaction;
+
 /**
  * Implements a dataset of RDF quads that can be used within a transaction
  *
@@ -51,6 +53,12 @@ class DatasetForTransaction extends DatasetImpl {
     @Override
     protected DatasetQuadsImpl getQuads() {
         return diff;
+    }
+
+    @Override
+    protected Transaction newTransaction(boolean writable, boolean autocommit) {
+        // we are in a transaction, do not start a new one here
+        throw new UnsupportedOperationException();
     }
 
     @Override

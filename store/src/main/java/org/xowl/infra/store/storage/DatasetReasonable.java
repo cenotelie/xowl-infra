@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.storage.Transaction;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
@@ -41,11 +42,11 @@ class DatasetReasonable extends DatasetImpl {
     /**
      * The ground dataset
      */
-    private final Dataset groundStore;
+    private final DatasetImpl groundStore;
     /**
      * The volatile dataset
      */
-    private final Dataset volatileStore;
+    private final DatasetImpl volatileStore;
     /**
      * The aggregating dataset
      */
@@ -64,7 +65,7 @@ class DatasetReasonable extends DatasetImpl {
      *
      * @param ground The ground dataset
      */
-    public DatasetReasonable(Dataset ground) {
+    public DatasetReasonable(DatasetImpl ground) {
         this.groundStore = ground;
         this.volatileStore = new CachedDataset();
         this.aggregate = new DatasetQuadsAggregate(groundStore, volatileStore);
@@ -89,6 +90,11 @@ class DatasetReasonable extends DatasetImpl {
     protected DatasetQuadsImpl getQuads() {
         // do not use this method
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected Transaction newTransaction(boolean writable, boolean autocommit) {
+        return groundStore.newTransaction(writable, autocommit);
     }
 
     @Override

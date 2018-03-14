@@ -17,18 +17,10 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.execution.ExecutionManager;
-
 /**
  * Represents the public API for a dataset of RDF quads
  *
  * @author Laurent Wouters
  */
 public interface Dataset extends DatasetQuads, DatasetNodes, AutoCloseable {
-    /**
-     * Sets the execution manager to use
-     *
-     * @param executionManager The execution manager to use
-     */
-    void setExecutionManager(ExecutionManager executionManager);
 }

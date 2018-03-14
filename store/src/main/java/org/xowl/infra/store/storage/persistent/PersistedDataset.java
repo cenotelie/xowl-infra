@@ -17,47 +17,74 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.store.rdf.BlankNode;
-import org.xowl.infra.store.rdf.IRINode;
+import fr.cenotelie.commons.storage.Transaction;
+import fr.cenotelie.commons.storage.TransactionalStorage;
+import fr.cenotelie.commons.storage.files.RawFile;
+import fr.cenotelie.commons.storage.files.RawFileBuffered;
+import fr.cenotelie.commons.storage.files.RawFileFactory;
+import fr.cenotelie.commons.storage.files.RawFileSplit;
+import fr.cenotelie.commons.storage.stores.ObjectStore;
+import fr.cenotelie.commons.storage.stores.ObjectStoreTransactional;
+import fr.cenotelie.commons.storage.wal.WriteAheadLog;
 import org.xowl.infra.store.storage.DatasetImpl;
 import org.xowl.infra.store.storage.DatasetNodesImpl;
 import org.xowl.infra.store.storage.DatasetQuadsImpl;
-import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Base implementation of a quad storage system that is persisted, presumably in a file on disk
  *
  * @author Laurent Wouters
  */
-public abstract class PersistedDataset extends DatasetImpl {
+public class PersistedDataset extends DatasetImpl {
+    /**
+     * The storage system
+     */
+    private final TransactionalStorage storage;
     /**
      * The store for the nodes
      */
-    protected PersistedDatasetNodes persistedNodes;
+    private final PersistedDatasetNodes persistedNodes;
     /**
      * The store for the quads
      */
-    protected PersistedDatasetQuads persistedDataset;
-    /**
-     * The node manager for the cache
-     */
-    protected CachedDatasetNodes cacheNodes;
+    private final PersistedDatasetQuads persistedDataset;
 
     /**
      * Initializes this store
      */
-    protected PersistedDataset() {
-    }
-
     /**
      * Initializes this store
      *
-     * @param toCopy The store to copy
+     * @param directory  The parent directory containing the backing files
+     * @param isReadonly Whether this store is in readonly mode
+     * @throws IOException When the backing files cannot be accessed
      */
-    protected PersistedDataset(PersistedDataset toCopy) {
-        this.persistedNodes = toCopy.persistedNodes;
-        this.persistedDataset = toCopy.persistedDataset;
-        this.cacheNodes = toCopy.cacheNodes;
+    public PersistedDataset(File directory, boolean isReadonly) throws IOException {
+        this.storage = new WriteAheadLog(
+                new RawFileSplit(directory, "xowl-", ".dat", new RawFileFactory() {
+                    @Override
+                    public RawFile newStorage(File file, boolean writable) throws IOException {
+                        return new RawFileBuffered(file, writable);
+                    }
+                }, !isReadonly, 1 << 30),
+                new RawFileBuffered(new File(directory, "xowl-log.dat"), !isReadonly)
+        );
+        boolean doInit = storage.getSize() == 0;
+        ObjectStore objectStore = new ObjectStoreTransactional(storage);
+        try (Transaction transaction = storage.newTransaction(doInit)) {
+            this.persistedNodes = new PersistedDatasetNodes(objectStore, doInit);
+            this.persistedDataset = new PersistedDatasetQuads(persistedNodes, objectStore, doInit);
+            if (doInit)
+                transaction.commit();
+        }
+    }
+
+    @Override
+    public Transaction newTransaction(boolean writable, boolean autocommit) {
+        return storage.newTransaction(writable, autocommit);
     }
 
     @Override
@@ -71,12 +98,7 @@ public abstract class PersistedDataset extends DatasetImpl {
     }
 
     @Override
-    public IRINode getExistingIRINode(String iri) {
-        return persistedNodes.getExistingIRINode(iri);
-    }
-
-    @Override
-    public BlankNode getBlankNode() {
-        return persistedNodes.getBlankNode();
+    public void close() throws IOException {
+        storage.close();
     }
 }

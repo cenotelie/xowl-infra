@@ -27,20 +27,6 @@ import java.util.Iterator;
  */
 public interface DatasetQuads {
     /**
-     * Adds the specified listener to this dataset
-     *
-     * @param listener A listener
-     */
-    void addListener(ChangeListener listener);
-
-    /**
-     * Removes the specified listener from this dataset
-     *
-     * @param listener A listener
-     */
-    void removeListener(ChangeListener listener);
-
-    /**
      * Gets the multiplicity of a quad
      *
      * @param quad The quad

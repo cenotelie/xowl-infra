@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.storage.cache;
 
+import fr.cenotelie.commons.storage.Access;
+import fr.cenotelie.commons.storage.Transaction;
 import org.xowl.infra.store.storage.DatasetImpl;
 import org.xowl.infra.store.storage.DatasetNodesImpl;
 import org.xowl.infra.store.storage.DatasetQuadsImpl;
@@ -54,6 +56,22 @@ public class CachedDataset extends DatasetImpl {
     @Override
     protected DatasetQuadsImpl getQuads() {
         return quads;
+    }
+
+    @Override
+    protected Transaction newTransaction(boolean writable, boolean autocommit) {
+        return new Transaction(writable, autocommit) {
+            @Override
+            protected void doCommit() {
+                // do nothing here
+            }
+
+            @Override
+            protected Access newAccess(long index, int length, boolean writable) {
+                // should not be called
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     @Override

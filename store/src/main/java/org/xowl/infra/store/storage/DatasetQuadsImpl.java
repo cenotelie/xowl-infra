@@ -94,12 +94,20 @@ public abstract class DatasetQuadsImpl implements DatasetQuads {
         }
     }
 
-    @Override
+    /**
+     * Adds the specified listener to this store
+     *
+     * @param listener A listener
+     */
     public void addListener(ChangeListener listener) {
         listeners.add(listener);
     }
 
-    @Override
+    /**
+     * Removes the specified listener from this store
+     *
+     * @param listener A listener
+     */
     public void removeListener(ChangeListener listener) {
         listeners.remove(listener);
     }

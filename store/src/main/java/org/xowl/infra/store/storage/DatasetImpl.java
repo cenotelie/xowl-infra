@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.storage.Transaction;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
@@ -45,18 +46,40 @@ public abstract class DatasetImpl implements Dataset {
      */
     protected abstract DatasetQuadsImpl getQuads();
 
-    @Override
+    /**
+     * Starts a new transaction
+     * The transaction must be ended by a call to the transaction's close method.
+     *
+     * @param writable   Whether the transaction shall support writing
+     * @param autocommit Whether this transaction should commit when being closed
+     * @return The new transaction
+     */
+    protected abstract Transaction newTransaction(boolean writable, boolean autocommit);
+
+    /**
+     * Sets the execution manager to use
+     *
+     * @param executionManager The execution manager to use
+     */
     public void setExecutionManager(ExecutionManager executionManager) {
         getNodes().setExecutionManager(executionManager);
         getQuads().setExecutionManager(this, executionManager);
     }
 
-    @Override
+    /**
+     * Adds the specified listener to this store
+     *
+     * @param listener A listener
+     */
     public void addListener(ChangeListener listener) {
         getQuads().addListener(listener);
     }
 
-    @Override
+    /**
+     * Removes the specified listener from this store
+     *
+     * @param listener A listener
+     */
     public void removeListener(ChangeListener listener) {
         getQuads().removeListener(listener);
     }

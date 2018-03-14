@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage;
 
 import fr.cenotelie.commons.storage.NoTransactionException;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.ChangeListener;
 
 /**
@@ -55,6 +56,13 @@ public interface Store extends AutoCloseable {
      * @throws NoTransactionException when the current thread does not use a transaction
      */
     StoreTransaction getTransaction() throws NoTransactionException;
+
+    /**
+     * Sets the execution manager to use
+     *
+     * @param executionManager The execution manager to use
+     */
+    void setExecutionManager(ExecutionManager executionManager);
 
     /**
      * Adds the specified listener to this store

@@ -19,6 +19,10 @@ package org.xowl.infra.store.storage;
 
 import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.storage.NoTransactionException;
+import fr.cenotelie.commons.storage.Transaction;
+import org.xowl.infra.store.execution.ExecutionManager;
+import org.xowl.infra.store.rdf.ChangeListener;
+import org.xowl.infra.store.rdf.Dataset;
 
 import java.util.Arrays;
 import java.util.WeakHashMap;
@@ -29,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Laurent Wouters
  */
-abstract class StoreImpl implements Store {
+class StoreImpl implements Store {
     /**
      * The storage system is now closed
      */
@@ -50,9 +54,64 @@ abstract class StoreImpl implements Store {
     private static final int STATE_FLAG_TRANSACTIONS_LOCK = 2;
 
     /**
+     * Implementation of a transaction for this store
+     */
+    private static class MyTransaction extends StoreTransaction {
+        /**
+         * The parent store
+         */
+        private final StoreImpl parent;
+        /**
+         * The interface store for this transaction
+         */
+        private final DatasetForTransaction dataset;
+        /**
+         * The transaction from the backing storage system
+         */
+        private final Transaction transaction;
+
+        /**
+         * Initializes this transaction
+         *
+         * @param parent     The parent store
+         * @param base       The base dataset
+         * @param writable   Whether this transaction allows writing
+         * @param autocommit Whether this transaction should commit when being closed
+         */
+        public MyTransaction(StoreImpl parent, DatasetImpl base, boolean writable, boolean autocommit) {
+            super(writable, autocommit);
+            this.parent = parent;
+            this.dataset = new DatasetForTransaction(base, true);
+            this.transaction = base.newTransaction(writable, autocommit);
+        }
+
+        @Override
+        public Dataset getDataset() {
+            return dataset;
+        }
+
+        @Override
+        protected void doCommit() throws ConcurrentWriteException {
+            dataset.commit();
+            transaction.commit();
+        }
+
+        @Override
+        protected void doAbort() {
+            dataset.rollback();
+            transaction.abort();
+        }
+
+        @Override
+        protected void onClose() {
+            parent.onTransactionEnd(this);
+        }
+    }
+
+    /**
      * The current state of the log
      */
-    protected final AtomicInteger state;
+    private final AtomicInteger state;
     /**
      * The currently running transactions
      */
@@ -65,15 +124,37 @@ abstract class StoreImpl implements Store {
      * The number of running transactions
      */
     private volatile int transactionsCount;
+    /**
+     * The base dataset
+     */
+    private final DatasetImpl base;
 
     /**
      * Initializes this store
+     *
+     * @param base The base dataset
      */
-    protected StoreImpl() {
+    public StoreImpl(DatasetImpl base) {
         this.transactions = new StoreTransaction[8];
         this.transactionsByThread = new WeakHashMap<>();
         this.transactionsCount = 0;
         this.state = new AtomicInteger(STATE_READY);
+        this.base = base;
+    }
+
+    @Override
+    public void setExecutionManager(ExecutionManager executionManager) {
+        base.setExecutionManager(executionManager);
+    }
+
+    @Override
+    public void addListener(ChangeListener listener) {
+        base.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(ChangeListener listener) {
+        base.removeListener(listener);
     }
 
     /**
@@ -81,7 +162,7 @@ abstract class StoreImpl implements Store {
      *
      * @param flag The flag used for locking the resource
      */
-    protected void stateRelease(int flag) {
+    private void stateRelease(int flag) {
         while (true) {
             int s = state.get();
             int target = s & (~flag);
@@ -135,7 +216,9 @@ abstract class StoreImpl implements Store {
      * @param autocommit Whether this transaction should commit when being closed
      * @return The new transaction
      */
-    protected abstract StoreTransaction createNewTransaction(boolean writable, boolean autocommit);
+    private StoreTransaction createNewTransaction(boolean writable, boolean autocommit) {
+        return new MyTransaction(this, base, writable, autocommit);
+    }
 
     @Override
     public StoreTransaction getTransaction() throws NoTransactionException {
@@ -245,6 +328,7 @@ abstract class StoreImpl implements Store {
      *
      * @throws Exception when an error occurred
      */
-    protected void onClose() throws Exception {
+    private void onClose() throws Exception {
+        base.close();
     }
 }
