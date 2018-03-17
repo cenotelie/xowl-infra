@@ -58,7 +58,7 @@ public class JsonLdSerializer extends StructuredSerializer {
      * @param logger The logger to use
      * @param quads  The quads to serialize
      */
-    public void serialize(Logger logger, Iterator<Quad> quads) {
+    public void serialize(Logger logger, Iterator<? extends Quad> quads) {
         while (quads.hasNext()) {
             enqueue(quads.next());
         }
@@ -268,7 +268,7 @@ public class JsonLdSerializer extends StructuredSerializer {
                 break;
             }
             default:
-                throw new UnsupportedNodeType(node, "Unsupported node type.");
+                throw new UnsupportedNodeType(node, QuadField.ANY);
         }
     }
 }

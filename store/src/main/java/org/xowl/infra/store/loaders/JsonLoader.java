@@ -62,7 +62,7 @@ public class JsonLoader implements Loader {
      * @param repository The repository to use
      */
     public JsonLoader(RepositoryRDF repository) {
-        this(repository, repository.getStore());
+        this(repository, repository.getStore().getTransaction().getDataset());
     }
 
     /**

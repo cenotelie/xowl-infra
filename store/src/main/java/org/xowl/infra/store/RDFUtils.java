@@ -28,7 +28,6 @@ import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.rdf.DatasetNodes;
 import org.xowl.infra.store.writers.*;
 
 import java.io.IOException;

@@ -92,7 +92,7 @@ public class xRDFLoader implements Loader {
      * @param repository The repository to use
      */
     public xRDFLoader(RepositoryRDF repository) {
-        this(repository.getStore(), repository.getExecutionManager());
+        this(repository.getStore().getTransaction().getDataset(), repository.getExecutionManager());
     }
 
     /**

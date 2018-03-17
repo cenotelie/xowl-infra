@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2018 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,37 +15,21 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.sparql;
-
-import org.xowl.infra.store.execution.Evaluator;
-import org.xowl.infra.store.rdf.DatasetNodes;
-import org.xowl.infra.store.rdf.RDFPattern;
+package org.xowl.infra.store;
 
 /**
- * The evaluation context of a SPARQL query
+ * Represents a task to be executed within the context of a transaction on a repository
  *
+ * @param <R> The type of repository
+ * @param <T> The type of return value
  * @author Laurent Wouters
  */
-public interface EvalContext {
+public interface RepositoryTask<R extends Repository, T> {
     /**
-     * Gets the evaluator
+     * Executes this task
      *
-     * @return The evaluator
+     * @param repository The repository
+     * @return The result
      */
-    Evaluator getEvaluator();
-
-    /**
-     * Gets the node manager
-     *
-     * @return The node manager
-     */
-    DatasetNodes getNodes();
-
-    /**
-     * Gets the solutions for a pattern of RDF quads
-     *
-     * @param pattern The RDF pattern to match
-     * @return The solutions
-     */
-    Solutions getSolutions(RDFPattern pattern);
+    T execute(R repository);
 }

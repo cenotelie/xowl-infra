@@ -94,7 +94,7 @@ public class ListIterator implements Iterator<Node> {
      */
     private Node getValue(SubjectNode node, Property property) {
         try {
-            Iterator<Quad> iterator = dataset.getAll(node, property, null);
+            Iterator<? extends Quad> iterator = dataset.getAll(node, property, null);
             return iterator.hasNext() ? iterator.next().getObject() : null;
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);

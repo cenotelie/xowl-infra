@@ -54,7 +54,7 @@ public class JsonSerializer extends StructuredSerializer {
      * @param logger The logger to use
      * @param quads  The quads to serialize
      */
-    public void serialize(Logger logger, Iterator<Quad> quads) {
+    public void serialize(Logger logger, Iterator<? extends Quad> quads) {
         while (quads.hasNext()) {
             enqueue(quads.next());
         }

@@ -20,7 +20,6 @@ import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.rdf.Dataset;
 
 import java.util.ArrayList;
 import java.util.Collection;

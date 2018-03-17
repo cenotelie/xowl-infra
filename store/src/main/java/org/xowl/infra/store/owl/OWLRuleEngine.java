@@ -25,7 +25,6 @@ import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.rdf.Dataset;
 
 import java.util.*;
 

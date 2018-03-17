@@ -25,10 +25,6 @@ import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.lang.runtime.RuntimeFactory;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
-import org.xowl.infra.store.owl.OWLQueryEngine;
-import org.xowl.infra.store.owl.OWLRuleEngine;
-import org.xowl.infra.store.rdf.RDFQueryEngine;
-import org.xowl.infra.store.rdf.RDFRuleEngine;
 import org.xowl.infra.store.rdf.DatasetNodes;
 import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 import org.xowl.infra.store.writers.OWLSerializer;
@@ -114,26 +110,6 @@ public class RepositoryDirectSemantics extends Repository {
     }
 
     @Override
-    public OWLQueryEngine getOWLQueryEngine() {
-        return null;
-    }
-
-    @Override
-    public RDFQueryEngine getRDFQueryEngine() {
-        return null;
-    }
-
-    @Override
-    public OWLRuleEngine getOWLRuleEngine() {
-        return null;
-    }
-
-    @Override
-    public RDFRuleEngine getRDFRuleEngine() {
-        return null;
-    }
-
-    @Override
     public void setEntailmentRegime(EntailmentRegime regime) {
         throw new UnsupportedOperationException("Not supported");
     }
@@ -144,28 +120,28 @@ public class RepositoryDirectSemantics extends Repository {
     }
 
     @Override
-    protected void doLoadRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception {
+    protected void doLoadRDF(Logger logger, Ontology ontology, RDFLoaderResult input) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void doLoadOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception {
+    protected void doLoadOWL(Logger logger, Ontology ontology, OWLLoaderResult input) {
         for (Axiom axiom : input.getAxioms())
             apply(axiom, false);
     }
 
     @Override
-    protected void doExportRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception {
+    protected void doExportRDF(Logger logger, Ontology ontology, RDFSerializer output) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void doExportRDF(Logger logger, RDFSerializer output) throws Exception {
+    protected void doExportRDF(Logger logger, RDFSerializer output) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) throws Exception {
+    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) {
         throw new UnsupportedOperationException();
     }
 

@@ -33,5 +33,5 @@ public interface RDFSerializer {
      * @param logger The logger to use
      * @param quads  The quads to serialize
      */
-    void serialize(Logger logger, Iterator<Quad> quads);
+    void serialize(Logger logger, Iterator<? extends Quad> quads);
 }
