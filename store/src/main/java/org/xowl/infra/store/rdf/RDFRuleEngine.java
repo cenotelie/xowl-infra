@@ -24,6 +24,7 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
+import org.xowl.infra.store.storage.Store;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.*;
@@ -130,7 +131,7 @@ public class RDFRuleEngine implements ChangeListener {
 
         @Override
         public DatasetNodes getNodes() {
-            return outputStore;
+            return outputStore.getTransaction().getDataset();
         }
 
         @Override
@@ -363,7 +364,7 @@ public class RDFRuleEngine implements ChangeListener {
     /**
      * The RDF store for the output
      */
-    private final Dataset outputStore;
+    private final Store outputStore;
     /**
      * A RETE network for the pattern matching of queries
      */
@@ -388,7 +389,7 @@ public class RDFRuleEngine implements ChangeListener {
      * @param outputStore The RDF store for the output
      * @param evaluator   The evaluator for this engine
      */
-    public RDFRuleEngine(DatasetQuads inputStore, Dataset outputStore, Evaluator evaluator) {
+    public RDFRuleEngine(Store inputStore, Store outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
         this.rete = new RETENetwork(inputStore);
         this.evaluator = evaluator;
@@ -463,12 +464,12 @@ public class RDFRuleEngine implements ChangeListener {
             if (execution == null)
                 continue;
             // invalidate the consequents of all executions of the rule
-            Changeset changeset = data.original.produce(execution, outputStore, evaluator);
+            Changeset changeset = data.original.produce(execution, outputStore.getTransaction().getDataset(), evaluator);
             if (changeset == null) {
                 Logging.get().warning("Failed to process the changeset for rule " + data.original.getIRI());
             } else {
                 try {
-                    outputStore.insert(Changeset.reverse(changeset));
+                    outputStore.getTransaction().getDataset().insert(Changeset.reverse(changeset));
                 } catch (UnsupportedNodeType ex) {
                     Logging.get().error(ex);
                 }
@@ -553,7 +554,7 @@ public class RDFRuleEngine implements ChangeListener {
             // un-fire rules
             Collection<RDFRuleExecution> requests = io.checkoutRequestsToUnfire();
             for (RDFRuleExecution execution : requests) {
-                Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
+                Changeset changeset = execution.getRule().produce(execution, outputStore.getTransaction().getDataset(), evaluator);
                 if (changeset == null) {
                     Logging.get().warning("Failed to process the changeset for rule " + execution.getRule().getIRI());
                     continue;
@@ -564,7 +565,7 @@ public class RDFRuleEngine implements ChangeListener {
             // fire rules
             requests = io.checkoutRequestsToFire();
             for (RDFRuleExecution execution : requests) {
-                Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
+                Changeset changeset = execution.getRule().produce(execution, outputStore.getTransaction().getDataset(), evaluator);
                 if (changeset == null) {
                     Logging.get().warning("Failed to process the changeset for rule " + execution.getRule().getIRI());
                     continue;
@@ -575,7 +576,7 @@ public class RDFRuleEngine implements ChangeListener {
             // inject the changes if necessary
             if (io.hasOutstandingChanges()) {
                 try {
-                    outputStore.insert(Changeset.fromAddedRemoved(io.checkoutPositivesQuads(), io.checkoutNegativeQuads()));
+                    outputStore.getTransaction().getDataset().insert(Changeset.fromAddedRemoved(io.checkoutPositivesQuads(), io.checkoutNegativeQuads()));
                 } catch (UnsupportedNodeType ex) {
                     Logging.get().error(ex);
                 }

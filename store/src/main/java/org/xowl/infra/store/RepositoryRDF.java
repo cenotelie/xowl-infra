@@ -188,26 +188,42 @@ public class RepositoryRDF extends Repository {
         }
     }
 
-    @Override
+    /**
+     * Gets the OWL query engine
+     *
+     * @return The OWL query engine
+     */
     public synchronized OWLQueryEngine getOWLQueryEngine() {
         if (queryEngine == null)
             queryEngine = new OWLQueryEngine(store, executionManager);
         return queryEngine;
     }
 
-    @Override
+    /**
+     * Gets the RDF query engine
+     *
+     * @return The RDF query engine
+     */
     public RDFQueryEngine getRDFQueryEngine() {
         return getOWLQueryEngine().getBackend();
     }
 
-    @Override
+    /**
+     * Gets the OWL rule engine
+     *
+     * @return The OWL rule engine
+     */
     public synchronized OWLRuleEngine getOWLRuleEngine() {
         if (ruleEngine == null)
             ruleEngine = new OWLRuleEngine(store, store, executionManager);
         return ruleEngine;
     }
 
-    @Override
+    /**
+     * Gets the RDF rule engine
+     *
+     * @return The RDF rule engine
+     */
     public RDFRuleEngine getRDFRuleEngine() {
         return getOWLRuleEngine().getBackend();
     }

@@ -19,6 +19,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Changeset;
+import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -61,8 +62,9 @@ public class CommandDeleteData implements Command {
 
     @Override
     public Result execute(RepositoryRDF repository) {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         try {
-            repository.getStore().insert(Changeset.fromRemoved(quads));
+            dataset.insert(Changeset.fromRemoved(quads));
             return ResultSuccess.INSTANCE;
         } catch (UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());

@@ -53,7 +53,7 @@ public class EvalContextRepository implements EvalContext {
 
     @Override
     public DatasetNodes getNodes() {
-        return repository.getStore();
+        return repository.getStore().getTransaction().getDataset();
     }
 
     @Override

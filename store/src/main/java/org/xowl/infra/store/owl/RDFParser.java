@@ -16,6 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.store.owl;
 
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.store.RDFUtils;
@@ -25,7 +26,9 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
+import org.xowl.infra.store.storage.Store;
 import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.StoreTransaction;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.*;
@@ -37,9 +40,9 @@ import java.util.*;
  */
 public class RDFParser {
     /**
-     * The target dataset to parse
+     * The target store to parse
      */
-    private Dataset dataset;
+    private Store store;
     /**
      * The graph node to use for building pattern quads
      */
@@ -77,11 +80,16 @@ public class RDFParser {
      * @throws UnsupportedNodeType When a node cannot be translated
      */
     public Collection<Axiom> translate(Collection<Quad> quads) throws UnsupportedNodeType {
-        dataset = StoreFactory.create().make();
-        graphNode = new VariableNode("__graph__");
-        dataset.insert(Changeset.fromAdded(quads));
-        execute(quads);
-        return axioms;
+        store = StoreFactory.newInMemory();
+        try (StoreTransaction transaction = store.newTransaction(true, true)) {
+            graphNode = new VariableNode("__graph__");
+            transaction.getDataset().insert(Changeset.fromAdded(quads));
+            execute(quads);
+            return axioms;
+        } catch (ConcurrentWriteException exception) {
+            // cannot happen
+            return Collections.emptyList();
+        }
     }
 
     /**
@@ -91,8 +99,8 @@ public class RDFParser {
      * @param quads The quads
      * @return The equivalent axioms
      */
-    public Collection<Axiom> translate(Dataset store, Collection<Quad> quads) {
-        this.dataset = store;
+    public Collection<Axiom> translate(Store store, Collection<Quad> quads) {
+        this.store = store;
         this.graphNode = new VariableNode("__graph__");
         execute(quads);
         return axioms;
@@ -105,12 +113,12 @@ public class RDFParser {
      * @param graph The graph
      * @return The equivalent axioms
      */
-    public Collection<Axiom> translate(Dataset store, GraphNode graph) {
-        this.dataset = store;
+    public Collection<Axiom> translate(Store store, GraphNode graph) {
+        this.store = store;
         this.graphNode = graph;
         Collection<Quad> quads = new ArrayList<>();
         try {
-            Iterator<Quad> iterator = store.getAll(graph);
+            Iterator<? extends Quad> iterator = store.getTransaction().getDataset().getAll(graph);
             while (iterator.hasNext())
                 quads.add(iterator.next());
         } catch (UnsupportedNodeType exception) {
@@ -126,7 +134,7 @@ public class RDFParser {
      * @param quads The quads to parse
      */
     private void execute(Collection<Quad> quads) {
-        RETENetwork network = new RETENetwork(dataset);
+        RETENetwork network = new RETENetwork(store);
         rules = new ArrayList<>();
         triggers = new ArrayList<>();
         expDatarange = new HashMap<>();
@@ -197,7 +205,7 @@ public class RDFParser {
      * @return The quad pattern
      */
     private Quad getPattern(SubjectNode subject, String property, Node object) {
-        return new Quad(graphNode, subject, dataset.getIRINode(property), object);
+        return new Quad(graphNode, subject, store.getTransaction().getDataset().getIRINode(property), object);
     }
 
     /**
@@ -209,7 +217,7 @@ public class RDFParser {
      * @return The quad pattern
      */
     private Quad getPattern(SubjectNode subject, String property, String object) {
-        return new Quad(graphNode, subject, dataset.getIRINode(property), dataset.getIRINode(object));
+        return new Quad(graphNode, subject, store.getTransaction().getDataset().getIRINode(property), store.getTransaction().getDataset().getIRINode(object));
     }
 
     /**
@@ -446,7 +454,7 @@ public class RDFParser {
     private List<Node> getValues(SubjectNode subject, String property) {
         List<Node> results = new ArrayList<>();
         try {
-            Iterator<? extends Quad> iterator = dataset.getAll(subject, dataset.getIRINode(property), null);
+            Iterator<? extends Quad> iterator = store.getTransaction().getDataset().getAll(subject, store.getTransaction().getDataset().getIRINode(property), null);
             while (iterator.hasNext()) {
                 results.add(iterator.next().getObject());
             }
@@ -464,7 +472,7 @@ public class RDFParser {
      */
     private Quad getTriple(SubjectNode subject) {
         try {
-            Iterator<? extends Quad> iterator = dataset.getAll(subject, null, null);
+            Iterator<? extends Quad> iterator = store.getTransaction().getDataset().getAll(subject, null, null);
             if (!iterator.hasNext())
                 return null;
             return iterator.next();

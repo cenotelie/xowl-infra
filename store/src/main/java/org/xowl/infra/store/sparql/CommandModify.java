@@ -19,10 +19,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.execution.EvaluationException;
-import org.xowl.infra.store.rdf.Changeset;
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
@@ -96,6 +93,7 @@ public class CommandModify implements Command {
 
     @Override
     public Result execute(RepositoryRDF repository) {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         try {
             EvalContext context = new EvalContextRepository(repository);
             Solutions solutions = where.eval(context);
@@ -105,7 +103,7 @@ public class CommandModify implements Command {
                 Utils.instantiate(context, solution, insert, toInsert);
                 Utils.instantiate(context, solution, delete, toRemove);
             }
-            repository.getStore().insert(Changeset.fromAddedRemoved(toInsert, toRemove));
+            dataset.insert(Changeset.fromAddedRemoved(toInsert, toRemove));
         } catch (UnsupportedNodeType | EvaluationException exception) {
             return new ResultFailure(exception.getMessage());
         }
