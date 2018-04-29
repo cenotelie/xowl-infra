@@ -17,10 +17,14 @@
 
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.utils.logging.SinkLogger;
-import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.ResourceAccess;
+import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.rdf.IRINode;
+import org.xowl.infra.store.rdf.SubjectNode;
+import org.xowl.infra.store.storage.StoreTransaction;
 
 /**
  * The generator of the test suite for the JSON-LD syntax
@@ -34,19 +38,23 @@ public class JSONLDTestSuiteGenerator {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", ResourceAccess.SCHEME_RESOURCE + BaseJSONLDTest.PHYSICAL + "\\1");
-        try {
-            repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld");
-        } catch (Exception exception) {
-            logger.error(exception);
-        }
-        //repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/normalize-manifest.jsonld");
+        try (StoreTransaction transaction = repository.getStore().newTransaction(true, true)) {
+            try {
+                repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld");
+            } catch (Exception exception) {
+                logger.error(exception);
+            }
+            //repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/normalize-manifest.jsonld");
 
-        ProxyObject classRDFTestCase = repository.resolveProxy("http://json-ld.org/test-suite/vocab#ToRDFTest");
-        for (ProxyObject test : classRDFTestCase.getInstances()) {
-            String name = test.getIRIString().substring((BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld").length() + 1);
-            String input = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action").getIRIString();
-            String expect = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result").getIRIString();
-            System.out.println("@Test public void test_toRdf_" + name + "() { toRdfTest(\"" + expect + "\", \"" + input + "\"); }");
+            IRINode classRDFTestCase = transaction.getDataset().getResource("http://json-ld.org/test-suite/vocab#ToRDFTest");
+            for (SubjectNode test : transaction.getDataset().getSubjectsWith(transaction.getDataset().getResource(Vocabulary.rdfType), classRDFTestCase)) {
+                String name = test.getIRIString().substring((BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld").length() + 1);
+                String input = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action").getIRIString();
+                String expect = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result").getIRIString();
+                System.out.println("@Test public void test_toRdf_" + name + "() { toRdfTest(\"" + expect + "\", \"" + input + "\"); }");
+            }
+        } catch (ConcurrentWriteException exception) {
+            // cannot happen
         }
     }
 

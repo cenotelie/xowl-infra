@@ -16,6 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.After;
@@ -25,7 +26,7 @@ import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.rdf.Dataset;
+import org.xowl.infra.store.storage.Store;
 import org.xowl.infra.store.storage.StoreFactory;
 
 import java.io.IOException;
@@ -48,22 +49,29 @@ public abstract class W3CTestSuite {
     /**
      * The store to use
      */
-    protected Dataset store;
+    protected Store store;
     /**
      * The IRI mapper
      */
     protected IRIMapper mapper;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() {
         logger = new SinkLogger();
-        store = StoreFactory.create().make();
+        store = StoreFactory.newInMemory();
+        store.newTransaction(true, true);
         mapper = IRIMapper.getDefault();
     }
 
     @After
     public void cleanup() {
-        store = StoreFactory.create().make();
+        try {
+            store.getTransaction().close();
+        } catch (ConcurrentWriteException exception) {
+            // cannot happen
+        }
+        store = StoreFactory.newInMemory();
+        store.newTransaction(true, true);
         logger.reset();
     }
 
@@ -79,15 +87,15 @@ public abstract class W3CTestSuite {
             return null;
         switch (syntax) {
             case Repository.SYNTAX_NTRIPLES:
-                return new NTriplesLoader(store);
+                return new NTriplesLoader(store.getTransaction().getDataset());
             case Repository.SYNTAX_NQUADS:
-                return new NQuadsLoader(store);
+                return new NQuadsLoader(store.getTransaction().getDataset());
             case Repository.SYNTAX_TURTLE:
-                return new TurtleLoader(store);
+                return new TurtleLoader(store.getTransaction().getDataset());
             case Repository.SYNTAX_RDFXML:
-                return new RDFXMLLoader(store);
+                return new RDFXMLLoader(store.getTransaction().getDataset());
             case Repository.SYNTAX_JSON_LD:
-                return new JsonLdLoader(store) {
+                return new JsonLdLoader(store.getTransaction().getDataset()) {
                     @Override
                     protected Reader getReaderFor(Logger logger, String iri) {
                         String resource = mapper.get(iri);
@@ -101,7 +109,7 @@ public abstract class W3CTestSuite {
             case Repository.SYNTAX_JSON:
                 return new JsonLoader();
             case Repository.SYNTAX_TRIG:
-                return new TriGLoader(store);
+                return new TriGLoader(store.getTransaction().getDataset());
             case Repository.SYNTAX_XRDF:
                 return new xRDFLoader();
         }
@@ -161,7 +169,7 @@ public abstract class W3CTestSuite {
 
         // rewrite the graph in the expected quads
         List<Quad> temp = new ArrayList<>();
-        GraphNode target = store.getIRINode(testedURI);
+        GraphNode target = store.getTransaction().getDataset().getIRINode(testedURI);
         for (Quad quad : expectedQuads) {
             if (quad.getGraph().getNodeType() == Node.TYPE_IRI && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
                 temp.add(new Quad(target, quad.getSubject(), quad.getProperty(), quad.getObject()));

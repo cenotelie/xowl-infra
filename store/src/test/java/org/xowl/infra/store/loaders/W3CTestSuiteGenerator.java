@@ -16,13 +16,15 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
+import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.rdf.Dataset;
+import org.xowl.infra.store.storage.Store;
 import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.StoreTransaction;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.io.IOException;
@@ -72,48 +74,52 @@ public class W3CTestSuiteGenerator {
      * @param manifest The path to a manifest
      */
     public void generate(String manifest) {
-        Dataset store = StoreFactory.create().make();
+        Store store = StoreFactory.newInMemory();
         SinkLogger logger = new SinkLogger();
 
-        InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);
-        Reader reader = reader = new InputStreamReader(stream, IOUtils.CHARSET);
-        Loader loader = new TurtleLoader(store);
-        RDFLoaderResult input = loader.loadRDF(logger, reader, BASE_LOCATION, BASE_LOCATION);
-        try {
-            reader.close();
-        } catch (IOException ex) {
-            Assert.fail("Failed to close the resource " + manifest);
-        }
-
-        try {
-            for (Quad quad : input.getQuads())
-                store.add(quad);
-        } catch (UnsupportedNodeType ex) {
-            Assert.fail("Unsupported quad");
-        }
-
-        try {
-            Iterator<Quad> triples = store.getAll(null, store.getIRINode(MF + "entries"), null);
-            Iterator<Node> tests = new ListIterator(store, triples.next().getObject());
-            while (tests.hasNext()) {
-                SubjectNode test = (SubjectNode) tests.next();
-                String type = ((IRINode) getValue(store, test, Vocabulary.rdfType)).getIRIValue();
-                type = type.substring(RDFT.length());
-                if (type.endsWith("PositiveSyntax")) {
-                    String syntax = type.substring(4, type.length() - 14);
-                    generateTestPositiveSyntax(store, BASE_LOCATION, test, syntax);
-                } else if (type.endsWith("NegativeSyntax")) {
-                    String syntax = type.substring(4, type.length() - 14);
-                    generateTestNegativeSyntax(store, BASE_LOCATION, test, syntax);
-                } else if (type.endsWith("NegativeEval")) {
-                    String syntax = type.substring(4, type.length() - 12);
-                    generateTestNegativeSyntax(store, BASE_LOCATION, test, syntax);
-                } else if (type.endsWith("Eval")) {
-                    String syntax = type.substring(4, type.length() - 4);
-                    generateTestEval(store, BASE_LOCATION, test, syntax);
-                }
+        try (StoreTransaction transaction = store.newTransaction(true, true)) {
+            InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);
+            Reader reader = new InputStreamReader(stream, IOUtils.CHARSET);
+            Loader loader = new TurtleLoader(transaction.getDataset());
+            RDFLoaderResult input = loader.loadRDF(logger, reader, BASE_LOCATION, BASE_LOCATION);
+            try {
+                reader.close();
+            } catch (IOException ex) {
+                Assert.fail("Failed to close the resource " + manifest);
             }
-        } catch (UnsupportedNodeType exception) {
+
+            try {
+                for (Quad quad : input.getQuads())
+                    transaction.getDataset().add(quad);
+            } catch (UnsupportedNodeType ex) {
+                Assert.fail("Unsupported quad");
+            }
+
+            try {
+                Iterator<? extends Quad> triples = transaction.getDataset().getAll(null, transaction.getDataset().getIRINode(MF + "entries"), null);
+                Iterator<Node> tests = new ListIterator(transaction.getDataset(), triples.next().getObject());
+                while (tests.hasNext()) {
+                    SubjectNode test = (SubjectNode) tests.next();
+                    String type = ((IRINode) getValue(transaction.getDataset(), test, Vocabulary.rdfType)).getIRIValue();
+                    type = type.substring(RDFT.length());
+                    if (type.endsWith("PositiveSyntax")) {
+                        String syntax = type.substring(4, type.length() - 14);
+                        generateTestPositiveSyntax(transaction.getDataset(), BASE_LOCATION, test, syntax);
+                    } else if (type.endsWith("NegativeSyntax")) {
+                        String syntax = type.substring(4, type.length() - 14);
+                        generateTestNegativeSyntax(transaction.getDataset(), BASE_LOCATION, test, syntax);
+                    } else if (type.endsWith("NegativeEval")) {
+                        String syntax = type.substring(4, type.length() - 12);
+                        generateTestNegativeSyntax(transaction.getDataset(), BASE_LOCATION, test, syntax);
+                    } else if (type.endsWith("Eval")) {
+                        String syntax = type.substring(4, type.length() - 4);
+                        generateTestEval(transaction.getDataset(), BASE_LOCATION, test, syntax);
+                    }
+                }
+            } catch (UnsupportedNodeType exception) {
+                Assert.fail(exception.getMessage());
+            }
+        } catch (ConcurrentWriteException exception) {
             Assert.fail(exception.getMessage());
         }
     }
@@ -185,13 +191,12 @@ public class W3CTestSuiteGenerator {
      */
     private Node getValue(Dataset graph, SubjectNode node, String property) {
         try {
-            Iterator<Quad> entries = graph.getAll(node, graph.getIRINode(property), null);
+            Iterator<? extends Quad> entries = graph.getAll(node, graph.getIRINode(property), null);
             if (!entries.hasNext())
-                return null;
+                throw new Error("Not found");
             return entries.next().getObject();
         } catch (UnsupportedNodeType exception) {
-            exception.printStackTrace();
-            return null;
+            throw new Error(exception);
         }
     }
 }

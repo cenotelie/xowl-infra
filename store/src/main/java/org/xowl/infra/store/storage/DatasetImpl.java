@@ -23,6 +23,7 @@ import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -82,6 +83,33 @@ public abstract class DatasetImpl implements Dataset {
      */
     public void removeListener(ChangeListener listener) {
         getQuads().removeListener(listener);
+    }
+
+    @Override
+    public IRINode getResource(String iri) {
+        return getIRINode(iri);
+    }
+
+    @Override
+    public Collection<Node> getValuesBy(IRINode subject, IRINode property) {
+        Collection<Node> result = new ArrayList<>();
+        Iterator<? extends Quad> iterator = getAll(null, subject, property, null);
+        while (iterator.hasNext()) {
+            Quad quad = iterator.next();
+            result.add(quad.getObject());
+        }
+        return result;
+    }
+
+    @Override
+    public Collection<SubjectNode> getSubjectsWith(IRINode property, Node object) {
+        Collection<SubjectNode> result = new ArrayList<>();
+        Iterator<? extends Quad> iterator = getAll(null, null, property, object);
+        while (iterator.hasNext()) {
+            Quad quad = iterator.next();
+            result.add(quad.getSubject());
+        }
+        return result;
     }
 
     @Override

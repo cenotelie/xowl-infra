@@ -17,10 +17,37 @@
 
 package org.xowl.infra.store.rdf;
 
+import java.util.Collection;
+
 /**
  * Represents the public API for a dataset of RDF quads
  *
  * @author Laurent Wouters
  */
 public interface Dataset extends DatasetQuads, DatasetNodes, AutoCloseable {
+    /**
+     * Gets a named RDF resource
+     *
+     * @param iri The resource's IRI
+     * @return The corresponding IRI node
+     */
+    IRINode getResource(String iri);
+
+    /**
+     * Gets all the values of a property for a subject
+     *
+     * @param subject  The subject
+     * @param property The property
+     * @return The values
+     */
+    Collection<Node> getValuesBy(IRINode subject, IRINode property);
+
+    /**
+     * Gets all the possible subjects with a property and a value
+     *
+     * @param property The property
+     * @param object   The value
+     * @return The possible subjects
+     */
+    Collection<SubjectNode> getSubjectsWith(IRINode property, Node object);
 }
