@@ -46,7 +46,20 @@ import java.util.*;
  * Modification
  * @author Stephen Creff
  */
-public abstract class Repository {
+public abstract class Repository implements AutoCloseable {
+    /**
+     * The default number of time to retry a transaction in case of concurrency error
+     */
+    public final int DEFAULT_RETRY_COUNT = 3;
+    /**
+     * The default wait interval between transaction tries in ms
+     */
+    public final int DEFAULT_WAIT_INTERVAL = 100;
+    /**
+     * The default backing-off increment for wait interval in ms
+     */
+    public final int DEFAULT_BACKOFF_INCREMENT = 50;
+
     /**
      * Supported N-Triples syntax
      */

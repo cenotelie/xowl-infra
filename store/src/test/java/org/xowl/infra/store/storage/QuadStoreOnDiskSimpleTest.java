@@ -17,14 +17,13 @@
 
 package org.xowl.infra.store.storage;
 
+import fr.cenotelie.commons.utils.collections.Couple;
 import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.persistent.PersistedDatasetSimple;
-import org.xowl.infra.store.storage.persistent.QuadStoreOnDiskSimple;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,66 +37,65 @@ import java.util.Iterator;
 public class QuadStoreOnDiskSimpleTest {
 
     @Test
-    public void testCreation() throws Exception {
-        Path p = Files.createTempDirectory("testCreation");
-        PersistedDatasetSimple store = new PersistedDatasetSimple(p.toFile(), false);
-        Assert.assertNotNull(store);
-        store.close();
-    }
-
-    @Test
     public void testInsert() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
         SinkLogger logger = new SinkLogger();
-        PersistedDatasetSimple store = new PersistedDatasetSimple(p.toFile(), false);
-        RepositoryRDF repo = new RepositoryRDF(store);
-        try (StoreTransaction transaction = repo.getStore().newTransaction(true, true)) {
-            repo.load(logger, IRIs.RDF);
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF(StoreFactory.newPersisted(p.toFile(), false))) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                repository.load(logger, IRIs.RDF);
+                return null;
+            }, true);
         }
-        store.close();
         Assert.assertFalse("Failed to load", logger.isOnError());
 
-        store = new PersistedDatasetSimple(p.toFile(), true);
-        try (StoreTransaction transaction = store.newTransaction(false)) {
-            Iterator<Quad> iterator = store.getAll();
-            while (iterator.hasNext()) {
-                Quad quad = iterator.next();
-                //System.out.println(quad);
-            }
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF(StoreFactory.newPersisted(p.toFile(), false))) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                Iterator<? extends Quad> iterator = transaction.getDataset().getAll();
+                while (iterator.hasNext()) {
+                    Quad quad = iterator.next();
+                    //System.out.println(quad);
+                }
+                return null;
+            }, false);
         }
-        store.close();
     }
 
     @Test
     public void testInsert2() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
-        PersistedDatasetSimple store = new PersistedDatasetSimple(p.toFile(), false);
-        RepositoryRDF repo = new RepositoryRDF(store);
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF(StoreFactory.newPersisted(p.toFile(), false))) {
+            Couple<Quad, Quad> result = repositoryRdf.runAsTransaction((repository, transaction) -> {
+                Quad q1 = new Quad(
+                        transaction.getDataset().getIRINode("http://xowl.org/infra/tests/g"),
+                        transaction.getDataset().getIRINode("http://xowl.org/infra/tests/x"),
+                        transaction.getDataset().getIRINode("http://xowl.org/infra/tests/p"),
+                        transaction.getDataset().getIRINode("http://xowl.org/infra/tests/y1")
+                );
+                Quad q2 = new Quad(
+                        transaction.getDataset().getIRINode("http://xowl.org/infra/tests/g"),
+                        transaction.getDataset().getIRINode("http://xowl.org/infra/tests/x"),
+                        transaction.getDataset().getIRINode("http://xowl.org/infra/tests/p"),
+                        transaction.getDataset().getIRINode("http://xowl.org/infra/tests/y2")
+                );
+                return new Couple<>(q1, q2);
+            }, false);
+            final Quad quad1 = result.x;
+            final Quad quad2 = result.y;
 
-        Quad quad1 = new Quad(
-                store.getIRINode("http://xowl.org/infra/tests/g"),
-                store.getIRINode("http://xowl.org/infra/tests/x"),
-                store.getIRINode("http://xowl.org/infra/tests/p"),
-                store.getIRINode("http://xowl.org/infra/tests/y1")
-        );
-        Quad quad2 = new Quad(
-                store.getIRINode("http://xowl.org/infra/tests/g"),
-                store.getIRINode("http://xowl.org/infra/tests/x"),
-                store.getIRINode("http://xowl.org/infra/tests/p"),
-                store.getIRINode("http://xowl.org/infra/tests/y2")
-        );
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                transaction.getDataset().add(quad1);
+                transaction.getDataset().add(quad2);
+                return null;
+            }, true);
 
-        try (StoreTransaction transaction = repo.getStore().newTransaction(true, true)) {
-            repo.getStore().add(quad1);
-            repo.getStore().add(quad2);
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                Iterator<? extends Quad> iterator = transaction.getDataset().getAll(quad1.getSubject(), quad1.getProperty(), null);
+                while (iterator.hasNext()) {
+                    Quad quad = iterator.next();
+                    //System.out.println(quad);
+                }
+                return null;
+            }, false);
         }
-        try (StoreTransaction transaction = store.newTransaction(false)) {
-            Iterator<Quad> iterator = store.getAll(quad1.getSubject(), quad1.getProperty(), null);
-            while (iterator.hasNext()) {
-                Quad quad = iterator.next();
-                //System.out.println(quad);
-            }
-        }
-        store.close();
     }
 }

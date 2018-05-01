@@ -14,9 +14,9 @@
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+
 package org.xowl.infra.store.loaders;
 
-import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.After;
@@ -59,19 +59,12 @@ public abstract class W3CTestSuite {
     public void setup() {
         logger = new SinkLogger();
         store = StoreFactory.newInMemory();
-        store.newTransaction(true, true);
         mapper = IRIMapper.getDefault();
     }
 
     @After
     public void cleanup() {
-        try {
-            store.getTransaction().close();
-        } catch (ConcurrentWriteException exception) {
-            // cannot happen
-        }
         store = StoreFactory.newInMemory();
-        store.newTransaction(true, true);
         logger.reset();
     }
 

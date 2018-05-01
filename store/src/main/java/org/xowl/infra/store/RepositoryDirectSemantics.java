@@ -110,6 +110,11 @@ public class RepositoryDirectSemantics extends Repository {
     }
 
     @Override
+    public void close() {
+        // do nothing
+    }
+
+    @Override
     public void setEntailmentRegime(EntailmentRegime regime) {
         throw new UnsupportedOperationException("Not supported");
     }

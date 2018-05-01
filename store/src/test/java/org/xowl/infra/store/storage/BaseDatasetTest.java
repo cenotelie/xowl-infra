@@ -114,7 +114,7 @@ public class BaseDatasetTest {
      * @param store The store to test
      */
     protected void testGetAllEmpty(Dataset store) {
-        Iterator<Quad> iterator = store.getAll();
+        Iterator<? extends Quad> iterator = store.getAll();
         Assert.assertFalse(iterator.hasNext());
     }
 

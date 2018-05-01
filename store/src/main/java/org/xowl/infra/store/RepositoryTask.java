@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store;
 
+import org.xowl.infra.store.storage.StoreTransaction;
+
 /**
  * Represents a task to be executed within the context of a transaction on a repository
  *
@@ -28,8 +30,10 @@ public interface RepositoryTask<R extends Repository, T> {
     /**
      * Executes this task
      *
-     * @param repository The repository
+     * @param repository  The repository
+     * @param transaction The transaction
      * @return The result
+     * @throws Exception When the task fails for some reason
      */
-    T execute(R repository);
+    T execute(R repository, StoreTransaction transaction) throws Exception;
 }
