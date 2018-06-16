@@ -35,7 +35,7 @@ public abstract class BaseTurtleTest extends W3CTestSuite {
      * @param turtleResource  A Turtle resource
      * @param triplesResource A NTriple resource
      */
-    protected void testTurtleEval(String turtleResource, String triplesResource) {
+    protected void testTurtleEval(String turtleResource, String triplesResource) throws Exception {
         testEval(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/turtle/" + triplesResource, BASE_LOCATION + triplesResource, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/turtle/" + turtleResource, BASE_LOCATION + turtleResource);
     }
 
@@ -44,7 +44,7 @@ public abstract class BaseTurtleTest extends W3CTestSuite {
      *
      * @param resource A Turtle resource
      */
-    protected void testTurtlePositiveSyntax(String resource) {
+    protected void testTurtlePositiveSyntax(String resource) throws Exception {
         testPositiveSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/turtle/" + resource, BASE_LOCATION + resource);
     }
 
@@ -53,7 +53,7 @@ public abstract class BaseTurtleTest extends W3CTestSuite {
      *
      * @param resource A Turtle resource
      */
-    protected void testTurtleNegativeSyntax(String resource) {
+    protected void testTurtleNegativeSyntax(String resource) throws Exception {
         testNegativeSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/turtle/" + resource, BASE_LOCATION + resource);
     }
 }

@@ -34,7 +34,7 @@ public abstract class BaseNQuadsTest extends W3CTestSuite {
      *
      * @param resource A NQuads resource
      */
-    protected void testNQuadsPositiveSyntax(String resource) {
+    protected void testNQuadsPositiveSyntax(String resource) throws Exception {
         testPositiveSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/nquads/" + resource, BASE_LOCATION + resource);
     }
 
@@ -43,7 +43,7 @@ public abstract class BaseNQuadsTest extends W3CTestSuite {
      *
      * @param resource A NQuads resource
      */
-    protected void testNQuadsNegativeSyntax(String resource) {
+    protected void testNQuadsNegativeSyntax(String resource) throws Exception {
         testNegativeSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/nquads/" + resource, BASE_LOCATION + resource);
     }
 }

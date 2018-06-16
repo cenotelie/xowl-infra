@@ -36,7 +36,7 @@ public abstract class BaseTriGTest extends W3CTestSuite {
      * @param trigResource A TriG resource
      * @param quadResource A NTriple resource
      */
-    protected void testTrigEval(String trigResource, String quadResource) {
+    protected void testTrigEval(String trigResource, String quadResource) throws Exception {
         testEval(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/trig/" + quadResource, BASE_LOCATION + quadResource, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/trig/" + trigResource, BASE_LOCATION + trigResource);
     }
 
@@ -45,7 +45,7 @@ public abstract class BaseTriGTest extends W3CTestSuite {
      *
      * @param resource A TriG resource
      */
-    protected void testTrigPositiveSyntax(String resource) {
+    protected void testTrigPositiveSyntax(String resource) throws Exception {
         testPositiveSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/trig/" + resource, BASE_LOCATION + resource);
     }
 
@@ -54,7 +54,7 @@ public abstract class BaseTriGTest extends W3CTestSuite {
      *
      * @param resource A TriG resource
      */
-    protected void testTrigNegativeSyntax(String resource) {
+    protected void testTrigNegativeSyntax(String resource) throws Exception {
         testNegativeSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/trig/" + resource, BASE_LOCATION + resource);
     }
 }
