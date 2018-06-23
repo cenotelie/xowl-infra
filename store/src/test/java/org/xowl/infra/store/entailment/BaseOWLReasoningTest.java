@@ -23,7 +23,6 @@ import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.ResourceAccess;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.*;
 
@@ -47,35 +46,19 @@ public class BaseOWLReasoningTest {
                 // add mapping for imported remote ontologies
                 repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
                 repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/conclusion", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + conclusionResource);
-                Ontology ontologyConclusion;
-                try {
-                    ontologyConclusion = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/conclusion");
-                } catch (Exception exception) {
-                    Assert.fail("Some error occurred: " + exception.getMessage());
-                    return;
-                }
-
+                Ontology ontologyConclusion = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/conclusion");
+                Assert.assertFalse("Some error occurred", logger.isOnError());
 
                 List<Quad> conclusion = new ArrayList<>();
-                try {
-                    Iterator<?extends Quad> iterator = transaction.getDataset().getAll(repository.getGraph(ontologyConclusion));
-                    while (iterator.hasNext()) {
-                        conclusion.add(iterator.next());
-                    }
-                    transaction.getDataset().remove(repository.getGraph(ontologyConclusion), null, null, null);
-                } catch (UnsupportedNodeType ex) {
-                    // cannot happen
-                }
+                Iterator<? extends Quad> iterator = transaction.getDataset().getAll(repository.getGraph(ontologyConclusion));
+                while (iterator.hasNext())
+                    conclusion.add(iterator.next());
+                transaction.getDataset().remove(repository.getGraph(ontologyConclusion), null, null, null);
 
                 // load the premise ontology and the default ontologies
                 repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
-                try {
-                    repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
-                    repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
-                } catch (Exception exception) {
-                    Assert.fail("Some error occurred: " + exception.getMessage());
-                    return;
-                }
+                repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+                repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
                 Assert.assertFalse("Some error occurred", logger.isOnError());
 
                 // query the premise for a matching conclusion, modulo the blank nodes
@@ -117,71 +100,61 @@ public class BaseOWLReasoningTest {
      * @param premiseResource    The resource for the premise
      * @param conclusionResource The resource for the conclusion
      */
-    protected void testNegativeEntailment(String premiseResource, String conclusionResource) {
-        SinkLogger logger = new SinkLogger();
+    protected void testNegativeEntailment(String premiseResource, String conclusionResource) throws Exception {
+        final SinkLogger logger = new SinkLogger();
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF()) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
 
-        // load the conclusion ontology at get all the quads in it
-        RepositoryRDF repository = new RepositoryRDF();
-        // add mapping for imported remote ontologies
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/conclusion", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + conclusionResource);
-        Ontology ontologyConclusion;
-        try {
-            ontologyConclusion = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/conclusion");
-        } catch (Exception exception) {
-            Assert.fail("Some error occurred: " + exception.getMessage());
-            return;
-        }
-        List<Quad> conclusion = new ArrayList<>();
-        try {
-            Iterator<Quad> iterator = repository.getStore().getAll(repository.getGraph(ontologyConclusion));
-            while (iterator.hasNext()) {
-                conclusion.add(iterator.next());
-            }
-            repository.getStore().remove(repository.getGraph(ontologyConclusion), null, null, null);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen
-        }
+                // load the conclusion ontology at get all the quads in it
+                // add mapping for imported remote ontologies
+                repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
+                repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/conclusion", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + conclusionResource);
+                Ontology ontologyConclusion = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/conclusion");
+                Assert.assertFalse("Some error occurred", logger.isOnError());
 
-        // load the premise ontology and the default ontologies
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
-        try {
-            repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
-            repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
-        } catch (Exception exception) {
-            Assert.fail("Some error occurred: " + exception.getMessage());
-            return;
-        }
-        Assert.assertFalse("Some error occurred", logger.isOnError());
+                List<Quad> conclusion = new ArrayList<>();
+                Iterator<? extends Quad> iterator = transaction.getDataset().getAll(repository.getGraph(ontologyConclusion));
+                while (iterator.hasNext())
+                    conclusion.add(iterator.next());
+                transaction.getDataset().remove(repository.getGraph(ontologyConclusion), null, null, null);
 
-        // query the premise for a matching conclusion, modulo the blank nodes
-        RDFQuery query = new RDFQuery();
-        Map<BlankNode, VariableNode> variables = new HashMap<>();
-        for (Quad quad : conclusion) {
-            SubjectNode nodeSubject = quad.getSubject();
-            Property nodeProperty = quad.getProperty();
-            Node nodeObject = quad.getObject();
-            if (nodeSubject.getNodeType() == Node.TYPE_BLANK) {
-                VariableNode variableNode = variables.get(nodeSubject);
-                if (variableNode == null) {
-                    variableNode = new VariableNode(UUID.randomUUID().toString());
-                    variables.put((BlankNode) nodeSubject, variableNode);
+                // load the premise ontology and the default ontologies
+                repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
+                repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+                repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
+                Assert.assertFalse("Some error occurred", logger.isOnError());
+
+                // query the premise for a matching conclusion, modulo the blank nodes
+                RDFQuery query = new RDFQuery();
+                Map<BlankNode, VariableNode> variables = new HashMap<>();
+                for (Quad quad : conclusion) {
+                    SubjectNode nodeSubject = quad.getSubject();
+                    Property nodeProperty = quad.getProperty();
+                    Node nodeObject = quad.getObject();
+                    if (nodeSubject.getNodeType() == Node.TYPE_BLANK) {
+                        VariableNode variableNode = variables.get(nodeSubject);
+                        if (variableNode == null) {
+                            variableNode = new VariableNode(UUID.randomUUID().toString());
+                            variables.put((BlankNode) nodeSubject, variableNode);
+                        }
+                        nodeSubject = variableNode;
+                    }
+                    if (nodeObject.getNodeType() == Node.TYPE_BLANK) {
+                        VariableNode variableNode = variables.get(nodeObject);
+                        if (variableNode == null) {
+                            variableNode = new VariableNode(UUID.randomUUID().toString());
+                            variables.put((BlankNode) nodeObject, variableNode);
+                        }
+                        nodeObject = variableNode;
+                    }
+                    query.getPositives().add(new Quad(null, nodeSubject, nodeProperty, nodeObject));
                 }
-                nodeSubject = variableNode;
-            }
-            if (nodeObject.getNodeType() == Node.TYPE_BLANK) {
-                VariableNode variableNode = variables.get(nodeObject);
-                if (variableNode == null) {
-                    variableNode = new VariableNode(UUID.randomUUID().toString());
-                    variables.put((BlankNode) nodeObject, variableNode);
-                }
-                nodeObject = variableNode;
-            }
-            query.getPositives().add(new Quad(null, nodeSubject, nodeProperty, nodeObject));
-        }
 
-        Collection<RDFPatternSolution> solutions = repository.getRDFQueryEngine().execute(query);
-        Assert.assertTrue("Erroneous entailment", solutions.isEmpty());
+                Collection<RDFPatternSolution> solutions = repository.getRDFQueryEngine().execute(query);
+                Assert.assertTrue("Erroneous entailment", solutions.isEmpty());
+                return null;
+            }, true);
+        }
     }
 
     /**
@@ -189,41 +162,34 @@ public class BaseOWLReasoningTest {
      *
      * @param premiseResource The resource for the premise
      */
-    protected void testConsistency(String premiseResource) {
-        SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF();
-        // add mapping for imported remote ontologies
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
+    protected void testConsistency(String premiseResource) throws Exception {
+        final SinkLogger logger = new SinkLogger();
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF()) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                // add mapping for imported remote ontologies
+                repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/imports/\\1.rdf");
+                repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
 
-        // activate the default reasoning rules
-        try {
-            repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
-        } catch (Exception exception) {
-            Assert.fail("Some error occurred: " + exception.getMessage());
-            return;
-        }
-        // load the premise ontology and the default ontologies
-        Ontology ontologyPremise;
-        try {
-            ontologyPremise = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
-        } catch (Exception exception) {
-            Assert.fail("Some error occurred: " + exception.getMessage());
-            return;
-        }
-        try {
-            Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#status"), repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#inconsistent"));
-            if (iterator.hasNext()) {
-                StringBuilder builder = new StringBuilder("Spurious inconsistencies:");
-                while (iterator.hasNext()) {
-                    Quad quad = iterator.next();
-                    builder.append(" ");
-                    builder.append(quad.toString());
+                // activate the default reasoning rules
+                repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+                Assert.assertFalse("Some error occurred", logger.isOnError());
+
+                // load the premise ontology and the default ontologies
+                Ontology ontologyPremise = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
+                Assert.assertFalse("Some error occurred", logger.isOnError());
+
+                Iterator<? extends Quad> iterator = transaction.getDataset().getAll(null, null, transaction.getDataset().getIRINode("http://xowl.org/infra/store/rules/xowl#status"), transaction.getDataset().getIRINode("http://xowl.org/infra/store/rules/xowl#inconsistent"));
+                if (iterator.hasNext()) {
+                    StringBuilder builder = new StringBuilder("Spurious inconsistencies:");
+                    while (iterator.hasNext()) {
+                        Quad quad = iterator.next();
+                        builder.append(" ");
+                        builder.append(quad.toString());
+                    }
+                    Assert.fail(builder.toString());
                 }
-                Assert.fail(builder.toString());
-            }
-        } catch (UnsupportedNodeType exception) {
-            Assert.fail(exception.getMessage());
+                return null;
+            }, true);
         }
     }
 
@@ -232,31 +198,24 @@ public class BaseOWLReasoningTest {
      *
      * @param premiseResource The resource for the premise
      */
-    protected void testInconsistency(String premiseResource) {
-        SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
+    protected void testInconsistency(String premiseResource) throws Exception {
+        final SinkLogger logger = new SinkLogger();
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF()) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                repository.getIRIMapper().addSimpleMap("http://xowl.org/infra/store/tests/entailment/premise", ResourceAccess.SCHEME_RESOURCE + "/org/w3c/entailment/" + premiseResource);
 
-        // activate the default reasoning rules
-        try {
-            repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
-        } catch (Exception exception) {
-            Assert.fail("Some error occurred: " + exception.getMessage());
-            return;
-        }
-        // load the premise ontology and the default ontologies
-        Ontology ontologyPremise;
-        try {
-            ontologyPremise = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
-        } catch (Exception exception) {
-            Assert.fail("Some error occurred: " + exception.getMessage());
-            return;
-        }
-        try {
-            Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#status"), repository.getStore().getIRINode("http://xowl.org/infra/store/rules/xowl#inconsistent"));
-            Assert.assertTrue("Failed to detect inconsistency", iterator.hasNext());
-        } catch (UnsupportedNodeType exception) {
-            Assert.fail(exception.getMessage());
+                // activate the default reasoning rules
+                repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+                Assert.assertFalse("Some error occurred", logger.isOnError());
+
+                // load the premise ontology and the default ontologies
+                Ontology ontologyPremise = repository.load(logger, "http://xowl.org/infra/store/tests/entailment/premise");
+                Assert.assertFalse("Some error occurred", logger.isOnError());
+
+                Iterator<? extends Quad> iterator = transaction.getDataset().getAll(null, null, transaction.getDataset().getIRINode("http://xowl.org/infra/store/rules/xowl#status"), transaction.getDataset().getIRINode("http://xowl.org/infra/store/rules/xowl#inconsistent"));
+                Assert.assertTrue("Failed to detect inconsistency", iterator.hasNext());
+                return null;
+            }, true);
         }
     }
 }
