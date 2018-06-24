@@ -426,12 +426,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return new SingleIterator<>(null);
         try (IOAccess entry = store.accessR(current)) {
             long bucket = entry.seek(8 + 4 + 8).readLong();
-            return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), new Adapter<Quad>() {
+            return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), new Adapter<MQuad, Quad>() {
                 @Override
-                public <X> Quad adapt(X element) {
-                    MQuad quad = (MQuad) element;
-                    quad.setSubject(subject);
-                    return quad;
+                public Quad adapt(MQuad element) {
+                    element.setSubject(subject);
+                    return element;
                 }
             });
         }
@@ -456,10 +455,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (bucket == FileStore.KEY_NULL)
             return new SingleIterator<>(null);
         Iterator<Long> iteratorSubjects = new GraphQNodeIterator(store, bucket);
-        return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Iterator<MQuad>>() {
+        return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Long, Iterator<MQuad>>() {
             @Override
-            public <X> Iterator<MQuad> adapt(X element) {
-                long subjectKey = ((Long) element);
+            public Iterator<MQuad> adapt(Long element) {
+                long subjectKey = element;
                 try (IOAccess entry = store.accessR(subjectKey)) {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
                     return getAllOnProperty(propertyBucket, property, object, (GraphNode) pGraph);
@@ -468,18 +467,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     return null;
                 }
             }
-        }), new Adapter<Quad>() {
+        }), new Adapter<Couple<Long, MQuad>, Quad>() {
             @Override
-            public <X> Quad adapt(X element) {
-                Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
-                long subjectKey = couple.x;
+            public Quad adapt(Couple<Long, MQuad> element) {
+                long subjectKey = element.x;
                 try (IOAccess entry = store.accessR(subjectKey)) {
-                    couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
+                    element.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
                 } catch (StorageException exception) {
                     Logging.get().error(exception);
                     return null;
                 }
-                return couple.y;
+                return element.y;
             }
         });
     }
@@ -493,10 +491,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     private Iterator<Quad> getAllDefault(final Property property, final Node object) throws StorageException {
-        return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
+        return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Long, Iterator<MQuad>>() {
             @Override
-            public <X> Iterator<MQuad> adapt(X element) {
-                long subjectKey = (Long) element;
+            public Iterator<MQuad> adapt(Long element) {
+                long subjectKey = element;
                 try (IOAccess entry = store.accessR(subjectKey)) {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
                     return getAllOnProperty(propertyBucket, property, object, null);
@@ -505,14 +503,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     return null;
                 }
             }
-        }), new Adapter<Quad>() {
+        }), new Adapter<Couple<Long, MQuad>, Quad>() {
             @Override
-            public <X> Quad adapt(X element) {
-                Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
-                long subjectKey = couple.x;
+            public Quad adapt(Couple<Long, MQuad> element) {
+                long subjectKey = element.x;
                 try (IOAccess entry = store.accessR(subjectKey)) {
-                    couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
-                    return couple.y;
+                    element.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
+                    return element.y;
                 } catch (StorageException exception) {
                     Logging.get().error(exception);
                     return null;
@@ -534,10 +531,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      */
     private Iterator<MQuad> getAllOnProperty(long bucket, final Property property, final Node object, final GraphNode graph) throws UnsupportedNodeType, StorageException {
         if (property == null || property.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), new Adapter<Iterator<MQuad>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), new Adapter<Long, Iterator<MQuad>>() {
                 @Override
-                public <X> Iterator<MQuad> adapt(X element) {
-                    long key = ((Long) element);
+                public Iterator<MQuad> adapt(Long element) {
+                    long key = element;
                     try (IOAccess entry = store.accessR(key)) {
                         entry.seek(8 + 4 + 8);
                         long objectKey = entry.readLong();
@@ -547,20 +544,19 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         return null;
                     }
                 }
-            }), new Adapter<MQuad>() {
+            }), new Adapter<Couple<Long, MQuad>, MQuad>() {
                 @Override
-                public <X> MQuad adapt(X element) {
-                    Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
-                    long key = couple.x;
+                public MQuad adapt(Couple<Long, MQuad> element) {
+                    long key = element.x;
                     try (IOAccess entry = store.accessR(key)) {
                         entry.seek(8);
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());
-                        couple.y.setProperty((Property) node);
+                        element.y.setProperty((Property) node);
                     } catch (StorageException exception) {
                         Logging.get().error(exception);
                         return null;
                     }
-                    return couple.y;
+                    return element.y;
                 }
             });
         }
@@ -575,12 +571,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 long key = entry.readLong();
                 long child = entry.readLong();
                 if (type == pProperty.getNodeType() && key == pProperty.getKey()) {
-                    return new AdaptingIterator<>(getAllOnObject(child, object, graph), new Adapter<MQuad>() {
+                    return new AdaptingIterator<>(getAllOnObject(child, object, graph), new Adapter<MQuad, MQuad>() {
                         @Override
-                        public <X> MQuad adapt(X element) {
-                            MQuad quad = (MQuad) element;
-                            quad.setProperty(property);
-                            return quad;
+                        public MQuad adapt(MQuad element) {
+                            element.setProperty(property);
+                            return element;
                         }
                     });
                 }
@@ -601,10 +596,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      */
     private Iterator<MQuad> getAllOnObject(long bucket, final Node object, final GraphNode graph) throws UnsupportedNodeType, StorageException {
         if (object == null || object.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), new Adapter<Iterator<MQuad>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), new Adapter<Long, Iterator<MQuad>>() {
                 @Override
-                public <X> Iterator<MQuad> adapt(X element) {
-                    long key = ((Long) element);
+                public Iterator<MQuad> adapt(Long element) {
+                    long key = element;
                     try (IOAccess entry = store.accessR(key)) {
                         entry.seek(8 + 4 + 8);
                         long graphKey = entry.readLong();
@@ -614,20 +609,19 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         return null;
                     }
                 }
-            }), new Adapter<MQuad>() {
+            }), new Adapter<Couple<Long, MQuad>, MQuad>() {
                 @Override
-                public <X> MQuad adapt(X element) {
-                    Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
-                    long key = couple.x;
+                public MQuad adapt(Couple<Long, MQuad> element) {
+                    long key = element.x;
                     try (IOAccess entry = store.accessR(key)) {
                         entry.seek(8);
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());
-                        couple.y.setObject(node);
+                        element.y.setObject(node);
                     } catch (StorageException exception) {
                         Logging.get().error(exception);
                         return null;
                     }
-                    return couple.y;
+                    return element.y;
                 }
             });
         }
@@ -642,12 +636,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 long key = entry.readLong();
                 long child = entry.readLong();
                 if (type == pObject.getNodeType() && key == pObject.getKey()) {
-                    return new AdaptingIterator<>(getAllOnGraph(child, graph), new Adapter<MQuad>() {
+                    return new AdaptingIterator<>(getAllOnGraph(child, graph), new Adapter<MQuad, MQuad>() {
                         @Override
-                        public <X> MQuad adapt(X element) {
-                            MQuad quad = (MQuad) element;
-                            quad.setObject(object);
-                            return quad;
+                        public MQuad adapt(MQuad element) {
+                            element.setObject(object);
+                            return element;
                         }
                     });
                 }
@@ -667,10 +660,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      */
     private Iterator<MQuad> getAllOnGraph(long bucket, GraphNode graph) throws UnsupportedNodeType, StorageException {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new QNodeIterator(store, bucket), new Adapter<MQuad>() {
+            return new AdaptingIterator<>(new QNodeIterator(store, bucket), new Adapter<Long, MQuad>() {
                 @Override
-                public <X> MQuad adapt(X element) {
-                    long key = ((Long) element);
+                public MQuad adapt(Long element) {
+                    long key = element;
                     try (IOAccess entry = store.accessR(key)) {
                         entry.seek(8);
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());
@@ -2915,11 +2908,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     private Iterator<Long> getSubjectIterator(PersistedMap map) throws StorageException {
-        return new AdaptingIterator<>(map.entries(), new Adapter<Long>() {
+        return new AdaptingIterator<>(map.entries(), new Adapter<PersistedMap.Entry, Long>() {
             @Override
-            public <X> Long adapt(X element) {
-                PersistedMap.Entry mapEntry = (PersistedMap.Entry) element;
-                return mapEntry.value;
+            public Long adapt(PersistedMap.Entry element) {
+                return element.value;
             }
         });
     }

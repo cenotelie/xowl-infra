@@ -84,9 +84,9 @@ class DiffDataset extends DatasetImpl {
     private Iterator<Quad> combine(Iterator<Quad> base, Iterator<Quad> positive) {
         Iterator<Quad> result = base;
         if (diffNegatives != null) {
-            result = new SkippableIterator<>(new AdaptingIterator<>(base, new Adapter<Quad>() {
+            result = new SkippableIterator<>(new AdaptingIterator<>(base, new Adapter<Quad, Quad>() {
                 @Override
-                public <X> Quad adapt(X element) {
+                public Quad adapt(Quad element) {
                     MQuad quad = (MQuad) element;
                     try {
                         long mn = diffNegatives.getMultiplicity(quad);
@@ -100,9 +100,9 @@ class DiffDataset extends DatasetImpl {
             }));
         }
         if (diffPositives != null) {
-            Iterator<Quad> filteredPositive = new SkippableIterator<>(new AdaptingIterator<>(positive, new Adapter<Quad>() {
+            Iterator<Quad> filteredPositive = new SkippableIterator<>(new AdaptingIterator<>(positive, new Adapter<Quad, Quad>() {
                 @Override
-                public <X> Quad adapt(X element) {
+                public Quad adapt(Quad element) {
                     MQuad quad = (MQuad) element;
                     try {
                         long m = original.getMultiplicity(quad);

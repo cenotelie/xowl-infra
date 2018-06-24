@@ -19,7 +19,6 @@ package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.HttpExchange;
 import fr.cenotelie.commons.utils.IOUtils;
-import fr.cenotelie.commons.utils.concurrent.SafeRunnable;
 import fr.cenotelie.commons.utils.http.HttpConstants;
 import fr.cenotelie.commons.utils.logging.Logging;
 
@@ -34,7 +33,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class HTTPConnectionWeb extends SafeRunnable implements Runnable {
+class HTTPConnectionWeb implements Runnable {
     /**
      * The HTTP exchange to treat
      */
@@ -50,7 +49,7 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
     }
 
     @Override
-    public void doRun() {
+    public void run() {
         // add caching headers
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_CACHE_CONTROL, Arrays.asList("public", "max-age=31536000", "immutable"));
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_STRICT_TRANSPORT_SECURITY, Collections.singletonList("max-age=31536000"));
@@ -74,12 +73,6 @@ class HTTPConnectionWeb extends SafeRunnable implements Runnable {
         } else {
             response(HttpURLConnection.HTTP_BAD_METHOD, null);
         }
-    }
-
-    @Override
-    protected void onRunFailed(Throwable throwable) {
-        // on failure, attempt to close the connection
-        response(HttpURLConnection.HTTP_INTERNAL_ERROR, throwable.getMessage());
     }
 
 

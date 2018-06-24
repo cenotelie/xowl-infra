@@ -23,7 +23,6 @@ import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.commons.utils.collections.Couple;
 import fr.cenotelie.commons.utils.http.HttpConstants;
 import fr.cenotelie.commons.utils.logging.Logging;
-import fr.cenotelie.commons.utils.product.EmbeddedDependency;
 import fr.cenotelie.commons.utils.product.Product;
 
 import java.io.ByteArrayOutputStream;
@@ -63,27 +62,6 @@ class Utils {
             }
         }
         return PRODUCT;
-    }
-
-    /**
-     * The dependencies embedded into this product
-     */
-    private static Collection<EmbeddedDependency> DEPENDENCIES;
-
-    /**
-     * Gets the dependencies embedded into this product
-     *
-     * @return The embedded dependencies
-     */
-    public static synchronized Collection<EmbeddedDependency> getDependencies() {
-        if (DEPENDENCIES == null) {
-            try {
-                DEPENDENCIES = Collections.unmodifiableCollection(EmbeddedDependency.getDependenciesFor(Program.class));
-            } catch (IOException exception) {
-                Logging.get().error(exception);
-            }
-        }
-        return DEPENDENCIES;
     }
 
     /**

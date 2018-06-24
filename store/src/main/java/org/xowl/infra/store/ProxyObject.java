@@ -347,15 +347,14 @@ public class ProxyObject {
     private Iterator<Couple<String, Object>> queryProperties() {
         try {
             Iterator<Quad> base = repository.getStore().getAll(subject, null, null);
-            return new SkippableIterator<>(new AdaptingIterator<>(base, new Adapter<Couple<String, Object>>() {
+            return new SkippableIterator<>(new AdaptingIterator<>(base, new Adapter<Quad, Couple<String, Object>>() {
                 @Override
-                public <X> Couple<String, Object> adapt(X element) {
-                    Quad quad = (Quad) element;
-                    Node nodeProperty = quad.getProperty();
+                public Couple<String, Object> adapt(Quad element) {
+                    Node nodeProperty = element.getProperty();
                     if (nodeProperty.getNodeType() != Node.TYPE_IRI)
                         return null;
                     String property = ((IRINode) nodeProperty).getIRIValue();
-                    Node nodeValue = quad.getObject();
+                    Node nodeValue = element.getObject();
                     if (nodeValue.getNodeType() == Node.TYPE_IRI) {
                         return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
                     } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {

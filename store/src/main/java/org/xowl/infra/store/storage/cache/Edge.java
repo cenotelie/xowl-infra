@@ -300,11 +300,10 @@ class Edge implements Iterable<EdgeTarget> {
      */
     public Iterator<MQuad> getAll(final GraphNode graph, final Node value) {
         if (value == null || value.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<Integer, MQuad>(new IndexIterator<>(targets), new Adapter<Iterator<MQuad>>() {
+            return new AdaptingIterator<>(new CombiningIterator<Integer, MQuad>(new IndexIterator<>(targets), new Adapter<Integer, Iterator<MQuad>>() {
                 @Override
-                public <X> Iterator<MQuad> adapt(X element) {
-                    int index = (Integer) element;
-                    return targets[index].getAll(graph);
+                public Iterator<MQuad> adapt(Integer element) {
+                    return targets[element].getAll(graph);
                 }
             }) {
                 @Override
@@ -316,12 +315,11 @@ class Edge implements Iterable<EdgeTarget> {
                         size--;
                     }
                 }
-            }, new Adapter<MQuad>() {
+            }, new Adapter<Couple<Integer, MQuad>, MQuad>() {
                 @Override
-                public <X> MQuad adapt(X element) {
-                    Couple<Integer, MQuad> result = (Couple<Integer, MQuad>) element;
-                    result.y.setObject(targets[result.x].getTarget());
-                    return result.y;
+                public MQuad adapt(Couple<Integer, MQuad> element) {
+                    element.y.setObject(targets[element.x].getTarget());
+                    return element.y;
                 }
             });
         }
@@ -329,12 +327,11 @@ class Edge implements Iterable<EdgeTarget> {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
                 final int index = i;
-                return new AdaptingIterator<MQuad, MQuad>(targets[i].getAll(graph), new Adapter<MQuad>() {
+                return new AdaptingIterator<MQuad, MQuad>(targets[i].getAll(graph), new Adapter<MQuad, MQuad>() {
                     @Override
-                    public <X> MQuad adapt(X element) {
-                        MQuad result = (MQuad) element;
-                        result.setObject(value);
-                        return result;
+                    public MQuad adapt(MQuad element) {
+                        element.setObject(value);
+                        return element;
                     }
                 }) {
                     @Override

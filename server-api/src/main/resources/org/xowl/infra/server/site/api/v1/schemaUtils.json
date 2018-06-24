@@ -154,63 +154,6 @@
         "buildTimestamp"
       ]
     },
-    "EmbeddedDependency": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "enum": [
-            "fr.cenotelie.commons.utils.product.EmbeddedDependency"
-          ]
-        },
-        "identifier": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "contentType": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "copyright": {
-          "type": "string"
-        },
-        "link": {
-          "type": "string"
-        },
-        "license": {
-          "type": "object",
-          "oneOf": [
-            {
-              "$ref": "#/definitions/License"
-            }
-          ]
-        }
-      },
-      "required": [
-        "type",
-        "identifier",
-        "name",
-        "contentType",
-        "version",
-        "copyright",
-        "link",
-        "license"
-      ]
-    },
-    "EmbeddedDependencies": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "oneOf": [
-          {
-            "$ref": "#/definitions/EmbeddedDependency"
-          }
-        ]
-      }
-    },
     "Product": {
       "type": "object",
       "properties": {

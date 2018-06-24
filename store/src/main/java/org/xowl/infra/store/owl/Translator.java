@@ -1664,10 +1664,10 @@ public class Translator {
     private static Iterator<ClassExpression> getAll(ClassSequenceExpression expression) {
         List<ClassElement> elements = new ArrayList<>(((ClassSequence) expression).getAllClassElements());
         sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), new Adapter<ClassExpression>() {
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<ClassElement, ClassExpression>() {
             @Override
-            public <X> ClassExpression adapt(X element) {
-                return ((ClassElement) element).getClasse();
+            public ClassExpression adapt(ClassElement element) {
+                return element.getClasse();
             }
         });
     }
@@ -1681,10 +1681,10 @@ public class Translator {
     private static Iterator<Datarange> getAll(DatarangeSequenceExpression expression) {
         List<DatarangeElement> elements = new ArrayList<>(((DatarangeSequence) expression).getAllDatarangeElements());
         sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), new Adapter<Datarange>() {
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<DatarangeElement, Datarange>() {
             @Override
-            public <X> Datarange adapt(X element) {
-                return ((DatarangeElement) element).getDatarange();
+            public Datarange adapt(DatarangeElement element) {
+                return element.getDatarange();
             }
         });
     }
@@ -1698,10 +1698,10 @@ public class Translator {
     private static Iterator<ObjectPropertyExpression> getAll(ObjectPropertySequenceExpression expression) {
         List<ObjectPropertyElement> elements = new ArrayList<>(((ObjectPropertySequence) expression).getAllObjectPropertyElements());
         sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), new Adapter<ObjectPropertyExpression>() {
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<ObjectPropertyElement, ObjectPropertyExpression>() {
             @Override
-            public <X> ObjectPropertyExpression adapt(X element) {
-                return ((ObjectPropertyElement) element).getObjectProperty();
+            public ObjectPropertyExpression adapt(ObjectPropertyElement element) {
+                return element.getObjectProperty();
             }
         });
     }
@@ -1715,10 +1715,10 @@ public class Translator {
     private static Iterator<DataPropertyExpression> getAll(DataPropertySequenceExpression expression) {
         List<DataPropertyElement> elements = new ArrayList<>(((DataPropertySequence) expression).getAllDataPropertyElements());
         sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), new Adapter<DataPropertyExpression>() {
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<DataPropertyElement, DataPropertyExpression>() {
             @Override
-            public <X> DataPropertyExpression adapt(X element) {
-                return ((DataPropertyElement) element).getDataProperty();
+            public DataPropertyExpression adapt(DataPropertyElement element) {
+                return element.getDataProperty();
             }
         });
     }
@@ -1732,10 +1732,10 @@ public class Translator {
     private static Iterator<IndividualExpression> getAll(IndividualSequenceExpression expression) {
         List<IndividualElement> elements = new ArrayList<>(((IndividualSequence) expression).getAllIndividualElements());
         sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), new Adapter<IndividualExpression>() {
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<IndividualElement, IndividualExpression>() {
             @Override
-            public <X> IndividualExpression adapt(X element) {
-                return ((IndividualElement) element).getIndividual();
+            public IndividualExpression adapt(IndividualElement element) {
+                return element.getIndividual();
             }
         });
     }
@@ -1749,10 +1749,10 @@ public class Translator {
     private static Iterator<LiteralExpression> getAll(LiteralSequenceExpression expression) {
         List<LiteralElement> elements = new ArrayList<>(((LiteralSequence) expression).getAllLiteralElements());
         sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), new Adapter<LiteralExpression>() {
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<LiteralElement, LiteralExpression>() {
             @Override
-            public <X> LiteralExpression adapt(X element) {
-                return ((LiteralElement) element).getLiteral();
+            public LiteralExpression adapt(LiteralElement element) {
+                return element.getLiteral();
             }
         });
     }

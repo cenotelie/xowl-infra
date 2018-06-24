@@ -21,7 +21,6 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.commons.utils.api.*;
-import fr.cenotelie.commons.utils.concurrent.SafeRunnable;
 import fr.cenotelie.commons.utils.http.HttpConstants;
 import fr.cenotelie.commons.utils.http.HttpResponse;
 import fr.cenotelie.commons.utils.http.URIUtils;
@@ -47,7 +46,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class HTTPConnectionApiV1 extends SafeRunnable {
+class HTTPConnectionApiV1 implements Runnable {
     /**
      * The empty message
      */
@@ -78,7 +77,7 @@ class HTTPConnectionApiV1 extends SafeRunnable {
     }
 
     @Override
-    public void doRun() {
+    public void run() {
         // add caching headers
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_CACHE_CONTROL, Arrays.asList("private", "no-cache", "no-store", "no-transform", "must-revalidate"));
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_STRICT_TRANSPORT_SECURITY, Collections.singletonList("max-age=31536000"));
@@ -102,12 +101,6 @@ class HTTPConnectionApiV1 extends SafeRunnable {
         }
         client = ((ReplyResult<UserImpl>) reply).getData();
         handleRequest(method, resource);
-    }
-
-    @Override
-    protected void onRunFailed(Throwable throwable) {
-        // on failure, attempt to close the connection
-        response(HttpURLConnection.HTTP_INTERNAL_ERROR, throwable.getMessage());
     }
 
     /**
@@ -240,10 +233,6 @@ class HTTPConnectionApiV1 extends SafeRunnable {
                 if (!method.equals(HttpConstants.METHOD_GET))
                     return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
                 return response(new ReplyResult<>(Utils.getProduct()));
-            case "/server/product/dependencies":
-                if (!method.equals(HttpConstants.METHOD_GET))
-                    return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-                return response(new ReplyResultCollection<>(Utils.getDependencies()));
             case "/server/shutdown":
                 if (!method.equals(HttpConstants.METHOD_POST))
                     return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");

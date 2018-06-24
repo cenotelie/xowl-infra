@@ -16,7 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.generator;
 
-import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.ini.IniDocument;
 import fr.cenotelie.commons.utils.logging.SinkLogger;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class GeneratorTest {
     @Test
     public void reflectiveXOWLGeneration() {
         SinkLogger logger = new SinkLogger();
-        Configuration config = new Configuration();
+        IniDocument config = new IniDocument();
         config.add(null, "input", "http://xowl.org/infra/lang/owl2");
         config.add(null, "input", "http://xowl.org/infra/lang/actions");
         config.add(null, "input", "http://xowl.org/infra/lang/rules");

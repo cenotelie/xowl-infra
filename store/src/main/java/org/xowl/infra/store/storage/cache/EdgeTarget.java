@@ -341,11 +341,10 @@ class EdgeTarget implements Iterable<GraphNode> {
                     multiplicities[lastResult] = 0;
                     size--;
                 }
-            }, new Adapter<MQuad>() {
+            }, new Adapter<Integer, MQuad>() {
                 @Override
-                public <X> MQuad adapt(X element) {
-                    int index = (Integer) element;
-                    return new MQuad(graphs[index], multiplicities[index]);
+                public MQuad adapt(Integer element) {
+                    return new MQuad(graphs[element], multiplicities[element]);
                 }
             });
         }

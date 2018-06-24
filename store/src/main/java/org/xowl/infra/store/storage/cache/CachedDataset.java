@@ -64,11 +64,10 @@ public class CachedDataset extends DatasetImpl {
     @Override
     public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
         if (subject == null || subject.getNodeType() == Node.TYPE_VARIABLE) {
-            AdaptingIterator<MQuad, Couple<Couple<SubjectNode, EdgeBucket>, MQuad>> result = new AdaptingIterator<>(new CombiningIterator<Couple<SubjectNode, EdgeBucket>, MQuad>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
+            AdaptingIterator<MQuad, Couple<Couple<SubjectNode, EdgeBucket>, MQuad>> result = new AdaptingIterator<>(new CombiningIterator<Couple<SubjectNode, EdgeBucket>, MQuad>(getAllSubjects(), new Adapter<Couple<SubjectNode, EdgeBucket>, Iterator<MQuad>>() {
                 @Override
-                public <X> Iterator<MQuad> adapt(X element) {
-                    Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
-                    return subject.y.getAll(graph, property, object);
+                public Iterator<MQuad> adapt(Couple<SubjectNode, EdgeBucket> element) {
+                    return element.y.getAll(graph, property, object);
                 }
             }) {
                 @Override
@@ -77,12 +76,11 @@ public class CachedDataset extends DatasetImpl {
                     if (current.x.y.getSize() == 0)
                         leftIterator.remove();
                 }
-            }, new Adapter<MQuad>() {
+            }, new Adapter<Couple<Couple<SubjectNode, EdgeBucket>, MQuad>, MQuad>() {
                 @Override
-                public <X> MQuad adapt(X element) {
-                    Couple<Couple<SubjectNode, EdgeBucket>, MQuad> result = (Couple<Couple<SubjectNode, EdgeBucket>, MQuad>) element;
-                    result.y.setSubject(result.x.x);
-                    return result.y;
+                public MQuad adapt(Couple<Couple<SubjectNode, EdgeBucket>, MQuad> element) {
+                    element.y.setSubject(element.x.x);
+                    return element.y;
                 }
             });
             return (Iterator) result;
@@ -90,12 +88,11 @@ public class CachedDataset extends DatasetImpl {
             final EdgeBucket bucket = getBucketFor(subject);
             if (bucket == null)
                 return new SingleIterator<>(null);
-            return new AdaptingIterator<Quad, MQuad>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
+            return new AdaptingIterator<Quad, MQuad>(bucket.getAll(graph, property, object), new Adapter<MQuad, Quad>() {
                 @Override
-                public <X> Quad adapt(X element) {
-                    MQuad quad = (MQuad) element;
-                    quad.setSubject(subject);
-                    return quad;
+                public Quad adapt(MQuad element) {
+                    element.setSubject(subject);
+                    return element;
                 }
             }) {
                 @Override
@@ -816,25 +813,22 @@ public class CachedDataset extends DatasetImpl {
      * @return An iterator over all the subjects starting edges in the graph
      */
     private Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<IRINode, EdgeBucket>> iterator1 = new AdaptingIterator<>(edgesIRI.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<IRINode, EdgeBucket>> iterator1 = new AdaptingIterator<>(edgesIRI.entrySet().iterator(), new Adapter<Map.Entry<IRINode, EdgeBucket>, Couple<SubjectNode, EdgeBucket>>() {
             @Override
-            public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                Map.Entry<IRINode, EdgeBucket> entry = (Map.Entry) element;
-                return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
+            public Couple<SubjectNode, EdgeBucket> adapt(Map.Entry<IRINode, EdgeBucket> element) {
+                return new Couple<SubjectNode, EdgeBucket>(element.getKey(), element.getValue());
             }
         });
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<BlankNode, EdgeBucket>> iterator2 = new AdaptingIterator<>(edgesBlank.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<BlankNode, EdgeBucket>> iterator2 = new AdaptingIterator<>(edgesBlank.entrySet().iterator(), new Adapter<Map.Entry<BlankNode, EdgeBucket>, Couple<SubjectNode, EdgeBucket>>() {
             @Override
-            public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                Map.Entry<BlankNode, EdgeBucket> entry = (Map.Entry) element;
-                return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
+            public Couple<SubjectNode, EdgeBucket> adapt(Map.Entry<BlankNode, EdgeBucket> element) {
+                return new Couple<SubjectNode, EdgeBucket>(element.getKey(), element.getValue());
             }
         });
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<AnonymousNode, EdgeBucket>> iterator3 = new AdaptingIterator<>(edgesAnon.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<AnonymousNode, EdgeBucket>> iterator3 = new AdaptingIterator<>(edgesAnon.entrySet().iterator(), new Adapter<Map.Entry<AnonymousNode, EdgeBucket>, Couple<SubjectNode, EdgeBucket>>() {
             @Override
-            public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                Map.Entry<AnonymousNode, EdgeBucket> entry = (Map.Entry) element;
-                return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
+            public Couple<SubjectNode, EdgeBucket> adapt(Map.Entry<AnonymousNode, EdgeBucket> element) {
+                return new Couple<SubjectNode, EdgeBucket>(element.getKey(), element.getValue());
             }
         });
         return new ConcatenatedIterator<>(new Iterator[]{

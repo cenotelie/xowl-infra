@@ -19,7 +19,7 @@ package org.xowl.infra.server.impl;
 
 import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.commons.utils.SHA1;
-import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.ini.IniDocument;
 import fr.cenotelie.commons.utils.json.Json;
 import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import fr.cenotelie.commons.utils.logging.Logger;
@@ -132,7 +132,7 @@ public class ControllerDatabase implements Closeable {
     /**
      * The current configuration for this database
      */
-    private final Configuration configuration;
+    private final IniDocument configuration;
     /**
      * The cache of procedures for this database
      */
@@ -209,13 +209,13 @@ public class ControllerDatabase implements Closeable {
      * @return The configuration
      * @throws IOException When the location cannot be accessed
      */
-    private static Configuration loadConfiguration(File location) throws IOException {
+    private static IniDocument loadConfiguration(File location) throws IOException {
         if (!location.exists()) {
             if (!location.mkdirs()) {
                 throw new IOException("Failed to create the directory for repository at " + location.getPath());
             }
         }
-        Configuration configuration = new Configuration();
+        IniDocument configuration = new IniDocument();
         File configFile = new File(location, REPO_CONF_NAME);
         if (configFile.exists()) {
             configuration.load(configFile);
@@ -230,7 +230,7 @@ public class ControllerDatabase implements Closeable {
      * @param location      The database location
      * @return The repository
      */
-    private static RepositoryRDF createRepository(Configuration configuration, File location) {
+    private static RepositoryRDF createRepository(IniDocument configuration, File location) {
         BaseStore store = Objects.equals(configuration.get(CONFIG_STORAGE), CONFIG_STORAGE_MEMORY) ?
                 StoreFactory.create().inMemory().withReasoning().make() :
                 StoreFactory.create().onDisk(location).withReasoning().make();
@@ -243,7 +243,7 @@ public class ControllerDatabase implements Closeable {
      * @param defaultMaxThread The default maximum number of threads
      * @return The maximum number of concurrent threads for this database
      */
-    private static int getMaxThreads(int defaultMaxThread, Configuration configuration) {
+    private static int getMaxThreads(int defaultMaxThread, IniDocument configuration) {
         String property = configuration.get(CONFIG_MAX_THREADS);
         if (property == null)
             return defaultMaxThread;

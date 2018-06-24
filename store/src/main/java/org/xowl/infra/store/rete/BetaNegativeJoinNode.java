@@ -93,11 +93,10 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
 
             @Override
             public Iterator<Token> iterator() {
-                return new SkippableIterator<>(new AdaptingIterator<>(matches.entrySet().iterator(), new Adapter<Token>() {
+                return new SkippableIterator<>(new AdaptingIterator<>(matches.entrySet().iterator(), new Adapter<Map.Entry<Token, Counter>, Token>() {
                     @Override
-                    public <X> Token adapt(X element) {
-                        Map.Entry<Token, Counter> entry = (Map.Entry<Token, Counter>) element;
-                        return (entry.getValue().value == 0 ? entry.getKey() : null);
+                    public Token adapt(Map.Entry<Token, Counter> element) {
+                        return (element.getValue().value == 0 ? element.getKey() : null);
                     }
                 }));
             }

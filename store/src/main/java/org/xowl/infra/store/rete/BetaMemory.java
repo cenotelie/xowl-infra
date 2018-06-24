@@ -116,17 +116,17 @@ class BetaMemory implements TokenHolder {
 
             @Override
             public Iterator<Token> iterator() {
-                CombiningIterator<Map.Entry<Token, FastBuffer<Token>>, Token> coupleIterator = new CombiningIterator<>(store.entrySet().iterator(), new Adapter<Iterator<Token>>() {
+                CombiningIterator<Map.Entry<Token, FastBuffer<Token>>, Token> coupleIterator = new CombiningIterator<>(store.entrySet().iterator(), new Adapter<Map.Entry<Token, FastBuffer<Token>>, Iterator<Token>>() {
                     @Override
-                    public <X> Iterator<Token> adapt(X element) {
-                        FastBuffer<Token> children = ((Map.Entry<Token, FastBuffer<Token>>) element).getValue();
+                    public Iterator<Token> adapt(Map.Entry<Token, FastBuffer<Token>> element) {
+                        FastBuffer<Token> children = element.getValue();
                         return new SkippableIterator<>(children.iterator());
                     }
                 });
-                return new AdaptingIterator<>(coupleIterator, new Adapter<Token>() {
+                return new AdaptingIterator<>(coupleIterator, new Adapter<Couple<Map.Entry<Token, FastBuffer<Token>>, Token>, Token>() {
                     @Override
-                    public <X> Token adapt(X element) {
-                        return ((Couple<Map.Entry<Token, FastBuffer<Token>>, Token>) element).y;
+                    public Token adapt(Couple<Map.Entry<Token, FastBuffer<Token>>, Token> element) {
+                        return element.y;
                     }
                 });
             }

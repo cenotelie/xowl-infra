@@ -18,7 +18,7 @@
 package org.xowl.infra.server;
 
 import fr.cenotelie.commons.utils.IOUtils;
-import fr.cenotelie.commons.utils.config.Configuration;
+import fr.cenotelie.commons.utils.ini.IniDocument;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.server.standalone.Program;
 
@@ -44,11 +44,11 @@ public class ServerConfiguration {
     /**
      * The default configuration
      */
-    private final Configuration confDefault;
+    private final IniDocument confDefault;
     /**
      * The current configuration file
      */
-    private final Configuration confFile;
+    private final IniDocument confFile;
     /**
      * The directory from which the server has been started
      */
@@ -64,8 +64,8 @@ public class ServerConfiguration {
      * @param startupDirectory The directory from which the server is starting up, or null for the current directory
      */
     public ServerConfiguration(String startupDirectory) {
-        confDefault = new Configuration();
-        confFile = new Configuration();
+        confDefault = new IniDocument();
+        confFile = new IniDocument();
         InputStream stream = Program.class.getResourceAsStream(FILE_DEFAULT);
         try {
             confDefault.load(stream, IOUtils.CHARSET);

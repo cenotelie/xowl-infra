@@ -203,10 +203,10 @@ public class RepositoryRDF extends Repository {
         try {
             Iterator<Quad> quads = backend.getAll(getGraph(ontology));
             final HashSet<SubjectNode> known = new HashSet<>();
-            return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<ProxyObject>() {
+            return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<Quad, ProxyObject>() {
                 @Override
-                public <X> ProxyObject adapt(X element) {
-                    SubjectNode subject = ((Quad) element).getSubject();
+                public ProxyObject adapt(Quad element) {
+                    SubjectNode subject = element.getSubject();
                     if (subject.getNodeType() != Node.TYPE_IRI && subject.getNodeType() != Node.TYPE_BLANK)
                         return null;
                     if (known.contains(subject))

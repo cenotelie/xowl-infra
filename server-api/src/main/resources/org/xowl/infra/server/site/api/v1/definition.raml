@@ -192,33 +192,6 @@ baseUri: https://localhost:3443/api/v1
                     "fullText": "..."
                   }
                 }
-    /dependencies:
-      description: Represents the dependencies embedded by this product
-      is: [secured, mayFail]
-      get:
-        description: Gets the dependencies embedded by this product
-        responses:
-          200:
-            description: The dependencies embedded by this product
-            body:
-              application/json:
-                type: EmbeddedDependencies
-                example: |
-                  [
-                    {
-                      "type": "fr.cenotelie.commons.utils.product.EmbeddedDependency",
-                      "identifier": "fr.cenotelie.hime.redist",
-                      "name": "Hime Runtime",
-                      "contentType": "Java",
-                      "version": "2.0.6",
-                      "copyright": "Copyright (c) 2016 Laurent Wouters",
-                      "link": "https://bitbucket.org/laurentw/hime",
-                      "license": {
-                        "name": "LGPLv3",
-                        "fullText": "..."
-                      }
-                    }
-                  ]
   /shutdown:
     description: Action to shutdown the server
     is: [secured, mayFail]
