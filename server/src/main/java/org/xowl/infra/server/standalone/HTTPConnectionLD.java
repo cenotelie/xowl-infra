@@ -18,6 +18,7 @@
 package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpsExchange;
 import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.commons.utils.api.Reply;
 import fr.cenotelie.commons.utils.http.HttpConstants;
@@ -86,7 +87,11 @@ public class HTTPConnectionLD implements Runnable {
         }
 
         UserImpl user = controller.getPrincipal(configuration.getLinkedDataPublicUser());
-        String resource = httpExchange.getRequestURI().toString();
+        String protocol = httpExchange instanceof HttpsExchange ? "https://" : "http://";
+        String host = httpExchange.getRequestHeaders().getFirst("Host");
+        if (host == null)
+            host = "localhost";
+        String resource = protocol + host + httpExchange.getRequestURI().toString();
         Reply reply = controller.sparql(user, configuration.getLinkedDataPublicDb(), "DESCRIBE <" + resource + ">", null, null);
         response(reply);
     }
