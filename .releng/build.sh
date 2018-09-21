@@ -41,7 +41,6 @@ tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" -C "$ROOT" LICENSE.txt -C "$RELEN
 # Build the server-docker
 cp "$RELENG/xowl-server.jar" "$RELENG/server-docker/xowl-server.jar"
 cp "$RELENG/xowl-server.manifest" "$RELENG/server-docker/xowl-server.manifest"
-cp "$RELENG/server-linux/xowl-server.ini" "$RELENG/server-docker/xowl-server.ini"
 cp "$RELENG/server-linux/do-run.sh" "$RELENG/server-docker/do-run.sh"
 docker rmi "xowl/xowl-server:$VERSION" || true
 docker build --tag "xowl/xowl-server:$VERSION" --rm --label version="$VERSION" --label changeset="$HASH" "$RELENG/server-docker"
@@ -49,7 +48,6 @@ docker build --tag "xowl/xowl-server:$VERSION" --rm --label version="$VERSION" -
 # Cleanup
 rm "$RELENG/server-docker/xowl-server.jar"
 rm "$RELENG/server-docker/xowl-server.manifest"
-rm "$RELENG/server-docker/xowl-server.ini"
 rm "$RELENG/server-docker/do-run.sh"
 rm "$RELENG/xowl-server.jar"
 rm "$RELENG/xowl-server.manifest"
