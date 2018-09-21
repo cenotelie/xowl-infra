@@ -169,7 +169,7 @@ public class HTTPServer implements Closeable {
                     ((new HTTPConnectionWeb(httpExchange))).run();
                 }
             });
-            server.createContext(configuration.getLinkedDataPrefix(), new HttpHandler() {
+            server.createContext("/" + configuration.getLinkedDataPrefix() + "/", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
                     try {
