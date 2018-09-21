@@ -169,6 +169,16 @@ public class HTTPServer implements Closeable {
                     ((new HTTPConnectionWeb(httpExchange))).run();
                 }
             });
+            server.createContext(configuration.getLinkedDataPrefix(), new HttpHandler() {
+                @Override
+                public void handle(HttpExchange httpExchange) throws IOException {
+                    try {
+                        ((new HTTPConnectionLD(HTTPServer.this.configuration, controller, httpExchange))).run();
+                    } catch (Exception exception) {
+                        Logging.get().error(exception);
+                    }
+                }
+            });
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
                 @Override
                 public void configure(HttpsParameters params) {

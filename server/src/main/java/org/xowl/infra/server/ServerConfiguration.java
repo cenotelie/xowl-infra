@@ -268,6 +268,32 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the name of the public database that contains linked data
+     *
+     * @return The name of the public database that contains linked data
+     */
+    public String getLinkedDataPublicDb() {
+        return getValue("linkedData", "publicDb");
+    }
+
+    /**
+     * Gets the name of the user to use for anonymous connection to the linked data
+     * @return The name of the user to use for anonymous connection to the linked data
+     */
+    public String getLinkedDataPublicUser() {
+        return getValue("linkedData", "publicUser");
+    }
+
+    /**
+     * Gets the URI prefix to be used for linked data resources
+     *
+     * @return The URI prefix to be used for linked data resources
+     */
+    public String getLinkedDataPrefix() {
+        return getValue("linkedData", "prefix");
+    }
+
+    /**
      * Registers in the configuration the location and password for the key store
      *
      * @param location The location to the key store
