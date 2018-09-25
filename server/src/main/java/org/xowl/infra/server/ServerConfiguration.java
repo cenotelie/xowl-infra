@@ -230,6 +230,15 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets whether to use the HTTPS protocol
+     *
+     * @return Whether to use the HTTPS protocol
+     */
+    public boolean getHttpSecure() {
+        return "true".equalsIgnoreCase(getValue("http", "address"));
+    }
+
+    /**
      * Gets the address to bind for the HTTP server
      *
      * @return The address to bind
@@ -278,6 +287,7 @@ public class ServerConfiguration {
 
     /**
      * Gets the name of the user to use for anonymous connection to the linked data
+     *
      * @return The name of the user to use for anonymous connection to the linked data
      */
     public String getLinkedDataPublicUser() {

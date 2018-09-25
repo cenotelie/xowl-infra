@@ -105,13 +105,88 @@ public class HTTPServer implements Closeable {
     }
 
     /**
+     * Creates a new HTTP server
+     *
+     * @param configuration The current configuration
+     * @return The created server
+     */
+    private static HttpServer initNewHttpServer(ServerConfiguration configuration) {
+        InetSocketAddress address = new InetSocketAddress(
+                configuration.getHttpAddress(),
+                configuration.getHttpPort());
+        Logging.get().info("Creating the HTTP server");
+        HttpServer server;
+        try {
+
+            server = HttpServer.create(address, configuration.getHttpBacklog());
+        } catch (IOException exception) {
+            Logging.get().error(exception);
+            return null;
+        }
+        return server;
+    }
+
+    /**
+     * Creates a new HTTPS server
+     *
+     * @param configuration The current configuration
+     * @return The created server
+     */
+    private static HttpServer initNewHttpsServer(ServerConfiguration configuration) {
+        SSLContext sslContext;
+        Couple<KeyStore, String> ssl = getKeyStore(configuration);
+        if (ssl == null)
+            return null;
+        try {
+            Logging.get().info("Setting up SSL");
+            KeyManagerFactory keyManager = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManager.init(ssl.x, ssl.y.toCharArray());
+            TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManager.init(ssl.x);
+            sslContext = SSLContext.getInstance("TLSv1.2");
+            sslContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
+        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException exception) {
+            Logging.get().error(exception);
+            return null;
+        }
+        InetSocketAddress address = new InetSocketAddress(
+                configuration.getHttpAddress(),
+                configuration.getHttpPort());
+        Logging.get().info("Creating the HTTPS server");
+        HttpsServer server;
+        try {
+
+            server = HttpsServer.create(address, configuration.getHttpBacklog());
+        } catch (IOException exception) {
+            Logging.get().error(exception);
+            return null;
+        }
+        server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+            @Override
+            public void configure(HttpsParameters params) {
+                try {
+                    SSLContext defaultSSLContext = SSLContext.getDefault();
+                    SSLEngine engine = defaultSSLContext.createSSLEngine();
+                    params.setNeedClientAuth(false);
+                    params.setCipherSuites(engine.getEnabledCipherSuites());
+                    params.setProtocols(engine.getEnabledProtocols());
+                    params.setSSLParameters(defaultSSLContext.getDefaultSSLParameters());
+                } catch (NoSuchAlgorithmException exception) {
+                    Logging.get().error(exception);
+                }
+            }
+        });
+        return server;
+    }
+
+    /**
      * The current configuration
      */
     private final ServerConfiguration configuration;
     /**
      * The backing HTTP server
      */
-    private final HttpsServer server;
+    private final HttpServer server;
     /**
      * The pool of executor threads
      */
@@ -124,35 +199,10 @@ public class HTTPServer implements Closeable {
      * @param controller    The current controller
      */
     public HTTPServer(ServerConfiguration configuration, final ControllerServer controller) {
-        Logging.get().info("Initializing the HTTPS server ...");
+        Logging.get().info("Initializing the HTTP server ...");
         this.configuration = configuration;
-        SSLContext sslContext = null;
-        Couple<KeyStore, String> ssl = getKeyStore(configuration);
-        if (ssl != null) {
-            try {
-                Logging.get().info("Setting up SSL");
-                KeyManagerFactory keyManager = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-                keyManager.init(ssl.x, ssl.y.toCharArray());
-                TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                trustManager.init(ssl.x);
-                sslContext = SSLContext.getInstance("TLSv1.2");
-                sslContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
-            } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException exception) {
-                Logging.get().error(exception);
-            }
-        }
-        InetSocketAddress address = new InetSocketAddress(
-                configuration.getHttpAddress(),
-                configuration.getHttpPort());
-        HttpsServer temp = null;
-        try {
-            Logging.get().info("Creating the HTTPS server");
-            temp = HttpsServer.create(address, configuration.getHttpBacklog());
-        } catch (IOException exception) {
-            Logging.get().error(exception);
-        }
-        if (temp != null && sslContext != null) {
-            server = temp;
+        server = configuration.getHttpSecure() ? initNewHttpsServer(configuration) : initNewHttpServer(configuration);
+        if (server != null) {
             server.createContext(ApiV1.URI_PREFIX, new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
@@ -179,26 +229,7 @@ public class HTTPServer implements Closeable {
                     }
                 }
             });
-            server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
-                @Override
-                public void configure(HttpsParameters params) {
-                    try {
-                        SSLContext defaultSSLContext = SSLContext.getDefault();
-                        SSLEngine engine = defaultSSLContext.createSSLEngine();
-                        params.setNeedClientAuth(false);
-                        params.setCipherSuites(engine.getEnabledCipherSuites());
-                        params.setProtocols(engine.getEnabledProtocols());
-                        params.setSSLParameters(defaultSSLContext.getDefaultSSLParameters());
-                    } catch (NoSuchAlgorithmException exception) {
-                        Logging.get().error(exception);
-                    }
-                }
-            });
-            Logging.get().info("HTTPS server is ready");
-        } else {
-            server = null;
-        }
-        if (server != null) {
+            Logging.get().info("HTTP server is ready");
             ArrayBlockingQueue<Runnable> executorQueue = new ArrayBlockingQueue<>(EXECUTOR_QUEUE_BOUND);
             executorPool = new ThreadPoolExecutor(EXECUTOR_POOL_MIN, EXECUTOR_POOL_MAX, 0, TimeUnit.SECONDS, executorQueue);
             server.setExecutor(executorPool);
