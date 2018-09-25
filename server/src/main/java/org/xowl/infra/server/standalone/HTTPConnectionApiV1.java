@@ -19,8 +19,12 @@ package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpsExchange;
 import fr.cenotelie.commons.utils.IOUtils;
-import fr.cenotelie.commons.utils.api.*;
+import fr.cenotelie.commons.utils.api.Reply;
+import fr.cenotelie.commons.utils.api.ReplyApiError;
+import fr.cenotelie.commons.utils.api.ReplyResult;
+import fr.cenotelie.commons.utils.api.ReplyUnauthenticated;
 import fr.cenotelie.commons.utils.http.HttpConstants;
 import fr.cenotelie.commons.utils.http.HttpResponse;
 import fr.cenotelie.commons.utils.http.URIUtils;
@@ -109,14 +113,15 @@ class HTTPConnectionApiV1 implements Runnable {
      * @return The protocol reply with the user
      */
     private Reply checkForAuthToken() {
+        String cookieName = (httpExchange instanceof HttpsExchange ? "__Secure-" : "") + ApiV1.AUTH_TOKEN;
         List<String> values = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_COOKIE);
         if (values != null) {
             for (String content : values) {
                 String[] parts = content.split(";");
                 for (String cookie : parts) {
                     cookie = cookie.trim();
-                    if (cookie.startsWith(ApiV1.AUTH_TOKEN + "=")) {
-                        String token = cookie.substring(ApiV1.AUTH_TOKEN.length() + 1);
+                    if (cookie.startsWith(cookieName + "=")) {
+                        String token = cookie.substring(cookieName.length() + 1);
                         return controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
                     }
                 }
@@ -149,12 +154,13 @@ class HTTPConnectionApiV1 implements Runnable {
         if (!reply.isSuccess())
             return response(reply);
         String token = ((ReplyResult<String>) reply).getData();
+        String cookieName = (httpExchange instanceof HttpsExchange ? "__Secure-" : "") + ApiV1.AUTH_TOKEN;
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
-                ApiV1.AUTH_TOKEN + "=" + token +
+                cookieName + "=" + token +
                         "; Max-Age=" + Long.toString(controller.getSecurityTokenTTL()) +
                         "; Path=" + ApiV1.URI_PREFIX +
-                        "; Secure" +
-                        "; HttpOnly"
+                        (this.httpExchange instanceof HttpsExchange ? ("; Secure; HttpOnly") : "")
+
         ));
         return response(HttpURLConnection.HTTP_OK);
     }
@@ -171,12 +177,12 @@ class HTTPConnectionApiV1 implements Runnable {
         Reply reply = controller.logout(client);
         if (!reply.isSuccess())
             return response(reply);
+        String cookieName = (httpExchange instanceof HttpsExchange ? "__Secure-" : "") + ApiV1.AUTH_TOKEN;
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
-                ApiV1.AUTH_TOKEN + "= " +
+                cookieName + "= " +
                         "; Max-Age=0" +
                         "; Path=" + ApiV1.URI_PREFIX +
-                        "; Secure" +
-                        "; HttpOnly"
+                        (this.httpExchange instanceof HttpsExchange ? ("; Secure; HttpOnly") : "")
         ));
         return response(HttpURLConnection.HTTP_OK);
     }

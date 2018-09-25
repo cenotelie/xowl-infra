@@ -32,7 +32,7 @@ public interface ApiV1 {
     /**
      * The name of the cookie for the authentication token
      */
-    String AUTH_TOKEN = "__Secure-xOWL-Token-v1";
+    String AUTH_TOKEN = "xOWL-Token-v1";
 
     /**
      * The resource that contains the definition for this version of the API
