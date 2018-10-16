@@ -1,0 +1,21 @@
+#!/bin/sh
+
+SCRIPT="$(readlink -f "$0")"
+ROOT="$(dirname "$SCRIPT")"
+
+BUILDER=$(docker images | grep -o -E '^cenotelie/build-env-java(\s)+latest' | wc -l)
+
+if [ "$BUILDER" -lt "1" ]; then
+  echo "=> Build environment must be created"
+  docker build --tag "cenotelie/build-env-java:latest" --rm "$ROOT/.releng/builder"
+fi
+
+docker run -it --rm --user=$(id -u) --group-add=$(id -g) \
+        -v "$ROOT:/src" \
+        -v "$HOME/.m2:/home/builder/.m2" \
+        -v "$HOME/.hgrc:/home/builder/.hgrc:ro" \
+        -v $(gpgconf --list-dir socketdir)/S.gpg-agent:/home/builder/.gnupg/S.gpg-agent \
+        -e GPG_TTY=$(tty) \
+        -e "LANG=$LANG" \
+        -w /src \
+        "cenotelie/build-env-java:latest" $@
