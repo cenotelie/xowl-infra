@@ -34,4 +34,4 @@ stages:
         publishJUnitResults: false
         testResultsFiles: '**/TEST-*.xml'
         goals: 'verify'
-        options: '--settings $(mvnSettings.secureFilePath) -Dgpg.passphrase=$(gpgPass)'
+        options: '--settings $(mvnSettings.secureFilePath) "-Dgpg.passphrase=$(gpgPass)"'
