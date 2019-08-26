@@ -24,8 +24,13 @@ stages:
       name: gpgPass
       inputs:
         secureFile: 'cenotelie.gpg.passphrase'
+    - task: DownloadSecureFile@1
+      name: mvnSettings
+      inputs:
+        secureFile: 'settings.xml'
     - script: |
         cat '$(gpgPass.secureFilePath)' | gpg --batch --import '$(gpgKey.secureFilePath)'
+        cp '$(mvnSettings.secureFilePath)' ~/.m2/settings.xml
     - task: Maven@3
       inputs:
         mavenPomFile: 'pom.xml'
