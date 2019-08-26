@@ -4,23 +4,9 @@ SCRIPT="$(readlink -f "$0")"
 RELENG="$(dirname "$SCRIPT")"
 ROOT="$(dirname "$RELENG")"
 
-while [ $# -gt 0 ]; do
-  case "$1" in
-    --repository=*)
-      REPOSITORY="${1#*=}"
-      ;;
-    *)
-      printf "***************************\n"
-      printf "* Error: Invalid argument.*\n"
-      printf "***************************\n"
-      exit 1
-  esac
-  shift
-done
-
 # Build
 VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -f "$ROOT/pom.xml" -Dexpression=project.version|grep -Ev '(^\[|Download\w+:)')
-HASH=$(hg -R "$ROOT" --debug id -i)
+HASH=$(git rev-parse HEAD)
 TIME=$(date +'%d/%m/%Y %T')
 echo "Building artifacts for version $VERSION ($HASH)"
 
@@ -51,14 +37,3 @@ rm "$RELENG/server-docker/xowl-server.manifest"
 rm "$RELENG/server-docker/do-run.sh"
 rm "$RELENG/xowl-server.jar"
 rm "$RELENG/xowl-server.manifest"
-
-# Publish
-if [ ! -z "$REPOSITORY" ]; then
-  docker tag  "xowl/xowl-server:$VERSION" "$REPOSITORY/xowl/xowl-server:$VERSION"
-  docker tag  "$REPOSITORY/xowl/xowl-server:$VERSION" "$REPOSITORY/xowl/xowl-server:latest"
-  docker push "$REPOSITORY/xowl/xowl-server:$VERSION"
-  docker push "$REPOSITORY/xowl/xowl-server:latest"
-  docker rmi  "$REPOSITORY/xowl/xowl-server:$VERSION"
-  docker rmi  "$REPOSITORY/xowl/xowl-server:latest"
-  docker rmi  "xowl/xowl-server:$VERSION"
-fi
