@@ -1,5 +1,7 @@
 # xOWL Infrastructure #
 
+[![Build Status](https://dev.azure.com/lwouters/cenotelie/_apis/build/status/cenotelie.xowl-infra?branchName=master)](https://dev.azure.com/lwouters/cenotelie/_build/latest?definitionId=3&branchName=master)
+
 This is the xOWL Infrastructure, a set of components for working with datasets in the semantic web and linked data world:
 
 * Manipulate RDF and OWL2 datasets (N-Triples, N-Quads, Turtle, RDF/XML, JSON-LD, OWL/XML, Functional OWL)
