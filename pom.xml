@@ -31,12 +31,6 @@
         <url>https://github.com/cenotelie/xowl-infra</url>
         <tag>HEAD</tag>
     </scm>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>cenotelie</id>
-            <url>https://nexus.cenotelie.fr/repository/maven-snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
     <modules>
         <module>lang</module>
         <module>store</module>
@@ -155,6 +149,7 @@
                 <configuration>
                     <serverId>ossrh</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
             <plugin>

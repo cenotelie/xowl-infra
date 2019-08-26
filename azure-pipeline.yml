@@ -33,5 +33,5 @@ stages:
         jdkArchitectureOption: 'x64'
         publishJUnitResults: false
         testResultsFiles: '**/TEST-*.xml'
-        goals: 'verify'
+        goals: 'publish'
         options: '--settings $(mvnSettings.secureFilePath) "-Dgpg.passphrase=$(gpgPass)"'
