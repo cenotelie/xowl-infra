@@ -21,15 +21,11 @@ stages:
       inputs:
         secureFile: 'cenotelie.gpg.key'
     - task: DownloadSecureFile@1
-      name: gpgPass
-      inputs:
-        secureFile: 'cenotelie.gpg.passphrase'
-    - task: DownloadSecureFile@1
       name: mvnSettings
       inputs:
         secureFile: 'settings.xml'
     - script: |
-        cat '$(gpgPass.secureFilePath)' | gpg --batch --import '$(gpgKey.secureFilePath)'
+        cat '$(gpgPass)' | gpg --batch --import '$(gpgKey.secureFilePath)'
     - task: Maven@3
       inputs:
         mavenPomFile: 'pom.xml'
@@ -38,4 +34,4 @@ stages:
         publishJUnitResults: false
         testResultsFiles: '**/TEST-*.xml'
         goals: 'verify'
-        options: '--settings $(mvnSettings.secureFilePath)'
+        options: '--settings $(mvnSettings.secureFilePath) -Dgpg.passphrase=$(gpgPass)'
