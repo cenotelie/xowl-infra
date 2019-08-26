@@ -30,7 +30,6 @@ stages:
         secureFile: 'settings.xml'
     - script: |
         cat '$(gpgPass.secureFilePath)' | gpg --batch --import '$(gpgKey.secureFilePath)'
-        cp '$(mvnSettings.secureFilePath)' ~/.m2/settings.xml
     - task: Maven@3
       inputs:
         mavenPomFile: 'pom.xml'
@@ -39,3 +38,4 @@ stages:
         publishJUnitResults: false
         testResultsFiles: '**/TEST-*.xml'
         goals: 'verify'
+        options: '--settings $(mvnSettings.secureFilePath)'
