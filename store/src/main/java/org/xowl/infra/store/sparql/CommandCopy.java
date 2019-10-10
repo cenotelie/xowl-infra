@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -72,15 +73,16 @@ public class CommandCopy implements Command {
 
     @Override
     public Result execute(RepositoryRDF repository) {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         List<String> overwritten = new ArrayList<>();
         for (String origin : origins) {
-            GraphNode graphOrigin = repository.getStore().getIRINode(origin);
+            GraphNode graphOrigin = dataset.getIRINode(origin);
             for (String target : targets) {
                 if (!origin.equals(target)) {
                     boolean overwrite = !overwritten.contains(target);
-                    GraphNode graphTarget = repository.getStore().getIRINode(target);
+                    GraphNode graphTarget = dataset.getIRINode(target);
                     try {
-                        repository.getStore().copy(graphOrigin, graphTarget, overwrite);
+                        dataset.copy(graphOrigin, graphTarget, overwrite);
                     } catch (UnsupportedNodeType exception) {
                         return new ResultFailure(exception.getMessage());
                     }
@@ -89,7 +91,6 @@ public class CommandCopy implements Command {
                 }
             }
         }
-        repository.getStore().commit();
         return ResultSuccess.INSTANCE;
     }
 

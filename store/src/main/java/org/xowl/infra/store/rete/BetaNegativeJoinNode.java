@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.rete;
 
-import fr.cenotelie.commons.utils.collections.Adapter;
 import fr.cenotelie.commons.utils.collections.AdaptingIterator;
 import fr.cenotelie.commons.utils.collections.FastBuffer;
 import fr.cenotelie.commons.utils.collections.SkippableIterator;
@@ -93,12 +92,9 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
 
             @Override
             public Iterator<Token> iterator() {
-                return new SkippableIterator<>(new AdaptingIterator<>(matches.entrySet().iterator(), new Adapter<Map.Entry<Token, Counter>, Token>() {
-                    @Override
-                    public Token adapt(Map.Entry<Token, Counter> element) {
-                        return (element.getValue().value == 0 ? element.getKey() : null);
-                    }
-                }));
+                return new SkippableIterator<>(new AdaptingIterator<>(
+                        matches.entrySet().iterator(),
+                        entry -> (entry.getValue().value == 0 ? entry.getKey() : null)));
             }
         };
     }
@@ -163,11 +159,7 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
 
     @Override
     public void activateTokens(Collection<Token> tokens) {
-        Iterator<Token> iterator = tokens.iterator();
-        while (iterator.hasNext()) {
-            if (!onTokenActivated(iterator.next()))
-                iterator.remove();
-        }
+        tokens.removeIf(token -> !onTokenActivated(token));
         int size = tokens.size();
         if (size != 0) {
             if (size == 1)
@@ -179,11 +171,7 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
 
     @Override
     public void deactivateTokens(Collection<Token> tokens) {
-        Iterator<Token> iterator = tokens.iterator();
-        while (iterator.hasNext()) {
-            if (!onTokenDeactivated(iterator.next()))
-                iterator.remove();
-        }
+        tokens.removeIf(token -> !onTokenDeactivated(token));
         int size = tokens.size();
         if (size != 0) {
             if (size == 1)

@@ -22,7 +22,7 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
-import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.storage.Store;
 
 import java.util.*;
 
@@ -179,7 +179,7 @@ public class RDFQueryEngine implements ChangeListener {
          * @return The positive quads to be injected
          */
         public Collection<Quad> checkoutPositivesQuads() {
-            Collection<Quad> result = bufferPositives == null ? Collections.<Quad>emptyList() : bufferPositives;
+            Collection<Quad> result = bufferPositives == null ? Collections.emptyList() : bufferPositives;
             bufferPositives = null;
             return result;
         }
@@ -190,7 +190,7 @@ public class RDFQueryEngine implements ChangeListener {
          * @return The negative quads to be injected
          */
         public Collection<Quad> checkoutNegativeQuads() {
-            Collection<Quad> result = bufferNegatives == null ? Collections.<Quad>emptyList() : bufferNegatives;
+            Collection<Quad> result = bufferNegatives == null ? Collections.emptyList() : bufferNegatives;
             bufferNegatives = null;
             return result;
         }
@@ -260,7 +260,7 @@ public class RDFQueryEngine implements ChangeListener {
      *
      * @param store The RDF store to query
      */
-    public RDFQueryEngine(Dataset store) {
+    public RDFQueryEngine(Store store) {
         this.rete = new RETENetwork(store);
         this.cache = new ArrayList<>();
         this.threadIO = new ThreadLocal<>();
@@ -303,12 +303,7 @@ public class RDFQueryEngine implements ChangeListener {
             Collection<RDFPatternSolution> result = target.getSolutions();
             // re-sort the cache by hit count (hottest on top)
             synchronized (cache) {
-                Collections.sort(cache, new Comparator<CacheElem>() {
-                    @Override
-                    public int compare(CacheElem element1, CacheElem element2) {
-                        return Integer.compare(element2.getHitCount(), element1.getHitCount());
-                    }
-                });
+                cache.sort(Comparator.comparingInt(CacheElem::getHitCount));
             }
             return result;
         }

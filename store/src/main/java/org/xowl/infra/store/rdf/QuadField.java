@@ -27,19 +27,20 @@ public enum QuadField {
      * The quad's subject
      */
     SUBJECT,
-
     /**
      * The quad's property
      */
     PROPERTY,
-
     /**
      * The quad's value
      */
     VALUE,
-
     /**
      * The enclosing quad's graph
      */
     GRAPH,
+    /**
+     * Any field of the quad
+     */
+    ANY
 }

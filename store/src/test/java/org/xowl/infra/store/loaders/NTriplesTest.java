@@ -26,342 +26,342 @@ import org.junit.Test;
  */
 public class NTriplesTest extends BaseNTripleTest {
     @Test
-    public void test_nt_syntax_file_01() {
+    public void test_nt_syntax_file_01() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-file-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_file_02() {
+    public void test_nt_syntax_file_02() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-file-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_file_03() {
+    public void test_nt_syntax_file_03() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-file-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_uri_01() {
+    public void test_nt_syntax_uri_01() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-uri-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_uri_02() {
+    public void test_nt_syntax_uri_02() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-uri-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_uri_03() {
+    public void test_nt_syntax_uri_03() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-uri-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_uri_04() {
+    public void test_nt_syntax_uri_04() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-uri-04.nt");
     }
 
     @Test
-    public void test_nt_syntax_string_01() {
+    public void test_nt_syntax_string_01() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-string-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_string_02() {
+    public void test_nt_syntax_string_02() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-string-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_string_03() {
+    public void test_nt_syntax_string_03() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-string-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_str_esc_01() {
+    public void test_nt_syntax_str_esc_01() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-str-esc-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_str_esc_02() {
+    public void test_nt_syntax_str_esc_02() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-str-esc-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_str_esc_03() {
+    public void test_nt_syntax_str_esc_03() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-str-esc-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_bnode_01() {
+    public void test_nt_syntax_bnode_01() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-bnode-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bnode_02() {
+    public void test_nt_syntax_bnode_02() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-bnode-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_bnode_03() {
+    public void test_nt_syntax_bnode_03() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-bnode-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_datatypes_01() {
+    public void test_nt_syntax_datatypes_01() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-datatypes-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_datatypes_02() {
+    public void test_nt_syntax_datatypes_02() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-datatypes-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_01() {
+    public void test_nt_syntax_bad_uri_01() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_02() {
+    public void test_nt_syntax_bad_uri_02() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_03() {
+    public void test_nt_syntax_bad_uri_03() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_04() {
+    public void test_nt_syntax_bad_uri_04() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-04.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_05() {
+    public void test_nt_syntax_bad_uri_05() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-05.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_06() {
+    public void test_nt_syntax_bad_uri_06() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-06.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_07() {
+    public void test_nt_syntax_bad_uri_07() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-07.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_08() {
+    public void test_nt_syntax_bad_uri_08() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-08.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_uri_09() {
+    public void test_nt_syntax_bad_uri_09() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-uri-09.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_prefix_01() {
+    public void test_nt_syntax_bad_prefix_01() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-prefix-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_base_01() {
+    public void test_nt_syntax_bad_base_01() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-base-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_struct_01() {
+    public void test_nt_syntax_bad_struct_01() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-struct-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_struct_02() {
+    public void test_nt_syntax_bad_struct_02() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-struct-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_lang_01() {
+    public void test_nt_syntax_bad_lang_01() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-lang-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_esc_01() {
+    public void test_nt_syntax_bad_esc_01() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-esc-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_esc_02() {
+    public void test_nt_syntax_bad_esc_02() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-esc-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_esc_03() {
+    public void test_nt_syntax_bad_esc_03() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-esc-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_string_01() {
+    public void test_nt_syntax_bad_string_01() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-string-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_string_02() {
+    public void test_nt_syntax_bad_string_02() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-string-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_string_03() {
+    public void test_nt_syntax_bad_string_03() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-string-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_string_04() {
+    public void test_nt_syntax_bad_string_04() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-string-04.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_string_05() {
+    public void test_nt_syntax_bad_string_05() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-string-05.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_string_06() {
+    public void test_nt_syntax_bad_string_06() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-string-06.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_string_07() {
+    public void test_nt_syntax_bad_string_07() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-string-07.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_num_01() {
+    public void test_nt_syntax_bad_num_01() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-num-01.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_num_02() {
+    public void test_nt_syntax_bad_num_02() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-num-02.nt");
     }
 
     @Test
-    public void test_nt_syntax_bad_num_03() {
+    public void test_nt_syntax_bad_num_03() throws Exception {
         testNTriplesNegativeSyntax("nt-syntax-bad-num-03.nt");
     }
 
     @Test
-    public void test_nt_syntax_subm_01() {
+    public void test_nt_syntax_subm_01() throws Exception {
         testNTriplesPositiveSyntax("nt-syntax-subm-01.nt");
     }
 
     @Test
-    public void test_comment_following_triple() {
+    public void test_comment_following_triple() throws Exception {
         testNTriplesPositiveSyntax("comment_following_triple.nt");
     }
 
     @Test
-    public void test_literal() {
+    public void test_literal() throws Exception {
         testNTriplesPositiveSyntax("literal.nt");
     }
 
     @Test
-    public void test_literal_all_controls() {
+    public void test_literal_all_controls() throws Exception {
         testNTriplesPositiveSyntax("literal_all_controls.nt");
     }
 
     @Test
-    public void test_literal_all_punctuation() {
+    public void test_literal_all_punctuation() throws Exception {
         testNTriplesPositiveSyntax("literal_all_punctuation.nt");
     }
 
     @Test
-    public void test_literal_ascii_boundaries() {
+    public void test_literal_ascii_boundaries() throws Exception {
         testNTriplesPositiveSyntax("literal_ascii_boundaries.nt");
     }
 
     @Test
-    public void test_literal_with_2_dquotes() {
+    public void test_literal_with_2_dquotes() throws Exception {
         testNTriplesPositiveSyntax("literal_with_2_dquotes.nt");
     }
 
     @Test
-    public void test_literal_with_2_squotes() {
+    public void test_literal_with_2_squotes() throws Exception {
         testNTriplesPositiveSyntax("literal_with_2_squotes.nt");
     }
 
     @Test
-    public void test_literal_with_BACKSPACE() {
+    public void test_literal_with_BACKSPACE() throws Exception {
         testNTriplesPositiveSyntax("literal_with_BACKSPACE.nt");
     }
 
     @Test
-    public void test_literal_with_CARRIAGE_RETURN() {
+    public void test_literal_with_CARRIAGE_RETURN() throws Exception {
         testNTriplesPositiveSyntax("literal_with_CARRIAGE_RETURN.nt");
     }
 
     @Test
-    public void test_literal_with_CHARACTER_TABULATION() {
+    public void test_literal_with_CHARACTER_TABULATION() throws Exception {
         testNTriplesPositiveSyntax("literal_with_CHARACTER_TABULATION.nt");
     }
 
     @Test
-    public void test_literal_with_dquote() {
+    public void test_literal_with_dquote() throws Exception {
         testNTriplesPositiveSyntax("literal_with_dquote.nt");
     }
 
     @Test
-    public void test_literal_with_FORM_FEED() {
+    public void test_literal_with_FORM_FEED() throws Exception {
         testNTriplesPositiveSyntax("literal_with_FORM_FEED.nt");
     }
 
     @Test
-    public void test_literal_with_LINE_FEED() {
+    public void test_literal_with_LINE_FEED() throws Exception {
         testNTriplesPositiveSyntax("literal_with_LINE_FEED.nt");
     }
 
     @Test
-    public void test_literal_with_numeric_escape4() {
+    public void test_literal_with_numeric_escape4() throws Exception {
         testNTriplesPositiveSyntax("literal_with_numeric_escape4.nt");
     }
 
     @Test
-    public void test_literal_with_numeric_escape8() {
+    public void test_literal_with_numeric_escape8() throws Exception {
         testNTriplesPositiveSyntax("literal_with_numeric_escape8.nt");
     }
 
     @Test
-    public void test_literal_with_REVERSE_SOLIDUS() {
+    public void test_literal_with_REVERSE_SOLIDUS() throws Exception {
         testNTriplesPositiveSyntax("literal_with_REVERSE_SOLIDUS.nt");
     }
 
     @Test
-    public void test_literal_with_REVERSE_SOLIDUS2() {
+    public void test_literal_with_REVERSE_SOLIDUS2() throws Exception {
         testNTriplesPositiveSyntax("literal_with_REVERSE_SOLIDUS2.nt");
     }
 
     @Test
-    public void test_literal_with_squote() {
+    public void test_literal_with_squote() throws Exception {
         testNTriplesPositiveSyntax("literal_with_squote.nt");
     }
 
     @Test
-    public void test_literal_with_UTF8_boundaries() {
+    public void test_literal_with_UTF8_boundaries() throws Exception {
         testNTriplesPositiveSyntax("literal_with_UTF8_boundaries.nt");
     }
 
     @Test
-    public void test_langtagged_string() {
+    public void test_langtagged_string() throws Exception {
         testNTriplesPositiveSyntax("langtagged_string.nt");
     }
 
     @Test
-    public void test_lantag_with_subtag() {
+    public void test_lantag_with_subtag() throws Exception {
         testNTriplesPositiveSyntax("lantag_with_subtag.nt");
     }
 
     @Test
-    public void test_minimal_whitespace() {
+    public void test_minimal_whitespace() throws Exception {
         testNTriplesPositiveSyntax("minimal_whitespace.nt");
     }
 }

@@ -1,7 +1,0 @@
-type = Java Library
-name = Hime
-version = 3.2.2
-copyright = Copyright (c) Association Cénotélie
-link = http://cenotelie.fr/hime
-licenseName = LGPLv3
-licenseText = /META-INF/dependencies/fr.cenotelie.hime.redist.license

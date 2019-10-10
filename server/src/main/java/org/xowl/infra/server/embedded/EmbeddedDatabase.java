@@ -67,16 +67,6 @@ abstract class EmbeddedDatabase extends DatabaseImpl {
     protected abstract UserImpl getAdminUser();
 
     @Override
-    public Reply getMetric() {
-        return new ReplyResult<>(dbController.getMetric());
-    }
-
-    @Override
-    public Reply getMetricSnapshot() {
-        return new ReplyResult<>(dbController.getMetricSnapshot());
-    }
-
-    @Override
     public Reply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         Result result = dbController.sparql(sparql, defaultIRIs, namedIRIs, false);
         return new ReplyResult<>(result);

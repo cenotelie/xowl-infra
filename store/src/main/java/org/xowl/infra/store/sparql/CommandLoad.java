@@ -78,7 +78,6 @@ public class CommandLoad implements Command {
         BufferedLogger logger = new BufferedLogger();
         try {
             repository.load(logger, iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
-            repository.getStore().commit();
         } catch (Exception exception) {
             if (isSilent)
                 return ResultSuccess.INSTANCE;

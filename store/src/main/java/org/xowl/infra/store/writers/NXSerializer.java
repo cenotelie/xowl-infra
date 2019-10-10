@@ -68,7 +68,7 @@ public abstract class NXSerializer implements RDFSerializer {
      * @param logger The logger to use
      * @param quads  The quads to serialize
      */
-    public final void serialize(Logger logger, Iterator<Quad> quads) {
+    public final void serialize(Logger logger, Iterator<? extends Quad> quads) {
         try {
             while (quads.hasNext()) {
                 serialize(quads.next());
@@ -125,7 +125,7 @@ public abstract class NXSerializer implements RDFSerializer {
                 break;
             }
             default:
-                throw new UnsupportedNodeType(node, "Unsupported node type.");
+                throw new UnsupportedNodeType(node, QuadField.ANY);
         }
     }
 

@@ -33,19 +33,19 @@ public class FunctionalLoaderTest {
      *
      * @param uri The resource's URI
      */
-    protected void testLoading(String uri) {
-        SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF();
-        try {
-            repository.load(logger, uri);
-        } catch (Exception exception) {
-            Assert.fail("Failed to load resource " + exception.getMessage());
+    protected void testLoading(String uri) throws Exception {
+        final SinkLogger logger = new SinkLogger();
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF()) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                repository.load(logger, uri);
+                Assert.assertFalse("Failed to load resource " + uri, logger.isOnError());
+                return null;
+            }, true);
         }
-        Assert.assertFalse("Failed to load resource " + uri, logger.isOnError());
     }
 
     @Test
-    public void testLoadingOfDefinitionOWL2() {
+    public void testLoadingOfDefinitionOWL2() throws Exception {
         testLoading("http://xowl.org/infra/lang/owl2");
     }
 }

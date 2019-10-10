@@ -30,10 +30,9 @@ import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -96,7 +95,7 @@ public class ResultUtils {
                 case Repository.SYNTAX_JSON_LD:
                 case Repository.SYNTAX_JSON:
                 case Repository.SYNTAX_XRDF:
-                    return new ResultQuads(new ArrayList<Quad>(0));
+                    return new ResultQuads(new ArrayList<>(0));
                 // empty solutions
                 case Result.SYNTAX_JSON:
                 case Result.SYNTAX_CSV:
@@ -148,7 +147,7 @@ public class ResultUtils {
                 return parseResponseJSON(content);
             } else {
                 // here assume n-quads
-                return parseResponseQuads(content, new NQuadsLoader(new CachedNodes()));
+                return parseResponseQuads(content, new NQuadsLoader(new CachedDatasetNodes()));
             }
         }
     }

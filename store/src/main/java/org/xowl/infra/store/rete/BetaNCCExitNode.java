@@ -130,7 +130,7 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
 
     @Override
     public void activateTokens(Collection<Token> tokens) {
-        Collection<Token> buffer = (!isInTransaction) ? new ArrayList<Token>(tokens.size()) : null;
+        Collection<Token> buffer = (!isInTransaction) ? new ArrayList<>(tokens.size()) : null;
         for (Token token : tokens) {
             Token original = getOriginal(token);
             Data data = tokenData.get(original);
@@ -146,7 +146,7 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
 
     @Override
     public void deactivateTokens(Collection<Token> tokens) {
-        Collection<Token> buffer = (!isInTransaction) ? new ArrayList<Token>(tokens.size()) : null;
+        Collection<Token> buffer = (!isInTransaction) ? new ArrayList<>(tokens.size()) : null;
         for (Token token : tokens) {
             Token original = getOriginal(token);
             Data data = tokenData.get(original);

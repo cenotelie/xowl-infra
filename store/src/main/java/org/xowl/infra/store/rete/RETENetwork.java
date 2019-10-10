@@ -18,7 +18,7 @@
 package org.xowl.infra.store.rete;
 
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.storage.Store;
 
 import java.util.*;
 
@@ -31,7 +31,7 @@ public class RETENetwork {
     /**
      * Cache of inputs for this network
      */
-    private final Dataset input;
+    private final Store input;
     /**
      * The alpha graph, i.e. the input layer of the network
      */
@@ -46,7 +46,7 @@ public class RETENetwork {
      *
      * @param input The RDF store to use as input
      */
-    public RETENetwork(Dataset input) {
+    public RETENetwork(Store input) {
         this.input = input;
         this.alpha = new AlphaGraph();
         this.rules = new HashMap<>();

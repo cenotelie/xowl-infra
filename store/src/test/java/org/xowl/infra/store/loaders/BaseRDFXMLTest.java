@@ -35,7 +35,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param rdfResource     A RDF/XML resource
      * @param triplesResource A NTriple resource
      */
-    protected void testXMLEval(String rdfResource, String triplesResource) {
+    protected void testXMLEval(String rdfResource, String triplesResource) throws Exception {
         testEval(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + triplesResource, BASE_LOCATION + triplesResource, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + rdfResource, BASE_LOCATION + rdfResource);
     }
 
@@ -44,7 +44,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      *
      * @param resource A RDF/XML resource
      */
-    protected void testXMLPositiveSyntax(String resource) {
+    protected void testXMLPositiveSyntax(String resource) throws Exception {
         testPositiveSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 
@@ -53,7 +53,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      *
      * @param resource A RDF/XML resource
      */
-    protected void testXMLNegativeSyntax(String resource) {
+    protected void testXMLNegativeSyntax(String resource) throws Exception {
         testNegativeSyntax(ResourceAccess.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 }

@@ -20,7 +20,7 @@ package org.xowl.infra.store.rete;
 import fr.cenotelie.commons.utils.collections.FastBuffer;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.storage.Store;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +44,7 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Dataset store) {
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
             return new AlphaMemory(pattern, store);
         }
     }
@@ -59,7 +59,7 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Dataset store) {
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
             return new BucketObject();
         }
     }
@@ -74,7 +74,7 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Dataset store) {
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
             return new BucketProperty();
         }
     }
@@ -91,7 +91,7 @@ class AlphaGraph extends AlphaMemoryBucket {
     }
 
     @Override
-    protected AlphaMemoryBucketElement createSub(Quad pattern, Dataset store) {
+    protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
         return new BucketSubject();
     }
 
@@ -162,12 +162,8 @@ class AlphaGraph extends AlphaMemoryBucket {
             matchMemories(buffer, quad);
             for (int i = 0; i != buffer.size(); i++) {
                 AlphaMemory memory = buffer.get(i);
-                Collection<Quad> collec = map.get(memory);
-                if (collec == null) {
-                    collec = new ArrayList<>();
-                    map.put(memory, collec);
-                }
-                collec.add(quad);
+                Collection<Quad> collection = map.computeIfAbsent(memory, k -> new ArrayList<>());
+                collection.add(quad);
             }
             buffer.clear();
         }

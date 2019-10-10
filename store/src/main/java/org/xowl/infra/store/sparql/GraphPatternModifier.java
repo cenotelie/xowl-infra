@@ -70,7 +70,7 @@ public class GraphPatternModifier {
      * @param expression The expression used to derive the grouping key
      */
     public void addGroup(Expression expression) {
-        groups.add(new Couple<VariableNode, Expression>(null, expression));
+        groups.add(new Couple<>(null, expression));
     }
 
     /**

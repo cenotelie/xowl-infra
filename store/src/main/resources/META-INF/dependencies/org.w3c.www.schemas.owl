@@ -1,7 +1,0 @@
-type = RDF Schema
-name = W3C OWL2 Schema
-version = 2.0
-copyright = Copyright (c) 2002 World Wide Web Consortium, (MIT, ERCIM, Keio, Beihang)
-link = http://www.w3.org/2002/07/owl
-licenseName = W3C Document License
-licenseText = /META-INF/dependencies/org.w3c.www.schemas.license

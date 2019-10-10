@@ -18,9 +18,9 @@
 package org.xowl.infra.store.loaders;
 
 import org.xowl.infra.store.rdf.BlankNode;
+import org.xowl.infra.store.rdf.DatasetNodes;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.*;
 
@@ -36,9 +36,9 @@ class SPARQLContext {
     private static final String GEN_VAR_PREFIX = "__blank_";
 
     /**
-     * The node manager to use
+     * The RDF nodes management
      */
-    private final NodeManager manager;
+    private final DatasetNodes nodes;
     /**
      * Whether to emit a variable when a blank node is requested.
      * This flag is used to build quad templates that existing blank nodes in a dataset.
@@ -64,10 +64,10 @@ class SPARQLContext {
     /**
      * Initializes an empty context
      *
-     * @param manager The node manager to use
+     * @param nodes The RDF nodes management
      */
-    public SPARQLContext(NodeManager manager) {
-        this.manager = manager;
+    public SPARQLContext(DatasetNodes nodes) {
+        this.nodes = nodes;
         this.emitVariableForBlank = false;
         this.defaultIRIs = new ArrayList<>();
         this.namedIRIs = new ArrayList<>();
@@ -78,11 +78,11 @@ class SPARQLContext {
     /**
      * Initializes an empty context
      *
-     * @param manager              The node manager to use
+     * @param nodes                The RDF nodes management
      * @param emitVariableForBlank Whether to emit a variable when a blank node is requested.
      */
-    public SPARQLContext(NodeManager manager, boolean emitVariableForBlank) {
-        this.manager = manager;
+    public SPARQLContext(DatasetNodes nodes, boolean emitVariableForBlank) {
+        this.nodes = nodes;
         this.emitVariableForBlank = emitVariableForBlank;
         this.defaultIRIs = new ArrayList<>();
         this.namedIRIs = new ArrayList<>();
@@ -96,7 +96,7 @@ class SPARQLContext {
      * @param parent A parent context
      */
     public SPARQLContext(SPARQLContext parent) {
-        this.manager = parent.manager;
+        this.nodes = parent.nodes;
         this.emitVariableForBlank = parent.emitVariableForBlank;
         this.defaultIRIs = new ArrayList<>(parent.defaultIRIs);
         this.namedIRIs = new ArrayList<>(parent.namedIRIs);
@@ -161,7 +161,7 @@ class SPARQLContext {
         BlankNode blank = blanks.get(id);
         if (blank != null)
             return blank;
-        blank = manager.getBlankNode();
+        blank = nodes.getBlankNode();
         blanks.put(id, blank);
         return blank;
     }

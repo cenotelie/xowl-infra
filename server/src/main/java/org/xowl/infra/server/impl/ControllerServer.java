@@ -140,12 +140,13 @@ public class ControllerServer implements Closeable {
      * Initializes the administration database
      */
     private void initializeAdminDB() {
-        adminDB.dbController.proxy.setValue(Vocabulary.rdfType, adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
-        adminDB.dbController.proxy.setValue(Schema.ADMIN_NAME, adminDB.getIdentifier());
-        adminDB.dbController.proxy.setValue(Schema.ADMIN_LOCATION, ".");
-        UserImpl admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
-        admin.userController.proxy.addValue(Schema.ADMIN_ADMINOF, adminDB.dbController.proxy);
-        adminDB.dbController.getRepository().getStore().commit();
+        adminDB.dbController.getRepository().runAsTransaction(() -> {
+            adminDB.dbController.proxy.setValue(Vocabulary.rdfType, adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
+            adminDB.dbController.proxy.setValue(Schema.ADMIN_NAME, adminDB.getIdentifier());
+            adminDB.dbController.proxy.setValue(Schema.ADMIN_LOCATION, ".");
+            UserImpl admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
+            admin.userController.proxy.addValue(Schema.ADMIN_ADMINOF, adminDB.dbController.proxy);
+        });
     }
 
     /**
@@ -396,8 +397,7 @@ public class ControllerServer implements Closeable {
         Collection<XOWLDatabase> result = new ArrayList<>();
         synchronized (databases) {
             if (checkIsServerAdmin(client)) {
-                for (DatabaseImpl db : databases.values())
-                    result.add(db);
+                result.addAll(databases.values());
                 return new ReplyResultCollection<>(result);
             }
             for (DatabaseImpl database : databases.values()) {
@@ -448,17 +448,18 @@ public class ControllerServer implements Closeable {
                 return new ReplyApiError(ApiV1.ERROR_DB_ALREADY_EXIST);
             File folder = new File(configuration.getDatabasesFolder(), name);
             try {
-                ProxyObject proxy = adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
-                proxy.setValue(Vocabulary.rdfType, adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
-                proxy.setValue(Schema.ADMIN_NAME, name);
-                proxy.setValue(Schema.ADMIN_LOCATION, name);
+                ProxyObject proxy = adminDB.dbController.getRepository().runAsTransaction(() -> {
+                    ProxyObject po = adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
+                    po.setValue(Vocabulary.rdfType, adminDB.dbController.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
+                    po.setValue(Schema.ADMIN_NAME, name);
+                    po.setValue(Schema.ADMIN_LOCATION, name);
+                    return po;
+                });
                 DatabaseImpl db = newDB(new ControllerDatabase(
                         folder,
                         configuration.getDefaultMaxThreads(),
                         proxy,
                         name));
-                adminDB.dbController.getRepository().getStore().commit();
-                db.dbController.getRepository().getStore().commit();
                 databases.put(name, db);
                 return new ReplyResult<>(db);
             } catch (Exception exception) {
@@ -492,48 +493,11 @@ public class ControllerServer implements Closeable {
             if (!IOUtils.deleteFolder(folder)) {
                 logger.error("Failed to delete " + folder.getAbsolutePath());
             }
+
             database.dbController.proxy.delete();
             adminDB.dbController.getRepository().getStore().commit();
         }
         return ReplySuccess.instance();
-    }
-
-    /**
-     * Gets the metric definition for a database
-     *
-     * @param client   The requesting client
-     * @param database The target database
-     * @return The protocol reply
-     */
-    public Reply getDatabaseMetric(UserImpl client, String database) {
-        if (client == null)
-            return ReplyUnauthenticated.instance();
-        DatabaseImpl db = doGetDatabase(database);
-        if (db == null)
-            return ReplyNotFound.instance();
-        if (checkCanAdmin(client, db)) {
-            return new ReplyResult<>(db.dbController.getMetric());
-        }
-        return ReplyUnauthorized.instance();
-    }
-
-    /**
-     * Gets a snapshot of the metrics for a database
-     *
-     * @param client   The requesting client
-     * @param database The target database
-     * @return The protocol reply
-     */
-    public Reply getDatabaseMetricSnapshot(UserImpl client, String database) {
-        if (client == null)
-            return ReplyUnauthenticated.instance();
-        DatabaseImpl db = doGetDatabase(database);
-        if (db == null)
-            return ReplyNotFound.instance();
-        if (checkCanAdmin(client, db)) {
-            return new ReplyResult<>(db.dbController.getMetricSnapshot());
-        }
-        return ReplyUnauthorized.instance();
     }
 
     /**

@@ -17,7 +17,6 @@
 package org.xowl.infra.store.owl;
 
 import fr.cenotelie.commons.utils.collections.Couple;
-import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.rules.Assertion;
@@ -25,7 +24,7 @@ import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.BaseStore;
+import org.xowl.infra.store.storage.Store;
 
 import java.util.*;
 
@@ -38,7 +37,7 @@ public class OWLRuleEngine {
     /**
      * The XOWL store for the output
      */
-    private final BaseStore outputStore;
+    private final Store outputStore;
     /**
      * The RDF backend
      */
@@ -68,7 +67,7 @@ public class OWLRuleEngine {
      * @param outputStore The store to output produced axioms
      * @param evaluator   The evaluator
      */
-    public OWLRuleEngine(BaseStore inputStore, BaseStore outputStore, Evaluator evaluator) {
+    public OWLRuleEngine(Store inputStore, Store outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
         this.backend = new RDFRuleEngine(inputStore, outputStore, evaluator);
         this.rdfRules = new HashMap<>();
@@ -89,57 +88,55 @@ public class OWLRuleEngine {
         GraphNode graphTarget = getGraph(target, false);
         GraphNode graphMeta = getGraph(meta, false);
         RDFRuleSimple rdfRule = new RDFRuleSimple(rule.getHasIRI().getHasValue(), false, null);
-        Translator translator = new Translator(translationContext, outputStore);
+        Translator translator = new Translator(translationContext, outputStore.getTransaction().getDataset());
         List<Axiom> positiveNormal = new ArrayList<>();
         List<Axiom> positiveMeta = new ArrayList<>();
-        try {
-            for (Assertion assertion : rule.getAllAntecedents()) {
-                if (assertion.getIsPositive()) {
-                    if (assertion.getIsMeta()) {
-                        positiveMeta.addAll(assertion.getAllAxioms());
-                    } else {
-                        positiveNormal.addAll(assertion.getAllAxioms());
-                    }
+
+        for (Assertion assertion : rule.getAllAntecedents()) {
+            if (assertion.getIsPositive()) {
+                if (assertion.getIsMeta()) {
+                    positiveMeta.addAll(assertion.getAllAxioms());
                 } else {
-                    if (assertion.getIsMeta()) {
-                        rdfRule.addAntecedentNegatives(translator.translate(assertion.getAllAxioms(), graphMeta));
-                    } else {
-                        rdfRule.addAntecedentNegatives(translator.translate(assertion.getAllAxioms(), graphSource));
-                    }
+                    positiveNormal.addAll(assertion.getAllAxioms());
+                }
+            } else {
+                if (assertion.getIsMeta()) {
+                    rdfRule.addAntecedentNegatives(translator.translate(assertion.getAllAxioms(), graphMeta));
+                } else {
+                    rdfRule.addAntecedentNegatives(translator.translate(assertion.getAllAxioms(), graphSource));
                 }
             }
-            for (Quad quad : translator.translate(positiveNormal, graphSource))
-                rdfRule.addAntecedentPositive(quad);
-            for (Quad quad : translator.translate(positiveMeta, graphMeta))
-                rdfRule.addAntecedentPositive(quad);
-            positiveNormal.clear();
-            positiveMeta.clear();
-            for (Assertion assertion : rule.getAllConsequents()) {
-                if (assertion.getIsPositive()) {
-                    if (assertion.getIsMeta()) {
-                        positiveMeta.addAll(assertion.getAllAxioms());
-                    } else {
-                        positiveNormal.addAll(assertion.getAllAxioms());
-                    }
-                } else {
-                    if (assertion.getIsMeta()) {
-                        for (Quad quad : translator.translate(assertion.getAllAxioms(), graphMeta))
-                            rdfRule.addConsequentNegative(quad);
-                    } else {
-                        for (Quad quad : translator.translate(assertion.getAllAxioms(), graphTarget))
-                            rdfRule.addConsequentNegative(quad);
-                    }
-                }
-            }
-            for (Quad quad : translator.translate(positiveNormal, graphTarget))
-                rdfRule.addConsequentPositive(quad);
-            for (Quad quad : translator.translate(positiveMeta, graphMeta))
-                rdfRule.addConsequentPositive(quad);
-            positiveNormal.clear();
-            positiveMeta.clear();
-        } catch (TranslationException exception) {
-            Logging.get().error(exception);
         }
+        for (Quad quad : translator.translate(positiveNormal, graphSource))
+            rdfRule.addAntecedentPositive(quad);
+        for (Quad quad : translator.translate(positiveMeta, graphMeta))
+            rdfRule.addAntecedentPositive(quad);
+        positiveNormal.clear();
+        positiveMeta.clear();
+        for (Assertion assertion : rule.getAllConsequents()) {
+            if (assertion.getIsPositive()) {
+                if (assertion.getIsMeta()) {
+                    positiveMeta.addAll(assertion.getAllAxioms());
+                } else {
+                    positiveNormal.addAll(assertion.getAllAxioms());
+                }
+            } else {
+                if (assertion.getIsMeta()) {
+                    for (Quad quad : translator.translate(assertion.getAllAxioms(), graphMeta))
+                        rdfRule.addConsequentNegative(quad);
+                } else {
+                    for (Quad quad : translator.translate(assertion.getAllAxioms(), graphTarget))
+                        rdfRule.addConsequentNegative(quad);
+                }
+            }
+        }
+        for (Quad quad : translator.translate(positiveNormal, graphTarget))
+            rdfRule.addConsequentPositive(quad);
+        for (Quad quad : translator.translate(positiveMeta, graphMeta))
+            rdfRule.addConsequentPositive(quad);
+        positiveNormal.clear();
+        positiveMeta.clear();
+
         rdfRules.put(rule, rdfRule);
         owlRules.put(rdfRule, new Couple<>(translationContext, rule));
         backend.add(rdfRule);
@@ -187,8 +184,8 @@ public class OWLRuleEngine {
             if (allowsPattern)
                 return null;
             else
-                return outputStore.getIRINode(IRIs.GRAPH_DEFAULT + "/" + UUID.randomUUID());
+                return outputStore.getTransaction().getDataset().getIRINode(IRIs.GRAPH_DEFAULT + "/" + UUID.randomUUID());
         }
-        return outputStore.getIRINode(ontology.getHasIRI().getHasValue());
+        return outputStore.getTransaction().getDataset().getIRINode(ontology.getHasIRI().getHasValue());
     }
 }

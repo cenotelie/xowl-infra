@@ -14,9 +14,13 @@
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+
 package org.xowl.infra.store;
 
-import fr.cenotelie.commons.utils.collections.*;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.Couple;
+import fr.cenotelie.commons.utils.collections.SingleIterator;
+import fr.cenotelie.commons.utils.collections.SkippableIterator;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Ontology;
@@ -322,18 +326,18 @@ public class ProxyObject {
      * Deletes this object from the repository
      */
     public void delete() {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         try {
             // remove all triple of the form
             // [entity ? ?]
-            repository.getStore().remove(null, subject, null, null);
+            dataset.remove(null, subject, null, null);
             // remove all triple of the form
             // [? ? entity]
-            repository.getStore().remove(null, null, null, subject);
+            dataset.remove(null, null, null, subject);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
         // clear the internal data
-        repository.remove(this);
         repository = null;
         ontology = null;
         subject = null;
@@ -345,23 +349,21 @@ public class ProxyObject {
      * @return The properties and the values
      */
     private Iterator<Couple<String, Object>> queryProperties() {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         try {
-            Iterator<Quad> base = repository.getStore().getAll(subject, null, null);
-            return new SkippableIterator<>(new AdaptingIterator<>(base, new Adapter<Quad, Couple<String, Object>>() {
-                @Override
-                public Couple<String, Object> adapt(Quad element) {
-                    Node nodeProperty = element.getProperty();
-                    if (nodeProperty.getNodeType() != Node.TYPE_IRI)
-                        return null;
-                    String property = ((IRINode) nodeProperty).getIRIValue();
-                    Node nodeValue = element.getObject();
-                    if (nodeValue.getNodeType() == Node.TYPE_IRI) {
-                        return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
-                    } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
-                        return new Couple<>(property, decode((LiteralNode) nodeValue));
-                    }
+            Iterator<? extends Quad> base = dataset.getAll(subject, null, null);
+            return new SkippableIterator<>(new AdaptingIterator<>(base, quad -> {
+                Node nodeProperty = quad.getProperty();
+                if (nodeProperty.getNodeType() != Node.TYPE_IRI)
                     return null;
+                String property = ((IRINode) nodeProperty).getIRIValue();
+                Node nodeValue = quad.getObject();
+                if (nodeValue.getNodeType() == Node.TYPE_IRI) {
+                    return new Couple<String, Object>(property, repository.getProxy(((IRINode) nodeValue).getIRIValue()));
+                } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
+                    return new Couple<>(property, decode((LiteralNode) nodeValue));
                 }
+                return null;
             }));
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);
@@ -376,19 +378,20 @@ public class ProxyObject {
      * @return The corresponding values
      */
     private Collection<ProxyObject> queryObjects(IRINode property) {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         Collection<ProxyObject> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
         try {
-            Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
+            Iterator<? extends Quad> iterator = dataset.getAll(subject, property, null);
             while (iterator.hasNext()) {
                 Node node = iterator.next().getObject();
                 if (node.getNodeType() == Node.TYPE_IRI) {
-                    ProxyObject po = repository.resolveProxy(((IRINode) node).getIRIValue());
+                    ProxyObject po = repository.getProxy(((IRINode) node).getIRIValue());
                     if (!result.contains(po))
                         result.add(po);
                 } else if (node.getNodeType() == Node.TYPE_BLANK) {
-                    ProxyObject po = repository.resolveProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
+                    ProxyObject po = repository.getProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
                     if (!result.contains(po))
                         result.add(po);
                 }
@@ -406,19 +409,20 @@ public class ProxyObject {
      * @return The corresponding objects
      */
     private Collection<ProxyObject> queryInverseObjects(IRINode property) {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         Collection<ProxyObject> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
         try {
-            Iterator<Quad> iterator = repository.getStore().getAll(null, property, subject);
+            Iterator<? extends Quad> iterator = dataset.getAll(null, property, subject);
             while (iterator.hasNext()) {
                 Node node = iterator.next().getSubject();
                 if (node.getNodeType() == Node.TYPE_IRI) {
-                    ProxyObject po = repository.resolveProxy(((IRINode) node).getIRIValue());
+                    ProxyObject po = repository.getProxy(((IRINode) node).getIRIValue());
                     if (!result.contains(po))
                         result.add(po);
                 } else if (node.getNodeType() == Node.TYPE_BLANK) {
-                    ProxyObject po = repository.resolveProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
+                    ProxyObject po = repository.getProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
                     if (!result.contains(po))
                         result.add(po);
                 }
@@ -436,11 +440,12 @@ public class ProxyObject {
      * @return The corresponding values
      */
     private Collection<Object> queryData(IRINode property) {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         Collection<Object> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
         try {
-            Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
+            Iterator<? extends Quad> iterator = dataset.getAll(subject, property, null);
             while (iterator.hasNext()) {
                 Node node = iterator.next().getObject();
                 switch (node.getNodeType()) {
@@ -466,7 +471,7 @@ public class ProxyObject {
      */
     private void addValue(IRINode property, Node value) {
         try {
-            repository.getStore().add(repository.getGraph(ontology), subject, property, value);
+            repository.getStore().getTransaction().getDataset().add(repository.getGraph(ontology), subject, property, value);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -480,7 +485,7 @@ public class ProxyObject {
      */
     private void removeValue(IRINode property, Node value) {
         try {
-            repository.getStore().remove(repository.getGraph(ontology), subject, property, value);
+            repository.getStore().getTransaction().getDataset().remove(repository.getGraph(ontology), subject, property, value);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -495,7 +500,7 @@ public class ProxyObject {
         try {
             // remove all triple of the form
             // [entity property ?]
-            repository.getStore().remove(null, subject, property, null);
+            repository.getStore().getTransaction().getDataset().remove(null, subject, property, null);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -511,7 +516,7 @@ public class ProxyObject {
         // do we have the triple:
         // [property rdf:type owl:FunctionalProperty]
         try {
-            long count = repository.getStore().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
+            long count = repository.getStore().getTransaction().getDataset().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
             return count > 1;
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);
@@ -526,7 +531,7 @@ public class ProxyObject {
      * @return The associated IRI node
      */
     private IRINode node(String iri) {
-        return repository.getStore().getIRINode(iri);
+        return repository.getStore().getTransaction().getDataset().getIRINode(iri);
     }
 
     /**
@@ -549,7 +554,7 @@ public class ProxyObject {
     private LiteralNode encode(IRINode property, Object value) {
         String range = getRangeOf(property);
         Couple<String, String> data = Datatypes.toLiteral(value);
-        return repository.getStore().getLiteralNode(data.x, range, null);
+        return repository.getStore().getTransaction().getDataset().getLiteralNode(data.x, range, null);
     }
 
     /**
@@ -562,7 +567,7 @@ public class ProxyObject {
         // get all the triple like
         // [property rdfs:range ?]
         try {
-            Iterator<Quad> iterator = repository.getStore().getAll(property, node(Vocabulary.rdfsRange), null);
+            Iterator<? extends Quad> iterator = repository.getStore().getTransaction().getDataset().getAll(property, node(Vocabulary.rdfsRange), null);
             if (!iterator.hasNext())
                 // range is undefined, return xsd:String
                 return Vocabulary.xsdString;

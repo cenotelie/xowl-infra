@@ -18,8 +18,6 @@ package org.xowl.infra.store.rdf;
 
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.storage.BaseStore;
-import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.Iterator;
@@ -33,7 +31,7 @@ public class ListIterator implements Iterator<Node> {
     /**
      * The dataset that contains the data
      */
-    private final Dataset dataset;
+    private final DatasetQuads dataset;
     /**
      * The rdf:first node
      */
@@ -61,7 +59,7 @@ public class ListIterator implements Iterator<Node> {
      * @param store The node that contains the data
      * @param head  The list's head node
      */
-    public ListIterator(BaseStore store, Node head) {
+    public ListIterator(Dataset store, Node head) {
         this.dataset = store;
         this.keyFirst = store.getIRINode(Vocabulary.rdfFirst);
         this.keyRest = store.getIRINode(Vocabulary.rdfRest);
@@ -96,7 +94,7 @@ public class ListIterator implements Iterator<Node> {
      */
     private Node getValue(SubjectNode node, Property property) {
         try {
-            Iterator<Quad> iterator = dataset.getAll(node, property, null);
+            Iterator<? extends Quad> iterator = dataset.getAll(node, property, null);
             return iterator.hasNext() ? iterator.next().getObject() : null;
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);

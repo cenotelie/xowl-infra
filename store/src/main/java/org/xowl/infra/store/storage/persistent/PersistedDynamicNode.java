@@ -29,9 +29,9 @@ import java.util.Objects;
  */
 public class PersistedDynamicNode extends DynamicNode implements PersistedNode {
     /**
-     * The backend persisting the dynamic node
+     * The backend persisting the node
      */
-    private final PersistedNodes backend;
+    private final PersistedDatasetNodes nodes;
     /**
      * The key for this dynamic node
      */
@@ -44,11 +44,11 @@ public class PersistedDynamicNode extends DynamicNode implements PersistedNode {
     /**
      * Initializes this node
      *
-     * @param backend The backend persisting the dynamic node
-     * @param key     The key for this dynamic node
+     * @param nodes The backend persisting the node
+     * @param key   The key for this dynamic node
      */
-    public PersistedDynamicNode(PersistedNodes backend, long key) {
-        this.backend = backend;
+    public PersistedDynamicNode(PersistedDatasetNodes nodes, long key) {
+        this.nodes = nodes;
         this.key = key;
     }
 
@@ -56,13 +56,8 @@ public class PersistedDynamicNode extends DynamicNode implements PersistedNode {
      * Caches the content of the literal
      */
     private void doCache() {
-        String source = null;
-        try {
-            source = backend.retrieveString(key);
-        } catch (StorageException exception) {
-            // do nothing
-        }
-        cache = backend.getEvaluableExpression(source);
+        String source = nodes.retrieveString(key);
+        cache = nodes.getEvaluableExpression(source);
     }
 
     @Override
@@ -73,8 +68,8 @@ public class PersistedDynamicNode extends DynamicNode implements PersistedNode {
     }
 
     @Override
-    public PersistedNodes getStore() {
-        return backend;
+    public PersistedDatasetNodes getOwner() {
+        return nodes;
     }
 
     @Override
@@ -83,20 +78,20 @@ public class PersistedDynamicNode extends DynamicNode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() throws StorageException {
-        backend.onRefCountLiteral(key, 1);
+    public void incrementRefCount() {
+        nodes.onRefCountLiteral(key, 1);
     }
 
     @Override
-    public void decrementRefCount() throws StorageException {
-        backend.onRefCountLiteral(key, -1);
+    public void decrementRefCount() {
+        nodes.onRefCountLiteral(key, -1);
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedDynamicNode) {
             PersistedDynamicNode node = (PersistedDynamicNode) o;
-            return (node.backend == backend && node.key == key);
+            return (node.nodes == nodes && node.key == key);
         }
         if (o instanceof DynamicNode) {
             DynamicNode node = (DynamicNode) o;

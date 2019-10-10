@@ -28,9 +28,9 @@ import java.util.Objects;
  */
 class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     /**
-     * The backend persisting the literals
+     * The backend persisting the node
      */
-    private final PersistedNodes backend;
+    private final PersistedDatasetNodes nodes;
     /**
      * The key for this literal
      */
@@ -43,11 +43,11 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     /**
      * Initializes this node
      *
-     * @param backend The backend persisting the literals
-     * @param key     The key for this literal
+     * @param nodes The backend persisting the node
+     * @param key   The key for this literal
      */
-    public PersistedLiteralNode(PersistedNodes backend, long key) {
-        this.backend = backend;
+    public PersistedLiteralNode(PersistedDatasetNodes nodes, long key) {
+        this.nodes = nodes;
         this.key = key;
     }
 
@@ -55,11 +55,7 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
      * Caches the content of the literal
      */
     private void doCache() {
-        try {
-            cache = backend.retrieveLiteral(key);
-        } catch (StorageException exception) {
-            cache = new String[]{"", null, null};
-        }
+        cache = nodes.retrieveLiteral(key);
     }
 
     @Override
@@ -84,8 +80,8 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     }
 
     @Override
-    public PersistedNodes getStore() {
-        return backend;
+    public PersistedDatasetNodes getOwner() {
+        return nodes;
     }
 
     @Override
@@ -94,20 +90,20 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() throws StorageException {
-        backend.onRefCountLiteral(key, 1);
+    public void incrementRefCount() {
+        nodes.onRefCountLiteral(key, 1);
     }
 
     @Override
-    public void decrementRefCount() throws StorageException {
-        backend.onRefCountLiteral(key, -1);
+    public void decrementRefCount() {
+        nodes.onRefCountLiteral(key, -1);
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedLiteralNode) {
             PersistedLiteralNode node = (PersistedLiteralNode) o;
-            return (node.backend == backend && node.key == key);
+            return (node.nodes == nodes && node.key == key);
         }
         if (o instanceof LiteralNode) {
             LiteralNode node = (LiteralNode) o;

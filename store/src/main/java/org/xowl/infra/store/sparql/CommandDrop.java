@@ -19,6 +19,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.Node;
@@ -73,28 +74,25 @@ public class CommandDrop implements Command {
 
     @Override
     public Result execute(RepositoryRDF repository) {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         try {
             switch (type) {
                 case Single:
                     for (String target : targets)
-                        repository.getStore().clear(repository.getStore().getIRINode(target));
-                    repository.getStore().commit();
+                        dataset.clear(dataset.getIRINode(target));
                     break;
                 case Named:
-                    Collection<GraphNode> targets = repository.getStore().getGraphs();
+                    Collection<GraphNode> targets = dataset.getGraphs();
                     for (GraphNode target : targets) {
                         if (target.getNodeType() == Node.TYPE_IRI && !IRIs.GRAPH_DEFAULT.equals(((IRINode) target).getIRIValue()))
-                            repository.getStore().clear(target);
+                            dataset.clear(target);
                     }
-                    repository.getStore().commit();
                     break;
                 case Default:
-                    repository.getStore().clear(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT));
-                    repository.getStore().commit();
+                    dataset.clear(dataset.getIRINode(IRIs.GRAPH_DEFAULT));
                     break;
                 case All:
-                    repository.getStore().clear();
-                    repository.getStore().commit();
+                    dataset.clear();
                     break;
             }
             return ResultSuccess.INSTANCE;

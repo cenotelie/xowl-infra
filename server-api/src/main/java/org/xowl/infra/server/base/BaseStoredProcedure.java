@@ -23,7 +23,7 @@ import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.store.loaders.SPARQLLoader;
 import org.xowl.infra.store.sparql.Command;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -76,7 +76,7 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
      * @param nodes  The node manager to use for parsing the SPARQL command
      * @param logger The logger to use when parsing the SPARQL command
      */
-    public BaseStoredProcedure(ASTNode root, NodeManager nodes, Logger logger) {
+    public BaseStoredProcedure(ASTNode root, DatasetNodes nodes, Logger logger) {
         String vName = null;
         String vDef = "";
         this.parameters = new ArrayList<>();

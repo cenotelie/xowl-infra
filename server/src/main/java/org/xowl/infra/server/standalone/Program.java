@@ -99,13 +99,10 @@ public class Program {
             return;
 
         // register hook for shutdown events
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                shouldStop = true;
-                signal.countDown();
-                onClose();
-            }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            shouldStop = true;
+            signal.countDown();
+            onClose();
         }, Program.class.getCanonicalName() + ".shutdown"));
 
         while (!shouldStop) {

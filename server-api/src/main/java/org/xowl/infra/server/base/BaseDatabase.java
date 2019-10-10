@@ -80,16 +80,6 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public Reply getMetric() {
-        return ReplyUnsupported.instance();
-    }
-
-    @Override
-    public Reply getMetricSnapshot() {
-        return ReplyUnsupported.instance();
-    }
-
-    @Override
     public Reply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         return ReplyUnsupported.instance();
     }

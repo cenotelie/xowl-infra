@@ -37,7 +37,7 @@ interface PersistedNode extends Node {
      *
      * @return The store that maintains this node
      */
-    PersistedNodes getStore();
+    PersistedDatasetNodes getOwner();
 
     /**
      * Gets the key identifying this node
@@ -48,15 +48,11 @@ interface PersistedNode extends Node {
 
     /**
      * Increments the reference count for this node
-     *
-     * @throws StorageException When an IO operation failed
      */
-    void incrementRefCount() throws StorageException;
+    void incrementRefCount();
 
     /**
      * Decrements the reference count for this node
-     *
-     * @throws StorageException When an IO operation failed
      */
-    void decrementRefCount() throws StorageException;
+    void decrementRefCount();
 }

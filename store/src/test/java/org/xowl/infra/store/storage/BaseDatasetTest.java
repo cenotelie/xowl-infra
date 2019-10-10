@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage;
 
 import org.junit.Assert;
+import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.Quad;
 
 import java.util.Iterator;
@@ -33,7 +34,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testMultiplicityEmpty(BaseStore store) {
+    protected void testMultiplicityEmpty(Dataset store) {
         Quad quad = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x"),
@@ -53,7 +54,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testMultiplicitySingle(BaseStore store) throws UnsupportedNodeType {
+    protected void testMultiplicitySingle(Dataset store) throws UnsupportedNodeType {
         Quad quad = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x"),
@@ -70,7 +71,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testMultiplicityMore(BaseStore store) throws UnsupportedNodeType {
+    protected void testMultiplicityMore(Dataset store) throws UnsupportedNodeType {
         Quad quad = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x"),
@@ -89,7 +90,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testMultiplicityOther(BaseStore store) throws UnsupportedNodeType {
+    protected void testMultiplicityOther(Dataset store) throws UnsupportedNodeType {
         Quad quad1 = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x1"),
@@ -112,8 +113,8 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testGetAllEmpty(BaseStore store) {
-        Iterator<Quad> iterator = store.getAll();
+    protected void testGetAllEmpty(Dataset store) {
+        Iterator<? extends Quad> iterator = store.getAll();
         Assert.assertFalse(iterator.hasNext());
     }
 
@@ -122,7 +123,7 @@ public class BaseDatasetTest {
      *
      * @param store The store to test
      */
-    protected void testGetAllSingle(BaseStore store) throws UnsupportedNodeType {
+    protected void testGetAllSingle(Dataset store) throws UnsupportedNodeType {
         Quad quad1 = new Quad(
                 store.getIRINode("http://xowl.org/infra/tests/g"),
                 store.getIRINode("http://xowl.org/infra/tests/x1"),

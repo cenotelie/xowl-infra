@@ -27,8 +27,7 @@ import fr.cenotelie.hime.redist.ParseResult;
 import fr.cenotelie.hime.redist.TextContext;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -42,9 +41,9 @@ import java.util.Map;
  */
 public class NQuadsLoader implements Loader {
     /**
-     * The RDF store to create nodes from
+     * The RDF nodes management
      */
-    private final NodeManager store;
+    private final DatasetNodes nodes;
     /**
      * Maps of blanks nodes
      */
@@ -54,16 +53,16 @@ public class NQuadsLoader implements Loader {
      * Initializes this loader
      */
     public NQuadsLoader() {
-        this(new CachedNodes());
+        this(new CachedDatasetNodes());
     }
 
     /**
      * Initializes this loader
      *
-     * @param store The RDF store used to create nodes
+     * @param nodes The RDF nodes management
      */
-    public NQuadsLoader(NodeManager store) {
-        this.store = store;
+    public NQuadsLoader(DatasetNodes nodes) {
+        this.nodes = nodes;
     }
 
     @Override
@@ -92,7 +91,7 @@ public class NQuadsLoader implements Loader {
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         blanks = new HashMap<>();
         RDFLoaderResult result = new RDFLoaderResult();
-        GraphNode current = store.getIRINode(graphIRI);
+        GraphNode current = nodes.getIRINode(graphIRI);
 
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
@@ -159,7 +158,7 @@ public class NQuadsLoader implements Loader {
         value = TextUtils.unescape(value.substring(1, value.length() - 1));
         if (!URIUtils.isAbsolute(value))
             throw new LoaderException("IRI must be absolute", node);
-        return store.getIRINode(value);
+        return nodes.getIRINode(value);
     }
 
     /**
@@ -174,7 +173,7 @@ public class NQuadsLoader implements Loader {
         BlankNode blank = blanks.get(key);
         if (blank != null)
             return blank;
-        blank = store.getBlankNode();
+        blank = nodes.getBlankNode();
         blanks.put(key, blank);
         return blank;
     }
@@ -189,7 +188,7 @@ public class NQuadsLoader implements Loader {
         String value = node.getValue();
         value = TextUtils.unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
-            return store.getLiteralNode(value, Vocabulary.xsdString, null);
+            return nodes.getLiteralNode(value, Vocabulary.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
@@ -197,11 +196,11 @@ public class NQuadsLoader implements Loader {
             type = TextUtils.unescape(type.substring(1, type.length() - 1));
             if (!URIUtils.isAbsolute(type))
                 throw new LoaderException("IRI must be absolute", node);
-            return store.getLiteralNode(value, type, null);
+            return nodes.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
             String lang = child.getValue();
             lang = lang.substring(1);
-            return store.getLiteralNode(value, Vocabulary.rdfLangString, lang);
+            return nodes.getLiteralNode(value, Vocabulary.rdfLangString, lang);
         }
         return null;
     }
@@ -218,7 +217,7 @@ public class NQuadsLoader implements Loader {
             value = TextUtils.unescape(value.substring(1, value.length() - 1));
             if (!URIUtils.isAbsolute(value))
                 throw new LoaderException("IRI must be absolute", node);
-            return store.getIRINode(value);
+            return nodes.getIRINode(value);
         } else {
             return (GraphNode) translateBlankNode(node);
         }

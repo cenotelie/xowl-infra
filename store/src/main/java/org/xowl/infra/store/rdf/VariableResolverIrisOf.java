@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.storage.NodeManager;
-
 /**
  * A variable resolver that resolves variable with:
  * - Variable nodes used as graphs will be resolved as IRIs in the same way as the standard resolver
@@ -42,7 +40,7 @@ public class VariableResolverIrisOf extends VariableResolver {
     }
 
     @Override
-    public Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph) {
+    public Node resolve(VariableNode variable, RDFRuleExecution execution, DatasetNodes nodes, boolean isGraph) {
         if (isGraph)
             return nodes.getIRINode((GraphNode) null);
         return nodes.getIRINode(target);

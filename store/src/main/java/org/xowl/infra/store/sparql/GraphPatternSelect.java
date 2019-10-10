@@ -95,7 +95,7 @@ public class GraphPatternSelect implements GraphPattern {
      * @param variable The variable to include in the projection
      */
     public void addToProjection(VariableNode variable) {
-        this.projection.add(new Couple<VariableNode, Expression>(variable, null));
+        this.projection.add(new Couple<>(variable, null));
     }
 
     /**

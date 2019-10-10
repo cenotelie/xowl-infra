@@ -26,1677 +26,1677 @@ import org.junit.Test;
  */
 public class TriGTest extends BaseTriGTest {
     @Test
-    public void test_anonymous_blank_node_graph() {
+    public void test_anonymous_blank_node_graph() throws Exception {
         testTrigEval("anonymous_blank_node_graph.trig", "labeled_blank_node_graph.nq");
     }
 
     @Test
-    public void test_labeled_blank_node_graph() {
+    public void test_labeled_blank_node_graph() throws Exception {
         testTrigEval("labeled_blank_node_graph.trig", "labeled_blank_node_graph.nq");
     }
 
     @Test
-    public void test_alternating_iri_graphs() {
+    public void test_alternating_iri_graphs() throws Exception {
         testTrigEval("alternating_iri_graphs.trig", "alternating_iri_graphs.nq");
     }
 
     @Test
-    public void test_alternating_bnode_graphs() {
+    public void test_alternating_bnode_graphs() throws Exception {
         testTrigEval("alternating_bnode_graphs.trig", "alternating_bnode_graphs.nq");
     }
 
     @Test
-    public void test_trig_syntax_bad_base_04() {
+    public void test_trig_syntax_bad_base_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-base-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_base_05() {
+    public void test_trig_syntax_bad_base_05() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-base-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_prefix_06() {
+    public void test_trig_syntax_bad_prefix_06() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-prefix-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_prefix_07() {
+    public void test_trig_syntax_bad_prefix_07() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-prefix-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_struct_06() {
+    public void test_trig_syntax_struct_06() throws Exception {
         testTrigPositiveSyntax("trig-syntax-struct-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_struct_07() {
+    public void test_trig_syntax_struct_07() throws Exception {
         testTrigPositiveSyntax("trig-syntax-struct-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_minimal_whitespace_01() {
+    public void test_trig_syntax_minimal_whitespace_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-minimal-whitespace-01.trig");
     }
 
     @Test
-    public void test_IRI_subject() {
+    public void test_IRI_subject() throws Exception {
         testTrigEval("IRI_subject.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_IRI_with_four_digit_numeric_escape() {
+    public void test_IRI_with_four_digit_numeric_escape() throws Exception {
         testTrigEval("IRI_with_four_digit_numeric_escape.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_IRI_with_eight_digit_numeric_escape() {
+    public void test_IRI_with_eight_digit_numeric_escape() throws Exception {
         testTrigEval("IRI_with_eight_digit_numeric_escape.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_IRI_with_all_punctuation() {
+    public void test_IRI_with_all_punctuation() throws Exception {
         testTrigEval("IRI_with_all_punctuation.trig", "IRI_with_all_punctuation.nq");
     }
 
     @Test
-    public void test_bareword_a_predicate() {
+    public void test_bareword_a_predicate() throws Exception {
         testTrigEval("bareword_a_predicate.trig", "bareword_a_predicate.nq");
     }
 
     @Test
-    public void test_old_style_prefix() {
+    public void test_old_style_prefix() throws Exception {
         testTrigEval("old_style_prefix.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_SPARQL_style_prefix() {
+    public void test_SPARQL_style_prefix() throws Exception {
         testTrigEval("SPARQL_style_prefix.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_prefixed_IRI_predicate() {
+    public void test_prefixed_IRI_predicate() throws Exception {
         testTrigEval("prefixed_IRI_predicate.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_prefixed_IRI_object() {
+    public void test_prefixed_IRI_object() throws Exception {
         testTrigEval("prefixed_IRI_object.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_prefix_only_IRI() {
+    public void test_prefix_only_IRI() throws Exception {
         testTrigEval("prefix_only_IRI.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_prefix_with_PN_CHARS_BASE_character_boundaries() {
+    public void test_prefix_with_PN_CHARS_BASE_character_boundaries() throws Exception {
         testTrigEval("prefix_with_PN_CHARS_BASE_character_boundaries.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_prefix_with_non_leading_extras() {
+    public void test_prefix_with_non_leading_extras() throws Exception {
         testTrigEval("prefix_with_non_leading_extras.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_default_namespace_IRI() {
+    public void test_default_namespace_IRI() throws Exception {
         testTrigEval("default_namespace_IRI.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_prefix_reassigned_and_used() {
+    public void test_prefix_reassigned_and_used() throws Exception {
         testTrigEval("prefix_reassigned_and_used.trig", "prefix_reassigned_and_used.nq");
     }
 
     @Test
-    public void test_reserved_escaped_localName() {
+    public void test_reserved_escaped_localName() throws Exception {
         testTrigEval("reserved_escaped_localName.trig", "reserved_escaped_localName.nq");
     }
 
     @Test
-    public void test_percent_escaped_localName() {
+    public void test_percent_escaped_localName() throws Exception {
         testTrigEval("percent_escaped_localName.trig", "percent_escaped_localName.nq");
     }
 
     @Test
-    public void test_HYPHEN_MINUS_in_localName() {
+    public void test_HYPHEN_MINUS_in_localName() throws Exception {
         testTrigEval("HYPHEN_MINUS_in_localName.trig", "HYPHEN_MINUS_in_localName.nq");
     }
 
     @Test
-    public void test_underscore_in_localName() {
+    public void test_underscore_in_localName() throws Exception {
         testTrigEval("underscore_in_localName.trig", "underscore_in_localName.nq");
     }
 
     @Test
-    public void test_localname_with_COLON() {
+    public void test_localname_with_COLON() throws Exception {
         testTrigEval("localname_with_COLON.trig", "localname_with_COLON.nq");
     }
 
     @Test
-    public void test_localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries() {
+    public void test_localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries() throws Exception {
         testTrigEval("localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries.trig", "localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries.nq");
     }
 
     @Test
-    public void test_localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries() {
+    public void test_localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries() throws Exception {
         testTrigEval("localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries.trig", "localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries.nq");
     }
 
     @Test
-    public void test_localName_with_nfc_PN_CHARS_BASE_character_boundaries() {
+    public void test_localName_with_nfc_PN_CHARS_BASE_character_boundaries() throws Exception {
         testTrigEval("localName_with_nfc_PN_CHARS_BASE_character_boundaries.trig", "localName_with_nfc_PN_CHARS_BASE_character_boundaries.nq");
     }
 
     @Test
-    public void test_localName_with_leading_underscore() {
+    public void test_localName_with_leading_underscore() throws Exception {
         testTrigEval("localName_with_leading_underscore.trig", "localName_with_leading_underscore.nq");
     }
 
     @Test
-    public void test_localName_with_leading_digit() {
+    public void test_localName_with_leading_digit() throws Exception {
         testTrigEval("localName_with_leading_digit.trig", "localName_with_leading_digit.nq");
     }
 
     @Test
-    public void test_localName_with_non_leading_extras() {
+    public void test_localName_with_non_leading_extras() throws Exception {
         testTrigEval("localName_with_non_leading_extras.trig", "localName_with_non_leading_extras.nq");
     }
 
     @Test
-    public void test_old_style_base() {
+    public void test_old_style_base() throws Exception {
         testTrigEval("old_style_base.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_SPARQL_style_base() {
+    public void test_SPARQL_style_base() throws Exception {
         testTrigEval("SPARQL_style_base.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_labeled_blank_node_subject() {
+    public void test_labeled_blank_node_subject() throws Exception {
         testTrigEval("labeled_blank_node_subject.trig", "labeled_blank_node_subject.nq");
     }
 
     @Test
-    public void test_labeled_blank_node_object() {
+    public void test_labeled_blank_node_object() throws Exception {
         testTrigEval("labeled_blank_node_object.trig", "labeled_blank_node_object.nq");
     }
 
     @Test
-    public void test_labeled_blank_node_with_PN_CHARS_BASE_character_boundaries() {
+    public void test_labeled_blank_node_with_PN_CHARS_BASE_character_boundaries() throws Exception {
         testTrigEval("labeled_blank_node_with_PN_CHARS_BASE_character_boundaries.trig", "labeled_blank_node_object.nq");
     }
 
     @Test
-    public void test_labeled_blank_node_with_leading_underscore() {
+    public void test_labeled_blank_node_with_leading_underscore() throws Exception {
         testTrigEval("labeled_blank_node_with_leading_underscore.trig", "labeled_blank_node_object.nq");
     }
 
     @Test
-    public void test_labeled_blank_node_with_leading_digit() {
+    public void test_labeled_blank_node_with_leading_digit() throws Exception {
         testTrigEval("labeled_blank_node_with_leading_digit.trig", "labeled_blank_node_object.nq");
     }
 
     @Test
-    public void test_labeled_blank_node_with_non_leading_extras() {
+    public void test_labeled_blank_node_with_non_leading_extras() throws Exception {
         testTrigEval("labeled_blank_node_with_non_leading_extras.trig", "labeled_blank_node_object.nq");
     }
 
     @Test
-    public void test_anonymous_blank_node_subject() {
+    public void test_anonymous_blank_node_subject() throws Exception {
         testTrigEval("anonymous_blank_node_subject.trig", "anonymous_blank_node_subject.nq");
     }
 
     @Test
-    public void test_anonymous_blank_node_object() {
+    public void test_anonymous_blank_node_object() throws Exception {
         testTrigEval("anonymous_blank_node_object.trig", "anonymous_blank_node_object.nq");
     }
 
     @Test
-    public void test_sole_blankNodePropertyList() {
+    public void test_sole_blankNodePropertyList() throws Exception {
         testTrigEval("sole_blankNodePropertyList.trig", "sole_blankNodePropertyList.nq");
     }
 
     @Test
-    public void test_blankNodePropertyList_as_subject() {
+    public void test_blankNodePropertyList_as_subject() throws Exception {
         testTrigEval("blankNodePropertyList_as_subject.trig", "blankNodePropertyList_as_subject.nq");
     }
 
     @Test
-    public void test_blankNodePropertyList_as_object() {
+    public void test_blankNodePropertyList_as_object() throws Exception {
         testTrigEval("blankNodePropertyList_as_object.trig", "blankNodePropertyList_as_object.nq");
     }
 
     @Test
-    public void test_blankNodePropertyList_with_multiple_triples() {
+    public void test_blankNodePropertyList_with_multiple_triples() throws Exception {
         testTrigEval("blankNodePropertyList_with_multiple_triples.trig", "blankNodePropertyList_with_multiple_triples.nq");
     }
 
     @Test
-    public void test_nested_blankNodePropertyLists() {
+    public void test_nested_blankNodePropertyLists() throws Exception {
         testTrigEval("nested_blankNodePropertyLists.trig", "nested_blankNodePropertyLists.nq");
     }
 
     @Test
-    public void test_blankNodePropertyList_containing_collection() {
+    public void test_blankNodePropertyList_containing_collection() throws Exception {
         testTrigEval("blankNodePropertyList_containing_collection.trig", "blankNodePropertyList_containing_collection.nq");
     }
 
     @Test
-    public void test_collection_subject() {
+    public void test_collection_subject() throws Exception {
         testTrigEval("collection_subject.trig", "collection_subject.nq");
     }
 
     @Test
-    public void test_collection_object() {
+    public void test_collection_object() throws Exception {
         testTrigEval("collection_object.trig", "collection_object.nq");
     }
 
     @Test
-    public void test_empty_collection() {
+    public void test_empty_collection() throws Exception {
         testTrigEval("empty_collection.trig", "empty_collection.nq");
     }
 
     @Test
-    public void test_nested_collection() {
+    public void test_nested_collection() throws Exception {
         testTrigEval("nested_collection.trig", "nested_collection.nq");
     }
 
     @Test
-    public void test_first() {
+    public void test_first() throws Exception {
         testTrigEval("first.trig", "first.nq");
     }
 
     @Test
-    public void test_last() {
+    public void test_last() throws Exception {
         testTrigEval("last.trig", "last.nq");
     }
 
     @Test
-    public void test_LITERAL1() {
+    public void test_LITERAL1() throws Exception {
         testTrigEval("LITERAL1.trig", "LITERAL1.nq");
     }
 
     @Test
-    public void test_LITERAL1_ascii_boundaries() {
+    public void test_LITERAL1_ascii_boundaries() throws Exception {
         testTrigEval("LITERAL1_ascii_boundaries.trig", "LITERAL1_ascii_boundaries.nq");
     }
 
     @Test
-    public void test_LITERAL1_with_UTF8_boundaries() {
+    public void test_LITERAL1_with_UTF8_boundaries() throws Exception {
         testTrigEval("LITERAL1_with_UTF8_boundaries.trig", "LITERAL_with_UTF8_boundaries.nq");
     }
 
     @Test
-    public void test_LITERAL1_all_controls() {
+    public void test_LITERAL1_all_controls() throws Exception {
         testTrigEval("LITERAL1_all_controls.trig", "LITERAL1_all_controls.nq");
     }
 
     @Test
-    public void test_LITERAL1_all_punctuation() {
+    public void test_LITERAL1_all_punctuation() throws Exception {
         testTrigEval("LITERAL1_all_punctuation.trig", "LITERAL1_all_punctuation.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG1() {
+    public void test_LITERAL_LONG1() throws Exception {
         testTrigEval("LITERAL_LONG1.trig", "LITERAL1.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG1_ascii_boundaries() {
+    public void test_LITERAL_LONG1_ascii_boundaries() throws Exception {
         testTrigEval("LITERAL_LONG1_ascii_boundaries.trig", "LITERAL_LONG1_ascii_boundaries.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG1_with_UTF8_boundaries() {
+    public void test_LITERAL_LONG1_with_UTF8_boundaries() throws Exception {
         testTrigEval("LITERAL_LONG1_with_UTF8_boundaries.trig", "LITERAL_with_UTF8_boundaries.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG1_with_1_squote() {
+    public void test_LITERAL_LONG1_with_1_squote() throws Exception {
         testTrigEval("LITERAL_LONG1_with_1_squote.trig", "LITERAL_LONG1_with_1_squote.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG1_with_2_squotes() {
+    public void test_LITERAL_LONG1_with_2_squotes() throws Exception {
         testTrigEval("LITERAL_LONG1_with_2_squotes.trig", "LITERAL_LONG1_with_2_squotes.nq");
     }
 
     @Test
-    public void test_LITERAL2() {
+    public void test_LITERAL2() throws Exception {
         testTrigEval("LITERAL2.trig", "LITERAL1.nq");
     }
 
     @Test
-    public void test_LITERAL2_ascii_boundaries() {
+    public void test_LITERAL2_ascii_boundaries() throws Exception {
         testTrigEval("LITERAL2_ascii_boundaries.trig", "LITERAL2_ascii_boundaries.nq");
     }
 
     @Test
-    public void test_LITERAL2_with_UTF8_boundaries() {
+    public void test_LITERAL2_with_UTF8_boundaries() throws Exception {
         testTrigEval("LITERAL2_with_UTF8_boundaries.trig", "LITERAL_with_UTF8_boundaries.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG2() {
+    public void test_LITERAL_LONG2() throws Exception {
         testTrigEval("LITERAL_LONG2.trig", "LITERAL1.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG2_ascii_boundaries() {
+    public void test_LITERAL_LONG2_ascii_boundaries() throws Exception {
         testTrigEval("LITERAL_LONG2_ascii_boundaries.trig", "LITERAL_LONG2_ascii_boundaries.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG2_with_UTF8_boundaries() {
+    public void test_LITERAL_LONG2_with_UTF8_boundaries() throws Exception {
         testTrigEval("LITERAL_LONG2_with_UTF8_boundaries.trig", "LITERAL_with_UTF8_boundaries.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG2_with_1_squote() {
+    public void test_LITERAL_LONG2_with_1_squote() throws Exception {
         testTrigEval("LITERAL_LONG2_with_1_squote.trig", "LITERAL_LONG2_with_1_squote.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG2_with_2_squotes() {
+    public void test_LITERAL_LONG2_with_2_squotes() throws Exception {
         testTrigEval("LITERAL_LONG2_with_2_squotes.trig", "LITERAL_LONG2_with_2_squotes.nq");
     }
 
     @Test
-    public void test_literal_with_CHARACTER_TABULATION() {
+    public void test_literal_with_CHARACTER_TABULATION() throws Exception {
         testTrigEval("literal_with_CHARACTER_TABULATION.trig", "literal_with_CHARACTER_TABULATION.nq");
     }
 
     @Test
-    public void test_literal_with_BACKSPACE() {
+    public void test_literal_with_BACKSPACE() throws Exception {
         testTrigEval("literal_with_BACKSPACE.trig", "literal_with_BACKSPACE.nq");
     }
 
     @Test
-    public void test_literal_with_LINE_FEED() {
+    public void test_literal_with_LINE_FEED() throws Exception {
         testTrigEval("literal_with_LINE_FEED.trig", "literal_with_LINE_FEED.nq");
     }
 
     @Test
-    public void test_literal_with_CARRIAGE_RETURN() {
+    public void test_literal_with_CARRIAGE_RETURN() throws Exception {
         testTrigEval("literal_with_CARRIAGE_RETURN.trig", "literal_with_CARRIAGE_RETURN.nq");
     }
 
     @Test
-    public void test_literal_with_FORM_FEED() {
+    public void test_literal_with_FORM_FEED() throws Exception {
         testTrigEval("literal_with_FORM_FEED.trig", "literal_with_FORM_FEED.nq");
     }
 
     @Test
-    public void test_literal_with_REVERSE_SOLIDUS() {
+    public void test_literal_with_REVERSE_SOLIDUS() throws Exception {
         testTrigEval("literal_with_REVERSE_SOLIDUS.trig", "literal_with_REVERSE_SOLIDUS.nq");
     }
 
     @Test
-    public void test_literal_with_escaped_CHARACTER_TABULATION() {
+    public void test_literal_with_escaped_CHARACTER_TABULATION() throws Exception {
         testTrigEval("literal_with_escaped_CHARACTER_TABULATION.trig", "literal_with_CHARACTER_TABULATION.nq");
     }
 
     @Test
-    public void test_literal_with_escaped_BACKSPACE() {
+    public void test_literal_with_escaped_BACKSPACE() throws Exception {
         testTrigEval("literal_with_escaped_BACKSPACE.trig", "literal_with_BACKSPACE.nq");
     }
 
     @Test
-    public void test_literal_with_escaped_LINE_FEED() {
+    public void test_literal_with_escaped_LINE_FEED() throws Exception {
         testTrigEval("literal_with_escaped_LINE_FEED.trig", "literal_with_LINE_FEED.nq");
     }
 
     @Test
-    public void test_literal_with_escaped_CARRIAGE_RETURN() {
+    public void test_literal_with_escaped_CARRIAGE_RETURN() throws Exception {
         testTrigEval("literal_with_escaped_CARRIAGE_RETURN.trig", "literal_with_CARRIAGE_RETURN.nq");
     }
 
     @Test
-    public void test_literal_with_escaped_FORM_FEED() {
+    public void test_literal_with_escaped_FORM_FEED() throws Exception {
         testTrigEval("literal_with_escaped_FORM_FEED.trig", "literal_with_FORM_FEED.nq");
     }
 
     @Test
-    public void test_literal_with_numeric_escape4() {
+    public void test_literal_with_numeric_escape4() throws Exception {
         testTrigEval("literal_with_numeric_escape4.trig", "literal_with_numeric_escape4.nq");
     }
 
     @Test
-    public void test_literal_with_numeric_escape8() {
+    public void test_literal_with_numeric_escape8() throws Exception {
         testTrigEval("literal_with_numeric_escape8.trig", "literal_with_numeric_escape4.nq");
     }
 
     @Test
-    public void test_IRIREF_datatype() {
+    public void test_IRIREF_datatype() throws Exception {
         testTrigEval("IRIREF_datatype.trig", "IRIREF_datatype.nq");
     }
 
     @Test
-    public void test_prefixed_name_datatype() {
+    public void test_prefixed_name_datatype() throws Exception {
         testTrigEval("prefixed_name_datatype.trig", "IRIREF_datatype.nq");
     }
 
     @Test
-    public void test_bareword_integer() {
+    public void test_bareword_integer() throws Exception {
         testTrigEval("bareword_integer.trig", "IRIREF_datatype.nq");
     }
 
     @Test
-    public void test_bareword_decimal() {
+    public void test_bareword_decimal() throws Exception {
         testTrigEval("bareword_decimal.trig", "bareword_decimal.nq");
     }
 
     @Test
-    public void test_bareword_double() {
+    public void test_bareword_double() throws Exception {
         testTrigEval("bareword_double.trig", "bareword_double.nq");
     }
 
     @Test
-    public void test_double_lower_case_e() {
+    public void test_double_lower_case_e() throws Exception {
         testTrigEval("double_lower_case_e.trig", "double_lower_case_e.nq");
     }
 
     @Test
-    public void test_negative_numeric() {
+    public void test_negative_numeric() throws Exception {
         testTrigEval("negative_numeric.trig", "negative_numeric.nq");
     }
 
     @Test
-    public void test_positive_numeric() {
+    public void test_positive_numeric() throws Exception {
         testTrigEval("positive_numeric.trig", "positive_numeric.nq");
     }
 
     @Test
-    public void test_numeric_with_leading_0() {
+    public void test_numeric_with_leading_0() throws Exception {
         testTrigEval("numeric_with_leading_0.trig", "numeric_with_leading_0.nq");
     }
 
     @Test
-    public void test_literal_true() {
+    public void test_literal_true() throws Exception {
         testTrigEval("literal_true.trig", "literal_true.nq");
     }
 
     @Test
-    public void test_literal_false() {
+    public void test_literal_false() throws Exception {
         testTrigEval("literal_false.trig", "literal_false.nq");
     }
 
     @Test
-    public void test_langtagged_non_LONG() {
+    public void test_langtagged_non_LONG() throws Exception {
         testTrigEval("langtagged_non_LONG.trig", "langtagged_non_LONG.nq");
     }
 
     @Test
-    public void test_langtagged_LONG() {
+    public void test_langtagged_LONG() throws Exception {
         testTrigEval("langtagged_LONG.trig", "langtagged_non_LONG.nq");
     }
 
     @Test
-    public void test_lantag_with_subtag() {
+    public void test_lantag_with_subtag() throws Exception {
         testTrigEval("lantag_with_subtag.trig", "lantag_with_subtag.nq");
     }
 
     @Test
-    public void test_objectList_with_two_objects() {
+    public void test_objectList_with_two_objects() throws Exception {
         testTrigEval("objectList_with_two_objects.trig", "objectList_with_two_objects.nq");
     }
 
     @Test
-    public void test_predicateObjectList_with_two_objectLists() {
+    public void test_predicateObjectList_with_two_objectLists() throws Exception {
         testTrigEval("predicateObjectList_with_two_objectLists.trig", "predicateObjectList_with_two_objectLists.nq");
     }
 
     @Test
-    public void test_repeated_semis_at_end() {
+    public void test_repeated_semis_at_end() throws Exception {
         testTrigEval("repeated_semis_at_end.trig", "predicateObjectList_with_two_objectLists.nq");
     }
 
     @Test
-    public void test_repeated_semis_not_at_end() {
+    public void test_repeated_semis_not_at_end() throws Exception {
         testTrigEval("repeated_semis_not_at_end.trig", "repeated_semis_not_at_end.nq");
     }
 
     @Test
-    public void test_comment_following_localName() {
+    public void test_comment_following_localName() throws Exception {
         testTrigEval("comment_following_localName.trig", "IRI_spo.nq");
     }
 
     @Test
-    public void test_number_sign_following_localName() {
+    public void test_number_sign_following_localName() throws Exception {
         testTrigEval("number_sign_following_localName.trig", "number_sign_following_localName.nq");
     }
 
     @Test
-    public void test_comment_following_PNAME_NS() {
+    public void test_comment_following_PNAME_NS() throws Exception {
         testTrigEval("comment_following_PNAME_NS.trig", "comment_following_PNAME_NS.nq");
     }
 
     @Test
-    public void test_number_sign_following_PNAME_NS() {
+    public void test_number_sign_following_PNAME_NS() throws Exception {
         testTrigEval("number_sign_following_PNAME_NS.trig", "number_sign_following_PNAME_NS.nq");
     }
 
     @Test
-    public void test_LITERAL_LONG2_with_REVERSE_SOLIDUS() {
+    public void test_LITERAL_LONG2_with_REVERSE_SOLIDUS() throws Exception {
         testTrigEval("LITERAL_LONG2_with_REVERSE_SOLIDUS.trig", "LITERAL_LONG2_with_REVERSE_SOLIDUS.nq");
     }
 
     @Test
-    public void test_trig_syntax_bad_num_05() {
+    public void test_trig_syntax_bad_num_05() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-LITERAL2_with_langtag_and_datatype.trig");
     }
 
     @Test
-    public void test_two_LITERAL_LONG2s() {
+    public void test_two_LITERAL_LONG2s() throws Exception {
         testTrigEval("two_LITERAL_LONG2s.trig", "two_LITERAL_LONG2s.nq");
     }
 
     @Test
-    public void test_langtagged_LONG_with_subtag() {
+    public void test_langtagged_LONG_with_subtag() throws Exception {
         testTrigEval("langtagged_LONG_with_subtag.trig", "langtagged_LONG_with_subtag.nq");
     }
 
     @Test
-    public void test_trig_syntax_file_01() {
+    public void test_trig_syntax_file_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-file-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_file_02() {
+    public void test_trig_syntax_file_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-file-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_file_03() {
+    public void test_trig_syntax_file_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-file-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_uri_01() {
+    public void test_trig_syntax_uri_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-uri-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_uri_02() {
+    public void test_trig_syntax_uri_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-uri-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_uri_03() {
+    public void test_trig_syntax_uri_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-uri-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_uri_04() {
+    public void test_trig_syntax_uri_04() throws Exception {
         testTrigPositiveSyntax("trig-syntax-uri-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_base_01() {
+    public void test_trig_syntax_base_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-base-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_base_02() {
+    public void test_trig_syntax_base_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-base-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_base_03() {
+    public void test_trig_syntax_base_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-base-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_base_04() {
+    public void test_trig_syntax_base_04() throws Exception {
         testTrigPositiveSyntax("trig-syntax-base-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_01() {
+    public void test_trig_syntax_prefix_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_02() {
+    public void test_trig_syntax_prefix_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_03() {
+    public void test_trig_syntax_prefix_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_04() {
+    public void test_trig_syntax_prefix_04() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_05() {
+    public void test_trig_syntax_prefix_05() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_06() {
+    public void test_trig_syntax_prefix_06() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_07() {
+    public void test_trig_syntax_prefix_07() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_08() {
+    public void test_trig_syntax_prefix_08() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-08.trig");
     }
 
     @Test
-    public void test_trig_syntax_prefix_09() {
+    public void test_trig_syntax_prefix_09() throws Exception {
         testTrigPositiveSyntax("trig-syntax-prefix-09.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_01() {
+    public void test_trig_syntax_string_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_02() {
+    public void test_trig_syntax_string_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_03() {
+    public void test_trig_syntax_string_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_04() {
+    public void test_trig_syntax_string_04() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_05() {
+    public void test_trig_syntax_string_05() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_06() {
+    public void test_trig_syntax_string_06() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_07() {
+    public void test_trig_syntax_string_07() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_08() {
+    public void test_trig_syntax_string_08() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-08.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_09() {
+    public void test_trig_syntax_string_09() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-09.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_10() {
+    public void test_trig_syntax_string_10() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-10.trig");
     }
 
     @Test
-    public void test_trig_syntax_string_11() {
+    public void test_trig_syntax_string_11() throws Exception {
         testTrigPositiveSyntax("trig-syntax-string-11.trig");
     }
 
     @Test
-    public void test_trig_syntax_str_esc_01() {
+    public void test_trig_syntax_str_esc_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-str-esc-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_str_esc_02() {
+    public void test_trig_syntax_str_esc_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-str-esc-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_str_esc_03() {
+    public void test_trig_syntax_str_esc_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-str-esc-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_pname_esc_01() {
+    public void test_trig_syntax_pname_esc_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-pname-esc-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_pname_esc_02() {
+    public void test_trig_syntax_pname_esc_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-pname-esc-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_pname_esc_03() {
+    public void test_trig_syntax_pname_esc_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-pname-esc-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_01() {
+    public void test_trig_syntax_bnode_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_02() {
+    public void test_trig_syntax_bnode_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_03() {
+    public void test_trig_syntax_bnode_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_04() {
+    public void test_trig_syntax_bnode_04() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_05() {
+    public void test_trig_syntax_bnode_05() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_06() {
+    public void test_trig_syntax_bnode_06() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_07() {
+    public void test_trig_syntax_bnode_07() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_08() {
+    public void test_trig_syntax_bnode_08() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-08.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_09() {
+    public void test_trig_syntax_bnode_09() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-09.trig");
     }
 
     @Test
-    public void test_trig_syntax_bnode_10() {
+    public void test_trig_syntax_bnode_10() throws Exception {
         testTrigPositiveSyntax("trig-syntax-bnode-10.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_01() {
+    public void test_trig_syntax_number_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_02() {
+    public void test_trig_syntax_number_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_03() {
+    public void test_trig_syntax_number_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_04() {
+    public void test_trig_syntax_number_04() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_05() {
+    public void test_trig_syntax_number_05() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_06() {
+    public void test_trig_syntax_number_06() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_07() {
+    public void test_trig_syntax_number_07() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_08() {
+    public void test_trig_syntax_number_08() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-08.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_09() {
+    public void test_trig_syntax_number_09() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-09.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_10() {
+    public void test_trig_syntax_number_10() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-10.trig");
     }
 
     @Test
-    public void test_trig_syntax_number_11() {
+    public void test_trig_syntax_number_11() throws Exception {
         testTrigPositiveSyntax("trig-syntax-number-11.trig");
     }
 
     @Test
-    public void test_trig_syntax_datatypes_01() {
+    public void test_trig_syntax_datatypes_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-datatypes-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_datatypes_02() {
+    public void test_trig_syntax_datatypes_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-datatypes-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_kw_01() {
+    public void test_trig_syntax_kw_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-kw-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_kw_02() {
+    public void test_trig_syntax_kw_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-kw-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_kw_03() {
+    public void test_trig_syntax_kw_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-kw-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_struct_01() {
+    public void test_trig_syntax_struct_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-struct-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_struct_02() {
+    public void test_trig_syntax_struct_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-struct-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_struct_03() {
+    public void test_trig_syntax_struct_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-struct-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_struct_04() {
+    public void test_trig_syntax_struct_04() throws Exception {
         testTrigPositiveSyntax("trig-syntax-struct-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_struct_05() {
+    public void test_trig_syntax_struct_05() throws Exception {
         testTrigPositiveSyntax("trig-syntax-struct-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_lists_01() {
+    public void test_trig_syntax_lists_01() throws Exception {
         testTrigPositiveSyntax("trig-syntax-lists-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_lists_02() {
+    public void test_trig_syntax_lists_02() throws Exception {
         testTrigPositiveSyntax("trig-syntax-lists-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_lists_03() {
+    public void test_trig_syntax_lists_03() throws Exception {
         testTrigPositiveSyntax("trig-syntax-lists-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_lists_04() {
+    public void test_trig_syntax_lists_04() throws Exception {
         testTrigPositiveSyntax("trig-syntax-lists-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_lists_05() {
+    public void test_trig_syntax_lists_05() throws Exception {
         testTrigPositiveSyntax("trig-syntax-lists-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_uri_01() {
+    public void test_trig_syntax_bad_uri_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-uri-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_uri_02() {
+    public void test_trig_syntax_bad_uri_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-uri-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_uri_03() {
+    public void test_trig_syntax_bad_uri_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-uri-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_uri_04() {
+    public void test_trig_syntax_bad_uri_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-uri-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_uri_05() {
+    public void test_trig_syntax_bad_uri_05() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-uri-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_prefix_01() {
+    public void test_trig_syntax_bad_prefix_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-prefix-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_prefix_02() {
+    public void test_trig_syntax_bad_prefix_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-prefix-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_prefix_03() {
+    public void test_trig_syntax_bad_prefix_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-prefix-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_prefix_04() {
+    public void test_trig_syntax_bad_prefix_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-prefix-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_prefix_05() {
+    public void test_trig_syntax_bad_prefix_05() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-prefix-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_base_01() {
+    public void test_trig_syntax_bad_base_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-base-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_base_02() {
+    public void test_trig_syntax_bad_base_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-base-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_base_03() {
+    public void test_trig_syntax_bad_base_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-base-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_02() {
+    public void test_trig_syntax_bad_struct_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_03() {
+    public void test_trig_syntax_bad_struct_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_04() {
+    public void test_trig_syntax_bad_struct_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_05() {
+    public void test_trig_syntax_bad_struct_05() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_06() {
+    public void test_trig_syntax_bad_struct_06() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_07() {
+    public void test_trig_syntax_bad_struct_07() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_kw_01() {
+    public void test_trig_syntax_bad_kw_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-kw-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_kw_02() {
+    public void test_trig_syntax_bad_kw_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-kw-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_kw_03() {
+    public void test_trig_syntax_bad_kw_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-kw-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_kw_04() {
+    public void test_trig_syntax_bad_kw_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-kw-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_kw_05() {
+    public void test_trig_syntax_bad_kw_05() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-kw-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_01() {
+    public void test_trig_syntax_bad_n3_extras_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_02() {
+    public void test_trig_syntax_bad_n3_extras_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_03() {
+    public void test_trig_syntax_bad_n3_extras_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_04() {
+    public void test_trig_syntax_bad_n3_extras_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_05() {
+    public void test_trig_syntax_bad_n3_extras_05() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_06() {
+    public void test_trig_syntax_bad_n3_extras_06() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_07() {
+    public void test_trig_syntax_bad_n3_extras_07() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_08() {
+    public void test_trig_syntax_bad_n3_extras_08() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-08.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_09() {
+    public void test_trig_syntax_bad_n3_extras_09() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-09.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_10() {
+    public void test_trig_syntax_bad_n3_extras_10() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-10.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_11() {
+    public void test_trig_syntax_bad_n3_extras_11() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-11.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_12() {
+    public void test_trig_syntax_bad_n3_extras_12() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-12.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_n3_extras_13() {
+    public void test_trig_syntax_bad_n3_extras_13() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-n3-extras-13.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_09() {
+    public void test_trig_syntax_bad_struct_09() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-09.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_10() {
+    public void test_trig_syntax_bad_struct_10() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-10.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_12() {
+    public void test_trig_syntax_bad_struct_12() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-12.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_13() {
+    public void test_trig_syntax_bad_struct_13() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-13.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_14() {
+    public void test_trig_syntax_bad_struct_14() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-14.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_15() {
+    public void test_trig_syntax_bad_struct_15() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-15.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_16() {
+    public void test_trig_syntax_bad_struct_16() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-16.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_struct_17() {
+    public void test_trig_syntax_bad_struct_17() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-struct-17.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_lang_01() {
+    public void test_trig_syntax_bad_lang_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-lang-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_esc_01() {
+    public void test_trig_syntax_bad_esc_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-esc-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_esc_02() {
+    public void test_trig_syntax_bad_esc_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-esc-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_esc_03() {
+    public void test_trig_syntax_bad_esc_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-esc-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_esc_04() {
+    public void test_trig_syntax_bad_esc_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-esc-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_pname_01() {
+    public void test_trig_syntax_bad_pname_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-pname-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_pname_02() {
+    public void test_trig_syntax_bad_pname_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-pname-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_pname_03() {
+    public void test_trig_syntax_bad_pname_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-pname-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_string_01() {
+    public void test_trig_syntax_bad_string_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-string-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_string_02() {
+    public void test_trig_syntax_bad_string_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-string-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_string_03() {
+    public void test_trig_syntax_bad_string_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-string-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_string_04() {
+    public void test_trig_syntax_bad_string_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-string-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_string_05() {
+    public void test_trig_syntax_bad_string_05() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-string-05.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_string_06() {
+    public void test_trig_syntax_bad_string_06() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-string-06.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_string_07() {
+    public void test_trig_syntax_bad_string_07() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-string-07.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_num_01() {
+    public void test_trig_syntax_bad_num_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-num-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_num_02() {
+    public void test_trig_syntax_bad_num_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-num-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_num_03() {
+    public void test_trig_syntax_bad_num_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-num-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_num_04() {
+    public void test_trig_syntax_bad_num_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-num-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_num_05_2() {
+    public void test_trig_syntax_bad_num_05_2() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-num-05.trig");
     }
 
     @Test
-    public void test_trig_eval_struct_01() {
+    public void test_trig_eval_struct_01() throws Exception {
         testTrigEval("trig-eval-struct-01.trig", "trig-eval-struct-01.nq");
     }
 
     @Test
-    public void test_trig_eval_struct_02() {
+    public void test_trig_eval_struct_02() throws Exception {
         testTrigEval("trig-eval-struct-02.trig", "trig-eval-struct-02.nq");
     }
 
     @Test
-    public void test_trig_subm_01() {
+    public void test_trig_subm_01() throws Exception {
         testTrigEval("trig-subm-01.trig", "trig-subm-01.nq");
     }
 
     @Test
-    public void test_trig_subm_02() {
+    public void test_trig_subm_02() throws Exception {
         testTrigEval("trig-subm-02.trig", "trig-subm-02.nq");
     }
 
     @Test
-    public void test_trig_subm_03() {
+    public void test_trig_subm_03() throws Exception {
         testTrigEval("trig-subm-03.trig", "trig-subm-03.nq");
     }
 
     @Test
-    public void test_trig_subm_04() {
+    public void test_trig_subm_04() throws Exception {
         testTrigEval("trig-subm-04.trig", "trig-subm-04.nq");
     }
 
     @Test
-    public void test_trig_subm_05() {
+    public void test_trig_subm_05() throws Exception {
         testTrigEval("trig-subm-05.trig", "trig-subm-05.nq");
     }
 
     @Test
-    public void test_trig_subm_06() {
+    public void test_trig_subm_06() throws Exception {
         testTrigEval("trig-subm-06.trig", "trig-subm-06.nq");
     }
 
     @Test
-    public void test_trig_subm_07() {
+    public void test_trig_subm_07() throws Exception {
         testTrigEval("trig-subm-07.trig", "trig-subm-07.nq");
     }
 
     @Test
-    public void test_trig_subm_08() {
+    public void test_trig_subm_08() throws Exception {
         testTrigEval("trig-subm-08.trig", "trig-subm-08.nq");
     }
 
     @Test
-    public void test_trig_subm_09() {
+    public void test_trig_subm_09() throws Exception {
         testTrigEval("trig-subm-09.trig", "trig-subm-09.nq");
     }
 
     @Test
-    public void test_trig_subm_10() {
+    public void test_trig_subm_10() throws Exception {
         testTrigEval("trig-subm-10.trig", "trig-subm-10.nq");
     }
 
     @Test
-    public void test_trig_subm_11() {
+    public void test_trig_subm_11() throws Exception {
         testTrigEval("trig-subm-11.trig", "trig-subm-11.nq");
     }
 
     @Test
-    public void test_trig_subm_12() {
+    public void test_trig_subm_12() throws Exception {
         testTrigEval("trig-subm-12.trig", "trig-subm-12.nq");
     }
 
     @Test
-    public void test_trig_subm_13() {
+    public void test_trig_subm_13() throws Exception {
         testTrigEval("trig-subm-13.trig", "trig-subm-13.nq");
     }
 
     @Test
-    public void test_trig_subm_14() {
+    public void test_trig_subm_14() throws Exception {
         testTrigEval("trig-subm-14.trig", "trig-subm-14.nq");
     }
 
     @Test
-    public void test_trig_subm_15() {
+    public void test_trig_subm_15() throws Exception {
         testTrigEval("trig-subm-15.trig", "trig-subm-15.nq");
     }
 
     @Test
-    public void test_trig_subm_16() {
+    public void test_trig_subm_16() throws Exception {
         testTrigEval("trig-subm-16.trig", "trig-subm-16.nq");
     }
 
     @Test
-    public void test_trig_subm_17() {
+    public void test_trig_subm_17() throws Exception {
         testTrigEval("trig-subm-17.trig", "trig-subm-17.nq");
     }
 
     @Test
-    public void test_trig_subm_18() {
+    public void test_trig_subm_18() throws Exception {
         testTrigEval("trig-subm-18.trig", "trig-subm-18.nq");
     }
 
     @Test
-    public void test_trig_subm_19() {
+    public void test_trig_subm_19() throws Exception {
         testTrigEval("trig-subm-19.trig", "trig-subm-19.nq");
     }
 
     @Test
-    public void test_trig_subm_20() {
+    public void test_trig_subm_20() throws Exception {
         testTrigEval("trig-subm-20.trig", "trig-subm-20.nq");
     }
 
     @Test
-    public void test_trig_subm_21() {
+    public void test_trig_subm_21() throws Exception {
         testTrigEval("trig-subm-21.trig", "trig-subm-21.nq");
     }
 
     @Test
-    public void test_trig_subm_22() {
+    public void test_trig_subm_22() throws Exception {
         testTrigEval("trig-subm-22.trig", "trig-subm-22.nq");
     }
 
     @Test
-    public void test_trig_subm_23() {
+    public void test_trig_subm_23() throws Exception {
         testTrigEval("trig-subm-23.trig", "trig-subm-23.nq");
     }
 
     @Test
-    public void test_trig_subm_24() {
+    public void test_trig_subm_24() throws Exception {
         testTrigEval("trig-subm-24.trig", "trig-subm-24.nq");
     }
 
     @Test
-    public void test_trig_subm_25() {
+    public void test_trig_subm_25() throws Exception {
         testTrigEval("trig-subm-25.trig", "trig-subm-25.nq");
     }
 
     @Test
-    public void test_trig_subm_26() {
+    public void test_trig_subm_26() throws Exception {
         testTrigEval("trig-subm-26.trig", "trig-subm-26.nq");
     }
 
     @Test
-    public void test_trig_subm_27() {
+    public void test_trig_subm_27() throws Exception {
         testTrigEval("trig-subm-27.trig", "trig-subm-27.nq");
     }
 
     @Test
-    public void test_trig_eval_bad_01() {
+    public void test_trig_eval_bad_01() throws Exception {
         testTrigNegativeSyntax("trig-eval-bad-01.trig");
     }
 
     @Test
-    public void test_trig_eval_bad_02() {
+    public void test_trig_eval_bad_02() throws Exception {
         testTrigNegativeSyntax("trig-eval-bad-02.trig");
     }
 
     @Test
-    public void test_trig_eval_bad_03() {
+    public void test_trig_eval_bad_03() throws Exception {
         testTrigNegativeSyntax("trig-eval-bad-03.trig");
     }
 
     @Test
-    public void test_trig_eval_bad_04() {
+    public void test_trig_eval_bad_04() throws Exception {
         testTrigNegativeSyntax("trig-eval-bad-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_blank_label_dot_end() {
+    public void test_trig_syntax_bad_blank_label_dot_end() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-blank-label-dot-end.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_ln_dash_start() {
+    public void test_trig_syntax_bad_ln_dash_start() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-ln-dash-start.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_ln_escape_start() {
+    public void test_trig_syntax_bad_ln_escape_start() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-ln-escape-start.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_ln_escape() {
+    public void test_trig_syntax_bad_ln_escape() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-ln-escape.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_missing_ns_dot_end() {
+    public void test_trig_syntax_bad_missing_ns_dot_end() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-missing-ns-dot-end.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_missing_ns_dot_start() {
+    public void test_trig_syntax_bad_missing_ns_dot_start() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-missing-ns-dot-start.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_ns_dot_end() {
+    public void test_trig_syntax_bad_ns_dot_end() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-ns-dot-end.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_ns_dot_start() {
+    public void test_trig_syntax_bad_ns_dot_start() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-ns-dot-start.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_number_dot_in_anon() {
+    public void test_trig_syntax_bad_number_dot_in_anon() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-number-dot-in-anon.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_list_01() {
+    public void test_trig_syntax_bad_list_01() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-list-01.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_list_02() {
+    public void test_trig_syntax_bad_list_02() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-list-02.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_list_03() {
+    public void test_trig_syntax_bad_list_03() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-list-03.trig");
     }
 
     @Test
-    public void test_trig_syntax_bad_list_04() {
+    public void test_trig_syntax_bad_list_04() throws Exception {
         testTrigNegativeSyntax("trig-syntax-bad-list-04.trig");
     }
 
     @Test
-    public void test_trig_syntax_blank_label() {
+    public void test_trig_syntax_blank_label() throws Exception {
         testTrigPositiveSyntax("trig-syntax-blank-label.trig");
     }
 
     @Test
-    public void test_trig_syntax_ln_colons() {
+    public void test_trig_syntax_ln_colons() throws Exception {
         testTrigPositiveSyntax("trig-syntax-ln-colons.trig");
     }
 
     @Test
-    public void test_trig_syntax_ln_dots() {
+    public void test_trig_syntax_ln_dots() throws Exception {
         testTrigPositiveSyntax("trig-syntax-ln-dots.trig");
     }
 
     @Test
-    public void test_trig_syntax_ns_dots() {
+    public void test_trig_syntax_ns_dots() throws Exception {
         testTrigPositiveSyntax("trig-syntax-ns-dots.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_01() {
+    public void test_trig_kw_graph_01() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-01.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_02() {
+    public void test_trig_kw_graph_02() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-02.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_03() {
+    public void test_trig_kw_graph_03() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-03.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_04() {
+    public void test_trig_kw_graph_04() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-04.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_05() {
+    public void test_trig_kw_graph_05() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-05.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_06() {
+    public void test_trig_kw_graph_06() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-06.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_07() {
+    public void test_trig_kw_graph_07() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-07.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_08() {
+    public void test_trig_kw_graph_08() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-08.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_09() {
+    public void test_trig_kw_graph_09() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-09.trig");
     }
 
     @Test
-    public void test_trig_kw_graph_10() {
+    public void test_trig_kw_graph_10() throws Exception {
         testTrigPositiveSyntax("trig-kw-graph-10.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_01() {
+    public void test_trig_graph_bad_01() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-01.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_02() {
+    public void test_trig_graph_bad_02() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-02.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_03() {
+    public void test_trig_graph_bad_03() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-03.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_04() {
+    public void test_trig_graph_bad_04() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-04.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_05() {
+    public void test_trig_graph_bad_05() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-05.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_06() {
+    public void test_trig_graph_bad_06() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-06.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_07() {
+    public void test_trig_graph_bad_07() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-07.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_08() {
+    public void test_trig_graph_bad_08() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-08.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_09() {
+    public void test_trig_graph_bad_09() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-09.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_10() {
+    public void test_trig_graph_bad_10() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-10.trig");
     }
 
     @Test
-    public void test_trig_graph_bad_11() {
+    public void test_trig_graph_bad_11() throws Exception {
         testTrigNegativeSyntax("trig-graph-bad-11.trig");
     }
 
     @Test
-    public void test_trig_bnodeplist_graph_bad_01() {
+    public void test_trig_bnodeplist_graph_bad_01() throws Exception {
         testTrigNegativeSyntax("trig-bnodeplist-graph-bad-01.trig");
     }
 
     @Test
-    public void test_trig_collection_graph_bad_01() {
+    public void test_trig_collection_graph_bad_01() throws Exception {
         testTrigNegativeSyntax("trig-collection-graph-bad-01.trig");
     }
 
     @Test
-    public void test_trig_collection_graph_bad_02() {
+    public void test_trig_collection_graph_bad_02() throws Exception {
         testTrigNegativeSyntax("trig-collection-graph-bad-02.trig");
     }
 
     @Test
-    public void test_trig_turtle_01() {
+    public void test_trig_turtle_01() throws Exception {
         testTrigPositiveSyntax("trig-turtle-01.trig");
     }
 
     @Test
-    public void test_trig_turtle_02() {
+    public void test_trig_turtle_02() throws Exception {
         testTrigPositiveSyntax("trig-turtle-02.trig");
     }
 
     @Test
-    public void test_trig_turtle_03() {
+    public void test_trig_turtle_03() throws Exception {
         testTrigPositiveSyntax("trig-turtle-03.trig");
     }
 
     @Test
-    public void test_trig_turtle_04() {
+    public void test_trig_turtle_04() throws Exception {
         testTrigPositiveSyntax("trig-turtle-04.trig");
     }
 
     @Test
-    public void test_trig_turtle_05() {
+    public void test_trig_turtle_05() throws Exception {
         testTrigPositiveSyntax("trig-turtle-05.trig");
     }
 
     @Test
-    public void test_trig_turtle_06() {
+    public void test_trig_turtle_06() throws Exception {
         testTrigPositiveSyntax("trig-turtle-06.trig");
     }
 
     @Test
-    public void test_trig_turtle_bad_01() {
+    public void test_trig_turtle_bad_01() throws Exception {
         testTrigNegativeSyntax("trig-turtle-bad-01.trig");
     }
 
     @Test
-    public void test_trig_turtle_bad_02() {
+    public void test_trig_turtle_bad_02() throws Exception {
         testTrigNegativeSyntax("trig-turtle-bad-02.trig");
     }
 }

@@ -26,7 +26,7 @@
         </dependency>
         <dependency>
             <groupId>fr.cenotelie.commons</groupId>
-            <artifactId>commons-utils</artifactId>
+            <artifactId>commons-storage</artifactId>
             <version>2.1.0</version>
             <scope>compile</scope>
         </dependency>
@@ -57,10 +57,6 @@
                 <configuration>
                     <instructions>
                         <Import-Package>!sun.*,*</Import-Package>
-                        <Embed-Transitive>false</Embed-Transitive>
-                        <Bundle-Dependencies>org.w3c.www.schemas.rdf; org.w3c.www.schemas.rdfs;
-                            org.w3c.www.schemas.owl
-                        </Bundle-Dependencies>
                     </instructions>
                 </configuration>
             </plugin>

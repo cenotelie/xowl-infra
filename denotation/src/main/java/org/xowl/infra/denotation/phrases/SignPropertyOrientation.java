@@ -21,7 +21,7 @@ import fr.cenotelie.commons.utils.TextUtils;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 /**
  * Represents the "orientation" property for a sign
@@ -60,7 +60,7 @@ public class SignPropertyOrientation extends SignProperty {
     }
 
     @Override
-    public Node serializeValueRdf(NodeManager nodes, Object value) {
+    public Node serializeValueRdf(DatasetNodes nodes, Object value) {
         return nodes.getLiteralNode(value.toString(), Vocabulary.xsdDouble, null);
     }
 

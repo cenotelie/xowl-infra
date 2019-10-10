@@ -67,8 +67,7 @@
                             <Bundle-Build-Tag>${env.BUILD_TAG}</Bundle-Build-Tag>
                             <Bundle-Build-Timestamp>${timestamp}</Bundle-Build-Timestamp>
                             <Bundle-License-Name>LGPL v3</Bundle-License-Name>
-                            <Bundle-License-Resource>/META-INF/dependencies/fr.cenotelie.commons.license</Bundle-License-Resource>
-                            <Bundle-Dependencies>fr.cenotelie.hime.redist; fr.cenotelie.commons; org.w3c.www.schemas.rdf; org.w3c.www.schemas.rdfs; org.w3c.www.schemas.owl; org.clojure.clojure; bootstrap; de.svenkubiak.jBCrypt</Bundle-Dependencies>
+                            <Bundle-License-Resource>/META-INF/LICENSE.txt</Bundle-License-Resource>
                         </manifestEntries>
                     </archive>
                     <descriptorRefs>
@@ -94,8 +93,6 @@
                     <instructions>
                         <Import-Package>!sun.*,!com.sun.*,*</Import-Package>
                         <Embed-Dependency>jBCrypt;inline=true</Embed-Dependency>
-                        <Embed-Transitive>false</Embed-Transitive>
-                        <Bundle-Dependencies>bootstrap; de.svenkubiak.jBCrypt</Bundle-Dependencies>
                     </instructions>
                 </configuration>
             </plugin>

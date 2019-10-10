@@ -28,7 +28,6 @@ import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.writers.*;
 
 import java.io.IOException;
@@ -132,7 +131,7 @@ public class RDFUtils {
      * @param element An OWL element
      * @return The representing RDF node
      */
-    public static Node getRDF(NodeManager store, Object element) {
+    public static Node getRDF(DatasetNodes store, Object element) {
         if (element == null)
             return null;
         if (element instanceof Node)

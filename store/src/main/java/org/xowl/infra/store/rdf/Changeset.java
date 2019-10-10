@@ -32,8 +32,8 @@ public class Changeset {
      * @param quads The added quads
      * @return The changeset
      */
-    public static Changeset fromAdded(Collection<Quad> quads) {
-        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, quads, Collections.EMPTY_LIST);
+    public static Changeset fromAdded(Collection<? extends Quad> quads) {
+        return new Changeset(Collections.emptyList(), Collections.emptyList(), quads, Collections.emptyList());
     }
 
     /**
@@ -42,8 +42,8 @@ public class Changeset {
      * @param quads The removed quads
      * @return The changeset
      */
-    public static Changeset fromRemoved(Collection<Quad> quads) {
-        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, quads);
+    public static Changeset fromRemoved(Collection<? extends Quad> quads) {
+        return new Changeset(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), quads);
     }
 
     /**
@@ -53,8 +53,8 @@ public class Changeset {
      * @param removed The removed quads
      * @return The changeset
      */
-    public static Changeset fromAddedRemoved(Collection<Quad> added, Collection<Quad> removed) {
-        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, added, removed);
+    public static Changeset fromAddedRemoved(Collection<? extends Quad> added, Collection<? extends Quad> removed) {
+        return new Changeset(Collections.emptyList(), Collections.emptyList(), added, removed);
     }
 
     /**
@@ -128,7 +128,7 @@ public class Changeset {
      * @param positives   The quads that are added
      * @param negatives   The quads that are removed
      */
-    public Changeset(Collection<Quad> incremented, Collection<Quad> decremented, Collection<Quad> positives, Collection<Quad> negatives) {
+    public Changeset(Collection<? extends Quad> incremented, Collection<? extends Quad> decremented, Collection<? extends Quad> positives, Collection<? extends Quad> negatives) {
         this.incremented = Collections.unmodifiableCollection(incremented);
         this.decremented = Collections.unmodifiableCollection(decremented);
         this.added = Collections.unmodifiableCollection(positives);

@@ -17,7 +17,10 @@
 
 package org.xowl.infra.store.rete;
 
-import fr.cenotelie.commons.utils.collections.*;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.CombiningIterator;
+import fr.cenotelie.commons.utils.collections.FastBuffer;
+import fr.cenotelie.commons.utils.collections.SkippableIterator;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
@@ -116,19 +119,12 @@ class BetaMemory implements TokenHolder {
 
             @Override
             public Iterator<Token> iterator() {
-                CombiningIterator<Map.Entry<Token, FastBuffer<Token>>, Token> coupleIterator = new CombiningIterator<>(store.entrySet().iterator(), new Adapter<Map.Entry<Token, FastBuffer<Token>>, Iterator<Token>>() {
-                    @Override
-                    public Iterator<Token> adapt(Map.Entry<Token, FastBuffer<Token>> element) {
-                        FastBuffer<Token> children = element.getValue();
-                        return new SkippableIterator<>(children.iterator());
-                    }
-                });
-                return new AdaptingIterator<>(coupleIterator, new Adapter<Couple<Map.Entry<Token, FastBuffer<Token>>, Token>, Token>() {
-                    @Override
-                    public Token adapt(Couple<Map.Entry<Token, FastBuffer<Token>>, Token> element) {
-                        return element.y;
-                    }
-                });
+                CombiningIterator<Map.Entry<Token, FastBuffer<Token>>, Token> coupleIterator = new CombiningIterator<>(
+                        store.entrySet().iterator(),
+                        element -> new SkippableIterator<>(element.getValue().iterator()));
+                return new AdaptingIterator<>(
+                        coupleIterator,
+                        element -> element.y);
             }
         };
     }

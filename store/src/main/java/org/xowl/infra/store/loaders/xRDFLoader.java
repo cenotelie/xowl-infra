@@ -29,7 +29,6 @@ import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.GraphPattern;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -40,9 +39,9 @@ import java.util.*;
  */
 public class xRDFLoader implements Loader {
     /**
-     * The RDF store used to create nodes
+     * The RDF nodes management
      */
-    private final NodeManager nodes;
+    private final DatasetNodes nodes;
     /**
      * The execution manager to use
      */
@@ -93,16 +92,16 @@ public class xRDFLoader implements Loader {
      * @param repository The repository to use
      */
     public xRDFLoader(RepositoryRDF repository) {
-        this(repository.getStore(), repository.getExecutionManager());
+        this(repository.getStore().getTransaction().getDataset(), repository.getExecutionManager());
     }
 
     /**
      * Initializes this loader
      *
-     * @param store            The RDF store used to create nodes
+     * @param store            The RDF nodes management
      * @param executionManager The execution manager to use
      */
-    public xRDFLoader(NodeManager store, ExecutionManager executionManager) {
+    public xRDFLoader(DatasetNodes store, ExecutionManager executionManager) {
         this.nodes = store;
         this.executionManager = executionManager;
         this.sparql = new SPARQLLoader(store);

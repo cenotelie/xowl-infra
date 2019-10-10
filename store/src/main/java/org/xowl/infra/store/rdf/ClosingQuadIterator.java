@@ -18,7 +18,6 @@
 package org.xowl.infra.store.rdf;
 
 import fr.cenotelie.commons.utils.logging.Logging;
-import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
@@ -33,26 +32,26 @@ import java.util.Stack;
  */
 public class ClosingQuadIterator implements Iterator<Quad> {
     /**
-     * The parent store
+     * The parent dataset
      */
-    private Dataset store;
+    private final DatasetQuads dataset;
     /**
      * The content iterators
      */
-    private Stack<Iterator<Quad>> content;
+    private final Stack<Iterator<? extends Quad>> content;
     /**
      * The already explored blank nodes
      */
-    private List<BlankNode> explored;
+    private final List<BlankNode> explored;
 
     /**
      * Initializes this closing iterator
      *
-     * @param store    The parent store
+     * @param dataset  The parent dataset
      * @param original The iterator over the original quads
      */
-    public ClosingQuadIterator(Dataset store, Iterator<Quad> original) {
-        this.store = store;
+    public ClosingQuadIterator(DatasetQuads dataset, Iterator<Quad> original) {
+        this.dataset = dataset;
         this.content = new Stack<>();
         this.content.push(original);
         this.explored = new ArrayList<>();
@@ -76,7 +75,7 @@ public class ClosingQuadIterator implements Iterator<Quad> {
             if (!explored.contains(blank)) {
                 // push the iterator for this blank node
                 try {
-                    content.push(store.getAll(null, blank, null, null));
+                    content.push(dataset.getAll(null, blank, null, null));
                 } catch (UnsupportedNodeType exception) {
                     Logging.get().error(exception);
                 }

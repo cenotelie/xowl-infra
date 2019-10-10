@@ -134,7 +134,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * @param logger The logger to use
      * @param quads  The quads to serialize
      */
-    public abstract void serialize(Logger logger, Iterator<Quad> quads);
+    public abstract void serialize(Logger logger, Iterator<? extends Quad> quads);
 
     /**
      * Enqueue a quad into the dataset to serialize
@@ -147,16 +147,8 @@ public abstract class StructuredSerializer implements RDFSerializer {
         enqueueNode(quad.getProperty());
         enqueueNode(quad.getObject());
 
-        Map<SubjectNode, List<Couple<Property, Object>>> sub1 = content.get(quad.getGraph());
-        if (sub1 == null) {
-            sub1 = new HashMap<>();
-            content.put(quad.getGraph(), sub1);
-        }
-        List<Couple<Property, Object>> sub2 = sub1.get(quad.getSubject());
-        if (sub2 == null) {
-            sub2 = new ArrayList<>();
-            sub1.put(quad.getSubject(), sub2);
-        }
+        Map<SubjectNode, List<Couple<Property, Object>>> sub1 = content.computeIfAbsent(quad.getGraph(), k -> new HashMap<>());
+        List<Couple<Property, Object>> sub2 = sub1.computeIfAbsent(quad.getSubject(), k -> new ArrayList<>());
         for (int i = 0; i != sub2.size(); i++) {
             Couple<Property, Object> couple = sub2.get(i);
             if (RDFUtils.same(quad.getProperty(), couple.x) && RDFUtils.same(quad.getObject(), (Node) couple.y)) {
@@ -164,7 +156,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
                 return;
             }
         }
-        sub2.add(new Couple<Property, Object>(quad.getProperty(), quad.getObject()));
+        sub2.add(new Couple<>(quad.getProperty(), quad.getObject()));
     }
 
     /**

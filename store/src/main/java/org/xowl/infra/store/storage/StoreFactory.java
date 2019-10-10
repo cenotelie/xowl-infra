@@ -17,8 +17,8 @@
 
 package org.xowl.infra.store.storage;
 
-import fr.cenotelie.commons.utils.logging.Logging;
-import org.xowl.infra.store.storage.persistent.StorageException;
+import org.xowl.infra.store.storage.cache.CachedDataset;
+import org.xowl.infra.store.storage.persistent.PersistedDataset;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,128 +32,25 @@ import java.util.UUID;
  */
 public class StoreFactory {
     /**
-     * The primary type of storage
-     */
-    public enum StorageType {
-        /**
-         * An in-memory storage
-         */
-        InMemory,
-        /**
-         * An on-disk storage
-         */
-        OnDisk
-    }
-
-    /**
-     * The configuration of a store
-     */
-    public static class Config {
-        /**
-         * The primary type of storage
-         */
-        private StorageType primaryStorage;
-        /**
-         * The location of the on-disk storage, if necessary
-         */
-        private File location;
-        /**
-         * Whether the store is read-only
-         */
-        private boolean isReadonly;
-        /**
-         * Whether the store shall support reasoning
-         * When reasoning is explicitly supported, the volatile inferred quads will never be committed to the primary storage
-         */
-        private boolean supportReasoning;
-
-        /**
-         * Initializes this configuration element
-         */
-        public Config() {
-            primaryStorage = StorageType.InMemory;
-        }
-
-        /**
-         * Selects an in-memory primary storage for the store
-         *
-         * @return This configuration element
-         */
-        public Config inMemory() {
-            primaryStorage = StorageType.InMemory;
-            return this;
-        }
-
-        /**
-         * Selects an on-disk primary storage for the store
-         *
-         * @param location The target folder location
-         * @return This configuration element
-         */
-        public Config onDisk(File location) {
-            primaryStorage = StorageType.OnDisk;
-            this.location = location;
-            return this;
-        }
-
-        /**
-         * Makes the store read-only
-         * This only makes sense with on-disk storage.
-         *
-         * @return This configuration element
-         */
-        public Config readonly() {
-            isReadonly = true;
-            return this;
-        }
-
-        /**
-         * Activates the support of reasoning
-         * When reasoning is explicitly supported, the volatile inferred quads will never be committed to the primary storage
-         *
-         * @return This configuration element
-         */
-        public Config withReasoning() {
-            supportReasoning = true;
-            return this;
-        }
-
-        /**
-         * Makes the store
-         *
-         * @return The store
-         */
-        public BaseStore make() {
-            BaseStore primary = null;
-            switch (primaryStorage) {
-                case InMemory:
-                    primary = new InMemoryStore();
-                    break;
-                case OnDisk: {
-                    try {
-                        if (location == null)
-                            location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
-                        primary = new OnDiskStore(location, isReadonly);
-                    } catch (IOException | StorageException exception) {
-                        Logging.get().error(exception);
-                        return null;
-                    }
-                    break;
-                }
-            }
-            BaseStore result = primary;
-            if (supportReasoning)
-                result = new BaseReasonableStore(result);
-            return result;
-        }
-    }
-
-    /**
-     * Creates a new store
+     * Creates a new in-memory store
      *
-     * @return The configuration element for the store
+     * @return The new in-memory store
      */
-    public static Config create() {
-        return new Config();
+    public static Store newInMemory() {
+        return new StoreImpl(new CachedDataset());
+    }
+
+    /**
+     * Creates a new persisted store
+     *
+     * @param location   The location for the store
+     * @param isReadonly Whether the store is read-only
+     * @return The new store
+     * @throws IOException when an error occurred while accessing the storage
+     */
+    public static Store newPersisted(File location, boolean isReadonly) throws IOException {
+        if (location == null)
+            location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
+        return new StoreImpl(new DatasetReasonable(new PersistedDataset(location, isReadonly)));
     }
 }

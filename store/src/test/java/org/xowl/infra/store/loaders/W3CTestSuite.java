@@ -14,19 +14,18 @@
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+
 package org.xowl.infra.store.loaders;
 
 import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.commons.utils.logging.SinkLogger;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.BaseStore;
-import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.StoreTransaction;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -42,52 +41,28 @@ import java.util.Map;
  */
 public abstract class W3CTestSuite {
     /**
-     * The logger
-     */
-    protected SinkLogger logger;
-    /**
-     * The store to use
-     */
-    protected BaseStore store;
-    /**
-     * The IRI mapper
-     */
-    protected IRIMapper mapper;
-
-    @Before
-    public void setup() throws IOException {
-        logger = new SinkLogger();
-        store = StoreFactory.create().make();
-        mapper = IRIMapper.getDefault();
-    }
-
-    @After
-    public void cleanup() {
-        store = StoreFactory.create().make();
-        logger.reset();
-    }
-
-    /**
      * Gets the loader for the specified resource
      *
-     * @param resource A resource
+     * @param resource    A resource
+     * @param transaction The current transaction
+     * @param mapper      The current IRI mapper
      * @return The appropriate loader
      */
-    protected Loader getLoader(String resource) {
+    protected Loader getLoader(String resource, StoreTransaction transaction, IRIMapper mapper) {
         String syntax = Repository.getSyntax(resource);
         if (syntax == null)
             return null;
         switch (syntax) {
             case Repository.SYNTAX_NTRIPLES:
-                return new NTriplesLoader(store);
+                return new NTriplesLoader(transaction.getDataset());
             case Repository.SYNTAX_NQUADS:
-                return new NQuadsLoader(store);
+                return new NQuadsLoader(transaction.getDataset());
             case Repository.SYNTAX_TURTLE:
-                return new TurtleLoader(store);
+                return new TurtleLoader(transaction.getDataset());
             case Repository.SYNTAX_RDFXML:
-                return new RDFXMLLoader(store);
+                return new RDFXMLLoader(transaction.getDataset());
             case Repository.SYNTAX_JSON_LD:
-                return new JsonLdLoader(store) {
+                return new JsonLdLoader(transaction.getDataset()) {
                     @Override
                     protected Reader getReaderFor(Logger logger, String iri) {
                         String resource = mapper.get(iri);
@@ -101,7 +76,7 @@ public abstract class W3CTestSuite {
             case Repository.SYNTAX_JSON:
                 return new JsonLoader();
             case Repository.SYNTAX_TRIG:
-                return new TriGLoader(store);
+                return new TriGLoader(transaction.getDataset());
             case Repository.SYNTAX_XRDF:
                 return new xRDFLoader();
         }
@@ -131,46 +106,61 @@ public abstract class W3CTestSuite {
      * @param testedResource   Path to the tested resource
      * @param testedURI        Tested resource's URI
      */
-    protected void testEval(String expectedResource, String expectedURI, String testedResource, String testedURI) {
-        List<Quad> expectedQuads = new ArrayList<>();
-        List<Quad> testedQuads = new ArrayList<>();
+    protected void testEval(String expectedResource, String expectedURI, String testedResource, String testedURI) throws Exception {
+        testEval(expectedResource, expectedURI, testedResource, testedURI, IRIMapper.getDefault());
+    }
 
-        try (Reader reader = getResourceReader(expectedResource)) {
-            Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
-            Loader loader = getLoader(expectedResource);
-            Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI, expectedURI);
-            Assert.assertFalse("Failed to parse expected resource " + expectedResource, logger.isOnError());
-            Assert.assertNotNull("Failed to load expected resource " + expectedResource, expected);
-            expectedQuads.addAll(expected.getQuads());
-        } catch (IOException exception) {
-            Assert.fail("Error while accessing resource " + expectedResource);
-        }
+    /**
+     * Tests the evaluation of a resource
+     *
+     * @param expectedResource Path to the expected resource
+     * @param expectedURI      Expected resource's URI
+     * @param testedResource   Path to the tested resource
+     * @param testedURI        Tested resource's URI
+     * @param mapper           The IRI mapper to use
+     */
+    protected void testEval(String expectedResource, String expectedURI, String testedResource, String testedURI, IRIMapper mapper) throws Exception {
+        final SinkLogger logger = new SinkLogger();
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF(mapper)) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                List<Quad> expectedQuads;
+                List<Quad> testedQuads;
 
-        try (Reader reader = getResourceReader(testedResource)) {
-            Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
-            Loader loader = getLoader(testedResource);
-            Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
-            Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
-            Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
-            testedQuads.addAll(tested.getQuads());
-        } catch (IOException exception) {
-            Assert.fail("Error while accessing resource " + testedResource);
-        }
+                try (Reader reader = getResourceReader(expectedResource)) {
+                    Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
+                    Loader loader = getLoader(expectedResource, transaction, repository.getIRIMapper());
+                    Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
+                    RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI, expectedURI);
+                    Assert.assertFalse("Failed to parse expected resource " + expectedResource, logger.isOnError());
+                    Assert.assertNotNull("Failed to load expected resource " + expectedResource, expected);
+                    expectedQuads = new ArrayList<>(expected.getQuads());
+                }
 
-        // rewrite the graph in the expected quads
-        List<Quad> temp = new ArrayList<>();
-        GraphNode target = store.getIRINode(testedURI);
-        for (Quad quad : expectedQuads) {
-            if (quad.getGraph().getNodeType() == Node.TYPE_IRI && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
-                temp.add(new Quad(target, quad.getSubject(), quad.getProperty(), quad.getObject()));
-            } else {
-                temp.add(quad);
-            }
+                try (Reader reader = getResourceReader(testedResource)) {
+                    Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
+                    Loader loader = getLoader(testedResource, transaction, repository.getIRIMapper());
+                    Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
+                    RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
+                    Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
+                    Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
+                    testedQuads = new ArrayList<>(tested.getQuads());
+                }
+
+                // rewrite the graph in the expected quads
+                List<Quad> temp = new ArrayList<>();
+                GraphNode target = transaction.getDataset().getIRINode(testedURI);
+                for (Quad quad : expectedQuads) {
+                    if (quad.getGraph().getNodeType() == Node.TYPE_IRI && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
+                        temp.add(new Quad(target, quad.getSubject(), quad.getProperty(), quad.getObject()));
+                    } else {
+                        temp.add(quad);
+                    }
+                }
+                expectedQuads = temp;
+                matchesQuads(expectedQuads, testedQuads);
+                return null;
+            }, true);
         }
-        expectedQuads = temp;
-        matchesQuads(expectedQuads, testedQuads);
     }
 
     /**
@@ -179,16 +169,20 @@ public abstract class W3CTestSuite {
      * @param testedResource Path to the tested resource
      * @param testedURI      Tested resource's URI
      */
-    protected void testPositiveSyntax(String testedResource, String testedURI) {
-        try (Reader reader = getResourceReader(testedResource)) {
-            Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
-            Loader loader = getLoader(testedResource);
-            Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
-            Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
-            Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
-        } catch (IOException exception) {
-            Assert.fail("Error while accessing resource " + testedResource);
+    protected void testPositiveSyntax(String testedResource, String testedURI) throws Exception {
+        final SinkLogger logger = new SinkLogger();
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF()) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                try (Reader reader = getResourceReader(testedResource)) {
+                    Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
+                    Loader loader = getLoader(testedResource, transaction, repository.getIRIMapper());
+                    Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
+                    RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
+                    Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
+                    Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
+                }
+                return null;
+            }, true);
         }
     }
 
@@ -198,17 +192,20 @@ public abstract class W3CTestSuite {
      * @param testedResource The physical path to the resource
      * @param testedURI      The resource's URI
      */
-    protected void testNegativeSyntax(String testedResource, String testedURI) {
-        try (Reader reader = getResourceReader(testedResource)) {
-
-            Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
-            Loader loader = getLoader(testedResource);
-            Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
-            Assert.assertTrue("Failed to report error on bad input " + testedResource, logger.isOnError());
-            Assert.assertNull("Mistakenly reported success of loading " + testedResource, tested);
-        } catch (IOException exception) {
-            Assert.fail("Error while accessing resource " + testedResource);
+    protected void testNegativeSyntax(String testedResource, String testedURI) throws Exception {
+        final SinkLogger logger = new SinkLogger();
+        try (RepositoryRDF repositoryRdf = new RepositoryRDF()) {
+            repositoryRdf.runAsTransaction((repository, transaction) -> {
+                try (Reader reader = getResourceReader(testedResource)) {
+                    Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
+                    Loader loader = getLoader(testedResource, transaction, repository.getIRIMapper());
+                    Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
+                    RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
+                    Assert.assertTrue("Failed to report error on bad input " + testedResource, logger.isOnError());
+                    Assert.assertNull("Mistakenly reported success of loading " + testedResource, tested);
+                }
+                return null;
+            }, true);
         }
     }
 

@@ -50,10 +50,9 @@ public class TranslationContext {
      * Resolves the RDF variable node associated to the specified query variable with the specified type
      *
      * @param variable A query variable
-     * @param type     The expected type of the variable
      * @return The associated RDF variable node
      */
-    public VariableNode resolve(QueryVariable variable, Class type) {
+    public VariableNode resolve(QueryVariable variable) {
         VariableNode node = mapVariables.get(variable);
         if (node == null) {
             node = new VariableNode(variable.getName());

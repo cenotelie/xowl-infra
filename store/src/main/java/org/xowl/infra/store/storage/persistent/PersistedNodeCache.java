@@ -17,10 +17,13 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import fr.cenotelie.commons.storage.Constants;
+
 import java.lang.ref.WeakReference;
 
 /**
  * Implements a cache of instantiated persisted nodes
+ * This structure is thread-safe.
  *
  * @author Laurent Wouters
  */
@@ -64,29 +67,31 @@ class PersistedNodeCache<T extends PersistedNode> {
      * @return The cached node, if any
      */
     public T get(long key) {
-        if (length == 0)
+        synchronized (keys) {
+            if (length == 0)
+                return null;
+            for (int i = start; i != SIZE; i++) {
+                if (keys[i] == key) {
+                    T result = nodes[i].get();
+                    if (result == null) {
+                        keys[i] = Constants.KEY_NULL;
+                        nodes[i] = null;
+                    }
+                    return result;
+                }
+            }
+            for (int i = 0; i != length - (SIZE - start); i++) {
+                if (keys[i] == key) {
+                    T result = nodes[i].get();
+                    if (result == null) {
+                        keys[i] = Constants.KEY_NULL;
+                        nodes[i] = null;
+                    }
+                    return result;
+                }
+            }
             return null;
-        for (int i = start; i != SIZE; i++) {
-            if (keys[i] == key) {
-                T result = nodes[i].get();
-                if (result == null) {
-                    keys[i] = FileStore.KEY_NULL;
-                    nodes[i] = null;
-                }
-                return result;
-            }
         }
-        for (int i = 0; i != length - (SIZE - start); i++) {
-            if (keys[i] == key) {
-                T result = nodes[i].get();
-                if (result == null) {
-                    keys[i] = FileStore.KEY_NULL;
-                    nodes[i] = null;
-                }
-                return result;
-            }
-        }
-        return null;
     }
 
     /**
@@ -95,11 +100,13 @@ class PersistedNodeCache<T extends PersistedNode> {
      * @param node The node to cache
      */
     public void cache(T node) {
-        start--;
-        if (start < 0)
-            start = SIZE - 1;
-        keys[start] = node.getKey();
-        nodes[start] = new WeakReference<>(node);
-        length = length == SIZE ? SIZE : length + 1;
+        synchronized (keys) {
+            start--;
+            if (start < 0)
+                start = SIZE - 1;
+            keys[start] = node.getKey();
+            nodes[start] = new WeakReference<>(node);
+            length = length == SIZE ? SIZE : length + 1;
+        }
     }
 }

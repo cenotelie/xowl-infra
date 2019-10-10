@@ -25,6 +25,7 @@ import fr.cenotelie.commons.utils.api.Reply;
 import fr.cenotelie.commons.utils.api.ReplyApiError;
 import fr.cenotelie.commons.utils.api.ReplyResult;
 import fr.cenotelie.commons.utils.api.ReplyUnauthenticated;
+import fr.cenotelie.commons.utils.concurrent.SafeRunnable;
 import fr.cenotelie.commons.utils.http.HttpConstants;
 import fr.cenotelie.commons.utils.http.HttpResponse;
 import fr.cenotelie.commons.utils.http.URIUtils;
@@ -50,7 +51,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class HTTPConnectionApiV1 implements Runnable {
+class HTTPConnectionApiV1 extends SafeRunnable {
     /**
      * The empty message
      */
@@ -81,7 +82,7 @@ class HTTPConnectionApiV1 implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void doRun() {
         // add caching headers
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_CACHE_CONTROL, Arrays.asList("private", "no-cache", "no-store", "no-transform", "must-revalidate"));
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_STRICT_TRANSPORT_SECURITY, Collections.singletonList("max-age=31536000"));
@@ -105,6 +106,12 @@ class HTTPConnectionApiV1 implements Runnable {
         }
         client = ((ReplyResult<UserImpl>) reply).getData();
         handleRequest(method, resource);
+    }
+
+    @Override
+    protected void onRunFailed(Throwable throwable) {
+        // on failure, attempt to close the connection
+        response(HttpURLConnection.HTTP_INTERNAL_ERROR, throwable.getMessage());
     }
 
     /**
@@ -297,10 +304,6 @@ class HTTPConnectionApiV1 implements Runnable {
             if (rest.startsWith("/procedures"))
                 return handleResourceDatabaseProcedures(name, method, rest);
             switch (rest) {
-                case "/metric":
-                    return handleResourceDatabaseMetric(name, method);
-                case "/statistics":
-                    return handleResourceDatabaseMetricSnapshot(name, method);
                 case "/sparql":
                     return handleResourceDatabaseSPARQL(name, method);
                 case "/entailment":
@@ -350,32 +353,6 @@ class HTTPConnectionApiV1 implements Runnable {
             return response(new ReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
         }
         return response(controller.upload(client, name, contentType, body));
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param name   The database's name
-     * @param method The HTTP method
-     * @return The response code
-     */
-    private int handleResourceDatabaseMetric(String name, String method) {
-        if (!method.equals(HttpConstants.METHOD_GET))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-        return response(controller.getDatabaseMetric(client, name));
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param name   The database's name
-     * @param method The HTTP method
-     * @return The response code
-     */
-    private int handleResourceDatabaseMetricSnapshot(String name, String method) {
-        if (!method.equals(HttpConstants.METHOD_GET))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-        return response(controller.getDatabaseMetricSnapshot(client, name));
     }
 
     /**

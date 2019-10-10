@@ -20,7 +20,7 @@ import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.BaseStore;
+import org.xowl.infra.store.storage.Store;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +35,7 @@ public class OWLQueryEngine {
     /**
      * The xOWL store
      */
-    private final BaseStore store;
+    private final Store store;
     /**
      * The current evaluator
      */
@@ -64,7 +64,7 @@ public class OWLQueryEngine {
      * @param store     The OWL store to query
      * @param evaluator The current evaluator
      */
-    public OWLQueryEngine(BaseStore store, Evaluator evaluator) {
+    public OWLQueryEngine(Store store, Evaluator evaluator) {
         this.store = store;
         this.evaluator = evaluator;
         this.rdfEngine = new RDFQueryEngine(store);
@@ -76,9 +76,8 @@ public class OWLQueryEngine {
      *
      * @param query A query
      * @return The solutions
-     * @throws TranslationException When a runtime entity is not named
      */
-    public Collection<Bindings> execute(OWLQuery query) throws TranslationException {
+    public Collection<Bindings> execute(OWLQuery query) {
         TranslationContext context = new TranslationContext();
         RDFQuery rdfQuery = translate(query, context);
         Collection<RDFPatternSolution> rdfSolutions = rdfEngine.execute(rdfQuery);
@@ -94,11 +93,10 @@ public class OWLQueryEngine {
      * @param query   A OWL query
      * @param context The translation context
      * @return The corresponding RDF query
-     * @throws TranslationException When a runtime entity is not named
      */
-    private RDFQuery translate(OWLQuery query, TranslationContext context) throws TranslationException {
+    private RDFQuery translate(OWLQuery query, TranslationContext context) {
         RDFQuery result = new RDFQuery();
-        Translator translator = new Translator(context, store);
+        Translator translator = new Translator(context, store.getTransaction().getDataset());
         // translate the positive axioms
         result.getPositives().addAll(translator.translate(query.getPositives(), graph));
         // translate the negative conjunctions

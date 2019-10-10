@@ -85,12 +85,13 @@ public class CommandDescribe implements Command {
 
     @Override
     public Result execute(RepositoryRDF repository) {
+        Dataset dataset = repository.getStore().getTransaction().getDataset();
         try {
             Collection<Quad> buffer = new ArrayList<>();
             if (variables.isEmpty() && !iris.isEmpty()) {
                 // only describe static resource
                 for (String iri : iris)
-                    describe(repository, repository.getStore().getIRINode(iri), buffer);
+                    describe(dataset, dataset.getIRINode(iri), buffer);
             } else {
                 Solutions solutions = pattern.eval(new EvalContextRepository(repository));
                 List<SubjectNode> explored = new ArrayList<>();
@@ -101,15 +102,15 @@ public class CommandDescribe implements Command {
                             throw new EvaluationException("Unbound variable " + variable.getName());
                         if ((target.getNodeType() & Node.FLAG_SUBJECT) == Node.FLAG_SUBJECT && !explored.contains(target)) {
                             SubjectNode subject = (SubjectNode) target;
-                            describe(repository, subject, buffer);
+                            describe(dataset, subject, buffer);
                             explored.add(subject);
                         }
                     }
                 }
                 for (String iri : iris) {
-                    IRINode subject = repository.getStore().getIRINode(iri);
+                    IRINode subject = dataset.getIRINode(iri);
                     if (!explored.contains(subject)) {
-                        describe(repository, subject, buffer);
+                        describe(dataset, subject, buffer);
                         explored.add(subject);
                     }
                 }
@@ -117,7 +118,7 @@ public class CommandDescribe implements Command {
 
             // closes the results over blank nodes
             Collection<Quad> result = new ArrayList<>();
-            ClosingQuadIterator closure = new ClosingQuadIterator(repository.getStore(), buffer.iterator());
+            ClosingQuadIterator closure = new ClosingQuadIterator(dataset, buffer.iterator());
             while (closure.hasNext())
                 result.add(closure.next());
 
@@ -130,12 +131,12 @@ public class CommandDescribe implements Command {
     /**
      * Describes a resource
      *
-     * @param repository The repository that contains the information
-     * @param node       The node representing the resource to describe
-     * @param quads      The buffer of quads
+     * @param dataset The dataset that contains the information
+     * @param node    The node representing the resource to describe
+     * @param quads   The buffer of quads
      */
-    private void describe(RepositoryRDF repository, SubjectNode node, Collection<Quad> quads) throws UnsupportedNodeType {
-        Iterator<Quad> iterator = repository.getStore().getAll(node, null, null);
+    private void describe(Dataset dataset, SubjectNode node, Collection<Quad> quads) throws UnsupportedNodeType {
+        Iterator<? extends Quad> iterator = dataset.getAll(node, null, null);
         while (iterator.hasNext())
             quads.add(iterator.next());
     }

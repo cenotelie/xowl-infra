@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.storage.NodeManager;
-
 /**
  * Represents an entity that can resolves a variable in a RDF rule's consequent
  *
@@ -33,5 +31,5 @@ public abstract class VariableResolver {
      * @param nodes     The nodes manager to user
      * @param isGraph   Whether the variable is used as a graph   @return The resolved node
      */
-    public abstract Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph);
+    public abstract Node resolve(VariableNode variable, RDFRuleExecution execution, DatasetNodes nodes, boolean isGraph);
 }

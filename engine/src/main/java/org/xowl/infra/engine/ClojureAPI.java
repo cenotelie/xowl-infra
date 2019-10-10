@@ -30,7 +30,7 @@ import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.io.StringReader;
@@ -57,7 +57,7 @@ public class ClojureAPI {
         if (!(context.getExecutionManager().getRepository() instanceof RepositoryRDF))
             return new ResultFailure("The current repository is not a RDF repository");
         RepositoryRDF repositoryRDF = (RepositoryRDF) context.getExecutionManager().getRepository();
-        NodeManager nodeManager = repositoryRDF.getStore();
+        DatasetNodes nodeManager = repositoryRDF.getStore();
         BufferedLogger logger = new BufferedLogger();
         SPARQLLoader loader = new SPARQLLoader(nodeManager);
         Command command = loader.load(logger, new StringReader(query));

@@ -18,8 +18,8 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.execution.Evaluator;
+import org.xowl.infra.store.rdf.DatasetNodes;
 import org.xowl.infra.store.rdf.RDFPattern;
-import org.xowl.infra.store.storage.NodeManager;
 
 /**
  * The evaluation context of a SPARQL query
@@ -39,7 +39,7 @@ public interface EvalContext {
      *
      * @return The node manager
      */
-    NodeManager getNodes();
+    DatasetNodes getNodes();
 
     /**
      * Gets the solutions for a pattern of RDF quads

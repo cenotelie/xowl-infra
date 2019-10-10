@@ -25,7 +25,7 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.rdf.DatasetNodes;
 
 import java.util.*;
 
@@ -253,7 +253,7 @@ public class Sign implements Identifiable, Serializable {
      * @param nodes The node manager to use
      * @return The RDF node
      */
-    private IRINode getRdfNode(NodeManager nodes) {
+    private IRINode getRdfNode(DatasetNodes nodes) {
         if (rdfNode != null)
             return rdfNode;
         rdfNode = nodes.getIRINode(identifier);
@@ -267,7 +267,7 @@ public class Sign implements Identifiable, Serializable {
      * @param graph  The target graph
      * @param buffer The buffer for the produced quads
      */
-    public void serializeRdf(NodeManager nodes, GraphNode graph, Collection<Quad> buffer) {
+    public void serializeRdf(DatasetNodes nodes, GraphNode graph, Collection<Quad> buffer) {
         IRINode subject = getRdfNode(nodes);
         buffer.add(new Quad(graph, subject, nodes.getIRINode(Vocabulary.rdfType), nodes.getIRINode(TYPE_SIGN)));
         if (name != null)

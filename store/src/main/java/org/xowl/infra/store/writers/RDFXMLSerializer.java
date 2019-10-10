@@ -55,7 +55,7 @@ public class RDFXMLSerializer extends StructuredSerializer {
      * @param logger The logger to use
      * @param quads  The quads to serialize
      */
-    public void serialize(Logger logger, Iterator<Quad> quads) {
+    public void serialize(Logger logger, Iterator<? extends Quad> quads) {
         while (quads.hasNext()) {
             enqueue(quads.next());
         }
@@ -182,7 +182,7 @@ public class RDFXMLSerializer extends StructuredSerializer {
                     serializer.onElementClose(propertyName);
                     break;
                 default:
-                    throw new UnsupportedNodeType((Node) value, "RDF serialization only support IRI, Blank and Literal nodes");
+                    throw new UnsupportedNodeType((Node) value, QuadField.ANY);
             }
         }
     }
@@ -207,7 +207,7 @@ public class RDFXMLSerializer extends StructuredSerializer {
                 serializer.onElementOpenEndAndClose();
                 break;
             default:
-                throw new UnsupportedNodeType(node, "RDF/XML serialization only support IRI and Blank nodes as list members");
+                throw new UnsupportedNodeType(node, QuadField.ANY);
         }
     }
 }

@@ -19,10 +19,10 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.execution.Evaluator;
+import org.xowl.infra.store.rdf.DatasetNodes;
 import org.xowl.infra.store.rdf.RDFPattern;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.RDFQuery;
-import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.Collection;
 
@@ -52,8 +52,8 @@ public class EvalContextRepository implements EvalContext {
     }
 
     @Override
-    public NodeManager getNodes() {
-        return repository.getStore();
+    public DatasetNodes getNodes() {
+        return repository.getStore().getTransaction().getDataset();
     }
 
     @Override

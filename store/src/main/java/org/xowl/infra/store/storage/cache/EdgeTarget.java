@@ -17,12 +17,15 @@
 
 package org.xowl.infra.store.storage.cache;
 
-import fr.cenotelie.commons.utils.collections.*;
+import fr.cenotelie.commons.utils.collections.AdaptingIterator;
+import fr.cenotelie.commons.utils.collections.IndexIterator;
+import fr.cenotelie.commons.utils.collections.SingleIterator;
+import fr.cenotelie.commons.utils.collections.SparseIterator;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.storage.impl.DatasetImpl;
-import org.xowl.infra.store.storage.impl.MQuad;
+import org.xowl.infra.store.storage.DatasetQuadsImpl;
+import org.xowl.infra.store.storage.MQuad;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -102,7 +105,7 @@ class EdgeTarget implements Iterable<GraphNode> {
             hasEmpty = hasEmpty || (graphs[i] == null);
             if (RDFUtils.same(graphs[i], graph)) {
                 multiplicities[i]++;
-                return DatasetImpl.ADD_RESULT_INCREMENT;
+                return DatasetQuadsImpl.ADD_RESULT_INCREMENT;
             }
         }
         if (!hasEmpty) {
@@ -111,18 +114,18 @@ class EdgeTarget implements Iterable<GraphNode> {
             graphs[size] = graph;
             multiplicities[size] = 1;
             size++;
-            return DatasetImpl.ADD_RESULT_NEW;
+            return DatasetQuadsImpl.ADD_RESULT_NEW;
         }
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] == null) {
                 graphs[i] = graph;
                 multiplicities[i] = 1;
                 size++;
-                return DatasetImpl.ADD_RESULT_NEW;
+                return DatasetQuadsImpl.ADD_RESULT_NEW;
             }
         }
         // cannot happen
-        return DatasetImpl.ADD_RESULT_UNKNOWN;
+        return DatasetQuadsImpl.ADD_RESULT_UNKNOWN;
     }
 
     /**
@@ -138,12 +141,12 @@ class EdgeTarget implements Iterable<GraphNode> {
                 if (multiplicities[i] == 0) {
                     graphs[i] = null;
                     size--;
-                    return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
+                    return (size == 0) ? DatasetQuadsImpl.REMOVE_RESULT_EMPTIED : DatasetQuadsImpl.REMOVE_RESULT_REMOVED;
                 }
-                return DatasetImpl.REMOVE_RESULT_DECREMENT;
+                return DatasetQuadsImpl.REMOVE_RESULT_DECREMENT;
             }
         }
-        return DatasetImpl.REMOVE_RESULT_NOT_FOUND;
+        return DatasetQuadsImpl.REMOVE_RESULT_NOT_FOUND;
     }
 
     /**
@@ -167,7 +170,7 @@ class EdgeTarget implements Iterable<GraphNode> {
                 }
             }
         }
-        return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
+        return (size == 0) ? DatasetQuadsImpl.REMOVE_RESULT_EMPTIED : DatasetQuadsImpl.REMOVE_RESULT_REMOVED;
     }
 
     /**
@@ -334,19 +337,16 @@ class EdgeTarget implements Iterable<GraphNode> {
      */
     public Iterator<MQuad> getAll(GraphNode graph) {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new IndexIterator<GraphNode>(graphs) {
-                @Override
-                public void remove() {
-                    graphs[lastResult] = null;
-                    multiplicities[lastResult] = 0;
-                    size--;
-                }
-            }, new Adapter<Integer, MQuad>() {
-                @Override
-                public MQuad adapt(Integer element) {
-                    return new MQuad(graphs[element], multiplicities[element]);
-                }
-            });
+            return new AdaptingIterator<>(
+                    new IndexIterator<GraphNode>(graphs) {
+                        @Override
+                        public void remove() {
+                            graphs[lastResult] = null;
+                            multiplicities[lastResult] = 0;
+                            size--;
+                        }
+                    },
+                    element -> new MQuad(graphs[element], multiplicities[element]));
         }
 
         for (int i = 0; i != graphs.length; i++) {

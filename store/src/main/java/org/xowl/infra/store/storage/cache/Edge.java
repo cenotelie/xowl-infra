@@ -22,8 +22,8 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Property;
-import org.xowl.infra.store.storage.impl.DatasetImpl;
-import org.xowl.infra.store.storage.impl.MQuad;
+import org.xowl.infra.store.storage.DatasetQuadsImpl;
+import org.xowl.infra.store.storage.MQuad;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -105,17 +105,17 @@ class Edge implements Iterable<EdgeTarget> {
             targets = Arrays.copyOf(targets, targets.length + INIT_BUFFER_SIZE);
             targets[size] = new EdgeTarget(graph, value);
             size++;
-            return DatasetImpl.ADD_RESULT_NEW;
+            return DatasetQuadsImpl.ADD_RESULT_NEW;
         }
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] == null) {
                 targets[i] = new EdgeTarget(graph, value);
                 size++;
-                return DatasetImpl.ADD_RESULT_NEW;
+                return DatasetQuadsImpl.ADD_RESULT_NEW;
             }
         }
         // cannot happen
-        return DatasetImpl.ADD_RESULT_UNKNOWN;
+        return DatasetQuadsImpl.ADD_RESULT_UNKNOWN;
     }
 
     /**
@@ -129,15 +129,15 @@ class Edge implements Iterable<EdgeTarget> {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
                 int result = targets[i].remove(graph);
-                if (result == DatasetImpl.REMOVE_RESULT_EMPTIED) {
+                if (result == DatasetQuadsImpl.REMOVE_RESULT_EMPTIED) {
                     targets[i] = null;
                     size--;
-                    return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
+                    return (size == 0) ? DatasetQuadsImpl.REMOVE_RESULT_EMPTIED : DatasetQuadsImpl.REMOVE_RESULT_REMOVED;
                 }
                 return result;
             }
         }
-        return DatasetImpl.REMOVE_RESULT_NOT_FOUND;
+        return DatasetQuadsImpl.REMOVE_RESULT_NOT_FOUND;
     }
 
     /**
@@ -159,13 +159,13 @@ class Edge implements Iterable<EdgeTarget> {
                     bufferDecremented.get(j).setObject(targets[i].getTarget());
                 for (int j = originalSizeRem; j != bufferRemoved.size(); j++)
                     bufferRemoved.get(j).setObject(targets[i].getTarget());
-                if (result == DatasetImpl.REMOVE_RESULT_EMPTIED) {
+                if (result == DatasetQuadsImpl.REMOVE_RESULT_EMPTIED) {
                     targets[i] = null;
                     size--;
                 }
             }
         }
-        return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
+        return (size == 0) ? DatasetQuadsImpl.REMOVE_RESULT_EMPTIED : DatasetQuadsImpl.REMOVE_RESULT_REMOVED;
     }
 
     /**
@@ -300,40 +300,35 @@ class Edge implements Iterable<EdgeTarget> {
      */
     public Iterator<MQuad> getAll(final GraphNode graph, final Node value) {
         if (value == null || value.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<Integer, MQuad>(new IndexIterator<>(targets), new Adapter<Integer, Iterator<MQuad>>() {
-                @Override
-                public Iterator<MQuad> adapt(Integer element) {
-                    return targets[element].getAll(graph);
-                }
-            }) {
-                @Override
-                public void remove() {
-                    lastRightIterator.remove();
-                    int index = current.x;
-                    if (targets[index].getSize() == 0) {
-                        targets[index] = null;
-                        size--;
-                    }
-                }
-            }, new Adapter<Couple<Integer, MQuad>, MQuad>() {
-                @Override
-                public MQuad adapt(Couple<Integer, MQuad> element) {
-                    element.y.setObject(targets[element.x].getTarget());
-                    return element.y;
-                }
-            });
+            return new AdaptingIterator<>(
+                    new CombiningIterator<Integer, MQuad>(
+                            new IndexIterator<>(targets),
+                            element -> targets[element].getAll(graph)) {
+                        @Override
+                        public void remove() {
+                            lastRightIterator.remove();
+                            int index = current.x;
+                            if (targets[index].getSize() == 0) {
+                                targets[index] = null;
+                                size--;
+                            }
+                        }
+                    },
+                    element -> {
+                        element.y.setObject(targets[element.x].getTarget());
+                        return element.y;
+                    });
         }
 
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
                 final int index = i;
-                return new AdaptingIterator<MQuad, MQuad>(targets[i].getAll(graph), new Adapter<MQuad, MQuad>() {
-                    @Override
-                    public MQuad adapt(MQuad element) {
-                        element.setObject(value);
-                        return element;
-                    }
-                }) {
+                return new AdaptingIterator<MQuad, MQuad>(
+                        targets[i].getAll(graph),
+                        element -> {
+                            element.setObject(value);
+                            return element;
+                        }) {
                     @Override
                     public void remove() {
                         content.remove();
