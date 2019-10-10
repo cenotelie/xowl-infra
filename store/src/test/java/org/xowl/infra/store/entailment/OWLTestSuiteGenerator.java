@@ -47,11 +47,11 @@ public class OWLTestSuiteGenerator {
             logger.error(exception);
         }
 
-        ProxyObject classTestCase = repository.resolveProxy("http://www.w3.org/2007/OWL/testOntology#TestCase");
+        /*ProxyObject classTestCase = repository.resolveProxy("http://www.w3.org/2007/OWL/testOntology#TestCase");
         for (ProxyObject test : classTestCase.getInstances()) {
             exportResources(test);
             generateCode(test);
-        }
+        }*/
     }
 
     /**

@@ -45,12 +45,12 @@ public class RDFTestSuiteGenerator {
             logger.error(exception);
         }
 
-        ProxyObject manifest = repository.resolveProxy("http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");
+        /*ProxyObject manifest = repository.resolveProxy("http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");
         ProxyObject list = manifest.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#entries");
         while (!Vocabulary.rdfNil.equals(list.getIRIString())) {
             generateCode(list.getObjectValue(Vocabulary.rdfFirst));
             list = list.getObjectValue(Vocabulary.rdfRest);
-        }
+        }*/
     }
 
     /**

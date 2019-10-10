@@ -29,197 +29,197 @@ import org.xowl.infra.store.EntailmentRegime;
 @Ignore("Not ready yet")
 public class RDFTest extends BaseRDFTest {
     @Test
-    public void test_datatypes_intensional_xsd_integer_decimal_compatible() {
+    public void test_datatypes_intensional_xsd_integer_decimal_compatible() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes-intensional/test001.nt", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_datatypes_non_well_formed_literal_1() {
+    public void test_datatypes_non_well_formed_literal_1() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test002.nt", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_datatypes_non_well_formed_literal_2() {
+    public void test_datatypes_non_well_formed_literal_2() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test002.nt", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_datatypes_semantic_equivalence_within_type_1() {
+    public void test_datatypes_semantic_equivalence_within_type_1() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test003a.nt", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/datatypes/test003b.nt");
     }
 
     @Test
-    public void test_datatypes_semantic_equivalence_within_type_2() {
+    public void test_datatypes_semantic_equivalence_within_type_2() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test003b.nt", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/datatypes/test003a.nt");
     }
 
     @Test
-    public void test_datatypes_semantic_equivalence_between_datatypes() {
+    public void test_datatypes_semantic_equivalence_between_datatypes() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test005a.nt", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/datatypes/test005b.nt");
     }
 
     @Test
-    public void test_datatypes_range_clash() {
+    public void test_datatypes_range_clash() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test006.nt", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_datatypes_test008() {
+    public void test_datatypes_test008() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test008a.nt", EntailmentRegime.simple, "http://www.w3.org/2013/rdf-mt-tests/datatypes/test008b.nt");
     }
 
     @Test
-    public void test_datatypes_test009() {
+    public void test_datatypes_test009() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test009a.nt", EntailmentRegime.simple, "http://www.w3.org/2013/rdf-mt-tests/datatypes/test009b.nt");
     }
 
     @Test
-    public void test_datatypes_test010() {
+    public void test_datatypes_test010() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test010.nt", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_datatypes_plain_literal_and_xsd_string() {
+    public void test_datatypes_plain_literal_and_xsd_string() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/datatypes/test011a.nt", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/datatypes/test011b.nt");
     }
 
     @Test
-    public void test_horst_01_subClassOf_intensional() {
+    public void test_horst_01_subClassOf_intensional() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/horst-01/test001.ttl", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/horst-01/test002.ttl");
     }
 
     @Test
-    public void test_horst_01_subPropertyOf_intensional() {
+    public void test_horst_01_subPropertyOf_intensional() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/horst-01/test003.ttl", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/horst-01/test004.ttl");
     }
 
     @Test
-    public void test_rdf_charmod_uris_test003() {
+    public void test_rdf_charmod_uris_test003() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdf-charmod-uris/test001.ttl", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/rdf-charmod-uris/test002.ttl");
     }
 
     @Test
-    public void test_rdf_charmod_uris_test004() {
+    public void test_rdf_charmod_uris_test004() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdf-charmod-uris/test002.ttl", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/rdf-charmod-uris/test001.ttl");
     }
 
     @Test
-    public void test_rdfms_seq_representation_test002() {
+    public void test_rdfms_seq_representation_test002() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfms-seq-representation/empty.nt", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfms-seq-representation/test002.nt");
     }
 
     @Test
-    public void test_rdfms_seq_representation_test003() {
+    public void test_rdfms_seq_representation_test003() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfms-seq-representation/test003a.nt", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfms-seq-representation/test003b.nt");
     }
 
     @Test
-    public void test_rdfms_seq_representation_test004() {
+    public void test_rdfms_seq_representation_test004() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfms-seq-representation/empty.nt", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfms-seq-representation/test004.nt");
     }
 
     @Test
-    public void test_rdfms_xmllang_test007a() {
+    public void test_rdfms_xmllang_test007a() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfms-xmllang/test007a.nt", EntailmentRegime.simple, "http://www.w3.org/2013/rdf-mt-tests/rdfms-xmllang/test007b.nt");
     }
 
     @Test
-    public void test_rdfms_xmllang_test007b() {
+    public void test_rdfms_xmllang_test007b() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfms-xmllang/test007b.nt", EntailmentRegime.simple, "http://www.w3.org/2013/rdf-mt-tests/rdfms-xmllang/test007c.nt");
     }
 
     @Test
-    public void test_rdfms_xmllang_test007c() {
+    public void test_rdfms_xmllang_test007c() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfms-xmllang/test007c.nt", EntailmentRegime.simple, "http://www.w3.org/2013/rdf-mt-tests/rdfms-xmllang/test007a.nt");
     }
 
     @Test
-    public void test_rdfs_container_membership_superProperty_test001() {
+    public void test_rdfs_container_membership_superProperty_test001() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-container-membership-superProperty/not1P.ttl", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfs-container-membership-superProperty/not1C.ttl");
     }
 
     @Test
-    public void test_rdfs_domain_and_range_intensionality_range() {
+    public void test_rdfs_domain_and_range_intensionality_range() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-domain-and-range/premises005.ttl", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfs-domain-and-range/nonconclusions005.ttl");
     }
 
     @Test
-    public void test_rdfs_domain_and_range_intensionality_domain() {
+    public void test_rdfs_domain_and_range_intensionality_domain() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-domain-and-range/premises006.ttl", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfs-domain-and-range/nonconclusions006.ttl");
     }
 
     @Test
-    public void test_rdfs_entailment_test001() {
+    public void test_rdfs_entailment_test001() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-entailment/test001.nt", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_rdfs_entailment_test002() {
+    public void test_rdfs_entailment_test002() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-entailment/test002p.nt", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_rdfs_no_cycles_in_subClassOf_test001() {
+    public void test_rdfs_no_cycles_in_subClassOf_test001() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-no-cycles-in-subClassOf/test001.ttl", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfs-no-cycles-in-subClassOf/test001.nt");
     }
 
     @Test
-    public void test_rdfs_no_cycles_in_subPropertyOf_test001() {
+    public void test_rdfs_no_cycles_in_subPropertyOf_test001() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-no-cycles-in-subPropertyOf/test001.ttl", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfs-no-cycles-in-subPropertyOf/test001.nt");
     }
 
     @Test
-    public void test_rdfs_subClassOf_a_Property_test001() {
+    public void test_rdfs_subClassOf_a_Property_test001() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-subClassOf-a-Property/test001.nt", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_rdfs_subPropertyOf_semantics_test001() {
+    public void test_rdfs_subPropertyOf_semantics_test001() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/rdfs-subPropertyOf-semantics/test001.nt", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/rdfs-subPropertyOf-semantics/test002.nt");
     }
 
     @Test
-    public void test_statement_entailment_test001() {
+    public void test_statement_entailment_test001() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/statement-entailment/test001a.nt", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/statement-entailment/test001b.nt");
     }
 
     @Test
-    public void test_statement_entailment_test002() {
+    public void test_statement_entailment_test002() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/statement-entailment/test002a.nt", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/statement-entailment/test002b.nt");
     }
 
     @Test
-    public void test_statement_entailment_test003() {
+    public void test_statement_entailment_test003() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/statement-entailment/test001a.nt", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/statement-entailment/test001b.nt");
     }
 
     @Test
-    public void test_statement_entailment_test004() {
+    public void test_statement_entailment_test004() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/statement-entailment/test002a.nt", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/statement-entailment/test002b.nt");
     }
 
     @Test
-    public void test_tex_01_language_tag_case_1() {
+    public void test_tex_01_language_tag_case_1() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/tex-01/test001.ttl", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/tex-01/test002.ttl");
     }
 
     @Test
-    public void test_tex_01_language_tag_case_2() {
+    public void test_tex_01_language_tag_case_2() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/tex-01/test002.ttl", EntailmentRegime.RDF, "http://www.w3.org/2013/rdf-mt-tests/tex-01/test001.ttl");
     }
 
     @Test
-    public void test_xmlsch_02_whitespace_facet_1() {
+    public void test_xmlsch_02_whitespace_facet_1() throws Exception {
         testNegativeEntailment("http://www.w3.org/2013/rdf-mt-tests/xmlsch-02/test001.ttl", EntailmentRegime.RDFS, "http://www.w3.org/2013/rdf-mt-tests/xmlsch-02/test002.ttl");
     }
 
     @Test
-    public void test_xmlsch_02_whitespace_facet_2() {
+    public void test_xmlsch_02_whitespace_facet_2() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/xmlsch-02/test002.ttl", EntailmentRegime.RDFS, null);
     }
 
     @Test
-    public void test_xmlsch_02_whitespace_facet_4() {
+    public void test_xmlsch_02_whitespace_facet_4() throws Exception {
         testPositiveEntailment("http://www.w3.org/2013/rdf-mt-tests/xmlsch-02/test002.ttl", EntailmentRegime.RDFS, null);
     }
 }
