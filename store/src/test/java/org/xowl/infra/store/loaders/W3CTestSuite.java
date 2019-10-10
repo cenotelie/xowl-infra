@@ -41,6 +41,133 @@ import java.util.Map;
  */
 public abstract class W3CTestSuite {
     /**
+     * Eliminates the duplicate quads from a list
+     *
+     * @param quads A list of quads
+     */
+    private static void removeDuplicates(List<Quad> quads) {
+        if (quads.isEmpty())
+            return;
+        for (int i = 0; i != quads.size() - 1; i++) {
+            for (int j = i + 1; j != quads.size(); j++) {
+                if (quads.get(i).equals(quads.get(j))) {
+                    quads.remove(i);
+                    i--;
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Tests whether two sets of quads describe the same dataset
+     *
+     * @param expected The expected set of quads
+     * @param tested   The tested set of quads
+     */
+    public static void matchesQuads(List<Quad> expected, List<Quad> tested) {
+        // eliminate duplicate quads
+        removeDuplicates(expected);
+        removeDuplicates(tested);
+
+        Map<BlankNode, BlankNode> blanks = new HashMap<>();
+        for (int i = 0; i != expected.size(); i++) {
+            Quad quad = expected.get(i);
+            if (quad.getSubject().getNodeType() != Node.TYPE_BLANK) {
+                // ignore blank nodes at this time
+                boolean found = false;
+                for (Quad potential : tested) {
+                    if (sameQuad(quad, potential, blanks)) {
+                        found = true;
+                        tested.remove(potential);
+                        break;
+                    }
+                }
+                if (found) {
+                    expected.remove(i);
+                    i--;
+                } else {
+                    Assert.fail("Expected triple not produced: " + quad.toString());
+                }
+            }
+        }
+
+        int size = expected.size() + 1;
+        while (size != expected.size()) {
+            // while no more modifications
+            size = expected.size();
+            for (int i = 0; i != expected.size(); i++) {
+                Quad quad = expected.get(i);
+                boolean found = false;
+                for (Quad potential : tested) {
+                    if (sameQuad(quad, potential, blanks)) {
+                        found = true;
+                        tested.remove(potential);
+                        break;
+                    }
+                }
+                if (found) {
+                    expected.remove(i);
+                    i--;
+                } else {
+                    Assert.fail("Expected triple not produced: " + quad.toString());
+                }
+            }
+        }
+
+        if (expected.size() != 0) {
+            Assert.fail("Failed to match all triples");
+        }
+
+        for (Quad quad : tested) {
+            // fail on supplementary triples
+            Assert.fail("Unexpected triple produced: " + quad.toString());
+        }
+    }
+
+    /**
+     * Determines whether the specified quads are equivalent, using the given blank node mapping
+     *
+     * @param quad1  A quad
+     * @param quad2  Another quad
+     * @param blanks A map of blank nodes
+     * @return <code>true</code> if the two quads are equivalent
+     */
+    public static boolean sameQuad(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
+        GraphNode graph = quad1.getGraph();
+        SubjectNode subject = quad1.getSubject();
+        Property property = quad1.getProperty();
+        Node object = quad1.getObject();
+        if (graph.getNodeType() == Node.TYPE_BLANK)
+            graph = blanks.get(graph);
+        if (subject.getNodeType() == Node.TYPE_BLANK)
+            subject = blanks.get(subject);
+        if (object.getNodeType() == Node.TYPE_BLANK)
+            object = blanks.get(object);
+        if (!RDFUtils.same(property, quad2.getProperty()))
+            return false;
+        if (graph != null && !RDFUtils.same(graph, quad2.getGraph()))
+            return false;
+        if (subject != null && !RDFUtils.same(subject, quad2.getSubject()))
+            return false;
+        if (object != null && !RDFUtils.same(object, quad2.getObject()))
+            return false;
+        if (graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
+            return false;
+        if (subject == null && quad2.getSubject().getNodeType() != Node.TYPE_BLANK)
+            return false;
+        if (object == null && quad2.getObject().getNodeType() != Node.TYPE_BLANK)
+            return false;
+        if (graph == null)
+            blanks.put((BlankNode) quad1.getGraph(), (BlankNode) quad2.getGraph());
+        if (subject == null)
+            blanks.put((BlankNode) quad1.getSubject(), (BlankNode) quad2.getSubject());
+        if (object == null)
+            blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
+        return true;
+    }
+
+    /**
      * Gets the loader for the specified resource
      *
      * @param resource    A resource
@@ -207,132 +334,5 @@ public abstract class W3CTestSuite {
                 return null;
             }, true);
         }
-    }
-
-    /**
-     * Eliminates the duplicate quads from a list
-     *
-     * @param quads A list of quads
-     */
-    private static void removeDuplicates(List<Quad> quads) {
-        if (quads.isEmpty())
-            return;
-        for (int i = 0; i != quads.size() - 1; i++) {
-            for (int j = i + 1; j != quads.size(); j++) {
-                if (quads.get(i).equals(quads.get(j))) {
-                    quads.remove(i);
-                    i--;
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * Tests whether two sets of quads describe the same dataset
-     *
-     * @param expected The expected set of quads
-     * @param tested   The tested set of quads
-     */
-    public static void matchesQuads(List<Quad> expected, List<Quad> tested) {
-        // eliminate duplicate quads
-        removeDuplicates(expected);
-        removeDuplicates(tested);
-
-        Map<BlankNode, BlankNode> blanks = new HashMap<>();
-        for (int i = 0; i != expected.size(); i++) {
-            Quad quad = expected.get(i);
-            if (quad.getSubject().getNodeType() != Node.TYPE_BLANK) {
-                // ignore blank nodes at this time
-                boolean found = false;
-                for (Quad potential : tested) {
-                    if (sameQuad(quad, potential, blanks)) {
-                        found = true;
-                        tested.remove(potential);
-                        break;
-                    }
-                }
-                if (found) {
-                    expected.remove(i);
-                    i--;
-                } else {
-                    Assert.fail("Expected triple not produced: " + quad.toString());
-                }
-            }
-        }
-
-        int size = expected.size() + 1;
-        while (size != expected.size()) {
-            // while no more modifications
-            size = expected.size();
-            for (int i = 0; i != expected.size(); i++) {
-                Quad quad = expected.get(i);
-                boolean found = false;
-                for (Quad potential : tested) {
-                    if (sameQuad(quad, potential, blanks)) {
-                        found = true;
-                        tested.remove(potential);
-                        break;
-                    }
-                }
-                if (found) {
-                    expected.remove(i);
-                    i--;
-                } else {
-                    Assert.fail("Expected triple not produced: " + quad.toString());
-                }
-            }
-        }
-
-        if (expected.size() != 0) {
-            Assert.fail("Failed to match all triples");
-        }
-
-        for (Quad quad : tested) {
-            // fail on supplementary triples
-            Assert.fail("Unexpected triple produced: " + quad.toString());
-        }
-    }
-
-    /**
-     * Determines whether the specified quads are equivalent, using the given blank node mapping
-     *
-     * @param quad1  A quad
-     * @param quad2  Another quad
-     * @param blanks A map of blank nodes
-     * @return <code>true</code> if the two quads are equivalent
-     */
-    public static boolean sameQuad(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
-        GraphNode graph = quad1.getGraph();
-        SubjectNode subject = quad1.getSubject();
-        Property property = quad1.getProperty();
-        Node object = quad1.getObject();
-        if (graph.getNodeType() == Node.TYPE_BLANK)
-            graph = blanks.get(graph);
-        if (subject.getNodeType() == Node.TYPE_BLANK)
-            subject = blanks.get(subject);
-        if (object.getNodeType() == Node.TYPE_BLANK)
-            object = blanks.get(object);
-        if (!RDFUtils.same(property, quad2.getProperty()))
-            return false;
-        if (graph != null && !RDFUtils.same(graph, quad2.getGraph()))
-            return false;
-        if (subject != null && !RDFUtils.same(subject, quad2.getSubject()))
-            return false;
-        if (object != null && !RDFUtils.same(object, quad2.getObject()))
-            return false;
-        if (graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
-            return false;
-        if (subject == null && quad2.getSubject().getNodeType() != Node.TYPE_BLANK)
-            return false;
-        if (object == null && quad2.getObject().getNodeType() != Node.TYPE_BLANK)
-            return false;
-        if (graph == null)
-            blanks.put((BlankNode) quad1.getGraph(), (BlankNode) quad2.getGraph());
-        if (subject == null)
-            blanks.put((BlankNode) quad1.getSubject(), (BlankNode) quad2.getSubject());
-        if (object == null)
-            blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
-        return true;
     }
 }

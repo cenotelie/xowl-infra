@@ -42,6 +42,29 @@ class BetaMemory implements TokenHolder {
      * A DUMMY beta memory
      */
     private static BetaMemory DUMMY;
+    /**
+     * The store of tokens
+     */
+    private final Map<Token, FastBuffer<Token>> store;
+    /**
+     * The buffer of this node
+     */
+    private final FastBuffer<TokenActivable> children;
+    /**
+     * The binding operations in this node
+     */
+    private final Binder[] binders;
+    /**
+     * Initializes this node
+     *
+     * @param binders      The binders for this memory (array of size 4)
+     * @param bindersCount The total number of binders (maximum 4)
+     */
+    public BetaMemory(Binder[] binders, int bindersCount) {
+        this.store = new HashMap<>();
+        this.children = new FastBuffer<>(8);
+        this.binders = bindersCount > 0 ? Arrays.copyOf(binders, bindersCount) : null;
+    }
 
     /**
      * Gets a DUMMY beta memory
@@ -56,31 +79,6 @@ class BetaMemory implements TokenHolder {
         children.add(new Token());
         DUMMY.store.put(null, children);
         return DUMMY;
-    }
-
-    /**
-     * The store of tokens
-     */
-    private final Map<Token, FastBuffer<Token>> store;
-    /**
-     * The buffer of this node
-     */
-    private final FastBuffer<TokenActivable> children;
-    /**
-     * The binding operations in this node
-     */
-    private final Binder[] binders;
-
-    /**
-     * Initializes this node
-     *
-     * @param binders      The binders for this memory (array of size 4)
-     * @param bindersCount The total number of binders (maximum 4)
-     */
-    public BetaMemory(Binder[] binders, int bindersCount) {
-        this.store = new HashMap<>();
-        this.children = new FastBuffer<>(8);
-        this.binders = bindersCount > 0 ? Arrays.copyOf(binders, bindersCount) : null;
     }
 
     /**

@@ -35,6 +35,38 @@ import java.util.List;
  */
 class SolutionsGroup implements Solutions {
     /**
+     * The top group in this set
+     */
+    private final Group top;
+
+    /**
+     * Initializes this solution set
+     */
+    public SolutionsGroup() {
+        this.top = new Group(null);
+    }
+
+    /**
+     * Adds a new solution
+     *
+     * @param keys     The keys for the solution
+     * @param solution The solution to add
+     */
+    public void add(List<Object> keys, RDFPatternSolution solution) {
+        top.add(keys, solution);
+    }
+
+    @Override
+    public int size() {
+        return top.size();
+    }
+
+    @Override
+    public Iterator<RDFPatternSolution> iterator() {
+        return top.iterator();
+    }
+
+    /**
      * A group within this set
      */
     private static class Group implements Solutions {
@@ -52,21 +84,21 @@ class SolutionsGroup implements Solutions {
         private SolutionsMultiset content;
 
         /**
-         * Gets the key for this group
-         *
-         * @return The key for this group
-         */
-        public Object getKey() {
-            return key;
-        }
-
-        /**
          * Initializes this group
          *
          * @param key The key for this group
          */
         public Group(Object key) {
             this.key = key;
+        }
+
+        /**
+         * Gets the key for this group
+         *
+         * @return The key for this group
+         */
+        public Object getKey() {
+            return key;
         }
 
         @Override
@@ -137,37 +169,5 @@ class SolutionsGroup implements Solutions {
                 target.content = new SolutionsMultiset();
             target.content.add(solution);
         }
-    }
-
-    /**
-     * The top group in this set
-     */
-    private final Group top;
-
-    /**
-     * Initializes this solution set
-     */
-    public SolutionsGroup() {
-        this.top = new Group(null);
-    }
-
-    /**
-     * Adds a new solution
-     *
-     * @param keys     The keys for the solution
-     * @param solution The solution to add
-     */
-    public void add(List<Object> keys, RDFPatternSolution solution) {
-        top.add(keys, solution);
-    }
-
-    @Override
-    public int size() {
-        return top.size();
-    }
-
-    @Override
-    public Iterator<RDFPatternSolution> iterator() {
-        return top.iterator();
     }
 }

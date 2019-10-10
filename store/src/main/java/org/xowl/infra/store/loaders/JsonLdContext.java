@@ -89,6 +89,24 @@ class JsonLdContext {
     }
 
     /**
+     * Quotes illegal URI characters in the specified term
+     *
+     * @param term A term
+     * @return The term with the illegal characters quoted
+     */
+    private static String quote(String term) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != term.length(); i++) {
+            char c = term.charAt(i);
+            if (Character.isWhitespace(c))
+                builder.append("+");
+            else
+                builder.append(c);
+        }
+        return builder.toString();
+    }
+
+    /**
      * Expands a name into an IRI
      *
      * @param name The name to resolve
@@ -355,23 +373,5 @@ class JsonLdContext {
             current = current.parent;
         }
         return null;
-    }
-
-    /**
-     * Quotes illegal URI characters in the specified term
-     *
-     * @param term A term
-     * @return The term with the illegal characters quoted
-     */
-    private static String quote(String term) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i != term.length(); i++) {
-            char c = term.charAt(i);
-            if (Character.isWhitespace(c))
-                builder.append("+");
-            else
-                builder.append(c);
-        }
-        return builder.toString();
     }
 }

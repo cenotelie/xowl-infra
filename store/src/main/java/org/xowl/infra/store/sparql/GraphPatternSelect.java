@@ -59,19 +59,6 @@ public class GraphPatternSelect implements GraphPattern {
     private final GraphPatternInlineData values;
 
     /**
-     * Gets the variables used for the projection
-     *
-     * @return The variables
-     */
-    public Collection<VariableNode> getProjectedVariables() {
-        Collection<VariableNode> result = new ArrayList<>();
-        for (Couple<VariableNode, Expression> couple : projection) {
-            result.add(couple.x);
-        }
-        return result;
-    }
-
-    /**
      * Initializes this graph pattern
      *
      * @param isDistinct Whether to remove duplicated solutions
@@ -87,6 +74,19 @@ public class GraphPatternSelect implements GraphPattern {
         this.where = where;
         this.modifier = modifier;
         this.values = values;
+    }
+
+    /**
+     * Gets the variables used for the projection
+     *
+     * @return The variables
+     */
+    public Collection<VariableNode> getProjectedVariables() {
+        Collection<VariableNode> result = new ArrayList<>();
+        for (Couple<VariableNode, Expression> couple : projection) {
+            result.add(couple.x);
+        }
+        return result;
     }
 
     /**

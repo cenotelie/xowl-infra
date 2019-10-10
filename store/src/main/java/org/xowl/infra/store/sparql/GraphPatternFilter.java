@@ -38,6 +38,17 @@ public class GraphPatternFilter implements GraphPattern {
     private final Expression expression;
 
     /**
+     * Initializes this graph pattern
+     *
+     * @param origin     The inner pattern
+     * @param expression The boolean expression used for filtering
+     */
+    public GraphPatternFilter(GraphPattern origin, Expression expression) {
+        this.origin = origin;
+        this.expression = expression;
+    }
+
+    /**
      * Gets the inner pattern
      *
      * @return The inner pattern
@@ -53,17 +64,6 @@ public class GraphPatternFilter implements GraphPattern {
      */
     public Expression getExpression() {
         return expression;
-    }
-
-    /**
-     * Initializes this graph pattern
-     *
-     * @param origin     The inner pattern
-     * @param expression The boolean expression used for filtering
-     */
-    public GraphPatternFilter(GraphPattern origin, Expression expression) {
-        this.origin = origin;
-        this.expression = expression;
     }
 
     @Override

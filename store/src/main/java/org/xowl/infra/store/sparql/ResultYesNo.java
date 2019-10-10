@@ -33,21 +33,21 @@ public class ResultYesNo implements Result {
     private final boolean value;
 
     /**
-     * Gets the result value
-     *
-     * @return The result value
-     */
-    public boolean getValue() {
-        return value;
-    }
-
-    /**
      * Initializes this result
      *
      * @param value The result value
      */
     public ResultYesNo(boolean value) {
         this.value = value;
+    }
+
+    /**
+     * Gets the result value
+     *
+     * @return The result value
+     */
+    public boolean getValue() {
+        return value;
     }
 
     @Override

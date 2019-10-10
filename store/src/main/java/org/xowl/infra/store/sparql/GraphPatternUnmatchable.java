@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;

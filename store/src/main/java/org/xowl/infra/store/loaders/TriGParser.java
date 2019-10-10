@@ -34,6 +34,61 @@ public class TriGParser extends LRkParser {
      * The automaton for this parser
      */
     private static final LRkAutomaton commonAutomaton = LRkAutomaton.find(TriGParser.class, "TriGParser.bin");
+    /**
+     * The collection of variables matched by this parser
+     * <p>
+     * The variables are in an order consistent with the automaton,
+     * so that variable indices in the automaton can be used to retrieve the variables in this table
+     */
+    private static final Symbol[] variables = {
+            new Symbol(0x001D, "document"),
+            new Symbol(0x001E, "statement"),
+            new Symbol(0x001F, "graphAnonymous"),
+            new Symbol(0x0020, "graphNamed"),
+            new Symbol(0x0021, "directive"),
+            new Symbol(0x0022, "prefixID"),
+            new Symbol(0x0023, "base"),
+            new Symbol(0x0024, "sparqlBase"),
+            new Symbol(0x0025, "sparqlPrefix"),
+            new Symbol(0x0026, "triples"),
+            new Symbol(0x0027, "predicateObjectList"),
+            new Symbol(0x0028, "objectList"),
+            new Symbol(0x0029, "verb"),
+            new Symbol(0x002A, "subject"),
+            new Symbol(0x002B, "predicate"),
+            new Symbol(0x002C, "object"),
+            new Symbol(0x002D, "blankNodePropertyList"),
+            new Symbol(0x002E, "collection"),
+            new Symbol(0x002F, "blankNode"),
+            new Symbol(0x0030, "literal"),
+            new Symbol(0x0031, "booleanLiteral"),
+            new Symbol(0x0032, "numericLiteral"),
+            new Symbol(0x0033, "rdfLiteral"),
+            new Symbol(0x0034, "string"),
+            new Symbol(0x0035, "iri"),
+            new Symbol(0x0036, "prefixedName"),
+            new Symbol(0x0037, "__V55"),
+            new Symbol(0x003A, "__V58"),
+            new Symbol(0x003F, "__V63"),
+            new Symbol(0x0041, "__V65"),
+            new Symbol(0x0046, "__V70"),
+            new Symbol(0x004B, "__axiom")};
+    /**
+     * The collection of virtuals matched by this parser
+     * <p>
+     * The virtuals are in an order consistent with the automaton,
+     * so that virtual indices in the automaton can be used to retrieve the virtuals in this table
+     */
+    private static final Symbol[] virtuals = {
+    };
+    /**
+     * Initializes a new instance of the parser
+     *
+     * @param lexer The input lexer
+     */
+    public TriGParser(TriGLexer lexer) {
+        super(commonAutomaton, variables, virtuals, null, lexer);
+    }
 
     /**
      * Contains the constant IDs for the variables and virtuals in this parser
@@ -147,62 +202,5 @@ public class TriGParser extends LRkParser {
          * The unique identifier for variable __axiom
          */
         public static final int __axiom = 0x004B;
-    }
-
-    /**
-     * The collection of variables matched by this parser
-     * <p>
-     * The variables are in an order consistent with the automaton,
-     * so that variable indices in the automaton can be used to retrieve the variables in this table
-     */
-    private static final Symbol[] variables = {
-            new Symbol(0x001D, "document"),
-            new Symbol(0x001E, "statement"),
-            new Symbol(0x001F, "graphAnonymous"),
-            new Symbol(0x0020, "graphNamed"),
-            new Symbol(0x0021, "directive"),
-            new Symbol(0x0022, "prefixID"),
-            new Symbol(0x0023, "base"),
-            new Symbol(0x0024, "sparqlBase"),
-            new Symbol(0x0025, "sparqlPrefix"),
-            new Symbol(0x0026, "triples"),
-            new Symbol(0x0027, "predicateObjectList"),
-            new Symbol(0x0028, "objectList"),
-            new Symbol(0x0029, "verb"),
-            new Symbol(0x002A, "subject"),
-            new Symbol(0x002B, "predicate"),
-            new Symbol(0x002C, "object"),
-            new Symbol(0x002D, "blankNodePropertyList"),
-            new Symbol(0x002E, "collection"),
-            new Symbol(0x002F, "blankNode"),
-            new Symbol(0x0030, "literal"),
-            new Symbol(0x0031, "booleanLiteral"),
-            new Symbol(0x0032, "numericLiteral"),
-            new Symbol(0x0033, "rdfLiteral"),
-            new Symbol(0x0034, "string"),
-            new Symbol(0x0035, "iri"),
-            new Symbol(0x0036, "prefixedName"),
-            new Symbol(0x0037, "__V55"),
-            new Symbol(0x003A, "__V58"),
-            new Symbol(0x003F, "__V63"),
-            new Symbol(0x0041, "__V65"),
-            new Symbol(0x0046, "__V70"),
-            new Symbol(0x004B, "__axiom")};
-    /**
-     * The collection of virtuals matched by this parser
-     * <p>
-     * The virtuals are in an order consistent with the automaton,
-     * so that virtual indices in the automaton can be used to retrieve the virtuals in this table
-     */
-    private static final Symbol[] virtuals = {
-    };
-
-    /**
-     * Initializes a new instance of the parser
-     *
-     * @param lexer The input lexer
-     */
-    public TriGParser(TriGLexer lexer) {
-        super(commonAutomaton, variables, virtuals, null, lexer);
     }
 }

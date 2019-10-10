@@ -37,6 +37,17 @@ class Binder {
     private final QuadField field;
 
     /**
+     * Initializes this element
+     *
+     * @param variable The variable to bind to
+     * @param field    The field in a triple that shall be bound
+     */
+    public Binder(VariableNode variable, QuadField field) {
+        this.variable = variable;
+        this.field = field;
+    }
+
+    /**
      * Gets the variable to bind
      *
      * @return The variable to bind
@@ -52,17 +63,6 @@ class Binder {
      */
     public QuadField getField() {
         return field;
-    }
-
-    /**
-     * Initializes this element
-     *
-     * @param variable The variable to bind to
-     * @param field    The field in a triple that shall be bound
-     */
-    public Binder(VariableNode variable, QuadField field) {
-        this.variable = variable;
-        this.field = field;
     }
 
     /**

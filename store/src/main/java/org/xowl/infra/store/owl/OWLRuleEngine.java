@@ -52,15 +52,6 @@ public class OWLRuleEngine {
     private final Map<RDFRule, Couple<TranslationContext, Rule>> owlRules;
 
     /**
-     * Gets the RDF backend
-     *
-     * @return The RDF backend
-     */
-    public RDFRuleEngine getBackend() {
-        return backend;
-    }
-
-    /**
      * Initializes this engine
      *
      * @param inputStore  The store to operate over
@@ -72,6 +63,15 @@ public class OWLRuleEngine {
         this.backend = new RDFRuleEngine(inputStore, outputStore, evaluator);
         this.rdfRules = new HashMap<>();
         this.owlRules = new HashMap<>();
+    }
+
+    /**
+     * Gets the RDF backend
+     *
+     * @return The RDF backend
+     */
+    public RDFRuleEngine getBackend() {
+        return backend;
     }
 
     /**

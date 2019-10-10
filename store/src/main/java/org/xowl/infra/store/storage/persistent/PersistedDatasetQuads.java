@@ -65,177 +65,6 @@ public class PersistedDatasetQuads extends DatasetQuadsImpl {
      * int: multiplicity for item n
      */
     private static final int GINDEX_ENTRY_SIZE = 8 + 4 + 4 + GINDEX_ENTRY_MAX_ITEM_COUNT * (4 + 4);
-
-    /**
-     * Gets the key radical for the specified key
-     *
-     * @param key A key
-     * @return The radical
-     */
-    private static int getKeyRadical(long key) {
-        return (int) (key >>> 32);
-    }
-
-    /**
-     * Gets the short key for the specified one
-     *
-     * @param key A key
-     * @return The short key
-     */
-    private static int getShortKey(long key) {
-        return (int) (key & 0xFFFFFFFFL);
-    }
-
-    /**
-     * Gets the full key a radical and a short key
-     *
-     * @param radical  The radical
-     * @param shortKey The short key
-     * @return The full key
-     */
-    private static long getFullKey(int radical, int shortKey) {
-        return (((long) radical << 32) | (long) shortKey);
-    }
-
-    /**
-     * Iterator over the quad node in a bucket
-     */
-    private static class QNodeIterator implements Iterator<Long> {
-        /**
-         * The backend
-         */
-        private final ObjectStore backend;
-        /**
-         * The next key to iterate over
-         */
-        private long next;
-        /**
-         * The current value
-         */
-        private long value;
-
-        /**
-         * Initializes the iterator
-         *
-         * @param backend The backend
-         * @param entry   The first entry
-         */
-        public QNodeIterator(ObjectStore backend, long entry) {
-            this.backend = backend;
-            next = entry;
-            value = Constants.KEY_NULL;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return next != Constants.KEY_NULL;
-        }
-
-        @Override
-        public Long next() {
-            try (Access entry = backend.access(next, false)) {
-                value = next;
-                next = entry.readLong();
-            }
-            return value;
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    /**
-     * Iterator over the subject nodes in a graph index
-     */
-    private static class GraphQNodeIterator implements Iterator<Long> {
-        /**
-         * The backend
-         */
-        private final ObjectStore backend;
-        /**
-         * The key to the current graph index entry
-         */
-        private long keyEntry;
-        /**
-         * The current radical for the current entry
-         */
-        private int radical;
-        /**
-         * The current entry index
-         */
-        private int index;
-        /**
-         * The next value to return
-         */
-        private long next;
-        /**
-         * The current value to return
-         */
-        private long value;
-
-        /**
-         * Initializes the iterator
-         *
-         * @param backend The backend
-         * @param entry   The first entry of the graph index
-         */
-        public GraphQNodeIterator(ObjectStore backend, long entry) {
-            this.backend = backend;
-            this.keyEntry = entry;
-            this.index = -1;
-            this.next = findNext();
-            this.value = Constants.KEY_NULL;
-        }
-
-        /**
-         * Finds the next quad node
-         *
-         * @return The next quad node
-         */
-        private long findNext() {
-            while (true) {
-                index++;
-                if (index == GINDEX_ENTRY_MAX_ITEM_COUNT) {
-                    try (Access entry = backend.access(keyEntry, false)) {
-                        keyEntry = entry.readLong();
-                    }
-                    if (keyEntry == Constants.KEY_NULL)
-                        return Constants.KEY_NULL;
-                    index = 0;
-                }
-                try (Access entry = backend.access(keyEntry, false)) {
-                    radical = entry.seek(8).readInt();
-                    for (int i = index; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                        int ek = entry.seek(8 + 4 + 4 + i * 8).readInt();
-                        if (ek != Constants.KEY_NULL) {
-                            index = i;
-                            return getFullKey(radical, ek);
-                        }
-                    }
-                }
-            }
-        }
-
-        @Override
-        public boolean hasNext() {
-            return next != Constants.KEY_NULL;
-        }
-
-        @Override
-        public Long next() {
-            value = next;
-            next = findNext();
-            return value;
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
     /**
      * The persisted nodes associated to this dataset
      */
@@ -272,7 +101,6 @@ public class PersistedDatasetQuads extends DatasetQuadsImpl {
      * A temporary key to the quad node entry for a subject
      */
     private long bufferQNSubject;
-
     /**
      * Initializes this dataset
      *
@@ -306,6 +134,37 @@ public class PersistedDatasetQuads extends DatasetQuadsImpl {
         mapSubjectAnon = tempMapSubjectAnon;
         mapIndexGraphIRI = tempMapIndexIRI;
         mapIndexGraphBlank = tempMapIndexBlank;
+    }
+
+    /**
+     * Gets the key radical for the specified key
+     *
+     * @param key A key
+     * @return The radical
+     */
+    private static int getKeyRadical(long key) {
+        return (int) (key >>> 32);
+    }
+
+    /**
+     * Gets the short key for the specified one
+     *
+     * @param key A key
+     * @return The short key
+     */
+    private static int getShortKey(long key) {
+        return (int) (key & 0xFFFFFFFFL);
+    }
+
+    /**
+     * Gets the full key a radical and a short key
+     *
+     * @param radical  The radical
+     * @param shortKey The short key
+     * @return The full key
+     */
+    private static long getFullKey(int radical, int shortKey) {
+        return (((long) radical << 32) | (long) shortKey);
     }
 
     @Override
@@ -794,7 +653,6 @@ public class PersistedDatasetQuads extends DatasetQuadsImpl {
         }
         return result;
     }
-
 
     /**
      * Counts the quads from a bucket of properties
@@ -2510,10 +2368,6 @@ public class PersistedDatasetQuads extends DatasetQuadsImpl {
         return bucket;
     }
 
-    /*
-    Utility API
-     */
-
     /**
      * Gets the subject map for the specified subject
      *
@@ -2578,6 +2432,10 @@ public class PersistedDatasetQuads extends DatasetQuadsImpl {
         return current;
     }
 
+    /*
+    Utility API
+     */
+
     /**
      * Writes the new quad node entry for the specified node
      *
@@ -2640,5 +2498,144 @@ public class PersistedDatasetQuads extends DatasetQuadsImpl {
      */
     private Iterator<Long> getSubjectIterator(StoredMap map) {
         return new AdaptingIterator<>(map.entries(), mapEntry -> mapEntry.value);
+    }
+
+    /**
+     * Iterator over the quad node in a bucket
+     */
+    private static class QNodeIterator implements Iterator<Long> {
+        /**
+         * The backend
+         */
+        private final ObjectStore backend;
+        /**
+         * The next key to iterate over
+         */
+        private long next;
+        /**
+         * The current value
+         */
+        private long value;
+
+        /**
+         * Initializes the iterator
+         *
+         * @param backend The backend
+         * @param entry   The first entry
+         */
+        public QNodeIterator(ObjectStore backend, long entry) {
+            this.backend = backend;
+            next = entry;
+            value = Constants.KEY_NULL;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != Constants.KEY_NULL;
+        }
+
+        @Override
+        public Long next() {
+            try (Access entry = backend.access(next, false)) {
+                value = next;
+                next = entry.readLong();
+            }
+            return value;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
+     * Iterator over the subject nodes in a graph index
+     */
+    private static class GraphQNodeIterator implements Iterator<Long> {
+        /**
+         * The backend
+         */
+        private final ObjectStore backend;
+        /**
+         * The key to the current graph index entry
+         */
+        private long keyEntry;
+        /**
+         * The current radical for the current entry
+         */
+        private int radical;
+        /**
+         * The current entry index
+         */
+        private int index;
+        /**
+         * The next value to return
+         */
+        private long next;
+        /**
+         * The current value to return
+         */
+        private long value;
+
+        /**
+         * Initializes the iterator
+         *
+         * @param backend The backend
+         * @param entry   The first entry of the graph index
+         */
+        public GraphQNodeIterator(ObjectStore backend, long entry) {
+            this.backend = backend;
+            this.keyEntry = entry;
+            this.index = -1;
+            this.next = findNext();
+            this.value = Constants.KEY_NULL;
+        }
+
+        /**
+         * Finds the next quad node
+         *
+         * @return The next quad node
+         */
+        private long findNext() {
+            while (true) {
+                index++;
+                if (index == GINDEX_ENTRY_MAX_ITEM_COUNT) {
+                    try (Access entry = backend.access(keyEntry, false)) {
+                        keyEntry = entry.readLong();
+                    }
+                    if (keyEntry == Constants.KEY_NULL)
+                        return Constants.KEY_NULL;
+                    index = 0;
+                }
+                try (Access entry = backend.access(keyEntry, false)) {
+                    radical = entry.seek(8).readInt();
+                    for (int i = index; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                        int ek = entry.seek(8 + 4 + 4 + i * 8).readInt();
+                        if (ek != Constants.KEY_NULL) {
+                            index = i;
+                            return getFullKey(radical, ek);
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != Constants.KEY_NULL;
+        }
+
+        @Override
+        public Long next() {
+            value = next;
+            next = findNext();
+            return value;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

@@ -19,6 +19,160 @@ public class xRDFLexer extends ContextSensitiveLexer {
      * The automaton for this lexer
      */
     private static final Automaton commonAutomaton = Automaton.find(xRDFLexer.class, "xRDFLexer.bin");
+    /**
+     * The collection of terminals matched by this lexer
+     * <p>
+     * The terminals are in an order consistent with the automaton,
+     * so that terminal indices in the automaton can be used to retrieve the terminals in this table
+     */
+    private static final Symbol[] terminals = {
+            new Symbol(0x0001, "ε"),
+            new Symbol(0x0002, "$"),
+            new Symbol(0x012A, "CLJ_DEREF"),
+            new Symbol(0x0116, "CLJ_SYMBOL"),
+            new Symbol(0x0024, "OP_LESS"),
+            new Symbol(0x002B, "BUILTIN"),
+            new Symbol(0x0123, "CLJ_LB"),
+            new Symbol(0x0106, "["),
+            new Symbol(0x0129, "CLJ_QUOTE"),
+            new Symbol(0x001B, "OP_PLUS"),
+            new Symbol(0x001C, "OP_MINUS"),
+            new Symbol(0x001D, "OP_MULT"),
+            new Symbol(0x001E, "OP_DIV"),
+            new Symbol(0x0029, "OP_UNION"),
+            new Symbol(0x0021, "OP_NOT"),
+            new Symbol(0x0110, "="),
+            new Symbol(0x0022, "OP_EQ"),
+            new Symbol(0x0026, "OP_GREAT"),
+            new Symbol(0x0028, "OP_OPT"),
+            new Symbol(0x012B, "CLJ_METADATA"),
+            new Symbol(0x002A, "OP_INV"),
+            new Symbol(0x002E, "A"),
+            new Symbol(0x00EB, ";"),
+            new Symbol(0x0121, "CLJ_LP"),
+            new Symbol(0x00EF, "("),
+            new Symbol(0x0122, "CLJ_RP"),
+            new Symbol(0x00F0, ")"),
+            new Symbol(0x0125, "CLJ_LC"),
+            new Symbol(0x00F3, "{"),
+            new Symbol(0x0126, "CLJ_RC"),
+            new Symbol(0x00F4, "}"),
+            new Symbol(0x00F5, "."),
+            new Symbol(0x0128, "CLJ_SET_SEPARATOR"),
+            new Symbol(0x0104, ","),
+            new Symbol(0x0124, "CLJ_RB"),
+            new Symbol(0x0107, "]"),
+            new Symbol(0x000F, "PNAME_NS"),
+            new Symbol(0x0120, "LITERAL_ARGUMENT"),
+            new Symbol(0x0127, "CLJ_DISPATCH"),
+            new Symbol(0x012D, "CLJ_SYNTAX_QUOTE"),
+            new Symbol(0x012E, "CLJ_UNQUOTE"),
+            new Symbol(0x0131, "XOWL_OPAQUE_EXP"),
+            new Symbol(0x0006, "BLANK"),
+            new Symbol(0x011F, "LITERAL_FLOAT"),
+            new Symbol(0x011D, "LITERAL_INTEGER"),
+            new Symbol(0x0014, "INTEGER"),
+            new Symbol(0x0007, "LANGTAG"),
+            new Symbol(0x0025, "OP_LEQ"),
+            new Symbol(0x0008, "IRIREF"),
+            new Symbol(0x0013, "ANON"),
+            new Symbol(0x0118, "LITERAL_STRING"),
+            new Symbol(0x0017, "STRING_LITERAL_QUOTE"),
+            new Symbol(0x0018, "STRING_LITERAL_SINGLE_QUOTE"),
+            new Symbol(0x001F, "OP_BOR"),
+            new Symbol(0x0020, "OP_BAND"),
+            new Symbol(0x0023, "OP_NEQ"),
+            new Symbol(0x0166, "=>"),
+            new Symbol(0x0027, "OP_GEQ"),
+            new Symbol(0x0012, "VARIABLE"),
+            new Symbol(0x0112, "^^"),
+            new Symbol(0x0045, "TO"),
+            new Symbol(0x0034, "AS"),
+            new Symbol(0x003C, "BY"),
+            new Symbol(0x005D, "IN"),
+            new Symbol(0x0015, "DECIMAL"),
+            new Symbol(0x0010, "PNAME_LN"),
+            new Symbol(0x0117, "CLJ_KEYWORD"),
+            new Symbol(0x0119, "LITERAL_CHAR"),
+            new Symbol(0x012C, "CLJ_IGNORE"),
+            new Symbol(0x0130, "CLJ_CONDITIONAL"),
+            new Symbol(0x012F, "CLJ_UNQUOTE_SPLICE"),
+            new Symbol(0x0011, "BLANK_NODE_LABEL"),
+            new Symbol(0x0038, "ASK"),
+            new Symbol(0x003F, "ASC"),
+            new Symbol(0x004B, "ADD"),
+            new Symbol(0x0055, "ALL"),
+            new Symbol(0x005E, "NOT"),
+            new Symbol(0x011A, "LITERAL_NIL"),
+            new Symbol(0x011E, "LITERAL_RATIO"),
+            new Symbol(0x0016, "DOUBLE"),
+            new Symbol(0x011B, "LITERAL_TRUE"),
+            new Symbol(0x002C, "TRUE"),
+            new Symbol(0x0039, "FROM"),
+            new Symbol(0x0050, "WITH"),
+            new Symbol(0x0030, "BASE"),
+            new Symbol(0x0058, "BIND"),
+            new Symbol(0x0040, "DESC"),
+            new Symbol(0x0049, "DROP"),
+            new Symbol(0x0051, "DATA"),
+            new Symbol(0x0132, "RULE"),
+            new Symbol(0x004D, "COPY"),
+            new Symbol(0x0047, "LOAD"),
+            new Symbol(0x0046, "INTO"),
+            new Symbol(0x004C, "MOVE"),
+            new Symbol(0x0133, "META"),
+            new Symbol(0x011C, "LITERAL_FALSE"),
+            new Symbol(0x002D, "FALSE"),
+            new Symbol(0x0036, "WHERE"),
+            new Symbol(0x003A, "NAMED"),
+            new Symbol(0x0052, "USING"),
+            new Symbol(0x0059, "UNION"),
+            new Symbol(0x005C, "UNDEF"),
+            new Symbol(0x003B, "GROUP"),
+            new Symbol(0x0054, "GRAPH"),
+            new Symbol(0x003E, "ORDER"),
+            new Symbol(0x0048, "CLEAR"),
+            new Symbol(0x0041, "LIMIT"),
+            new Symbol(0x005A, "MINUS"),
+            new Symbol(0x001A, "STRING_LITERAL_LONG_QUOTE"),
+            new Symbol(0x0019, "STRING_LITERAL_LONG_SINGLE_QUOTE"),
+            new Symbol(0x005B, "FILTER"),
+            new Symbol(0x002F, "PREFIX"),
+            new Symbol(0x0043, "VALUES"),
+            new Symbol(0x0031, "SELECT"),
+            new Symbol(0x0044, "SILENT"),
+            new Symbol(0x004F, "DELETE"),
+            new Symbol(0x0042, "OFFSET"),
+            new Symbol(0x004A, "CREATE"),
+            new Symbol(0x005F, "EXISTS"),
+            new Symbol(0x003D, "HAVING"),
+            new Symbol(0x004E, "INSERT"),
+            new Symbol(0x0057, "SERVICE"),
+            new Symbol(0x0053, "DEFAULT"),
+            new Symbol(0x0033, "REDUCED"),
+            new Symbol(0x0032, "DISTINCT"),
+            new Symbol(0x0037, "DESCRIBE"),
+            new Symbol(0x0056, "OPTIONAL"),
+            new Symbol(0x0060, "SEPARATOR"),
+            new Symbol(0x0035, "CONSTRUCT")};
+
+    /**
+     * Initializes a new instance of the lexer
+     *
+     * @param input The lexer's input
+     */
+    public xRDFLexer(String input) {
+        super(commonAutomaton, terminals, 0x0006, input);
+    }
+
+    /**
+     * Initializes a new instance of the lexer
+     *
+     * @param input The lexer's input
+     */
+    public xRDFLexer(InputStreamReader input) {
+        super(commonAutomaton, terminals, 0x0006, input);
+    }
 
     /**
      * Contains the constant IDs for the terminals for this lexer
@@ -502,160 +656,5 @@ public class xRDFLexer extends ContextSensitiveLexer {
          * The unique identifier for context xowl
          */
         public static final int xowl = 0x0002;
-    }
-
-    /**
-     * The collection of terminals matched by this lexer
-     * <p>
-     * The terminals are in an order consistent with the automaton,
-     * so that terminal indices in the automaton can be used to retrieve the terminals in this table
-     */
-    private static final Symbol[] terminals = {
-            new Symbol(0x0001, "ε"),
-            new Symbol(0x0002, "$"),
-            new Symbol(0x012A, "CLJ_DEREF"),
-            new Symbol(0x0116, "CLJ_SYMBOL"),
-            new Symbol(0x0024, "OP_LESS"),
-            new Symbol(0x002B, "BUILTIN"),
-            new Symbol(0x0123, "CLJ_LB"),
-            new Symbol(0x0106, "["),
-            new Symbol(0x0129, "CLJ_QUOTE"),
-            new Symbol(0x001B, "OP_PLUS"),
-            new Symbol(0x001C, "OP_MINUS"),
-            new Symbol(0x001D, "OP_MULT"),
-            new Symbol(0x001E, "OP_DIV"),
-            new Symbol(0x0029, "OP_UNION"),
-            new Symbol(0x0021, "OP_NOT"),
-            new Symbol(0x0110, "="),
-            new Symbol(0x0022, "OP_EQ"),
-            new Symbol(0x0026, "OP_GREAT"),
-            new Symbol(0x0028, "OP_OPT"),
-            new Symbol(0x012B, "CLJ_METADATA"),
-            new Symbol(0x002A, "OP_INV"),
-            new Symbol(0x002E, "A"),
-            new Symbol(0x00EB, ";"),
-            new Symbol(0x0121, "CLJ_LP"),
-            new Symbol(0x00EF, "("),
-            new Symbol(0x0122, "CLJ_RP"),
-            new Symbol(0x00F0, ")"),
-            new Symbol(0x0125, "CLJ_LC"),
-            new Symbol(0x00F3, "{"),
-            new Symbol(0x0126, "CLJ_RC"),
-            new Symbol(0x00F4, "}"),
-            new Symbol(0x00F5, "."),
-            new Symbol(0x0128, "CLJ_SET_SEPARATOR"),
-            new Symbol(0x0104, ","),
-            new Symbol(0x0124, "CLJ_RB"),
-            new Symbol(0x0107, "]"),
-            new Symbol(0x000F, "PNAME_NS"),
-            new Symbol(0x0120, "LITERAL_ARGUMENT"),
-            new Symbol(0x0127, "CLJ_DISPATCH"),
-            new Symbol(0x012D, "CLJ_SYNTAX_QUOTE"),
-            new Symbol(0x012E, "CLJ_UNQUOTE"),
-            new Symbol(0x0131, "XOWL_OPAQUE_EXP"),
-            new Symbol(0x0006, "BLANK"),
-            new Symbol(0x011F, "LITERAL_FLOAT"),
-            new Symbol(0x011D, "LITERAL_INTEGER"),
-            new Symbol(0x0014, "INTEGER"),
-            new Symbol(0x0007, "LANGTAG"),
-            new Symbol(0x0025, "OP_LEQ"),
-            new Symbol(0x0008, "IRIREF"),
-            new Symbol(0x0013, "ANON"),
-            new Symbol(0x0118, "LITERAL_STRING"),
-            new Symbol(0x0017, "STRING_LITERAL_QUOTE"),
-            new Symbol(0x0018, "STRING_LITERAL_SINGLE_QUOTE"),
-            new Symbol(0x001F, "OP_BOR"),
-            new Symbol(0x0020, "OP_BAND"),
-            new Symbol(0x0023, "OP_NEQ"),
-            new Symbol(0x0166, "=>"),
-            new Symbol(0x0027, "OP_GEQ"),
-            new Symbol(0x0012, "VARIABLE"),
-            new Symbol(0x0112, "^^"),
-            new Symbol(0x0045, "TO"),
-            new Symbol(0x0034, "AS"),
-            new Symbol(0x003C, "BY"),
-            new Symbol(0x005D, "IN"),
-            new Symbol(0x0015, "DECIMAL"),
-            new Symbol(0x0010, "PNAME_LN"),
-            new Symbol(0x0117, "CLJ_KEYWORD"),
-            new Symbol(0x0119, "LITERAL_CHAR"),
-            new Symbol(0x012C, "CLJ_IGNORE"),
-            new Symbol(0x0130, "CLJ_CONDITIONAL"),
-            new Symbol(0x012F, "CLJ_UNQUOTE_SPLICE"),
-            new Symbol(0x0011, "BLANK_NODE_LABEL"),
-            new Symbol(0x0038, "ASK"),
-            new Symbol(0x003F, "ASC"),
-            new Symbol(0x004B, "ADD"),
-            new Symbol(0x0055, "ALL"),
-            new Symbol(0x005E, "NOT"),
-            new Symbol(0x011A, "LITERAL_NIL"),
-            new Symbol(0x011E, "LITERAL_RATIO"),
-            new Symbol(0x0016, "DOUBLE"),
-            new Symbol(0x011B, "LITERAL_TRUE"),
-            new Symbol(0x002C, "TRUE"),
-            new Symbol(0x0039, "FROM"),
-            new Symbol(0x0050, "WITH"),
-            new Symbol(0x0030, "BASE"),
-            new Symbol(0x0058, "BIND"),
-            new Symbol(0x0040, "DESC"),
-            new Symbol(0x0049, "DROP"),
-            new Symbol(0x0051, "DATA"),
-            new Symbol(0x0132, "RULE"),
-            new Symbol(0x004D, "COPY"),
-            new Symbol(0x0047, "LOAD"),
-            new Symbol(0x0046, "INTO"),
-            new Symbol(0x004C, "MOVE"),
-            new Symbol(0x0133, "META"),
-            new Symbol(0x011C, "LITERAL_FALSE"),
-            new Symbol(0x002D, "FALSE"),
-            new Symbol(0x0036, "WHERE"),
-            new Symbol(0x003A, "NAMED"),
-            new Symbol(0x0052, "USING"),
-            new Symbol(0x0059, "UNION"),
-            new Symbol(0x005C, "UNDEF"),
-            new Symbol(0x003B, "GROUP"),
-            new Symbol(0x0054, "GRAPH"),
-            new Symbol(0x003E, "ORDER"),
-            new Symbol(0x0048, "CLEAR"),
-            new Symbol(0x0041, "LIMIT"),
-            new Symbol(0x005A, "MINUS"),
-            new Symbol(0x001A, "STRING_LITERAL_LONG_QUOTE"),
-            new Symbol(0x0019, "STRING_LITERAL_LONG_SINGLE_QUOTE"),
-            new Symbol(0x005B, "FILTER"),
-            new Symbol(0x002F, "PREFIX"),
-            new Symbol(0x0043, "VALUES"),
-            new Symbol(0x0031, "SELECT"),
-            new Symbol(0x0044, "SILENT"),
-            new Symbol(0x004F, "DELETE"),
-            new Symbol(0x0042, "OFFSET"),
-            new Symbol(0x004A, "CREATE"),
-            new Symbol(0x005F, "EXISTS"),
-            new Symbol(0x003D, "HAVING"),
-            new Symbol(0x004E, "INSERT"),
-            new Symbol(0x0057, "SERVICE"),
-            new Symbol(0x0053, "DEFAULT"),
-            new Symbol(0x0033, "REDUCED"),
-            new Symbol(0x0032, "DISTINCT"),
-            new Symbol(0x0037, "DESCRIBE"),
-            new Symbol(0x0056, "OPTIONAL"),
-            new Symbol(0x0060, "SEPARATOR"),
-            new Symbol(0x0035, "CONSTRUCT")};
-
-    /**
-     * Initializes a new instance of the lexer
-     *
-     * @param input The lexer's input
-     */
-    public xRDFLexer(String input) {
-        super(commonAutomaton, terminals, 0x0006, input);
-    }
-
-    /**
-     * Initializes a new instance of the lexer
-     *
-     * @param input The lexer's input
-     */
-    public xRDFLexer(InputStreamReader input) {
-        super(commonAutomaton, terminals, 0x0006, input);
     }
 }

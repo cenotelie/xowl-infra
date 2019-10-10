@@ -58,55 +58,6 @@ public abstract class BaseSPARQLTest {
     private static final int VALUE_TYPE_LITERAL = 2;
 
     /**
-     * A value for a binding in a solution
-     */
-    private static class Value {
-        /**
-         * The value type
-         */
-        public final int type;
-        /**
-         * The value content
-         */
-        public final String value;
-        /**
-         * The value datatype, if any
-         */
-        public final String datatype;
-        /**
-         * The value language tag, if any
-         */
-        public final String lang;
-
-        /**
-         * Initializes this value
-         *
-         * @param type  The value type
-         * @param value The value content
-         */
-        public Value(int type, String value) {
-            this.type = type;
-            this.value = value;
-            this.datatype = null;
-            this.lang = null;
-        }
-
-        /**
-         * Initializes this value as a literal
-         *
-         * @param value    The lexical value
-         * @param datatype The datatype, if any
-         * @param lang     The language tag, if any
-         */
-        public Value(String value, String datatype, String lang) {
-            this.type = VALUE_TYPE_LITERAL;
-            this.value = value;
-            this.datatype = datatype;
-            this.lang = lang;
-        }
-    }
-
-    /**
      * Tests the correct loading of the specified SPARQL resource
      *
      * @param resource The resource to load
@@ -596,6 +547,55 @@ public abstract class BaseSPARQLTest {
         } catch (IOException exception) {
             Assert.fail(exception.getMessage());
             return null; // cannot happen
+        }
+    }
+
+    /**
+     * A value for a binding in a solution
+     */
+    private static class Value {
+        /**
+         * The value type
+         */
+        public final int type;
+        /**
+         * The value content
+         */
+        public final String value;
+        /**
+         * The value datatype, if any
+         */
+        public final String datatype;
+        /**
+         * The value language tag, if any
+         */
+        public final String lang;
+
+        /**
+         * Initializes this value
+         *
+         * @param type  The value type
+         * @param value The value content
+         */
+        public Value(int type, String value) {
+            this.type = type;
+            this.value = value;
+            this.datatype = null;
+            this.lang = null;
+        }
+
+        /**
+         * Initializes this value as a literal
+         *
+         * @param value    The lexical value
+         * @param datatype The datatype, if any
+         * @param lang     The language tag, if any
+         */
+        public Value(String value, String datatype, String lang) {
+            this.type = VALUE_TYPE_LITERAL;
+            this.value = value;
+            this.datatype = datatype;
+            this.lang = lang;
         }
     }
 }

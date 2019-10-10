@@ -67,6 +67,87 @@ public class Translator {
     }
 
     /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<ClassExpression> getAll(ClassSequenceExpression expression) {
+        List<ClassElement> elements = new ArrayList<>(((ClassSequence) expression).getAllClassElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), DomainOfClasse::getClasse);
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<Datarange> getAll(DatarangeSequenceExpression expression) {
+        List<DatarangeElement> elements = new ArrayList<>(((DatarangeSequence) expression).getAllDatarangeElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), DomainOfDatarange::getDatarange);
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<ObjectPropertyExpression> getAll(ObjectPropertySequenceExpression expression) {
+        List<ObjectPropertyElement> elements = new ArrayList<>(((ObjectPropertySequence) expression).getAllObjectPropertyElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), DomainOfObjectProperty::getObjectProperty);
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<DataPropertyExpression> getAll(DataPropertySequenceExpression expression) {
+        List<DataPropertyElement> elements = new ArrayList<>(((DataPropertySequence) expression).getAllDataPropertyElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), DomainOfDataProperty::getDataProperty);
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<IndividualExpression> getAll(IndividualSequenceExpression expression) {
+        List<IndividualElement> elements = new ArrayList<>(((IndividualSequence) expression).getAllIndividualElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), DomainOfIndividual::getIndividual);
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<LiteralExpression> getAll(LiteralSequenceExpression expression) {
+        List<LiteralElement> elements = new ArrayList<>(((LiteralSequence) expression).getAllLiteralElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), DomainOfLiteral::getLiteral);
+    }
+
+    /**
+     * Sorts the specified list of sequence element by their indices
+     *
+     * @param elements A list of sequence elements
+     */
+    private static void sortElements(List<? extends SequenceElement> elements) {
+        elements.sort(Comparator.comparingInt(SequenceElement::getIndex));
+    }
+
+    /**
      * Translates the specified input coming from a loader
      *
      * @param input The loader result to translate
@@ -1417,7 +1498,6 @@ public class Translator {
         return main;
     }
 
-
     /**
      * Translate the specified individual expression
      *
@@ -1584,86 +1664,5 @@ public class Translator {
             for (Annotation child : axiom.getAllAnnotations())
                 translateAnnotation(x, child);
         }
-    }
-
-    /**
-     * Gets an iterator over all the expressions within the specified expression of a sequence
-     *
-     * @param expression The expression of a sequence
-     * @return An iterator over the contained expressions
-     */
-    private static Iterator<ClassExpression> getAll(ClassSequenceExpression expression) {
-        List<ClassElement> elements = new ArrayList<>(((ClassSequence) expression).getAllClassElements());
-        sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), DomainOfClasse::getClasse);
-    }
-
-    /**
-     * Gets an iterator over all the expressions within the specified expression of a sequence
-     *
-     * @param expression The expression of a sequence
-     * @return An iterator over the contained expressions
-     */
-    private static Iterator<Datarange> getAll(DatarangeSequenceExpression expression) {
-        List<DatarangeElement> elements = new ArrayList<>(((DatarangeSequence) expression).getAllDatarangeElements());
-        sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), DomainOfDatarange::getDatarange);
-    }
-
-    /**
-     * Gets an iterator over all the expressions within the specified expression of a sequence
-     *
-     * @param expression The expression of a sequence
-     * @return An iterator over the contained expressions
-     */
-    private static Iterator<ObjectPropertyExpression> getAll(ObjectPropertySequenceExpression expression) {
-        List<ObjectPropertyElement> elements = new ArrayList<>(((ObjectPropertySequence) expression).getAllObjectPropertyElements());
-        sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), DomainOfObjectProperty::getObjectProperty);
-    }
-
-    /**
-     * Gets an iterator over all the expressions within the specified expression of a sequence
-     *
-     * @param expression The expression of a sequence
-     * @return An iterator over the contained expressions
-     */
-    private static Iterator<DataPropertyExpression> getAll(DataPropertySequenceExpression expression) {
-        List<DataPropertyElement> elements = new ArrayList<>(((DataPropertySequence) expression).getAllDataPropertyElements());
-        sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), DomainOfDataProperty::getDataProperty);
-    }
-
-    /**
-     * Gets an iterator over all the expressions within the specified expression of a sequence
-     *
-     * @param expression The expression of a sequence
-     * @return An iterator over the contained expressions
-     */
-    private static Iterator<IndividualExpression> getAll(IndividualSequenceExpression expression) {
-        List<IndividualElement> elements = new ArrayList<>(((IndividualSequence) expression).getAllIndividualElements());
-        sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), DomainOfIndividual::getIndividual);
-    }
-
-    /**
-     * Gets an iterator over all the expressions within the specified expression of a sequence
-     *
-     * @param expression The expression of a sequence
-     * @return An iterator over the contained expressions
-     */
-    private static Iterator<LiteralExpression> getAll(LiteralSequenceExpression expression) {
-        List<LiteralElement> elements = new ArrayList<>(((LiteralSequence) expression).getAllLiteralElements());
-        sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), DomainOfLiteral::getLiteral);
-    }
-
-    /**
-     * Sorts the specified list of sequence element by their indices
-     *
-     * @param elements A list of sequence elements
-     */
-    private static void sortElements(List<? extends SequenceElement> elements) {
-        elements.sort(Comparator.comparingInt(SequenceElement::getIndex));
     }
 }

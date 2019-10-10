@@ -70,6 +70,45 @@ public class JsonLdLoader implements Loader {
     }
 
     /**
+     * The RDF nodes management
+     */
+    private final DatasetNodes nodes;
+    /**
+     * The current logger
+     */
+    private Logger logger;
+    /**
+     * The loaded triples
+     */
+    private List<Quad> quads;
+    /**
+     * The URI of the resource currently being loaded
+     */
+    private String resource;
+    /**
+     * Maps of blanks nodes
+     */
+    private Map<String, BlankNode> blanks;
+    /**
+     * Marker for the top-level object
+     */
+    private boolean markerTopLevel;
+    /**
+     * Initializes this loader
+     */
+    public JsonLdLoader() {
+        this(new CachedDatasetNodes());
+    }
+    /**
+     * Initializes this loader
+     *
+     * @param nodes The RDF nodes management
+     */
+    public JsonLdLoader(DatasetNodes nodes) {
+        this.nodes = nodes;
+    }
+
+    /**
      * Gets the canonical lexical form of a double value
      *
      * @param doubleString A serialized double value
@@ -145,29 +184,61 @@ public class JsonLdLoader implements Loader {
     }
 
     /**
-     * The RDF nodes management
+     * Determines whether the specified AST node defines a value node (as opposed to an object node)
+     *
+     * @param node    An AST node
+     * @param context The current context
+     * @return true if this is a value node
      */
-    private final DatasetNodes nodes;
+    private static boolean isValueNode(ASTNode node, JsonLdContext context) throws LoaderException {
+        if (node.getSymbol().getID() != JsonParser.ID.object)
+            return false;
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            String expandedKey = context.expandName(key);
+            if (Vocabulary.JSONLD.value.equals(key) || Vocabulary.JSONLD.value.equals(expandedKey))
+                return true;
+            if (Vocabulary.JSONLD.language.equals(key) || Vocabulary.JSONLD.language.equals(expandedKey))
+                return true;
+        }
+        return false;
+    }
+
     /**
-     * The current logger
+     * Determines whether the specified AST node defines a list
+     *
+     * @param node An AST node
+     * @return true if this is a list node
      */
-    private Logger logger;
+    private static boolean isListNode(ASTNode node, JsonLdContext context) throws LoaderException {
+        if (node.getSymbol().getID() != JsonParser.ID.object)
+            return false;
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            String expandedKey = context.expandName(key);
+            if (Vocabulary.JSONLD.list.equals(key) || Vocabulary.JSONLD.list.equals(expandedKey))
+                return true;
+        }
+        return false;
+    }
+
     /**
-     * The loaded triples
+     * Determines whether the specified AST node defines a set
+     *
+     * @param node An AST node
+     * @return true if this is a set node
      */
-    private List<Quad> quads;
-    /**
-     * The URI of the resource currently being loaded
-     */
-    private String resource;
-    /**
-     * Maps of blanks nodes
-     */
-    private Map<String, BlankNode> blanks;
-    /**
-     * Marker for the top-level object
-     */
-    private boolean markerTopLevel;
+    private static boolean isSetNode(ASTNode node, JsonLdContext context) throws LoaderException {
+        if (node.getSymbol().getID() != JsonParser.ID.object)
+            return false;
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            String expandedKey = context.expandName(key);
+            if (Vocabulary.JSONLD.set.equals(key) || Vocabulary.JSONLD.set.equals(expandedKey))
+                return true;
+        }
+        return false;
+    }
 
     /**
      * Gets the URI of the resource currently being loaded
@@ -176,22 +247,6 @@ public class JsonLdLoader implements Loader {
      */
     public String getCurrentResource() {
         return resource;
-    }
-
-    /**
-     * Initializes this loader
-     */
-    public JsonLdLoader() {
-        this(new CachedDatasetNodes());
-    }
-
-    /**
-     * Initializes this loader
-     *
-     * @param nodes The RDF nodes management
-     */
-    public JsonLdLoader(DatasetNodes nodes) {
-        this.nodes = nodes;
     }
 
     @Override
@@ -831,62 +886,5 @@ public class JsonLdLoader implements Loader {
             }
         }
         return result;
-    }
-
-    /**
-     * Determines whether the specified AST node defines a value node (as opposed to an object node)
-     *
-     * @param node    An AST node
-     * @param context The current context
-     * @return true if this is a value node
-     */
-    private static boolean isValueNode(ASTNode node, JsonLdContext context) throws LoaderException {
-        if (node.getSymbol().getID() != JsonParser.ID.object)
-            return false;
-        for (ASTNode member : node.getChildren()) {
-            String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandName(key);
-            if (Vocabulary.JSONLD.value.equals(key) || Vocabulary.JSONLD.value.equals(expandedKey))
-                return true;
-            if (Vocabulary.JSONLD.language.equals(key) || Vocabulary.JSONLD.language.equals(expandedKey))
-                return true;
-        }
-        return false;
-    }
-
-    /**
-     * Determines whether the specified AST node defines a list
-     *
-     * @param node An AST node
-     * @return true if this is a list node
-     */
-    private static boolean isListNode(ASTNode node, JsonLdContext context) throws LoaderException {
-        if (node.getSymbol().getID() != JsonParser.ID.object)
-            return false;
-        for (ASTNode member : node.getChildren()) {
-            String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandName(key);
-            if (Vocabulary.JSONLD.list.equals(key) || Vocabulary.JSONLD.list.equals(expandedKey))
-                return true;
-        }
-        return false;
-    }
-
-    /**
-     * Determines whether the specified AST node defines a set
-     *
-     * @param node An AST node
-     * @return true if this is a set node
-     */
-    private static boolean isSetNode(ASTNode node, JsonLdContext context) throws LoaderException {
-        if (node.getSymbol().getID() != JsonParser.ID.object)
-            return false;
-        for (ASTNode member : node.getChildren()) {
-            String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandName(key);
-            if (Vocabulary.JSONLD.set.equals(key) || Vocabulary.JSONLD.set.equals(expandedKey))
-                return true;
-        }
-        return false;
     }
 }

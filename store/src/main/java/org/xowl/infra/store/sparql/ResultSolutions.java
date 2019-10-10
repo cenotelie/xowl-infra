@@ -41,21 +41,21 @@ public class ResultSolutions implements Result {
     private final Solutions solutions;
 
     /**
-     * Gets the solutions
-     *
-     * @return The solutions
-     */
-    public Solutions getSolutions() {
-        return solutions;
-    }
-
-    /**
      * Initializes this result
      *
      * @param solutions The solutions
      */
     public ResultSolutions(Solutions solutions) {
         this.solutions = solutions;
+    }
+
+    /**
+     * Gets the solutions
+     *
+     * @return The solutions
+     */
+    public Solutions getSolutions() {
+        return solutions;
     }
 
     @Override

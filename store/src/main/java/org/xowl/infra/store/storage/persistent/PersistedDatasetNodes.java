@@ -67,11 +67,6 @@ public class PersistedDatasetNodes extends DatasetNodesImpl {
      * long: key to lang tag
      */
     private static final int ENTRY_LITERAL_SIZE = 8 + 8 + 8 + 8 + 8;
-
-    /**
-     * The execution manager to use
-     */
-    private ExecutionManager executionManager;
     /**
      * The backing store for the nodes' data
      */
@@ -112,6 +107,10 @@ public class PersistedDatasetNodes extends DatasetNodesImpl {
      * Cache of instantiated dynamic nodes
      */
     private final PersistedNodeCache<PersistedDynamicNode> cacheNodeDynamics;
+    /**
+     * The execution manager to use
+     */
+    private ExecutionManager executionManager;
 
     /**
      * Initializes this store of nodes

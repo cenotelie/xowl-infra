@@ -112,20 +112,6 @@ public abstract class ResourceAccess {
     }
 
     /**
-     * Gets the accessor for the specified resource
-     *
-     * @param resource The resource
-     * @return The accessor for the resource, or null if there is none
-     */
-    public static ResourceAccess getAccessFor(String resource) {
-        for (ResourceAccess access : REGISTRY) {
-            if (resource.startsWith(access.scheme))
-                return access;
-        }
-        return null;
-    }
-
-    /**
      * The scheme for this kind of access
      */
     private final String scheme;
@@ -137,6 +123,20 @@ public abstract class ResourceAccess {
      */
     public ResourceAccess(String scheme) {
         this.scheme = scheme;
+    }
+
+    /**
+     * Gets the accessor for the specified resource
+     *
+     * @param resource The resource
+     * @return The accessor for the resource, or null if there is none
+     */
+    public static ResourceAccess getAccessFor(String resource) {
+        for (ResourceAccess access : REGISTRY) {
+            if (resource.startsWith(access.scheme))
+                return access;
+        }
+        return null;
     }
 
     /**

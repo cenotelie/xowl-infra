@@ -50,15 +50,6 @@ public class OWLQueryEngine {
     private final GraphNode graph;
 
     /**
-     * Gets the RDF backend
-     *
-     * @return The RDF backend
-     */
-    public RDFQueryEngine getBackend() {
-        return rdfEngine;
-    }
-
-    /**
      * Initializes this engine
      *
      * @param store     The OWL store to query
@@ -69,6 +60,15 @@ public class OWLQueryEngine {
         this.evaluator = evaluator;
         this.rdfEngine = new RDFQueryEngine(store);
         this.graph = new VariableNode("__graph__");
+    }
+
+    /**
+     * Gets the RDF backend
+     *
+     * @return The RDF backend
+     */
+    public RDFQueryEngine getBackend() {
+        return rdfEngine;
     }
 
     /**

@@ -44,6 +44,150 @@ public class IRIMapper {
      * The default priority of identity HTTP matches (defer to downloading the resource)
      */
     public static final int PRIORITY_HTTP_MATCH = 0;
+    /**
+     * The entries in this mapper
+     */
+    private final List<BaseEntry> entries;
+
+    /**
+     * Initializes this mapper
+     */
+    public IRIMapper() {
+        entries = new ArrayList<>();
+    }
+
+    /**
+     * Returns a IRI mapper with the default mappings
+     *
+     * @return A default IRI mapper
+     */
+    public static IRIMapper getDefault() {
+        IRIMapper mapper = new IRIMapper();
+        // map the owl2, rdf and rdfs ontologies to the embarked one
+        return mapper
+                .addSimpleMap(IRIs.RDF, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/1999/02/22-rdf-syntax-ns.ttl")
+                .addSimpleMap(IRIs.RDFS, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2000/01/rdf-schema.ttl")
+                .addSimpleMap(IRIs.OWL2, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2002/07/owl.ttl")
+                // map the xOWL abstract syntax
+                .addRegexpMap(IRIs.XOWL_LANG + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/lang/defs/\\1.fs")
+                // map the OWL2 RL reasoning rules
+                .addRegexpMap(IRIs.XOWL_RULES + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/store/rules/\\1.xrdf");
+    }
+
+    /**
+     * Adds the specified simple map
+     *
+     * @param iri      The iri prefix to match
+     * @param location The physical pattern's root
+     * @return This mapper
+     */
+    public IRIMapper addSimpleMap(String iri, String location) {
+        entries.add(new SimpleEntry(iri, location));
+        return this;
+    }
+
+    /**
+     * Adds the specified simple map
+     *
+     * @param priority The priority of this mapping
+     * @param iri      The iri prefix to match
+     * @param location The physical pattern's root
+     * @return This mapper
+     */
+    public IRIMapper addSimpleMap(int priority, String iri, String location) {
+        entries.add(new SimpleEntry(priority, iri, location));
+        return this;
+    }
+
+    /**
+     * Adds the specified map matched by a prefix
+     *
+     * @param prefix   The iri prefix to match
+     * @param location The physical pattern's root
+     * @return This mapper
+     */
+    public IRIMapper addPrefixMap(String prefix, String location) {
+        entries.add(new PrefixEntry(prefix, location));
+        return this;
+    }
+
+    /**
+     * Adds the specified map matched by a prefix
+     *
+     * @param priority The priority of this mapping
+     * @param prefix   The iri prefix to match
+     * @param location The physical pattern's root
+     * @return This mapper
+     */
+    public IRIMapper addPrefixMap(int priority, String prefix, String location) {
+        entries.add(new PrefixEntry(priority, prefix, location));
+        return this;
+    }
+
+    /**
+     * Adds the specified map matched using a regular expression
+     *
+     * @param pattern  The regular expression to be matched by an iri
+     * @param location The template for the physical location
+     * @return This mapper
+     */
+    public IRIMapper addRegexpMap(String pattern, String location) {
+        entries.add(new RegExpEntry(pattern, location));
+        return this;
+    }
+
+    /**
+     * Adds the specified map matched using a regular expression
+     *
+     * @param priority The priority of this mapping
+     * @param pattern  The regular expression to be matched by an iri
+     * @param location The template for the physical location
+     * @return This mapper
+     */
+    public IRIMapper addRegexpMap(int priority, String pattern, String location) {
+        entries.add(new RegExpEntry(priority, pattern, location));
+        return this;
+    }
+
+    /**
+     * Adds a mapping of HTTP URIs to themselves
+     *
+     * @return This mapper
+     */
+    public IRIMapper addHTTPMap() {
+        entries.add(new HTTPEntry());
+        return this;
+    }
+
+    /**
+     * Adds a mapping of HTTP URIs to themselves
+     *
+     * @param priority The priority of this mapping
+     * @return This mapper
+     */
+    public IRIMapper addHTTPMap(int priority) {
+        entries.add(new HTTPEntry(priority));
+        return this;
+    }
+
+    /**
+     * Gets the physical pattern for the specified iri
+     *
+     * @param iri An iri
+     * @return The corresponding physical pattern
+     */
+    public String get(String iri) {
+        List<BaseEntry> matches = new ArrayList<>(entries.size());
+        for (BaseEntry entry : entries) {
+            if (entry.matches(iri)) {
+                matches.add(entry);
+            }
+        }
+        if (matches.isEmpty())
+            return null;
+        matches.sort(Comparator.comparingInt(BaseEntry::getPriority).reversed());
+        return matches.get(0).getLocationFor(iri);
+    }
 
     /**
      * Represents an entry in this mapper
@@ -272,150 +416,5 @@ public class IRIMapper {
         public String getLocationFor(String iri) {
             return iri;
         }
-    }
-
-    /**
-     * The entries in this mapper
-     */
-    private final List<BaseEntry> entries;
-
-    /**
-     * Initializes this mapper
-     */
-    public IRIMapper() {
-        entries = new ArrayList<>();
-    }
-
-    /**
-     * Adds the specified simple map
-     *
-     * @param iri      The iri prefix to match
-     * @param location The physical pattern's root
-     * @return This mapper
-     */
-    public IRIMapper addSimpleMap(String iri, String location) {
-        entries.add(new SimpleEntry(iri, location));
-        return this;
-    }
-
-    /**
-     * Adds the specified simple map
-     *
-     * @param priority The priority of this mapping
-     * @param iri      The iri prefix to match
-     * @param location The physical pattern's root
-     * @return This mapper
-     */
-    public IRIMapper addSimpleMap(int priority, String iri, String location) {
-        entries.add(new SimpleEntry(priority, iri, location));
-        return this;
-    }
-
-    /**
-     * Adds the specified map matched by a prefix
-     *
-     * @param prefix   The iri prefix to match
-     * @param location The physical pattern's root
-     * @return This mapper
-     */
-    public IRIMapper addPrefixMap(String prefix, String location) {
-        entries.add(new PrefixEntry(prefix, location));
-        return this;
-    }
-
-    /**
-     * Adds the specified map matched by a prefix
-     *
-     * @param priority The priority of this mapping
-     * @param prefix   The iri prefix to match
-     * @param location The physical pattern's root
-     * @return This mapper
-     */
-    public IRIMapper addPrefixMap(int priority, String prefix, String location) {
-        entries.add(new PrefixEntry(priority, prefix, location));
-        return this;
-    }
-
-    /**
-     * Adds the specified map matched using a regular expression
-     *
-     * @param pattern  The regular expression to be matched by an iri
-     * @param location The template for the physical location
-     * @return This mapper
-     */
-    public IRIMapper addRegexpMap(String pattern, String location) {
-        entries.add(new RegExpEntry(pattern, location));
-        return this;
-    }
-
-    /**
-     * Adds the specified map matched using a regular expression
-     *
-     * @param priority The priority of this mapping
-     * @param pattern  The regular expression to be matched by an iri
-     * @param location The template for the physical location
-     * @return This mapper
-     */
-    public IRIMapper addRegexpMap(int priority, String pattern, String location) {
-        entries.add(new RegExpEntry(priority, pattern, location));
-        return this;
-    }
-
-    /**
-     * Adds a mapping of HTTP URIs to themselves
-     *
-     * @return This mapper
-     */
-    public IRIMapper addHTTPMap() {
-        entries.add(new HTTPEntry());
-        return this;
-    }
-
-    /**
-     * Adds a mapping of HTTP URIs to themselves
-     *
-     * @param priority The priority of this mapping
-     * @return This mapper
-     */
-    public IRIMapper addHTTPMap(int priority) {
-        entries.add(new HTTPEntry(priority));
-        return this;
-    }
-
-    /**
-     * Gets the physical pattern for the specified iri
-     *
-     * @param iri An iri
-     * @return The corresponding physical pattern
-     */
-    public String get(String iri) {
-        List<BaseEntry> matches = new ArrayList<>(entries.size());
-        for (BaseEntry entry : entries) {
-            if (entry.matches(iri)) {
-                matches.add(entry);
-            }
-        }
-        if (matches.isEmpty())
-            return null;
-        matches.sort(Comparator.comparingInt(BaseEntry::getPriority).reversed());
-        return matches.get(0).getLocationFor(iri);
-    }
-
-    /**
-     * Returns a IRI mapper with the default mappings
-     *
-     * @return A default IRI mapper
-     */
-    public static IRIMapper getDefault() {
-        IRIMapper mapper = new IRIMapper();
-        // map the owl2, rdf and rdfs ontologies to the embarked one
-        return mapper
-                .addSimpleMap(IRIs.RDF, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/1999/02/22-rdf-syntax-ns.ttl")
-                .addSimpleMap(IRIs.RDFS, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2000/01/rdf-schema.ttl")
-                .addSimpleMap(IRIs.OWL2, ResourceAccess.SCHEME_RESOURCE + "/org/w3c/www/2002/07/owl.ttl")
-                // map the xOWL abstract syntax
-                .addRegexpMap(IRIs.XOWL_LANG + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/lang/defs/\\1.fs")
-                // map the OWL2 RL reasoning rules
-                .addRegexpMap(IRIs.XOWL_RULES + "(.*)", ResourceAccess.SCHEME_RESOURCE + "/org/xowl/infra/store/rules/\\1.xrdf");
     }
 }

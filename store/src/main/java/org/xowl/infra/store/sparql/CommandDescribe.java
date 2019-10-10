@@ -49,11 +49,6 @@ public class CommandDescribe implements Command {
      */
     private final Collection<String> iris;
 
-    @Override
-    public boolean isUpdateCommand() {
-        return false;
-    }
-
     /**
      * Initializes this command
      *
@@ -63,6 +58,11 @@ public class CommandDescribe implements Command {
         this.pattern = pattern;
         this.variables = new ArrayList<>();
         this.iris = new ArrayList<>();
+    }
+
+    @Override
+    public boolean isUpdateCommand() {
+        return false;
     }
 
     /**

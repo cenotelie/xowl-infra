@@ -72,15 +72,6 @@ public class RepositoryRDF extends Repository {
     private OWLRuleEngine ruleEngine;
 
     /**
-     * Gets the backing store
-     *
-     * @return The backing store
-     */
-    public Store getStore() {
-        return store;
-    }
-
-    /**
      * Initializes this repository
      */
     public RepositoryRDF() {
@@ -131,6 +122,15 @@ public class RepositoryRDF extends Repository {
             // cannot happen
         }
         this.graphs = new HashMap<>();
+    }
+
+    /**
+     * Gets the backing store
+     *
+     * @return The backing store
+     */
+    public Store getStore() {
+        return store;
     }
 
     /**

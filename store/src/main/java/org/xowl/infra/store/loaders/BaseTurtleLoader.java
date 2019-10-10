@@ -89,6 +89,31 @@ public abstract class BaseTurtleLoader implements Loader {
     }
 
     /**
+     * Gets the RDF list node equivalent to the specified list of RDF nodes
+     *
+     * @param elements The RDF nodes in the list
+     * @param graph    The current graph
+     * @param nodes    The node manager to use
+     * @param quads    The buffer for the created quads
+     * @return The head of the RDF list
+     */
+    protected static Node buildRdfList(List<Node> elements, GraphNode graph, DatasetNodes nodes, Collection<Quad> quads) {
+        if (elements.isEmpty())
+            return nodes.getIRINode(Vocabulary.rdfNil);
+
+        BlankNode[] proxies = new BlankNode[elements.size()];
+        for (int i = 0; i != proxies.length; i++) {
+            proxies[i] = nodes.getBlankNode();
+            quads.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
+        }
+        for (int i = 0; i != proxies.length - 1; i++) {
+            quads.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
+        }
+        quads.add(new Quad(graph, proxies[proxies.length - 1], nodes.getIRINode(Vocabulary.rdfRest), nodes.getIRINode(Vocabulary.rdfNil)));
+        return proxies[0];
+    }
+
+    /**
      * Gets the parser for the specified input
      *
      * @param reader An input to read
@@ -488,30 +513,5 @@ public abstract class BaseTurtleLoader implements Loader {
             }
             index += 2;
         }
-    }
-
-    /**
-     * Gets the RDF list node equivalent to the specified list of RDF nodes
-     *
-     * @param elements The RDF nodes in the list
-     * @param graph    The current graph
-     * @param nodes    The node manager to use
-     * @param quads    The buffer for the created quads
-     * @return The head of the RDF list
-     */
-    protected static Node buildRdfList(List<Node> elements, GraphNode graph, DatasetNodes nodes, Collection<Quad> quads) {
-        if (elements.isEmpty())
-            return nodes.getIRINode(Vocabulary.rdfNil);
-
-        BlankNode[] proxies = new BlankNode[elements.size()];
-        for (int i = 0; i != proxies.length; i++) {
-            proxies[i] = nodes.getBlankNode();
-            quads.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
-        }
-        for (int i = 0; i != proxies.length - 1; i++) {
-            quads.add(new Quad(graph, proxies[i], nodes.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
-        }
-        quads.add(new Quad(graph, proxies[proxies.length - 1], nodes.getIRINode(Vocabulary.rdfRest), nodes.getIRINode(Vocabulary.rdfNil)));
-        return proxies[0];
     }
 }

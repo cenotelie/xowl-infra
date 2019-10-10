@@ -28,11 +28,6 @@ public class EvaluableExpressionDefault implements EvaluableExpression {
      */
     private final String source;
 
-    @Override
-    public String getSource() {
-        return source;
-    }
-
     /**
      * Initializes this expression
      *
@@ -40,5 +35,10 @@ public class EvaluableExpressionDefault implements EvaluableExpression {
      */
     public EvaluableExpressionDefault(String source) {
         this.source = source != null ? source : "";
+    }
+
+    @Override
+    public String getSource() {
+        return source;
     }
 }

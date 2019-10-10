@@ -27,6 +27,38 @@ import java.util.Collections;
  */
 public class Changeset {
     /**
+     * The quads that are incremented
+     */
+    private final Collection<Quad> incremented;
+    /**
+     * The quads that are decremented
+     */
+    private final Collection<Quad> decremented;
+    /**
+     * The quads that are added
+     */
+    private final Collection<Quad> added;
+    /**
+     * The quads that are removed
+     */
+    private final Collection<Quad> removed;
+
+    /**
+     * Initializes this changeset
+     *
+     * @param incremented The quads that are incremented
+     * @param decremented The quads that are decremented
+     * @param positives   The quads that are added
+     * @param negatives   The quads that are removed
+     */
+    public Changeset(Collection<? extends Quad> incremented, Collection<? extends Quad> decremented, Collection<? extends Quad> positives, Collection<? extends Quad> negatives) {
+        this.incremented = Collections.unmodifiableCollection(incremented);
+        this.decremented = Collections.unmodifiableCollection(decremented);
+        this.added = Collections.unmodifiableCollection(positives);
+        this.removed = Collections.unmodifiableCollection(negatives);
+    }
+
+    /**
      * Create a changeset for added quads
      *
      * @param quads The added quads
@@ -68,23 +100,6 @@ public class Changeset {
     }
 
     /**
-     * The quads that are incremented
-     */
-    private final Collection<Quad> incremented;
-    /**
-     * The quads that are decremented
-     */
-    private final Collection<Quad> decremented;
-    /**
-     * The quads that are added
-     */
-    private final Collection<Quad> added;
-    /**
-     * The quads that are removed
-     */
-    private final Collection<Quad> removed;
-
-    /**
      * Gets the quads that are incremented
      *
      * @return The quads that are incremented
@@ -118,20 +133,5 @@ public class Changeset {
      */
     public Collection<Quad> getRemoved() {
         return removed;
-    }
-
-    /**
-     * Initializes this changeset
-     *
-     * @param incremented The quads that are incremented
-     * @param decremented The quads that are decremented
-     * @param positives   The quads that are added
-     * @param negatives   The quads that are removed
-     */
-    public Changeset(Collection<? extends Quad> incremented, Collection<? extends Quad> decremented, Collection<? extends Quad> positives, Collection<? extends Quad> negatives) {
-        this.incremented = Collections.unmodifiableCollection(incremented);
-        this.decremented = Collections.unmodifiableCollection(decremented);
-        this.added = Collections.unmodifiableCollection(positives);
-        this.removed = Collections.unmodifiableCollection(negatives);
     }
 }

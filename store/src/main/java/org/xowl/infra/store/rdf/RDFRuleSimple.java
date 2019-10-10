@@ -42,15 +42,6 @@ public class RDFRuleSimple extends RDFRule {
     private final RDFPattern consequents;
 
     /**
-     * Gets whether to trigger this rule only on distinct solutions
-     *
-     * @return Whether to trigger this rule only on distinct solutions
-     */
-    public boolean isDistinct() {
-        return distinct;
-    }
-
-    /**
      * Initializes this rule
      *
      * @param iri      The rule's identifying iri
@@ -74,6 +65,15 @@ public class RDFRuleSimple extends RDFRule {
         this.distinct = distinct;
         this.antecedents = new RDFPattern();
         this.consequents = new RDFPattern();
+    }
+
+    /**
+     * Gets whether to trigger this rule only on distinct solutions
+     *
+     * @return Whether to trigger this rule only on distinct solutions
+     */
+    public boolean isDistinct() {
+        return distinct;
     }
 
     /**

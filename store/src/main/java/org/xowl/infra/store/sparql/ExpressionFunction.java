@@ -43,15 +43,6 @@ public abstract class ExpressionFunction {
     private final int argsCountMax;
 
     /**
-     * Gets the function name (or IRI)
-     *
-     * @return The function name (or IRI)
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
      * Initializes this function
      *
      * @param name         The function name (or IRI)
@@ -62,6 +53,15 @@ public abstract class ExpressionFunction {
         this.name = name;
         this.argsCountMin = argsCountMin;
         this.argsCountMax = argsCountMax;
+    }
+
+    /**
+     * Gets the function name (or IRI)
+     *
+     * @return The function name (or IRI)
+     */
+    public String getName() {
+        return name;
     }
 
     /**

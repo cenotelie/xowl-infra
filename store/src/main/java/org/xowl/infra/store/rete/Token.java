@@ -80,6 +80,33 @@ public class Token implements RDFPatternMatch {
     }
 
     /**
+     * Gets whether the bindings of two tokens are the same
+     *
+     * @param token1 A token
+     * @param token2 A token
+     * @return true if the bindings of two tokens are the same
+     */
+    private static boolean sameBindings(Token token1, Token token2) {
+        if (token1 == token2)
+            return true;
+        if (token1.variables != null && token1.values != null) {
+            if (token2.variables != null && token2.values != null) {
+                if (token1.variables.length != token2.variables.length)
+                    return false;
+                for (int i = 0; i != token1.variables.length; i++) {
+                    if (!RDFUtils.same(token1.variables[i], token2.variables[i]) || !RDFUtils.same(token1.values[i], token2.values[i]))
+                        return false;
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return (token2.variables == null);
+        }
+    }
+
+    /**
      * Gets the parent token
      *
      * @return The parent token
@@ -172,33 +199,6 @@ public class Token implements RDFPatternMatch {
             right = right.parent;
         }
         return (left == null && right == null);
-    }
-
-    /**
-     * Gets whether the bindings of two tokens are the same
-     *
-     * @param token1 A token
-     * @param token2 A token
-     * @return true if the bindings of two tokens are the same
-     */
-    private static boolean sameBindings(Token token1, Token token2) {
-        if (token1 == token2)
-            return true;
-        if (token1.variables != null && token1.values != null) {
-            if (token2.variables != null && token2.values != null) {
-                if (token1.variables.length != token2.variables.length)
-                    return false;
-                for (int i = 0; i != token1.variables.length; i++) {
-                    if (!RDFUtils.same(token1.variables[i], token2.variables[i]) || !RDFUtils.same(token1.values[i], token2.values[i]))
-                        return false;
-                }
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return (token2.variables == null);
-        }
     }
 
     @Override

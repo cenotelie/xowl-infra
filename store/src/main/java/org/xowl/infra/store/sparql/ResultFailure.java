@@ -40,21 +40,21 @@ public class ResultFailure implements Result {
     private final String message;
 
     /**
-     * Gets the message, if any
-     *
-     * @return The message, if any
-     */
-    public String getMessage() {
-        return message;
-    }
-
-    /**
      * Initializes this result
      *
      * @param message The message, if any
      */
     public ResultFailure(String message) {
         this.message = message;
+    }
+
+    /**
+     * Gets the message, if any
+     *
+     * @return The message, if any
+     */
+    public String getMessage() {
+        return message;
     }
 
     @Override

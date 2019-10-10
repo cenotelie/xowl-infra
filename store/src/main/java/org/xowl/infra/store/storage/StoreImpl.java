@@ -52,83 +52,26 @@ class StoreImpl implements Store {
      * State flag for locking access to the transactions register
      */
     private static final int STATE_FLAG_TRANSACTIONS_LOCK = 2;
-
-    /**
-     * Implementation of a transaction for this store
-     */
-    private static class MyTransaction extends StoreTransaction {
-        /**
-         * The parent store
-         */
-        private final StoreImpl parent;
-        /**
-         * The interface store for this transaction
-         */
-        private final DatasetForTransaction dataset;
-        /**
-         * The transaction from the backing storage system
-         */
-        private final Transaction transaction;
-
-        /**
-         * Initializes this transaction
-         *
-         * @param parent     The parent store
-         * @param base       The base dataset
-         * @param writable   Whether this transaction allows writing
-         * @param autocommit Whether this transaction should commit when being closed
-         */
-        public MyTransaction(StoreImpl parent, DatasetImpl base, boolean writable, boolean autocommit) {
-            super(writable, autocommit);
-            this.parent = parent;
-            this.dataset = new DatasetForTransaction(base, true);
-            this.transaction = base.newTransaction(writable, autocommit);
-        }
-
-        @Override
-        public Dataset getDataset() {
-            return dataset;
-        }
-
-        @Override
-        protected void doCommit() throws ConcurrentWriteException {
-            dataset.commit();
-            transaction.commit();
-        }
-
-        @Override
-        protected void doAbort() {
-            dataset.rollback();
-            transaction.abort();
-        }
-
-        @Override
-        protected void onClose() {
-            parent.onTransactionEnd(this);
-        }
-    }
-
     /**
      * The current state of the log
      */
     private final AtomicInteger state;
     /**
-     * The currently running transactions
-     */
-    private volatile StoreTransaction[] transactions;
-    /**
      * The currently running transactions by thread
      */
     private final WeakHashMap<Thread, StoreTransaction> transactionsByThread;
     /**
-     * The number of running transactions
-     */
-    private volatile int transactionsCount;
-    /**
      * The base dataset
      */
     private final DatasetImpl base;
-
+    /**
+     * The currently running transactions
+     */
+    private volatile StoreTransaction[] transactions;
+    /**
+     * The number of running transactions
+     */
+    private volatile int transactionsCount;
     /**
      * Initializes this store
      *
@@ -333,5 +276,60 @@ class StoreImpl implements Store {
      */
     private void onClose() throws Exception {
         base.close();
+    }
+
+    /**
+     * Implementation of a transaction for this store
+     */
+    private static class MyTransaction extends StoreTransaction {
+        /**
+         * The parent store
+         */
+        private final StoreImpl parent;
+        /**
+         * The interface store for this transaction
+         */
+        private final DatasetForTransaction dataset;
+        /**
+         * The transaction from the backing storage system
+         */
+        private final Transaction transaction;
+
+        /**
+         * Initializes this transaction
+         *
+         * @param parent     The parent store
+         * @param base       The base dataset
+         * @param writable   Whether this transaction allows writing
+         * @param autocommit Whether this transaction should commit when being closed
+         */
+        public MyTransaction(StoreImpl parent, DatasetImpl base, boolean writable, boolean autocommit) {
+            super(writable, autocommit);
+            this.parent = parent;
+            this.dataset = new DatasetForTransaction(base, true);
+            this.transaction = base.newTransaction(writable, autocommit);
+        }
+
+        @Override
+        public Dataset getDataset() {
+            return dataset;
+        }
+
+        @Override
+        protected void doCommit() throws ConcurrentWriteException {
+            dataset.commit();
+            transaction.commit();
+        }
+
+        @Override
+        protected void doAbort() {
+            dataset.rollback();
+            transaction.abort();
+        }
+
+        @Override
+        protected void onClose() {
+            parent.onTransactionEnd(this);
+        }
     }
 }

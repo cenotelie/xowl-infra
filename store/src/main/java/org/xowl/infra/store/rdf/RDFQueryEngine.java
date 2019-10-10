@@ -37,211 +37,6 @@ public class RDFQueryEngine implements ChangeListener {
      * The number of queries in the cache above which the cache starts to clear itself by removing less used queries
      */
     private static final int CACHE_MAX_SIZE = 64;
-
-    /**
-     * Represents a cached query that continues being executed
-     */
-    private static class CacheElem implements TokenActivable {
-        /**
-         * The original query
-         */
-        private final RDFQuery query;
-        /**
-         * The associated RETE rule
-         */
-        private final RETERule rule;
-        /**
-         * The solution tokens
-         */
-        private final FastBuffer<Token> tokens;
-        /**
-         * The number of times this query has been used
-         * The count is approximate in multi-threading environment but this should be good enough
-         */
-        private int hitCount;
-
-        /**
-         * Initializes this cache element
-         *
-         * @param query The original query
-         */
-        public CacheElem(RDFQuery query) {
-            this.query = query;
-            this.rule = new RETERule(this);
-            this.rule.getPositives().addAll(query.getPositives());
-            this.rule.getNegatives().addAll(query.getNegatives());
-            this.tokens = new FastBuffer<>(8);
-            this.hitCount = 0;
-        }
-
-        /**
-         * Gets the RETE rule associated to this query
-         *
-         * @return The associated RETE rule
-         */
-        public RETERule getRule() {
-            return rule;
-        }
-
-        /**
-         * Gets the hit count for this cache element
-         *
-         * @return The hit count
-         */
-        public int getHitCount() {
-            return hitCount;
-        }
-
-        @Override
-        public void activateToken(Token token) {
-            synchronized (tokens) {
-                tokens.add(token);
-            }
-        }
-
-        @Override
-        public void deactivateToken(Token token) {
-            synchronized (tokens) {
-                tokens.remove(token);
-            }
-        }
-
-        @Override
-        public void activateTokens(Collection<Token> tokens) {
-            synchronized (this.tokens) {
-                this.tokens.addAll(tokens);
-            }
-        }
-
-        @Override
-        public void deactivateTokens(Collection<Token> tokens) {
-            synchronized (this.tokens) {
-                this.tokens.removeAll(tokens);
-            }
-        }
-
-        /**
-         * Determines whether this cache element matches the specified query
-         *
-         * @param candidate A query candidate
-         * @return true if the candidate matches the query represented by this cache element
-         */
-        public boolean matches(RDFQuery candidate) {
-            return query.equals(candidate);
-        }
-
-        /**
-         * Gets the current solutions to the query represented by this cache element
-         *
-         * @return the current solutions
-         */
-        public List<RDFPatternSolution> getSolutions() {
-            hitCount++;
-            List<RDFPatternSolution> results = new ArrayList<>();
-            for (Token token : tokens) {
-                if (token != null)
-                    results.add(new RDFPatternSolution(token.getBindings()));
-            }
-            return results;
-        }
-    }
-
-    /**
-     * Represents the thread-specific inputs and outputs of the engine
-     */
-    private static class EngineIO {
-        /**
-         * Buffer of positive quads yet to be flushed
-         */
-        private Collection<Quad> bufferPositives;
-        /**
-         * Buffer of negative quads yet ro be flushed
-         */
-        private Collection<Quad> bufferNegatives;
-        /**
-         * Flag whether outstanding changes are currently being applied
-         */
-        public boolean isFlushing;
-
-        /**
-         * Gets whether there are outstanding changes
-         *
-         * @return Whether there are outstanding changes
-         */
-        public boolean hasOutstandingChanges() {
-            return (bufferPositives != null && !bufferPositives.isEmpty())
-                    || (bufferNegatives != null && !bufferNegatives.isEmpty());
-        }
-
-        /**
-         * Gets the positive quads to be injected (and resets the buffer)
-         *
-         * @return The positive quads to be injected
-         */
-        public Collection<Quad> checkoutPositivesQuads() {
-            Collection<Quad> result = bufferPositives == null ? Collections.emptyList() : bufferPositives;
-            bufferPositives = null;
-            return result;
-        }
-
-        /**
-         * Gets the negative quads to be injected (and resets the buffer)
-         *
-         * @return The negative quads to be injected
-         */
-        public Collection<Quad> checkoutNegativeQuads() {
-            Collection<Quad> result = bufferNegatives == null ? Collections.emptyList() : bufferNegatives;
-            bufferNegatives = null;
-            return result;
-        }
-
-        /**
-         * Adds a quad that is being added
-         *
-         * @param quad The added quad
-         */
-        public void addAddedQuad(Quad quad) {
-            if (bufferPositives == null)
-                bufferPositives = new ArrayList<>();
-            bufferPositives.add(quad);
-        }
-
-        /**
-         * Adds a quad that is being removed
-         *
-         * @param quad The removed quad
-         */
-        public void addRemovedQuad(Quad quad) {
-            if (bufferNegatives == null)
-                bufferNegatives = new ArrayList<>();
-            bufferNegatives.add(quad);
-        }
-
-        /**
-         * Adds a changeset being injected
-         *
-         * @param changeset The injected changeset
-         */
-        public void addChangeset(Changeset changeset) {
-            if (!changeset.getAdded().isEmpty()) {
-                if (bufferPositives == null)
-                    bufferPositives = new ArrayList<>();
-                bufferPositives.addAll(changeset.getAdded());
-            }
-            if (!changeset.getDecremented().isEmpty()) {
-                if (bufferNegatives == null)
-                    bufferNegatives = new ArrayList<>();
-                bufferNegatives.addAll(changeset.getDecremented());
-            }
-            if (!changeset.getRemoved().isEmpty()) {
-                if (bufferNegatives == null)
-                    bufferNegatives = new ArrayList<>();
-                bufferNegatives.addAll(changeset.getRemoved());
-            }
-        }
-    }
-
-
     /**
      * A RETE network for the pattern matching of queries
      */
@@ -254,7 +49,6 @@ public class RDFQueryEngine implements ChangeListener {
      * The thread-specific engine inputs and outputs
      */
     private final ThreadLocal<EngineIO> threadIO;
-
     /**
      * Initializes this engine
      *
@@ -372,5 +166,208 @@ public class RDFQueryEngine implements ChangeListener {
             rete.injectNegatives(io.checkoutNegativeQuads());
         }
         io.isFlushing = false;
+    }
+
+    /**
+     * Represents a cached query that continues being executed
+     */
+    private static class CacheElem implements TokenActivable {
+        /**
+         * The original query
+         */
+        private final RDFQuery query;
+        /**
+         * The associated RETE rule
+         */
+        private final RETERule rule;
+        /**
+         * The solution tokens
+         */
+        private final FastBuffer<Token> tokens;
+        /**
+         * The number of times this query has been used
+         * The count is approximate in multi-threading environment but this should be good enough
+         */
+        private int hitCount;
+
+        /**
+         * Initializes this cache element
+         *
+         * @param query The original query
+         */
+        public CacheElem(RDFQuery query) {
+            this.query = query;
+            this.rule = new RETERule(this);
+            this.rule.getPositives().addAll(query.getPositives());
+            this.rule.getNegatives().addAll(query.getNegatives());
+            this.tokens = new FastBuffer<>(8);
+            this.hitCount = 0;
+        }
+
+        /**
+         * Gets the RETE rule associated to this query
+         *
+         * @return The associated RETE rule
+         */
+        public RETERule getRule() {
+            return rule;
+        }
+
+        /**
+         * Gets the hit count for this cache element
+         *
+         * @return The hit count
+         */
+        public int getHitCount() {
+            return hitCount;
+        }
+
+        @Override
+        public void activateToken(Token token) {
+            synchronized (tokens) {
+                tokens.add(token);
+            }
+        }
+
+        @Override
+        public void deactivateToken(Token token) {
+            synchronized (tokens) {
+                tokens.remove(token);
+            }
+        }
+
+        @Override
+        public void activateTokens(Collection<Token> tokens) {
+            synchronized (this.tokens) {
+                this.tokens.addAll(tokens);
+            }
+        }
+
+        @Override
+        public void deactivateTokens(Collection<Token> tokens) {
+            synchronized (this.tokens) {
+                this.tokens.removeAll(tokens);
+            }
+        }
+
+        /**
+         * Determines whether this cache element matches the specified query
+         *
+         * @param candidate A query candidate
+         * @return true if the candidate matches the query represented by this cache element
+         */
+        public boolean matches(RDFQuery candidate) {
+            return query.equals(candidate);
+        }
+
+        /**
+         * Gets the current solutions to the query represented by this cache element
+         *
+         * @return the current solutions
+         */
+        public List<RDFPatternSolution> getSolutions() {
+            hitCount++;
+            List<RDFPatternSolution> results = new ArrayList<>();
+            for (Token token : tokens) {
+                if (token != null)
+                    results.add(new RDFPatternSolution(token.getBindings()));
+            }
+            return results;
+        }
+    }
+
+    /**
+     * Represents the thread-specific inputs and outputs of the engine
+     */
+    private static class EngineIO {
+        /**
+         * Flag whether outstanding changes are currently being applied
+         */
+        public boolean isFlushing;
+        /**
+         * Buffer of positive quads yet to be flushed
+         */
+        private Collection<Quad> bufferPositives;
+        /**
+         * Buffer of negative quads yet ro be flushed
+         */
+        private Collection<Quad> bufferNegatives;
+
+        /**
+         * Gets whether there are outstanding changes
+         *
+         * @return Whether there are outstanding changes
+         */
+        public boolean hasOutstandingChanges() {
+            return (bufferPositives != null && !bufferPositives.isEmpty())
+                    || (bufferNegatives != null && !bufferNegatives.isEmpty());
+        }
+
+        /**
+         * Gets the positive quads to be injected (and resets the buffer)
+         *
+         * @return The positive quads to be injected
+         */
+        public Collection<Quad> checkoutPositivesQuads() {
+            Collection<Quad> result = bufferPositives == null ? Collections.emptyList() : bufferPositives;
+            bufferPositives = null;
+            return result;
+        }
+
+        /**
+         * Gets the negative quads to be injected (and resets the buffer)
+         *
+         * @return The negative quads to be injected
+         */
+        public Collection<Quad> checkoutNegativeQuads() {
+            Collection<Quad> result = bufferNegatives == null ? Collections.emptyList() : bufferNegatives;
+            bufferNegatives = null;
+            return result;
+        }
+
+        /**
+         * Adds a quad that is being added
+         *
+         * @param quad The added quad
+         */
+        public void addAddedQuad(Quad quad) {
+            if (bufferPositives == null)
+                bufferPositives = new ArrayList<>();
+            bufferPositives.add(quad);
+        }
+
+        /**
+         * Adds a quad that is being removed
+         *
+         * @param quad The removed quad
+         */
+        public void addRemovedQuad(Quad quad) {
+            if (bufferNegatives == null)
+                bufferNegatives = new ArrayList<>();
+            bufferNegatives.add(quad);
+        }
+
+        /**
+         * Adds a changeset being injected
+         *
+         * @param changeset The injected changeset
+         */
+        public void addChangeset(Changeset changeset) {
+            if (!changeset.getAdded().isEmpty()) {
+                if (bufferPositives == null)
+                    bufferPositives = new ArrayList<>();
+                bufferPositives.addAll(changeset.getAdded());
+            }
+            if (!changeset.getDecremented().isEmpty()) {
+                if (bufferNegatives == null)
+                    bufferNegatives = new ArrayList<>();
+                bufferNegatives.addAll(changeset.getDecremented());
+            }
+            if (!changeset.getRemoved().isEmpty()) {
+                if (bufferNegatives == null)
+                    bufferNegatives = new ArrayList<>();
+                bufferNegatives.addAll(changeset.getRemoved());
+            }
+        }
     }
 }

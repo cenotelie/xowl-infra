@@ -36,6 +36,65 @@ public class TurtleLexer extends ContextFreeLexer {
      * The automaton for this lexer
      */
     private static final Automaton commonAutomaton = Automaton.find(TurtleLexer.class, "TurtleLexer.bin");
+    /**
+     * The collection of terminals matched by this lexer
+     * <p>
+     * The terminals are in an order consistent with the automaton,
+     * so that terminal indices in the automaton can be used to retrieve the terminals in this table
+     */
+    private static final Symbol[] terminals = {
+            new Symbol(0x0001, "ε"),
+            new Symbol(0x0002, "$"),
+            new Symbol(0x003D, "["),
+            new Symbol(0x0035, "."),
+            new Symbol(0x0038, ";"),
+            new Symbol(0x003A, ","),
+            new Symbol(0x003C, "a"),
+            new Symbol(0x003E, "]"),
+            new Symbol(0x003F, "("),
+            new Symbol(0x0041, ")"),
+            new Symbol(0x0006, "BLANK"),
+            new Symbol(0x0003, "NEW_LINE"),
+            new Symbol(0x0004, "WHITE_SPACE"),
+            new Symbol(0x000F, "PNAME_NS"),
+            new Symbol(0x0013, "INTEGER"),
+            new Symbol(0x0005, "COMMENT"),
+            new Symbol(0x0007, "LANGTAG"),
+            new Symbol(0x0008, "IRIREF"),
+            new Symbol(0x0012, "ANON"),
+            new Symbol(0x0016, "STRING_LITERAL_QUOTE"),
+            new Symbol(0x0017, "STRING_LITERAL_SINGLE_QUOTE"),
+            new Symbol(0x0014, "DECIMAL"),
+            new Symbol(0x0044, "^^"),
+            new Symbol(0x0010, "PNAME_LN"),
+            new Symbol(0x0011, "BLANK_NODE_LABEL"),
+            new Symbol(0x0015, "DOUBLE"),
+            new Symbol(0x001B, "BASE"),
+            new Symbol(0x0042, "true"),
+            new Symbol(0x0037, "@base"),
+            new Symbol(0x0043, "false"),
+            new Symbol(0x0019, "STRING_LITERAL_LONG_QUOTE"),
+            new Symbol(0x0018, "STRING_LITERAL_LONG_SINGLE_QUOTE"),
+            new Symbol(0x001A, "PREFIX"),
+            new Symbol(0x0036, "@prefix")};
+
+    /**
+     * Initializes a new instance of the lexer
+     *
+     * @param input The lexer's input
+     */
+    public TurtleLexer(String input) {
+        super(commonAutomaton, terminals, 0x0006, input);
+    }
+
+    /**
+     * Initializes a new instance of the lexer
+     *
+     * @param input The lexer's input
+     */
+    public TurtleLexer(InputStreamReader input) {
+        super(commonAutomaton, terminals, 0x0006, input);
+    }
 
     /**
      * Contains the constant IDs for the terminals for this lexer
@@ -127,65 +186,5 @@ public class TurtleLexer extends ContextFreeLexer {
          * The unique identifier for the default context
          */
         public static final int DEFAULT = 0;
-    }
-
-    /**
-     * The collection of terminals matched by this lexer
-     * <p>
-     * The terminals are in an order consistent with the automaton,
-     * so that terminal indices in the automaton can be used to retrieve the terminals in this table
-     */
-    private static final Symbol[] terminals = {
-            new Symbol(0x0001, "ε"),
-            new Symbol(0x0002, "$"),
-            new Symbol(0x003D, "["),
-            new Symbol(0x0035, "."),
-            new Symbol(0x0038, ";"),
-            new Symbol(0x003A, ","),
-            new Symbol(0x003C, "a"),
-            new Symbol(0x003E, "]"),
-            new Symbol(0x003F, "("),
-            new Symbol(0x0041, ")"),
-            new Symbol(0x0006, "BLANK"),
-            new Symbol(0x0003, "NEW_LINE"),
-            new Symbol(0x0004, "WHITE_SPACE"),
-            new Symbol(0x000F, "PNAME_NS"),
-            new Symbol(0x0013, "INTEGER"),
-            new Symbol(0x0005, "COMMENT"),
-            new Symbol(0x0007, "LANGTAG"),
-            new Symbol(0x0008, "IRIREF"),
-            new Symbol(0x0012, "ANON"),
-            new Symbol(0x0016, "STRING_LITERAL_QUOTE"),
-            new Symbol(0x0017, "STRING_LITERAL_SINGLE_QUOTE"),
-            new Symbol(0x0014, "DECIMAL"),
-            new Symbol(0x0044, "^^"),
-            new Symbol(0x0010, "PNAME_LN"),
-            new Symbol(0x0011, "BLANK_NODE_LABEL"),
-            new Symbol(0x0015, "DOUBLE"),
-            new Symbol(0x001B, "BASE"),
-            new Symbol(0x0042, "true"),
-            new Symbol(0x0037, "@base"),
-            new Symbol(0x0043, "false"),
-            new Symbol(0x0019, "STRING_LITERAL_LONG_QUOTE"),
-            new Symbol(0x0018, "STRING_LITERAL_LONG_SINGLE_QUOTE"),
-            new Symbol(0x001A, "PREFIX"),
-            new Symbol(0x0036, "@prefix")};
-
-    /**
-     * Initializes a new instance of the lexer
-     *
-     * @param input The lexer's input
-     */
-    public TurtleLexer(String input) {
-        super(commonAutomaton, terminals, 0x0006, input);
-    }
-
-    /**
-     * Initializes a new instance of the lexer
-     *
-     * @param input The lexer's input
-     */
-    public TurtleLexer(InputStreamReader input) {
-        super(commonAutomaton, terminals, 0x0006, input);
     }
 }

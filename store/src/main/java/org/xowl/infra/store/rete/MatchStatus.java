@@ -37,19 +37,19 @@ public class MatchStatus implements Serializable {
     private final List<MatchStatusStep> steps;
 
     /**
+     * Initializes this status
+     */
+    public MatchStatus() {
+        this.steps = new ArrayList<>();
+    }
+
+    /**
      * Gets the match steps
      *
      * @return The match steps
      */
     public List<MatchStatusStep> getSteps() {
         return Collections.unmodifiableList(steps);
-    }
-
-    /**
-     * Initializes this status
-     */
-    public MatchStatus() {
-        this.steps = new ArrayList<>();
     }
 
     /**

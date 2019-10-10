@@ -52,6 +52,70 @@ public abstract class RDFRule {
     protected VariableResolver resolver;
 
     /**
+     * Initializes this rule
+     *
+     * @param iri   The rule's identifying iri
+     * @param guard The rule's guard, if any
+     */
+    public RDFRule(String iri, EvaluableExpression guard) {
+        this(iri, guard, null);
+    }
+
+    /**
+     * Initializes this rule
+     *
+     * @param iri    The rule's identifying iri
+     * @param guard  The rule's guard, if any
+     * @param source The source for this rule
+     */
+    public RDFRule(String iri, EvaluableExpression guard, String source) {
+        this.iri = iri;
+        this.guard = guard;
+        this.source = source;
+        this.resolver = VariableResolveStandard.INSTANCE;
+    }
+
+    /**
+     * Finds the unique variable nodes in a pattern of quads (only look in in the positive quads)
+     *
+     * @param variables The buffer for the result
+     * @param pattern   The pattern to inspect
+     */
+    protected static void findVariables(Collection<VariableNode> variables, RDFPattern pattern) {
+        for (Quad quad : pattern.getPositives())
+            findVariables(variables, quad);
+    }
+
+    /**
+     * Finds the unique variable nodes in a quad
+     *
+     * @param variables The buffer for the result
+     * @param quad      The quad to inspect
+     */
+    protected static void findVariables(Collection<VariableNode> variables, Quad quad) {
+        findVariables(variables, quad.getSubject());
+        findVariables(variables, quad.getProperty());
+        findVariables(variables, quad.getObject());
+        findVariables(variables, quad.getGraph());
+    }
+
+    /**
+     * Inspect a node when looking for variables
+     *
+     * @param variables The buffer for the result
+     * @param node      The node to inspect
+     */
+    protected static void findVariables(Collection<VariableNode> variables, Node node) {
+        if (node == null)
+            return;
+        if (node.getNodeType() != Node.TYPE_VARIABLE)
+            return;
+        VariableNode variable = (VariableNode) node;
+        if (!variables.contains(variable))
+            variables.add(variable);
+    }
+
+    /**
      * Gets the rule's identifying IRI
      *
      * @return The rule's identifying IRI
@@ -85,30 +149,6 @@ public abstract class RDFRule {
      */
     public void setResolver(VariableResolver resolver) {
         this.resolver = resolver;
-    }
-
-    /**
-     * Initializes this rule
-     *
-     * @param iri   The rule's identifying iri
-     * @param guard The rule's guard, if any
-     */
-    public RDFRule(String iri, EvaluableExpression guard) {
-        this(iri, guard, null);
-    }
-
-    /**
-     * Initializes this rule
-     *
-     * @param iri    The rule's identifying iri
-     * @param guard  The rule's guard, if any
-     * @param source The source for this rule
-     */
-    public RDFRule(String iri, EvaluableExpression guard, String source) {
-        this.iri = iri;
-        this.guard = guard;
-        this.source = source;
-        this.resolver = VariableResolveStandard.INSTANCE;
     }
 
     /**
@@ -171,46 +211,6 @@ public abstract class RDFRule {
             }
         }
         return true;
-    }
-
-    /**
-     * Finds the unique variable nodes in a pattern of quads (only look in in the positive quads)
-     *
-     * @param variables The buffer for the result
-     * @param pattern   The pattern to inspect
-     */
-    protected static void findVariables(Collection<VariableNode> variables, RDFPattern pattern) {
-        for (Quad quad : pattern.getPositives())
-            findVariables(variables, quad);
-    }
-
-    /**
-     * Finds the unique variable nodes in a quad
-     *
-     * @param variables The buffer for the result
-     * @param quad      The quad to inspect
-     */
-    protected static void findVariables(Collection<VariableNode> variables, Quad quad) {
-        findVariables(variables, quad.getSubject());
-        findVariables(variables, quad.getProperty());
-        findVariables(variables, quad.getObject());
-        findVariables(variables, quad.getGraph());
-    }
-
-    /**
-     * Inspect a node when looking for variables
-     *
-     * @param variables The buffer for the result
-     * @param node      The node to inspect
-     */
-    protected static void findVariables(Collection<VariableNode> variables, Node node) {
-        if (node == null)
-            return;
-        if (node.getNodeType() != Node.TYPE_VARIABLE)
-            return;
-        VariableNode variable = (VariableNode) node;
-        if (!variables.contains(variable))
-            variables.add(variable);
     }
 
     /**

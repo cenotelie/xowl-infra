@@ -56,6 +56,44 @@ public class RDFXMLLoader implements Loader {
             Vocabulary.rdf + "aboutEachPrefix",
             Vocabulary.rdf + "bagID"
     };
+    /**
+     * The RDF nodes management
+     */
+    private final DatasetNodes nodes;
+    /**
+     * The loaded triples
+     */
+    private List<Quad> quads;
+    /**
+     * Maps of the blanks nodes
+     */
+    private Map<String, BlankNode> blanks;
+    /**
+     * The current graph
+     */
+    private GraphNode graph;
+    /**
+     * List of all the known IDs so far
+     */
+    private List<String> knownIDs;
+    /**
+     * The imported ontologies
+     */
+    private Collection<String> imports;
+    /**
+     * Initializes this loader
+     */
+    public RDFXMLLoader() {
+        this(new CachedDatasetNodes());
+    }
+    /**
+     * Initializes this loader
+     *
+     * @param nodes The RDF nodes management
+     */
+    public RDFXMLLoader(DatasetNodes nodes) {
+        this.nodes = nodes;
+    }
 
     /**
      * Determines whether an element is a valid RDF resource element
@@ -99,48 +137,6 @@ public class RDFXMLLoader implements Loader {
             if (list[i].equals(value))
                 return true;
         return false;
-    }
-
-
-    /**
-     * The RDF nodes management
-     */
-    private final DatasetNodes nodes;
-    /**
-     * The loaded triples
-     */
-    private List<Quad> quads;
-    /**
-     * Maps of the blanks nodes
-     */
-    private Map<String, BlankNode> blanks;
-    /**
-     * The current graph
-     */
-    private GraphNode graph;
-    /**
-     * List of all the known IDs so far
-     */
-    private List<String> knownIDs;
-    /**
-     * The imported ontologies
-     */
-    private Collection<String> imports;
-
-    /**
-     * Initializes this loader
-     */
-    public RDFXMLLoader() {
-        this(new CachedDatasetNodes());
-    }
-
-    /**
-     * Initializes this loader
-     *
-     * @param nodes The RDF nodes management
-     */
-    public RDFXMLLoader(DatasetNodes nodes) {
-        this.nodes = nodes;
     }
 
     /**

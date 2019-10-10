@@ -31,15 +31,6 @@ class LoaderException extends Exception {
     private final ASTNode origin;
 
     /**
-     * Gets the AST node from which the error originated
-     *
-     * @return The AST node from which the error originated
-     */
-    public ASTNode getOrigin() {
-        return origin;
-    }
-
-    /**
      * Initializes this exception
      *
      * @param description The description for this exception
@@ -48,5 +39,14 @@ class LoaderException extends Exception {
     public LoaderException(String description, ASTNode origin) {
         super(description);
         this.origin = origin;
+    }
+
+    /**
+     * Gets the AST node from which the error originated
+     *
+     * @return The AST node from which the error originated
+     */
+    public ASTNode getOrigin() {
+        return origin;
     }
 }

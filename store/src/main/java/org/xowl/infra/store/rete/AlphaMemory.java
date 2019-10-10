@@ -39,13 +39,13 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
      */
     private final Quad pattern;
     /**
-     * The cache of facts
-     */
-    private volatile Collection<Quad> cache;
-    /**
      * List of the children of this node
      */
     private final FastBuffer<FactActivable> children;
+    /**
+     * The cache of facts
+     */
+    private volatile Collection<Quad> cache;
 
     /**
      * Initializes this memory

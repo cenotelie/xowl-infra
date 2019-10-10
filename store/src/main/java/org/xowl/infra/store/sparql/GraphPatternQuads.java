@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPattern;
@@ -39,15 +38,6 @@ public class GraphPatternQuads implements GraphPattern {
     private final RDFPattern pattern;
 
     /**
-     * Gets the RDF query represented by this pattern
-     *
-     * @return The RDF query
-     */
-    public RDFPattern getPattern() {
-        return pattern;
-    }
-
-    /**
      * Initializes this pattern
      */
     public GraphPatternQuads() {
@@ -61,6 +51,15 @@ public class GraphPatternQuads implements GraphPattern {
      */
     private GraphPatternQuads(RDFPattern pattern) {
         this.pattern = pattern;
+    }
+
+    /**
+     * Gets the RDF query represented by this pattern
+     *
+     * @return The RDF query
+     */
+    public RDFPattern getPattern() {
+        return pattern;
     }
 
     /**

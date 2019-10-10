@@ -32,13 +32,13 @@ class BetaNCCEntryNode implements TokenHolder, TokenActivable {
      */
     private final TokenHolder betaMem;
     /**
-     * The child node
-     */
-    private TokenActivable child;
-    /**
      * The exit node for the sub-graph
      */
     private final BetaNCCExitNode exit;
+    /**
+     * The child node
+     */
+    private TokenActivable child;
 
     /**
      * Initializes this node

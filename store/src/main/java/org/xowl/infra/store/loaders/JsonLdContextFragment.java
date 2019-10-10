@@ -53,6 +53,35 @@ class JsonLdContextFragment {
     private final String vocabulary;
 
     /**
+     * Initializes this fragment
+     *
+     * @param definition The AST node to load from
+     */
+    public JsonLdContextFragment(ASTNode definition) throws LoaderException {
+        mappings = new HashMap<>();
+        attributes = new HashMap<>();
+        String tLanguage = null;
+        String tBase = null;
+        String tVocab = null;
+        for (ASTNode member : definition.getChildren()) {
+            String key = JsonLdLoader.getValue(member.getChildren().get(0));
+            if (Vocabulary.JSONLD.language.equals(key)) {
+                tLanguage = JsonLdLoader.getValue(member.getChildren().get(1));
+                tLanguage = tLanguage == null ? Vocabulary.JSONLD.null_ : tLanguage;
+            } else if (Vocabulary.JSONLD.base.equals(key)) {
+                tBase = JsonLdLoader.getValue(member.getChildren().get(1));
+                tBase = tBase == null ? Vocabulary.JSONLD.null_ : tBase;
+            } else if (Vocabulary.JSONLD.vocab.equals(key)) {
+                tVocab = JsonLdLoader.getValue(member.getChildren().get(1));
+                tVocab = tVocab == null ? Vocabulary.JSONLD.null_ : tVocab;
+            }
+        }
+        this.language = tLanguage;
+        this.base = tBase;
+        this.vocabulary = tVocab;
+    }
+
+    /**
      * Gets the attributes of the specified name
      *
      * @param name A name
@@ -90,35 +119,6 @@ class JsonLdContextFragment {
      */
     public String getVocabulary() {
         return vocabulary;
-    }
-
-    /**
-     * Initializes this fragment
-     *
-     * @param definition The AST node to load from
-     */
-    public JsonLdContextFragment(ASTNode definition) throws LoaderException {
-        mappings = new HashMap<>();
-        attributes = new HashMap<>();
-        String tLanguage = null;
-        String tBase = null;
-        String tVocab = null;
-        for (ASTNode member : definition.getChildren()) {
-            String key = JsonLdLoader.getValue(member.getChildren().get(0));
-            if (Vocabulary.JSONLD.language.equals(key)) {
-                tLanguage = JsonLdLoader.getValue(member.getChildren().get(1));
-                tLanguage = tLanguage == null ? Vocabulary.JSONLD.null_ : tLanguage;
-            } else if (Vocabulary.JSONLD.base.equals(key)) {
-                tBase = JsonLdLoader.getValue(member.getChildren().get(1));
-                tBase = tBase == null ? Vocabulary.JSONLD.null_ : tBase;
-            } else if (Vocabulary.JSONLD.vocab.equals(key)) {
-                tVocab = JsonLdLoader.getValue(member.getChildren().get(1));
-                tVocab = tVocab == null ? Vocabulary.JSONLD.null_ : tVocab;
-            }
-        }
-        this.language = tLanguage;
-        this.base = tBase;
-        this.vocabulary = tVocab;
     }
 
     /**

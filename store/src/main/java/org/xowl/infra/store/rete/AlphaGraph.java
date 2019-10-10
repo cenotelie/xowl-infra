@@ -35,51 +35,6 @@ import java.util.Map.Entry;
  */
 class AlphaGraph extends AlphaMemoryBucket {
     /**
-     * Sub-bucket matching the object field of quads
-     */
-    private static class BucketObject extends AlphaMemoryBucket {
-        @Override
-        protected Node getNode(Quad quad) {
-            return quad.getObject();
-        }
-
-        @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
-            return new AlphaMemory(pattern, store);
-        }
-    }
-
-    /**
-     * Sub-bucket matching the property field of quads
-     */
-    private static class BucketProperty extends AlphaMemoryBucket {
-        @Override
-        protected Node getNode(Quad quad) {
-            return quad.getProperty();
-        }
-
-        @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
-            return new BucketObject();
-        }
-    }
-
-    /**
-     * Sub-bucket matching the subject field of quads
-     */
-    private static class BucketSubject extends AlphaMemoryBucket {
-        @Override
-        protected Node getNode(Quad quad) {
-            return quad.getSubject();
-        }
-
-        @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
-            return new BucketProperty();
-        }
-    }
-
-    /**
      * Initializes this buffer
      */
     public AlphaGraph() {
@@ -168,5 +123,50 @@ class AlphaGraph extends AlphaMemoryBucket {
             buffer.clear();
         }
         return map;
+    }
+
+    /**
+     * Sub-bucket matching the object field of quads
+     */
+    private static class BucketObject extends AlphaMemoryBucket {
+        @Override
+        protected Node getNode(Quad quad) {
+            return quad.getObject();
+        }
+
+        @Override
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
+            return new AlphaMemory(pattern, store);
+        }
+    }
+
+    /**
+     * Sub-bucket matching the property field of quads
+     */
+    private static class BucketProperty extends AlphaMemoryBucket {
+        @Override
+        protected Node getNode(Quad quad) {
+            return quad.getProperty();
+        }
+
+        @Override
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
+            return new BucketObject();
+        }
+    }
+
+    /**
+     * Sub-bucket matching the subject field of quads
+     */
+    private static class BucketSubject extends AlphaMemoryBucket {
+        @Override
+        protected Node getNode(Quad quad) {
+            return quad.getSubject();
+        }
+
+        @Override
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
+            return new BucketProperty();
+        }
     }
 }

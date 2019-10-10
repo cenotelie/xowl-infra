@@ -57,6 +57,21 @@ public class OWLLoaderResult {
     private final List<String> imports;
 
     /**
+     * Initialized an empty result
+     *
+     * @param iri     The iri of the loaded ontology
+     * @param version The version iri of the loaded ontology
+     */
+    public OWLLoaderResult(String iri, String version) {
+        this.iri = iri;
+        this.version = version;
+        this.axioms = new ArrayList<>();
+        this.rules = new ArrayList<>();
+        this.annotations = new ArrayList<>();
+        this.imports = new ArrayList<>();
+    }
+
+    /**
      * Gets the iri of the loaded ontology
      *
      * @return The iri of the loaded ontology
@@ -108,21 +123,6 @@ public class OWLLoaderResult {
      */
     public Collection<String> getImports() {
         return imports;
-    }
-
-    /**
-     * Initialized an empty result
-     *
-     * @param iri     The iri of the loaded ontology
-     * @param version The version iri of the loaded ontology
-     */
-    public OWLLoaderResult(String iri, String version) {
-        this.iri = iri;
-        this.version = version;
-        this.axioms = new ArrayList<>();
-        this.rules = new ArrayList<>();
-        this.annotations = new ArrayList<>();
-        this.imports = new ArrayList<>();
     }
 
     /**

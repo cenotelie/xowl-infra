@@ -19,6 +19,152 @@ public class xOWLLexer extends ContextSensitiveLexer {
      * The automaton for this lexer
      */
     private static final Automaton commonAutomaton = Automaton.find(xOWLLexer.class, "xOWLLexer.bin");
+    /**
+     * The collection of terminals matched by this lexer
+     * <p>
+     * The terminals are in an order consistent with the automaton,
+     * so that terminal indices in the automaton can be used to retrieve the terminals in this table
+     */
+    private static final Symbol[] terminals = {
+            new Symbol(0x0001, "ε"),
+            new Symbol(0x0002, "$"),
+            new Symbol(0x0039, "CLJ_DEREF"),
+            new Symbol(0x0025, "CLJ_SYMBOL"),
+            new Symbol(0x0030, "CLJ_LP"),
+            new Symbol(0x0016, "OWL2_LP"),
+            new Symbol(0x0031, "CLJ_RP"),
+            new Symbol(0x0017, "OWL2_RP"),
+            new Symbol(0x0018, "OWL2_PREFIX_MAP"),
+            new Symbol(0x003A, "CLJ_METADATA"),
+            new Symbol(0x001A, "XOWL_OPAQUE_EXP"),
+            new Symbol(0x0011, "PNAME_NS"),
+            new Symbol(0x002F, "LITERAL_ARGUMENT"),
+            new Symbol(0x0032, "CLJ_LB"),
+            new Symbol(0x0033, "CLJ_RB"),
+            new Symbol(0x0034, "CLJ_LC"),
+            new Symbol(0x0035, "CLJ_RC"),
+            new Symbol(0x0036, "CLJ_DISPATCH"),
+            new Symbol(0x0037, "CLJ_SET_SEPARATOR"),
+            new Symbol(0x0038, "CLJ_QUOTE"),
+            new Symbol(0x003C, "CLJ_SYNTAX_QUOTE"),
+            new Symbol(0x003D, "CLJ_UNQUOTE"),
+            new Symbol(0x002E, "LITERAL_FLOAT"),
+            new Symbol(0x002C, "LITERAL_INTEGER"),
+            new Symbol(0x0014, "OWL2_INTEGER"),
+            new Symbol(0x0008, "BLANK"),
+            new Symbol(0x000F, "LANGTAG"),
+            new Symbol(0x0010, "IRIREF"),
+            new Symbol(0x0027, "LITERAL_STRING"),
+            new Symbol(0x0015, "OWL2_STRING"),
+            new Symbol(0x0019, "OWL2_LITERAL_TYPE"),
+            new Symbol(0x001B, "XOWL_QVAR"),
+            new Symbol(0x0012, "PNAME_LN"),
+            new Symbol(0x0026, "CLJ_KEYWORD"),
+            new Symbol(0x0028, "LITERAL_CHAR"),
+            new Symbol(0x003B, "CLJ_IGNORE"),
+            new Symbol(0x003F, "CLJ_CONDITIONAL"),
+            new Symbol(0x003E, "CLJ_UNQUOTE_SPLICE"),
+            new Symbol(0x0013, "BLANK_NODE_LABEL"),
+            new Symbol(0x0021, "RULE_ELEMENT_NOT"),
+            new Symbol(0x0029, "LITERAL_NIL"),
+            new Symbol(0x002D, "LITERAL_RATIO"),
+            new Symbol(0x001C, "RULE_BLOCK_RULE"),
+            new Symbol(0x0020, "RULE_ELEMENT_META"),
+            new Symbol(0x002A, "LITERAL_TRUE"),
+            new Symbol(0x00E9, "Class"),
+            new Symbol(0x001F, "RULE_BLOCK_GUARD"),
+            new Symbol(0x002B, "LITERAL_FALSE"),
+            new Symbol(0x00BF, "Prefix"),
+            new Symbol(0x00C2, "Import"),
+            new Symbol(0x010E, "HasKey"),
+            new Symbol(0x00C0, "Ontology"),
+            new Symbol(0x00EA, "Datatype"),
+            new Symbol(0x00CE, "DataOneOf"),
+            new Symbol(0x00C5, "Annotation"),
+            new Symbol(0x00EF, "SubClassOf"),
+            new Symbol(0x001D, "RULE_BLOCK_ANTECEDENTS"),
+            new Symbol(0x001E, "RULE_BLOCK_CONSEQUENTS"),
+            new Symbol(0x00D7, "ObjectOneOf"),
+            new Symbol(0x00CB, "DataUnionOf"),
+            new Symbol(0x00E8, "Declaration"),
+            new Symbol(0x00E4, "DataHasValue"),
+            new Symbol(0x00EC, "DataProperty"),
+            new Symbol(0x00D4, "ObjectUnionOf"),
+            new Symbol(0x00DC, "ObjectHasSelf"),
+            new Symbol(0x00F4, "DisjointUnion"),
+            new Symbol(0x0115, "ClassAssertion"),
+            new Symbol(0x00EB, "ObjectProperty"),
+            new Symbol(0x00DB, "ObjectHasValue"),
+            new Symbol(0x0111, "SameIndividual"),
+            new Symbol(0x00EE, "NamedIndividual"),
+            new Symbol(0x00C8, "ObjectInverseOf"),
+            new Symbol(0x00F2, "DisjointClasses"),
+            new Symbol(0x00CD, "DataComplementOf"),
+            new Symbol(0x00E2, "DataAllValuesFrom"),
+            new Symbol(0x010B, "DataPropertyRange"),
+            new Symbol(0x0105, "SubDataPropertyOf"),
+            new Symbol(0x00F0, "EquivalentClasses"),
+            new Symbol(0x00ED, "AnnotationProperty"),
+            new Symbol(0x00D6, "ObjectComplementOf"),
+            new Symbol(0x00C9, "DataIntersectionOf"),
+            new Symbol(0x010D, "DatatypeDefinition"),
+            new Symbol(0x00E0, "DataSomeValuesFrom"),
+            new Symbol(0x00E5, "DataMinCardinality"),
+            new Symbol(0x00E6, "DataMaxCardinality"),
+            new Symbol(0x010A, "DataPropertyDomain"),
+            new Symbol(0x012D, "FunctionDefinition"),
+            new Symbol(0x011A, "AnnotationAssertion"),
+            new Symbol(0x00C6, "ObjectPropertyChain"),
+            new Symbol(0x00FD, "ObjectPropertyRange"),
+            new Symbol(0x00DA, "ObjectAllValuesFrom"),
+            new Symbol(0x00D0, "DatatypeRestriction"),
+            new Symbol(0x00F6, "SubObjectPropertyOf"),
+            new Symbol(0x00FC, "ObjectPropertyDomain"),
+            new Symbol(0x00D2, "ObjectIntersectionOf"),
+            new Symbol(0x00D9, "ObjectSomeValuesFrom"),
+            new Symbol(0x00DD, "ObjectMinCardinality"),
+            new Symbol(0x00DE, "ObjectMaxCardinality"),
+            new Symbol(0x00E7, "DataExactCardinality"),
+            new Symbol(0x0113, "DifferentIndividuals"),
+            new Symbol(0x0118, "DataPropertyAssertion"),
+            new Symbol(0x00DF, "ObjectExactCardinality"),
+            new Symbol(0x0108, "DisjointDataProperties"),
+            new Symbol(0x010C, "FunctionalDataProperty"),
+            new Symbol(0x0100, "ReflexiveObjectProperty"),
+            new Symbol(0x011D, "AnnotationPropertyRange"),
+            new Symbol(0x0116, "ObjectPropertyAssertion"),
+            new Symbol(0x00FB, "InverseObjectProperties"),
+            new Symbol(0x011B, "SubAnnotationPropertyOf"),
+            new Symbol(0x0102, "SymmetricObjectProperty"),
+            new Symbol(0x011C, "AnnotationPropertyDomain"),
+            new Symbol(0x0103, "AsymmetricObjectProperty"),
+            new Symbol(0x00F9, "DisjointObjectProperties"),
+            new Symbol(0x0106, "EquivalentDataProperties"),
+            new Symbol(0x00FE, "FunctionalObjectProperty"),
+            new Symbol(0x0104, "TransitiveObjectProperty"),
+            new Symbol(0x0101, "IrreflexiveObjectProperty"),
+            new Symbol(0x00F7, "EquivalentObjectProperties"),
+            new Symbol(0x0119, "NegativeDataPropertyAssertion"),
+            new Symbol(0x0117, "NegativeObjectPropertyAssertion"),
+            new Symbol(0x00FF, "InverseFunctionalObjectProperty")};
+
+    /**
+     * Initializes a new instance of the lexer
+     *
+     * @param input The lexer's input
+     */
+    public xOWLLexer(String input) {
+        super(commonAutomaton, terminals, 0x0008, input);
+    }
+
+    /**
+     * Initializes a new instance of the lexer
+     *
+     * @param input The lexer's input
+     */
+    public xOWLLexer(InputStreamReader input) {
+        super(commonAutomaton, terminals, 0x0008, input);
+    }
 
     /**
      * Contains the constant IDs for the terminals for this lexer
@@ -234,152 +380,5 @@ public class xOWLLexer extends ContextSensitiveLexer {
          * The unique identifier for context clojure
          */
         public static final int clojure = 0x0003;
-    }
-
-    /**
-     * The collection of terminals matched by this lexer
-     * <p>
-     * The terminals are in an order consistent with the automaton,
-     * so that terminal indices in the automaton can be used to retrieve the terminals in this table
-     */
-    private static final Symbol[] terminals = {
-            new Symbol(0x0001, "ε"),
-            new Symbol(0x0002, "$"),
-            new Symbol(0x0039, "CLJ_DEREF"),
-            new Symbol(0x0025, "CLJ_SYMBOL"),
-            new Symbol(0x0030, "CLJ_LP"),
-            new Symbol(0x0016, "OWL2_LP"),
-            new Symbol(0x0031, "CLJ_RP"),
-            new Symbol(0x0017, "OWL2_RP"),
-            new Symbol(0x0018, "OWL2_PREFIX_MAP"),
-            new Symbol(0x003A, "CLJ_METADATA"),
-            new Symbol(0x001A, "XOWL_OPAQUE_EXP"),
-            new Symbol(0x0011, "PNAME_NS"),
-            new Symbol(0x002F, "LITERAL_ARGUMENT"),
-            new Symbol(0x0032, "CLJ_LB"),
-            new Symbol(0x0033, "CLJ_RB"),
-            new Symbol(0x0034, "CLJ_LC"),
-            new Symbol(0x0035, "CLJ_RC"),
-            new Symbol(0x0036, "CLJ_DISPATCH"),
-            new Symbol(0x0037, "CLJ_SET_SEPARATOR"),
-            new Symbol(0x0038, "CLJ_QUOTE"),
-            new Symbol(0x003C, "CLJ_SYNTAX_QUOTE"),
-            new Symbol(0x003D, "CLJ_UNQUOTE"),
-            new Symbol(0x002E, "LITERAL_FLOAT"),
-            new Symbol(0x002C, "LITERAL_INTEGER"),
-            new Symbol(0x0014, "OWL2_INTEGER"),
-            new Symbol(0x0008, "BLANK"),
-            new Symbol(0x000F, "LANGTAG"),
-            new Symbol(0x0010, "IRIREF"),
-            new Symbol(0x0027, "LITERAL_STRING"),
-            new Symbol(0x0015, "OWL2_STRING"),
-            new Symbol(0x0019, "OWL2_LITERAL_TYPE"),
-            new Symbol(0x001B, "XOWL_QVAR"),
-            new Symbol(0x0012, "PNAME_LN"),
-            new Symbol(0x0026, "CLJ_KEYWORD"),
-            new Symbol(0x0028, "LITERAL_CHAR"),
-            new Symbol(0x003B, "CLJ_IGNORE"),
-            new Symbol(0x003F, "CLJ_CONDITIONAL"),
-            new Symbol(0x003E, "CLJ_UNQUOTE_SPLICE"),
-            new Symbol(0x0013, "BLANK_NODE_LABEL"),
-            new Symbol(0x0021, "RULE_ELEMENT_NOT"),
-            new Symbol(0x0029, "LITERAL_NIL"),
-            new Symbol(0x002D, "LITERAL_RATIO"),
-            new Symbol(0x001C, "RULE_BLOCK_RULE"),
-            new Symbol(0x0020, "RULE_ELEMENT_META"),
-            new Symbol(0x002A, "LITERAL_TRUE"),
-            new Symbol(0x00E9, "Class"),
-            new Symbol(0x001F, "RULE_BLOCK_GUARD"),
-            new Symbol(0x002B, "LITERAL_FALSE"),
-            new Symbol(0x00BF, "Prefix"),
-            new Symbol(0x00C2, "Import"),
-            new Symbol(0x010E, "HasKey"),
-            new Symbol(0x00C0, "Ontology"),
-            new Symbol(0x00EA, "Datatype"),
-            new Symbol(0x00CE, "DataOneOf"),
-            new Symbol(0x00C5, "Annotation"),
-            new Symbol(0x00EF, "SubClassOf"),
-            new Symbol(0x001D, "RULE_BLOCK_ANTECEDENTS"),
-            new Symbol(0x001E, "RULE_BLOCK_CONSEQUENTS"),
-            new Symbol(0x00D7, "ObjectOneOf"),
-            new Symbol(0x00CB, "DataUnionOf"),
-            new Symbol(0x00E8, "Declaration"),
-            new Symbol(0x00E4, "DataHasValue"),
-            new Symbol(0x00EC, "DataProperty"),
-            new Symbol(0x00D4, "ObjectUnionOf"),
-            new Symbol(0x00DC, "ObjectHasSelf"),
-            new Symbol(0x00F4, "DisjointUnion"),
-            new Symbol(0x0115, "ClassAssertion"),
-            new Symbol(0x00EB, "ObjectProperty"),
-            new Symbol(0x00DB, "ObjectHasValue"),
-            new Symbol(0x0111, "SameIndividual"),
-            new Symbol(0x00EE, "NamedIndividual"),
-            new Symbol(0x00C8, "ObjectInverseOf"),
-            new Symbol(0x00F2, "DisjointClasses"),
-            new Symbol(0x00CD, "DataComplementOf"),
-            new Symbol(0x00E2, "DataAllValuesFrom"),
-            new Symbol(0x010B, "DataPropertyRange"),
-            new Symbol(0x0105, "SubDataPropertyOf"),
-            new Symbol(0x00F0, "EquivalentClasses"),
-            new Symbol(0x00ED, "AnnotationProperty"),
-            new Symbol(0x00D6, "ObjectComplementOf"),
-            new Symbol(0x00C9, "DataIntersectionOf"),
-            new Symbol(0x010D, "DatatypeDefinition"),
-            new Symbol(0x00E0, "DataSomeValuesFrom"),
-            new Symbol(0x00E5, "DataMinCardinality"),
-            new Symbol(0x00E6, "DataMaxCardinality"),
-            new Symbol(0x010A, "DataPropertyDomain"),
-            new Symbol(0x012D, "FunctionDefinition"),
-            new Symbol(0x011A, "AnnotationAssertion"),
-            new Symbol(0x00C6, "ObjectPropertyChain"),
-            new Symbol(0x00FD, "ObjectPropertyRange"),
-            new Symbol(0x00DA, "ObjectAllValuesFrom"),
-            new Symbol(0x00D0, "DatatypeRestriction"),
-            new Symbol(0x00F6, "SubObjectPropertyOf"),
-            new Symbol(0x00FC, "ObjectPropertyDomain"),
-            new Symbol(0x00D2, "ObjectIntersectionOf"),
-            new Symbol(0x00D9, "ObjectSomeValuesFrom"),
-            new Symbol(0x00DD, "ObjectMinCardinality"),
-            new Symbol(0x00DE, "ObjectMaxCardinality"),
-            new Symbol(0x00E7, "DataExactCardinality"),
-            new Symbol(0x0113, "DifferentIndividuals"),
-            new Symbol(0x0118, "DataPropertyAssertion"),
-            new Symbol(0x00DF, "ObjectExactCardinality"),
-            new Symbol(0x0108, "DisjointDataProperties"),
-            new Symbol(0x010C, "FunctionalDataProperty"),
-            new Symbol(0x0100, "ReflexiveObjectProperty"),
-            new Symbol(0x011D, "AnnotationPropertyRange"),
-            new Symbol(0x0116, "ObjectPropertyAssertion"),
-            new Symbol(0x00FB, "InverseObjectProperties"),
-            new Symbol(0x011B, "SubAnnotationPropertyOf"),
-            new Symbol(0x0102, "SymmetricObjectProperty"),
-            new Symbol(0x011C, "AnnotationPropertyDomain"),
-            new Symbol(0x0103, "AsymmetricObjectProperty"),
-            new Symbol(0x00F9, "DisjointObjectProperties"),
-            new Symbol(0x0106, "EquivalentDataProperties"),
-            new Symbol(0x00FE, "FunctionalObjectProperty"),
-            new Symbol(0x0104, "TransitiveObjectProperty"),
-            new Symbol(0x0101, "IrreflexiveObjectProperty"),
-            new Symbol(0x00F7, "EquivalentObjectProperties"),
-            new Symbol(0x0119, "NegativeDataPropertyAssertion"),
-            new Symbol(0x0117, "NegativeObjectPropertyAssertion"),
-            new Symbol(0x00FF, "InverseFunctionalObjectProperty")};
-
-    /**
-     * Initializes a new instance of the lexer
-     *
-     * @param input The lexer's input
-     */
-    public xOWLLexer(String input) {
-        super(commonAutomaton, terminals, 0x0008, input);
-    }
-
-    /**
-     * Initializes a new instance of the lexer
-     *
-     * @param input The lexer's input
-     */
-    public xOWLLexer(InputStreamReader input) {
-        super(commonAutomaton, terminals, 0x0008, input);
     }
 }

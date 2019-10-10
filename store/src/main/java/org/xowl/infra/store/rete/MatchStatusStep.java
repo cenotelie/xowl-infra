@@ -46,6 +46,16 @@ public class MatchStatusStep {
     private final List<RDFPatternSolution> bindings;
 
     /**
+     * Initializes this step
+     *
+     * @param pattern The pattern that need to be matched
+     */
+    protected MatchStatusStep(Quad pattern) {
+        this.pattern = pattern;
+        this.bindings = new ArrayList<>();
+    }
+
+    /**
      * Gets the pattern that need to be matched
      *
      * @return The pattern that need to be matched
@@ -61,16 +71,6 @@ public class MatchStatusStep {
      */
     public Collection<RDFPatternSolution> getBindings() {
         return Collections.unmodifiableCollection(bindings);
-    }
-
-    /**
-     * Initializes this step
-     *
-     * @param pattern The pattern that need to be matched
-     */
-    protected MatchStatusStep(Quad pattern) {
-        this.pattern = pattern;
-        this.bindings = new ArrayList<>();
     }
 
     /**

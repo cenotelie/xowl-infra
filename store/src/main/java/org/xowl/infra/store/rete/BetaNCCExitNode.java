@@ -28,35 +28,17 @@ import java.util.*;
  */
 class BetaNCCExitNode implements TokenHolder, TokenActivable {
     /**
-     * The data about a token in a NCC network
+     * The parent beta memory
      */
-    private static class Data {
-        /**
-         * The number of derived tokens
-         */
-        public int counter;
-        /**
-         * Whether the original token was fired to the children
-         */
-        public boolean isOriginalFired;
-
-        /**
-         * Initializes this data
-         */
-        public Data() {
-            this.counter = 0;
-            this.isOriginalFired = false;
-        }
-    }
-
+    private final TokenHolder betaMem;
+    /**
+     * The number of hops in the NCC
+     */
+    private final int hop;
     /**
      * Flag whether a transaction is in action
      */
     private boolean isInTransaction;
-    /**
-     * The parent beta memory
-     */
-    private final TokenHolder betaMem;
     /**
      * The child node
      */
@@ -65,11 +47,6 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      * Cache of the current data
      */
     private Map<Token, Data> tokenData;
-    /**
-     * The number of hops in the NCC
-     */
-    private final int hop;
-
     /**
      * Initializes this node
      *
@@ -262,5 +239,27 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
         for (int i = 0; i != hop; i++)
             token = token.getParent();
         return token;
+    }
+
+    /**
+     * The data about a token in a NCC network
+     */
+    private static class Data {
+        /**
+         * The number of derived tokens
+         */
+        public int counter;
+        /**
+         * Whether the original token was fired to the children
+         */
+        public boolean isOriginalFired;
+
+        /**
+         * Initializes this data
+         */
+        public Data() {
+            this.counter = 0;
+            this.isOriginalFired = false;
+        }
     }
 }

@@ -42,62 +42,18 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * The radical for generated short names
      */
     private static final String NAMESPACE_RADICAL = "nmspce";
-
-    /**
-     * Represents the data of a RDF list
-     */
-    private static class RdfList {
-        /**
-         * The defining graph
-         */
-        public final GraphNode graph;
-        /**
-         * The properties that reference this list
-         */
-        public final List<Couple<Property, Object>> references;
-        /**
-         * The proxies used in this list
-         */
-        public final List<SubjectNode> proxies;
-        /**
-         * Whether this list is valid and shall replace
-         */
-        public boolean isValid;
-        /**
-         * The interpreted value
-         */
-        public List<Object> value;
-
-        /**
-         * Initializes this list
-         *
-         * @param graph The defining graph
-         */
-        public RdfList(GraphNode graph) {
-            this.graph = graph;
-            this.references = new ArrayList<>();
-            this.proxies = new ArrayList<>();
-            this.isValid = true;
-            this.value = null;
-        }
-    }
-
     /**
      * The namespaces in this document
      */
     protected final Map<String, String> namespaces;
     /**
-     * Buffer for renaming blank nodes
-     */
-    private long[] blanks;
-    /**
-     * Index of the next blank node slot
-     */
-    private int nextBlank;
-    /**
      * The initial content map
      */
     protected final Map<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> content;
+    /**
+     * A buffer of serialized property
+     */
+    protected final List<Property> bufferProperties;
     /**
      * The detected list heads
      */
@@ -107,10 +63,13 @@ public abstract class StructuredSerializer implements RDFSerializer {
      */
     private final Map<SubjectNode, RdfList> listProxies;
     /**
-     * A buffer of serialized property
+     * Buffer for renaming blank nodes
      */
-    protected final List<Property> bufferProperties;
-
+    private long[] blanks;
+    /**
+     * Index of the next blank node slot
+     */
+    private int nextBlank;
     /**
      * Initializes this serializer
      */
@@ -126,6 +85,93 @@ public abstract class StructuredSerializer implements RDFSerializer {
         this.listHeads = new HashMap<>();
         this.listProxies = new HashMap<>();
         this.bufferProperties = new ArrayList<>(5);
+    }
+
+    /**
+     * Gets whether the specified properties describe a proxy in a RDF list
+     *
+     * @param properties The set of properties for a subject
+     * @return Whether the properties describe a proxy in a RDF list
+     */
+    private static boolean isRdfListProxy(List<Couple<Property, Object>> properties) {
+        if (properties.size() == 2) {
+            return (isRdfListFirst(properties.get(0)) && isRdfListRest(properties.get(1)))
+                    || (isRdfListFirst(properties.get(1)) && isRdfListRest(properties.get(0)));
+        } else if (properties.size() == 3) {
+            if (isRdfListType(properties.get(0))) {
+                return (isRdfListFirst(properties.get(1)) && isRdfListRest(properties.get(2)))
+                        || (isRdfListFirst(properties.get(2)) && isRdfListRest(properties.get(1)));
+            } else if (isRdfListFirst(properties.get(0))) {
+                return (isRdfListType(properties.get(1)) && isRdfListRest(properties.get(2)))
+                        || (isRdfListType(properties.get(2)) && isRdfListRest(properties.get(1)));
+            } else if (isRdfListRest(properties.get(0))) {
+                return (isRdfListFirst(properties.get(1)) && isRdfListType(properties.get(2)))
+                        || (isRdfListFirst(properties.get(2)) && isRdfListType(properties.get(1)));
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the data of the proxy object represented by the specified properties
+     *
+     * @param properties The properties of a proxy in a RDF list
+     * @return The couple of the first proxied element and the following proxy in the list
+     */
+    private static Couple<Node, Node> getRdfListProxyData(List<Couple<Property, Object>> properties) {
+        Node element = null;
+        Node rest = null;
+        for (int i = 0; i != properties.size(); i++) {
+            if (isRdfListFirst(properties.get(i)))
+                element = (Node) properties.get(i).y;
+            if (isRdfListRest(properties.get(i)))
+                rest = (Node) properties.get(i).y;
+        }
+        return new Couple<>(element, rest);
+    }
+
+    /**
+     * Gets whether the property is rdf:type with value rdf:List
+     *
+     * @param property The property
+     * @return Whether the property is rdf:type with value rdf:List
+     */
+    private static boolean isRdfListType(Couple<Property, Object> property) {
+        return property.x.getNodeType() == Node.TYPE_IRI
+                && Vocabulary.rdfType.equals(((IRINode) property.x).getIRIValue())
+                && property.y instanceof Node
+                && ((Node) property.y).getNodeType() == Node.TYPE_IRI
+                && Vocabulary.rdfList.equals(((IRINode) property.y).getIRIValue());
+    }
+
+    /**
+     * Gets whether the property is rdf:first
+     *
+     * @param property The property
+     * @return Whether the property is rdf:first
+     */
+    private static boolean isRdfListFirst(Couple<Property, Object> property) {
+        return property.x.getNodeType() == Node.TYPE_IRI && Vocabulary.rdfFirst.equals(((IRINode) property.x).getIRIValue());
+    }
+
+    /**
+     * Gets whether the property is rdf:rest
+     *
+     * @param property The property
+     * @return Whether the property is rdf:rest
+     */
+    private static boolean isRdfListRest(Couple<Property, Object> property) {
+        return property.x.getNodeType() == Node.TYPE_IRI && Vocabulary.rdfRest.equals(((IRINode) property.x).getIRIValue());
+    }
+
+    /**
+     * Gets whether the node is rdf:nil
+     *
+     * @param node The node
+     * @return Whether the node is rdf:nil
+     */
+    private static boolean isRdfListNil(Node node) {
+        return node.getNodeType() == Node.TYPE_IRI && Vocabulary.rdfNil.equals(((IRINode) node).getIRIValue());
     }
 
     /**
@@ -336,93 +382,6 @@ public abstract class StructuredSerializer implements RDFSerializer {
     }
 
     /**
-     * Gets whether the specified properties describe a proxy in a RDF list
-     *
-     * @param properties The set of properties for a subject
-     * @return Whether the properties describe a proxy in a RDF list
-     */
-    private static boolean isRdfListProxy(List<Couple<Property, Object>> properties) {
-        if (properties.size() == 2) {
-            return (isRdfListFirst(properties.get(0)) && isRdfListRest(properties.get(1)))
-                    || (isRdfListFirst(properties.get(1)) && isRdfListRest(properties.get(0)));
-        } else if (properties.size() == 3) {
-            if (isRdfListType(properties.get(0))) {
-                return (isRdfListFirst(properties.get(1)) && isRdfListRest(properties.get(2)))
-                        || (isRdfListFirst(properties.get(2)) && isRdfListRest(properties.get(1)));
-            } else if (isRdfListFirst(properties.get(0))) {
-                return (isRdfListType(properties.get(1)) && isRdfListRest(properties.get(2)))
-                        || (isRdfListType(properties.get(2)) && isRdfListRest(properties.get(1)));
-            } else if (isRdfListRest(properties.get(0))) {
-                return (isRdfListFirst(properties.get(1)) && isRdfListType(properties.get(2)))
-                        || (isRdfListFirst(properties.get(2)) && isRdfListType(properties.get(1)));
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Gets the data of the proxy object represented by the specified properties
-     *
-     * @param properties The properties of a proxy in a RDF list
-     * @return The couple of the first proxied element and the following proxy in the list
-     */
-    private static Couple<Node, Node> getRdfListProxyData(List<Couple<Property, Object>> properties) {
-        Node element = null;
-        Node rest = null;
-        for (int i = 0; i != properties.size(); i++) {
-            if (isRdfListFirst(properties.get(i)))
-                element = (Node) properties.get(i).y;
-            if (isRdfListRest(properties.get(i)))
-                rest = (Node) properties.get(i).y;
-        }
-        return new Couple<>(element, rest);
-    }
-
-    /**
-     * Gets whether the property is rdf:type with value rdf:List
-     *
-     * @param property The property
-     * @return Whether the property is rdf:type with value rdf:List
-     */
-    private static boolean isRdfListType(Couple<Property, Object> property) {
-        return property.x.getNodeType() == Node.TYPE_IRI
-                && Vocabulary.rdfType.equals(((IRINode) property.x).getIRIValue())
-                && property.y instanceof Node
-                && ((Node) property.y).getNodeType() == Node.TYPE_IRI
-                && Vocabulary.rdfList.equals(((IRINode) property.y).getIRIValue());
-    }
-
-    /**
-     * Gets whether the property is rdf:first
-     *
-     * @param property The property
-     * @return Whether the property is rdf:first
-     */
-    private static boolean isRdfListFirst(Couple<Property, Object> property) {
-        return property.x.getNodeType() == Node.TYPE_IRI && Vocabulary.rdfFirst.equals(((IRINode) property.x).getIRIValue());
-    }
-
-    /**
-     * Gets whether the property is rdf:rest
-     *
-     * @param property The property
-     * @return Whether the property is rdf:rest
-     */
-    private static boolean isRdfListRest(Couple<Property, Object> property) {
-        return property.x.getNodeType() == Node.TYPE_IRI && Vocabulary.rdfRest.equals(((IRINode) property.x).getIRIValue());
-    }
-
-    /**
-     * Gets whether the node is rdf:nil
-     *
-     * @param node The node
-     * @return Whether the node is rdf:nil
-     */
-    private static boolean isRdfListNil(Node node) {
-        return node.getNodeType() == Node.TYPE_IRI && Vocabulary.rdfNil.equals(((IRINode) node).getIRIValue());
-    }
-
-    /**
      * Gets the remapped identifier for the specified blank node
      *
      * @param node A blank node
@@ -466,5 +425,44 @@ public abstract class StructuredSerializer implements RDFSerializer {
             return null;
         }
         return null;
+    }
+
+    /**
+     * Represents the data of a RDF list
+     */
+    private static class RdfList {
+        /**
+         * The defining graph
+         */
+        public final GraphNode graph;
+        /**
+         * The properties that reference this list
+         */
+        public final List<Couple<Property, Object>> references;
+        /**
+         * The proxies used in this list
+         */
+        public final List<SubjectNode> proxies;
+        /**
+         * Whether this list is valid and shall replace
+         */
+        public boolean isValid;
+        /**
+         * The interpreted value
+         */
+        public List<Object> value;
+
+        /**
+         * Initializes this list
+         *
+         * @param graph The defining graph
+         */
+        public RdfList(GraphNode graph) {
+            this.graph = graph;
+            this.references = new ArrayList<>();
+            this.proxies = new ArrayList<>();
+            this.isValid = true;
+            this.value = null;
+        }
     }
 }

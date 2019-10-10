@@ -34,6 +34,127 @@ import java.util.Map;
  */
 public class Datatypes {
     /**
+     * The register of known implementations by datatype
+     */
+    private static final Map<String, DatatypeImpl> REGISTER_IRI = new HashMap<>();
+    /**
+     * The register of known implementations by native implementation class
+     */
+    private static final Map<Class, DatatypeImpl> REGISTER_CLASS = new HashMap<>();
+
+    static {
+        REGISTER_IRI.put(Vocabulary.xsdString, DatatypeModelString.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdBoolean, DatatypeModelBoolean.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdDecimal, DatatypeModelDouble.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdDouble, DatatypeModelDouble.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdFloat, DatatypeModelFloat.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdDate, DatatypeModelDate.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdTime, DatatypeModelDate.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdDateTime, DatatypeModelDate.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdDateTimeStamp, DatatypeModelDate.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdGYear, new DatatypeModelUnsupported(Vocabulary.xsdGYear));
+        REGISTER_IRI.put(Vocabulary.xsdGMonth, new DatatypeModelUnsupported(Vocabulary.xsdGMonth));
+        REGISTER_IRI.put(Vocabulary.xsdGDay, new DatatypeModelUnsupported(Vocabulary.xsdGDay));
+        REGISTER_IRI.put(Vocabulary.xsdGYearMonth, new DatatypeModelUnsupported(Vocabulary.xsdGYearMonth));
+        REGISTER_IRI.put(Vocabulary.xsdGMonthDay, new DatatypeModelUnsupported(Vocabulary.xsdGMonthDay));
+        REGISTER_IRI.put(Vocabulary.xsdDuration, new DatatypeModelUnsupported(Vocabulary.xsdDuration));
+        REGISTER_IRI.put(Vocabulary.wsdYearMonthDuration, new DatatypeModelUnsupported(Vocabulary.wsdYearMonthDuration));
+        REGISTER_IRI.put(Vocabulary.wsdDayTimeDuration, new DatatypeModelUnsupported(Vocabulary.wsdDayTimeDuration));
+        REGISTER_IRI.put(Vocabulary.xsdByte, DatatypeModelByte.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdShort, DatatypeModelShort.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdInt, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdLong, DatatypeModelLong.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdUnsigedByte, DatatypeModelByte.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdUnsignedShort, DatatypeModelShort.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdUnsignedInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdUnsignedLong, DatatypeModelLong.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdPositiveInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdNonNegativeInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdNegativeInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdNonPositiveinteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdHexBinary, new DatatypeModelUnsupported(Vocabulary.xsdHexBinary));
+        REGISTER_IRI.put(Vocabulary.xsdBase64Binary, new DatatypeModelUnsupported(Vocabulary.xsdBase64Binary));
+        REGISTER_IRI.put(Vocabulary.xsdAnyURI, new DatatypeModelUnsupported(Vocabulary.xsdAnyURI));
+        REGISTER_IRI.put(Vocabulary.xsdLanguage, new DatatypeModelUnsupported(Vocabulary.xsdLanguage));
+        REGISTER_IRI.put(Vocabulary.xsdNormalizedString, new DatatypeModelUnsupported(Vocabulary.xsdNormalizedString));
+        REGISTER_IRI.put(Vocabulary.xsdToken, new DatatypeModelUnsupported(Vocabulary.xsdToken));
+        REGISTER_IRI.put(Vocabulary.xsdNMTOOKEN, new DatatypeModelUnsupported(Vocabulary.xsdNMTOOKEN));
+        REGISTER_IRI.put(Vocabulary.xsdName, new DatatypeModelUnsupported(Vocabulary.xsdName));
+        REGISTER_IRI.put(Vocabulary.xsdNCNAme, new DatatypeModelUnsupported(Vocabulary.xsdNCNAme));
+        REGISTER_IRI.put(Vocabulary.rdfPlainLiteral, DatatypeModelString.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.owlRational, DatatypeModelDouble.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.owlReal, DatatypeModelDouble.INSTANCE);
+
+        REGISTER_CLASS.put(Byte.class, DatatypeModelByte.INSTANCE);
+        REGISTER_CLASS.put(Short.class, DatatypeModelShort.INSTANCE);
+        REGISTER_CLASS.put(Integer.class, DatatypeModelInteger.INSTANCE);
+        REGISTER_CLASS.put(Long.class, DatatypeModelLong.INSTANCE);
+        REGISTER_CLASS.put(Float.class, DatatypeModelFloat.INSTANCE);
+        REGISTER_CLASS.put(Double.class, DatatypeModelDouble.INSTANCE);
+        REGISTER_CLASS.put(Boolean.class, DatatypeModelBoolean.INSTANCE);
+        REGISTER_CLASS.put(String.class, DatatypeModelString.INSTANCE);
+        REGISTER_CLASS.put(Date.class, DatatypeModelDate.INSTANCE);
+    }
+
+    /**
+     * Encodes the specified native value into a literal
+     *
+     * @param value The value to encode
+     * @return The corresponding literal
+     */
+    public static Couple<String, String> toLiteral(Object value) {
+        DatatypeImpl impl = REGISTER_CLASS.get(value.getClass());
+        if (impl == null)
+            return new Couple<>(value.toString(), Vocabulary.xsdString);
+        return new Couple<>(impl.encode(value), impl.getDatatype());
+    }
+
+    /**
+     * Decodes the specified literal into a native value
+     *
+     * @param lexical  The literal's lexical value
+     * @param datatype the literal's datatype
+     * @return The corresponding native value
+     */
+    public static Object toNative(String lexical, String datatype) {
+        DatatypeImpl impl = REGISTER_IRI.get(datatype);
+        if (impl == null)
+            return lexical;
+        return impl.decode(lexical);
+    }
+
+    /**
+     * Decodes the specified literal into a native value
+     *
+     * @param literal The literal
+     * @return The corresponding native value
+     */
+    public static Object toNative(Literal literal) {
+        return toNative(literal.getLexicalValue(), literal.getMemberOf().getHasValue());
+    }
+
+    /**
+     * Decodes the specified literal into a native value
+     *
+     * @param literal The literal
+     * @return The corresponding native value
+     */
+    public static Object toNative(org.xowl.infra.lang.runtime.Literal literal) {
+        return toNative(literal.getLexicalValue(), literal.getMemberOf().getInterpretationOf().getHasIRI().getHasValue());
+    }
+
+    /**
+     * Decodes the specified literal into a native value
+     *
+     * @param literal The literal
+     * @return The corresponding native value
+     */
+    public static Object toNative(LiteralNode literal) {
+        return toNative(literal.getLexicalValue(), literal.getDatatype());
+    }
+
+    /**
      * Represents an unsupported value
      */
     private static class UnsupportedValue {
@@ -349,127 +470,5 @@ public class Datatypes {
                 return null;
             }
         }
-    }
-
-    /**
-     * The register of known implementations by datatype
-     */
-    private static final Map<String, DatatypeImpl> REGISTER_IRI = new HashMap<>();
-
-    /**
-     * The register of known implementations by native implementation class
-     */
-    private static final Map<Class, DatatypeImpl> REGISTER_CLASS = new HashMap<>();
-
-    static {
-        REGISTER_IRI.put(Vocabulary.xsdString, DatatypeModelString.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdBoolean, DatatypeModelBoolean.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdDecimal, DatatypeModelDouble.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdDouble, DatatypeModelDouble.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdFloat, DatatypeModelFloat.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdDate, DatatypeModelDate.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdTime, DatatypeModelDate.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdDateTime, DatatypeModelDate.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdDateTimeStamp, DatatypeModelDate.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdGYear, new DatatypeModelUnsupported(Vocabulary.xsdGYear));
-        REGISTER_IRI.put(Vocabulary.xsdGMonth, new DatatypeModelUnsupported(Vocabulary.xsdGMonth));
-        REGISTER_IRI.put(Vocabulary.xsdGDay, new DatatypeModelUnsupported(Vocabulary.xsdGDay));
-        REGISTER_IRI.put(Vocabulary.xsdGYearMonth, new DatatypeModelUnsupported(Vocabulary.xsdGYearMonth));
-        REGISTER_IRI.put(Vocabulary.xsdGMonthDay, new DatatypeModelUnsupported(Vocabulary.xsdGMonthDay));
-        REGISTER_IRI.put(Vocabulary.xsdDuration, new DatatypeModelUnsupported(Vocabulary.xsdDuration));
-        REGISTER_IRI.put(Vocabulary.wsdYearMonthDuration, new DatatypeModelUnsupported(Vocabulary.wsdYearMonthDuration));
-        REGISTER_IRI.put(Vocabulary.wsdDayTimeDuration, new DatatypeModelUnsupported(Vocabulary.wsdDayTimeDuration));
-        REGISTER_IRI.put(Vocabulary.xsdByte, DatatypeModelByte.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdShort, DatatypeModelShort.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdInt, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdLong, DatatypeModelLong.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdUnsigedByte, DatatypeModelByte.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdUnsignedShort, DatatypeModelShort.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdUnsignedInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdUnsignedLong, DatatypeModelLong.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdPositiveInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdNonNegativeInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdNegativeInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdNonPositiveinteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdHexBinary, new DatatypeModelUnsupported(Vocabulary.xsdHexBinary));
-        REGISTER_IRI.put(Vocabulary.xsdBase64Binary, new DatatypeModelUnsupported(Vocabulary.xsdBase64Binary));
-        REGISTER_IRI.put(Vocabulary.xsdAnyURI, new DatatypeModelUnsupported(Vocabulary.xsdAnyURI));
-        REGISTER_IRI.put(Vocabulary.xsdLanguage, new DatatypeModelUnsupported(Vocabulary.xsdLanguage));
-        REGISTER_IRI.put(Vocabulary.xsdNormalizedString, new DatatypeModelUnsupported(Vocabulary.xsdNormalizedString));
-        REGISTER_IRI.put(Vocabulary.xsdToken, new DatatypeModelUnsupported(Vocabulary.xsdToken));
-        REGISTER_IRI.put(Vocabulary.xsdNMTOOKEN, new DatatypeModelUnsupported(Vocabulary.xsdNMTOOKEN));
-        REGISTER_IRI.put(Vocabulary.xsdName, new DatatypeModelUnsupported(Vocabulary.xsdName));
-        REGISTER_IRI.put(Vocabulary.xsdNCNAme, new DatatypeModelUnsupported(Vocabulary.xsdNCNAme));
-        REGISTER_IRI.put(Vocabulary.rdfPlainLiteral, DatatypeModelString.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.owlRational, DatatypeModelDouble.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.owlReal, DatatypeModelDouble.INSTANCE);
-
-        REGISTER_CLASS.put(Byte.class, DatatypeModelByte.INSTANCE);
-        REGISTER_CLASS.put(Short.class, DatatypeModelShort.INSTANCE);
-        REGISTER_CLASS.put(Integer.class, DatatypeModelInteger.INSTANCE);
-        REGISTER_CLASS.put(Long.class, DatatypeModelLong.INSTANCE);
-        REGISTER_CLASS.put(Float.class, DatatypeModelFloat.INSTANCE);
-        REGISTER_CLASS.put(Double.class, DatatypeModelDouble.INSTANCE);
-        REGISTER_CLASS.put(Boolean.class, DatatypeModelBoolean.INSTANCE);
-        REGISTER_CLASS.put(String.class, DatatypeModelString.INSTANCE);
-        REGISTER_CLASS.put(Date.class, DatatypeModelDate.INSTANCE);
-    }
-
-    /**
-     * Encodes the specified native value into a literal
-     *
-     * @param value The value to encode
-     * @return The corresponding literal
-     */
-    public static Couple<String, String> toLiteral(Object value) {
-        DatatypeImpl impl = REGISTER_CLASS.get(value.getClass());
-        if (impl == null)
-            return new Couple<>(value.toString(), Vocabulary.xsdString);
-        return new Couple<>(impl.encode(value), impl.getDatatype());
-    }
-
-    /**
-     * Decodes the specified literal into a native value
-     *
-     * @param lexical  The literal's lexical value
-     * @param datatype the literal's datatype
-     * @return The corresponding native value
-     */
-    public static Object toNative(String lexical, String datatype) {
-        DatatypeImpl impl = REGISTER_IRI.get(datatype);
-        if (impl == null)
-            return lexical;
-        return impl.decode(lexical);
-    }
-
-    /**
-     * Decodes the specified literal into a native value
-     *
-     * @param literal The literal
-     * @return The corresponding native value
-     */
-    public static Object toNative(Literal literal) {
-        return toNative(literal.getLexicalValue(), literal.getMemberOf().getHasValue());
-    }
-
-    /**
-     * Decodes the specified literal into a native value
-     *
-     * @param literal The literal
-     * @return The corresponding native value
-     */
-    public static Object toNative(org.xowl.infra.lang.runtime.Literal literal) {
-        return toNative(literal.getLexicalValue(), literal.getMemberOf().getInterpretationOf().getHasIRI().getHasValue());
-    }
-
-    /**
-     * Decodes the specified literal into a native value
-     *
-     * @param literal The literal
-     * @return The corresponding native value
-     */
-    public static Object toNative(LiteralNode literal) {
-        return toNative(literal.getLexicalValue(), literal.getDatatype());
     }
 }

@@ -39,21 +39,21 @@ public class ExpressionRDF implements Expression {
     private final Node node;
 
     /**
-     * Gets the represented node
-     *
-     * @return The represented node
-     */
-    public Node getNode() {
-        return node;
-    }
-
-    /**
      * Initializes this expression
      *
      * @param node The RDF node to represent
      */
     public ExpressionRDF(Node node) {
         this.node = node;
+    }
+
+    /**
+     * Gets the represented node
+     *
+     * @return The represented node
+     */
+    public Node getNode() {
+        return node;
     }
 
     @Override

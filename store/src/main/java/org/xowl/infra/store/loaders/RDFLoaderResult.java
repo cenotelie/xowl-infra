@@ -43,6 +43,15 @@ public class RDFLoaderResult {
     private final List<String> imports;
 
     /**
+     * Initializes an empty result
+     */
+    public RDFLoaderResult() {
+        quads = new ArrayList<>();
+        rules = new ArrayList<>();
+        imports = new ArrayList<>();
+    }
+
+    /**
      * Gets the loaded quads
      *
      * @return The loaded quads
@@ -67,14 +76,5 @@ public class RDFLoaderResult {
      */
     public Collection<String> getImports() {
         return imports;
-    }
-
-    /**
-     * Initializes an empty result
-     */
-    public RDFLoaderResult() {
-        quads = new ArrayList<>();
-        rules = new ArrayList<>();
-        imports = new ArrayList<>();
     }
 }

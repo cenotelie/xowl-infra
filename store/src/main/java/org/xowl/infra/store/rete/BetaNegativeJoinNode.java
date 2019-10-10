@@ -31,16 +31,6 @@ import java.util.*;
  */
 class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivable, FactActivable {
     /**
-     * Represents a counter of matches
-     */
-    private static class Counter {
-        /**
-         * The encapsulated value
-         */
-        public int value;
-    }
-
-    /**
      * The associated upstream alpha memory
      */
     private final FactHolder alphaMem;
@@ -56,7 +46,6 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
      * The current matches in this node
      */
     private Map<Token, Counter> matches;
-
     /**
      * Initializes this node
      *
@@ -269,5 +258,15 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
                 child.activateTokens(new FastBuffer<>(toActivate));
             }
         }
+    }
+
+    /**
+     * Represents a counter of matches
+     */
+    private static class Counter {
+        /**
+         * The encapsulated value
+         */
+        public int value;
     }
 }

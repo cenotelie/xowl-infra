@@ -36,67 +36,6 @@ public class FunctionalOWL2Lexer extends ContextFreeLexer {
      * The automaton for this lexer
      */
     private static final Automaton commonAutomaton = Automaton.find(FunctionalOWL2Lexer.class, "FunctionalOWL2Lexer.bin");
-
-    /**
-     * Contains the constant IDs for the terminals for this lexer
-     */
-    public static class ID {
-        /**
-         * The unique identifier for terminal BLANK
-         */
-        public static final int BLANK = 0x0006;
-        /**
-         * The unique identifier for terminal NEW_LINE
-         */
-        public static final int NEW_LINE = 0x0003;
-        /**
-         * The unique identifier for terminal WHITE_SPACE
-         */
-        public static final int WHITE_SPACE = 0x0004;
-        /**
-         * The unique identifier for terminal INTEGER
-         */
-        public static final int INTEGER = 0x0012;
-        /**
-         * The unique identifier for terminal PNAME_NS
-         */
-        public static final int PNAME_NS = 0x000F;
-        /**
-         * The unique identifier for terminal COMMENT
-         */
-        public static final int COMMENT = 0x0005;
-        /**
-         * The unique identifier for terminal LANGTAG
-         */
-        public static final int LANGTAG = 0x0007;
-        /**
-         * The unique identifier for terminal IRIREF
-         */
-        public static final int IRIREF = 0x0008;
-        /**
-         * The unique identifier for terminal STRING
-         */
-        public static final int STRING = 0x0013;
-        /**
-         * The unique identifier for terminal PNAME_LN
-         */
-        public static final int PNAME_LN = 0x0010;
-        /**
-         * The unique identifier for terminal BLANK_NODE_LABEL
-         */
-        public static final int BLANK_NODE_LABEL = 0x0011;
-    }
-
-    /**
-     * Contains the constant IDs for the contexts for this lexer
-     */
-    public static class Context {
-        /**
-         * The unique identifier for the default context
-         */
-        public static final int DEFAULT = 0;
-    }
-
     /**
      * The collection of terminals matched by this lexer
      * <p>
@@ -209,5 +148,65 @@ public class FunctionalOWL2Lexer extends ContextFreeLexer {
      */
     public FunctionalOWL2Lexer(InputStreamReader input) {
         super(commonAutomaton, terminals, 0x0006, input);
+    }
+
+    /**
+     * Contains the constant IDs for the terminals for this lexer
+     */
+    public static class ID {
+        /**
+         * The unique identifier for terminal BLANK
+         */
+        public static final int BLANK = 0x0006;
+        /**
+         * The unique identifier for terminal NEW_LINE
+         */
+        public static final int NEW_LINE = 0x0003;
+        /**
+         * The unique identifier for terminal WHITE_SPACE
+         */
+        public static final int WHITE_SPACE = 0x0004;
+        /**
+         * The unique identifier for terminal INTEGER
+         */
+        public static final int INTEGER = 0x0012;
+        /**
+         * The unique identifier for terminal PNAME_NS
+         */
+        public static final int PNAME_NS = 0x000F;
+        /**
+         * The unique identifier for terminal COMMENT
+         */
+        public static final int COMMENT = 0x0005;
+        /**
+         * The unique identifier for terminal LANGTAG
+         */
+        public static final int LANGTAG = 0x0007;
+        /**
+         * The unique identifier for terminal IRIREF
+         */
+        public static final int IRIREF = 0x0008;
+        /**
+         * The unique identifier for terminal STRING
+         */
+        public static final int STRING = 0x0013;
+        /**
+         * The unique identifier for terminal PNAME_LN
+         */
+        public static final int PNAME_LN = 0x0010;
+        /**
+         * The unique identifier for terminal BLANK_NODE_LABEL
+         */
+        public static final int BLANK_NODE_LABEL = 0x0011;
+    }
+
+    /**
+     * Contains the constant IDs for the contexts for this lexer
+     */
+    public static class Context {
+        /**
+         * The unique identifier for the default context
+         */
+        public static final int DEFAULT = 0;
     }
 }

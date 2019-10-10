@@ -32,13 +32,6 @@ import java.util.Map;
  * @author Laurent Wouters
  */
 public class ExpressionOperator implements Expression {
-    public enum Op {
-        BoolAnd, BoolOr, BoolNot,
-        Equal, NotEqual, Less, LessOrEqual, Greater, GreaterOrEqual,
-        Plus, Minus, Multiply, Divide,
-        UnaryPlus, UnaryMinus
-    }
-
     /**
      * The operator
      */
@@ -51,7 +44,6 @@ public class ExpressionOperator implements Expression {
      * The second operand
      */
     private final Expression operand2;
-
     /**
      * Initializes an unary operation
      *
@@ -145,6 +137,13 @@ public class ExpressionOperator implements Expression {
                 return EvaluationUtils.minus(v1);
         }
         throw new EvaluationException("Unrecognized operator");
+    }
+
+    public enum Op {
+        BoolAnd, BoolOr, BoolNot,
+        Equal, NotEqual, Less, LessOrEqual, Greater, GreaterOrEqual,
+        Plus, Minus, Multiply, Divide,
+        UnaryPlus, UnaryMinus
     }
 
 }

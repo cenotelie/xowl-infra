@@ -49,86 +49,6 @@ public class RDFRuleSelect extends RDFRule {
     private final Map<RDFRuleEngine.ProductionHandler, State> states;
 
     /**
-     * The state of this rule
-     */
-    private static class State implements EvalContext {
-        /**
-         * The evaluator
-         */
-        private final Evaluator evaluator;
-        /**
-         * The node manager for the output
-         */
-        private final DatasetNodes nodes;
-        /**
-         * The known pattern matches
-         */
-        private final Map<RDFPattern, Collection<RDFPatternMatch>> matches;
-
-        /**
-         * Initializes this state
-         *
-         * @param handler The production handler to initialize from
-         */
-        public State(RDFRuleEngine.ProductionHandler handler) {
-            this.evaluator = handler.getEvaluator();
-            this.nodes = handler.getNodes();
-            this.matches = new HashMap<>();
-        }
-
-        /**
-         * Adds a pattern match
-         *
-         * @param pattern The matched pattern
-         * @param match   The match
-         */
-        public void addMatch(RDFPattern pattern, RDFPatternMatch match) {
-            synchronized (matches) {
-                Collection<RDFPatternMatch> patternMatches = matches.computeIfAbsent(pattern, k -> new ArrayList<>());
-                patternMatches.add(match);
-            }
-        }
-
-        /**
-         * Removes a pattern match
-         *
-         * @param pattern The matched pattern
-         * @param match   The match
-         */
-        public void removeMatch(RDFPattern pattern, RDFPatternMatch match) {
-            synchronized (matches) {
-                Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
-                if (patternMatches != null)
-                    patternMatches.remove(match);
-            }
-        }
-
-        @Override
-        public Evaluator getEvaluator() {
-            return evaluator;
-        }
-
-        @Override
-        public DatasetNodes getNodes() {
-            return nodes;
-        }
-
-        @Override
-        public Solutions getSolutions(RDFPattern pattern) {
-            synchronized (matches) {
-                Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
-                if (patternMatches == null)
-                    return new SolutionsMultiset(0);
-                SolutionsMultiset solutions = new SolutionsMultiset(patternMatches.size());
-                for (RDFPatternMatch match : patternMatches) {
-                    solutions.add(match.getSolution());
-                }
-                return solutions;
-            }
-        }
-    }
-
-    /**
      * Initializes this rule
      *
      * @param iri        The rule's identifying iri
@@ -303,5 +223,85 @@ public class RDFRuleSelect extends RDFRule {
     @Override
     public Changeset produce(RDFRuleExecution execution, DatasetNodes nodes, Evaluator evaluator) {
         return produceQuads(execution, nodes, evaluator, consequents);
+    }
+
+    /**
+     * The state of this rule
+     */
+    private static class State implements EvalContext {
+        /**
+         * The evaluator
+         */
+        private final Evaluator evaluator;
+        /**
+         * The node manager for the output
+         */
+        private final DatasetNodes nodes;
+        /**
+         * The known pattern matches
+         */
+        private final Map<RDFPattern, Collection<RDFPatternMatch>> matches;
+
+        /**
+         * Initializes this state
+         *
+         * @param handler The production handler to initialize from
+         */
+        public State(RDFRuleEngine.ProductionHandler handler) {
+            this.evaluator = handler.getEvaluator();
+            this.nodes = handler.getNodes();
+            this.matches = new HashMap<>();
+        }
+
+        /**
+         * Adds a pattern match
+         *
+         * @param pattern The matched pattern
+         * @param match   The match
+         */
+        public void addMatch(RDFPattern pattern, RDFPatternMatch match) {
+            synchronized (matches) {
+                Collection<RDFPatternMatch> patternMatches = matches.computeIfAbsent(pattern, k -> new ArrayList<>());
+                patternMatches.add(match);
+            }
+        }
+
+        /**
+         * Removes a pattern match
+         *
+         * @param pattern The matched pattern
+         * @param match   The match
+         */
+        public void removeMatch(RDFPattern pattern, RDFPatternMatch match) {
+            synchronized (matches) {
+                Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
+                if (patternMatches != null)
+                    patternMatches.remove(match);
+            }
+        }
+
+        @Override
+        public Evaluator getEvaluator() {
+            return evaluator;
+        }
+
+        @Override
+        public DatasetNodes getNodes() {
+            return nodes;
+        }
+
+        @Override
+        public Solutions getSolutions(RDFPattern pattern) {
+            synchronized (matches) {
+                Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
+                if (patternMatches == null)
+                    return new SolutionsMultiset(0);
+                SolutionsMultiset solutions = new SolutionsMultiset(patternMatches.size());
+                for (RDFPatternMatch match : patternMatches) {
+                    solutions.add(match.getSolution());
+                }
+                return solutions;
+            }
+        }
     }
 }

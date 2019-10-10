@@ -48,19 +48,6 @@ import java.util.*;
  */
 public abstract class Repository implements AutoCloseable {
     /**
-     * The default number of time to retry a transaction in case of concurrency error
-     */
-    public final int DEFAULT_RETRY_COUNT = 3;
-    /**
-     * The default wait interval between transaction tries in ms
-     */
-    public final int DEFAULT_WAIT_INTERVAL = 100;
-    /**
-     * The default backing-off increment for wait interval in ms
-     */
-    public final int DEFAULT_BACKOFF_INCREMENT = 50;
-
-    /**
      * Supported N-Triples syntax
      */
     public static final String SYNTAX_NTRIPLES = "application/n-triples";
@@ -156,6 +143,60 @@ public abstract class Repository implements AutoCloseable {
      * File extension for the Functional xOWL syntax
      */
     public static final String SYNTAX_XOWL_EXTENSION = ".xowl";
+    /**
+     * The loader for providers of execution managers
+     */
+    private static final ServiceLoader<ExecutionManagerProvider> EXECUTION_MANAGER_PROVIDER = ServiceLoader.load(ExecutionManagerProvider.class);
+    /**
+     * The default number of time to retry a transaction in case of concurrency error
+     */
+    public final int DEFAULT_RETRY_COUNT = 3;
+    /**
+     * The default wait interval between transaction tries in ms
+     */
+    public final int DEFAULT_WAIT_INTERVAL = 100;
+    /**
+     * The default backing-off increment for wait interval in ms
+     */
+    public final int DEFAULT_BACKOFF_INCREMENT = 50;
+    /**
+     * The IRI mapper
+     */
+    protected final IRIMapper mapper;
+    /**
+     * The loaded resources
+     */
+    protected final Map<String, Resource> resources;
+    /**
+     * The loaded ontologies by IRI
+     */
+    protected final Map<String, Ontology> ontologies;
+    /**
+     * Whether dependencies should be resolved when loading resources
+     */
+    protected final boolean resolveDependencies;
+    /**
+     * The evaluator to use
+     */
+    protected final ExecutionManager executionManager;
+    /**
+     * The entailment regime
+     */
+    protected EntailmentRegime regime;
+    /**
+     * Initializes this repository
+     *
+     * @param mapper              The IRI mapper to use
+     * @param resolveDependencies Whether dependencies should be resolved when loading resources
+     */
+    public Repository(IRIMapper mapper, boolean resolveDependencies) {
+        this.mapper = mapper;
+        this.resources = new HashMap<>();
+        this.ontologies = new HashMap<>();
+        this.resolveDependencies = resolveDependencies;
+        this.executionManager = getExecutionManager(this);
+        this.regime = EntailmentRegime.none;
+    }
 
     /**
      * Determines the syntax for the specified resource
@@ -191,11 +232,6 @@ public abstract class Repository implements AutoCloseable {
     }
 
     /**
-     * The loader for providers of execution managers
-     */
-    private static final ServiceLoader<ExecutionManagerProvider> EXECUTION_MANAGER_PROVIDER = ServiceLoader.load(ExecutionManagerProvider.class);
-
-    /**
      * Gets an execution manager
      *
      * @param repository The parent repository for the execution manager
@@ -220,45 +256,33 @@ public abstract class Repository implements AutoCloseable {
         return result.newManager(repository);
     }
 
-
     /**
-     * The data for the resource
+     * Gets a reader for a resource
+     *
+     * @param resource The resource to read from
+     * @return The appropriate reader, or null if there is none for the resource
+     * @throws IOException When the reader cannot be created
      */
-    private static class Resource {
-        /**
-         * The ontology for the resource
-         */
-        public Ontology ontology;
-        /**
-         * The dependencies for the resource
-         */
-        public Collection<String> dependencies;
+    public static Reader getReaderFor(String resource) throws IOException {
+        ResourceAccess access = ResourceAccess.getAccessFor(resource);
+        if (access != null)
+            return access.getReader(resource);
+        throw new IOException("Cannot read from resource " + resource);
     }
 
     /**
-     * The IRI mapper
+     * Gets a writer for a resource
+     *
+     * @param resource The resource to write to
+     * @return The appropriate writer, or null if there is none for the resource
+     * @throws IOException When the writer cannot be created
      */
-    protected final IRIMapper mapper;
-    /**
-     * The loaded resources
-     */
-    protected final Map<String, Resource> resources;
-    /**
-     * The loaded ontologies by IRI
-     */
-    protected final Map<String, Ontology> ontologies;
-    /**
-     * Whether dependencies should be resolved when loading resources
-     */
-    protected final boolean resolveDependencies;
-    /**
-     * The evaluator to use
-     */
-    protected final ExecutionManager executionManager;
-    /**
-     * The entailment regime
-     */
-    protected EntailmentRegime regime;
+    public static Writer getWriterFor(String resource) throws IOException {
+        ResourceAccess access = ResourceAccess.getAccessFor(resource);
+        if (access != null)
+            return access.getWriter(resource);
+        throw new IOException("Cannot write to resource " + resource);
+    }
 
     /**
      * Gets the IRI mapper used by this repository
@@ -267,21 +291,6 @@ public abstract class Repository implements AutoCloseable {
      */
     public IRIMapper getIRIMapper() {
         return mapper;
-    }
-
-    /**
-     * Initializes this repository
-     *
-     * @param mapper              The IRI mapper to use
-     * @param resolveDependencies Whether dependencies should be resolved when loading resources
-     */
-    public Repository(IRIMapper mapper, boolean resolveDependencies) {
-        this.mapper = mapper;
-        this.resources = new HashMap<>();
-        this.ontologies = new HashMap<>();
-        this.resolveDependencies = resolveDependencies;
-        this.executionManager = getExecutionManager(this);
-        this.regime = EntailmentRegime.none;
     }
 
     /**
@@ -740,32 +749,17 @@ public abstract class Repository implements AutoCloseable {
      */
     protected abstract void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output);
 
-
     /**
-     * Gets a reader for a resource
-     *
-     * @param resource The resource to read from
-     * @return The appropriate reader, or null if there is none for the resource
-     * @throws IOException When the reader cannot be created
+     * The data for the resource
      */
-    public static Reader getReaderFor(String resource) throws IOException {
-        ResourceAccess access = ResourceAccess.getAccessFor(resource);
-        if (access != null)
-            return access.getReader(resource);
-        throw new IOException("Cannot read from resource " + resource);
-    }
-
-    /**
-     * Gets a writer for a resource
-     *
-     * @param resource The resource to write to
-     * @return The appropriate writer, or null if there is none for the resource
-     * @throws IOException When the writer cannot be created
-     */
-    public static Writer getWriterFor(String resource) throws IOException {
-        ResourceAccess access = ResourceAccess.getAccessFor(resource);
-        if (access != null)
-            return access.getWriter(resource);
-        throw new IOException("Cannot write to resource " + resource);
+    private static class Resource {
+        /**
+         * The ontology for the resource
+         */
+        public Ontology ontology;
+        /**
+         * The dependencies for the resource
+         */
+        public Collection<String> dependencies;
     }
 }

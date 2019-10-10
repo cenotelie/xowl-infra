@@ -40,25 +40,6 @@ class ExpressionFunctions {
      */
     private static final Map<String, ExpressionFunction> FUNCTIONS = new ConcurrentHashMap<>();
 
-    /**
-     * Gets the function for the specified name
-     *
-     * @param name The name of the function to look for
-     * @return The function, or null if it is not registered
-     */
-    public static ExpressionFunction get(String name) {
-        return FUNCTIONS.get(name);
-    }
-
-    /**
-     * Registers a new function
-     *
-     * @param function The function
-     */
-    public static void register(ExpressionFunction function) {
-        FUNCTIONS.put(function.getName(), function);
-    }
-
     static {
         register(new ExpressionFunction("STR", 1, 1) {
             @Override
@@ -510,5 +491,24 @@ class ExpressionFunctions {
                 throw new EvaluationException("Not implemented");
             }
         });
+    }
+
+    /**
+     * Gets the function for the specified name
+     *
+     * @param name The name of the function to look for
+     * @return The function, or null if it is not registered
+     */
+    public static ExpressionFunction get(String name) {
+        return FUNCTIONS.get(name);
+    }
+
+    /**
+     * Registers a new function
+     *
+     * @param function The function
+     */
+    public static void register(ExpressionFunction function) {
+        FUNCTIONS.put(function.getName(), function);
     }
 }

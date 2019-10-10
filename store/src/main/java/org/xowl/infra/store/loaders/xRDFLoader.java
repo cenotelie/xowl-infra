@@ -108,6 +108,121 @@ public class xRDFLoader implements Loader {
         this.namespaces = new HashMap<>();
     }
 
+    /**
+     * Re-serializes the specified AST node into a string for the Clojure reader
+     *
+     * @param node An AST node
+     * @return The serialized Clojure source
+     */
+    private static String serializeClojure(ASTNode node) {
+        StringBuilder builder = new StringBuilder();
+        serializeClojure(builder, node);
+        return builder.toString();
+    }
+
+    /**
+     * Re-serializes the specified AST node into a string for the Clojure reader
+     *
+     * @param builder The string builder for the result
+     * @param node    An AST node
+     */
+    private static void serializeClojure(StringBuilder builder, ASTNode node) {
+        switch (node.getSymbol().getID()) {
+            case xRDFLexer.ID.CLJ_SYMBOL:
+            case xRDFLexer.ID.CLJ_KEYWORD:
+            case xRDFLexer.ID.LITERAL_STRING:
+            case xRDFLexer.ID.LITERAL_CHAR:
+            case xRDFLexer.ID.LITERAL_NIL:
+            case xRDFLexer.ID.LITERAL_TRUE:
+            case xRDFLexer.ID.LITERAL_FALSE:
+            case xRDFLexer.ID.LITERAL_INTEGER:
+            case xRDFLexer.ID.LITERAL_FLOAT:
+            case xRDFLexer.ID.LITERAL_RATIO:
+            case xRDFLexer.ID.LITERAL_ARGUMENT:
+                builder.append(node.getValue());
+                break;
+            case xRDFParser.ID.clj_list:
+                builder.append("( ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append(")");
+                break;
+            case xRDFParser.ID.clj_vector:
+                builder.append("[ ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append("]");
+                break;
+            case xRDFParser.ID.clj_map:
+                builder.append("{ ");
+                for (ASTNode couple : node.getChildren()) {
+                    serializeClojure(builder, couple.getChildren().get(0));
+                    serializeClojure(builder, couple.getChildren().get(1));
+                }
+                builder.append("}");
+                break;
+            case xRDFParser.ID.clj_set:
+                builder.append("#{ ");
+                for (ASTNode child : node.getChildren())
+                    serializeClojure(builder, child);
+                builder.append("}");
+                break;
+            case xRDFParser.ID.clj_constructor:
+                builder.append("#");
+                serializeClojure(builder, node.getChildren().get(0));
+                serializeClojure(builder, node.getChildren().get(1));
+                break;
+            case xRDFParser.ID.clj_quote:
+                builder.append("'");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_deref:
+                builder.append("@");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_metadata:
+                builder.append("^");
+                serializeClojure(builder, node.getChildren().get(0));
+                serializeClojure(builder, node.getChildren().get(1));
+                break;
+            case xRDFParser.ID.clj_regexp:
+                builder.append("#");
+                builder.append(node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_var_quote:
+                builder.append("#'");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_anon_function:
+                builder.append("#");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_ignore:
+                builder.append("#_");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_syntax_quote:
+                builder.append("`");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_unquote:
+                builder.append("~");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_unquote_splicing:
+                builder.append("~@");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            case xRDFParser.ID.clj_conditional:
+                builder.append("#?");
+                serializeClojure(builder, node.getChildren().get(0));
+                break;
+            default:
+                throw new Error("Unsupported construct: " + node.getSymbol().getName());
+        }
+        builder.append(" ");
+    }
+
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
@@ -781,120 +896,5 @@ public class xRDFLoader implements Loader {
                 }
             }
         }
-    }
-
-    /**
-     * Re-serializes the specified AST node into a string for the Clojure reader
-     *
-     * @param node An AST node
-     * @return The serialized Clojure source
-     */
-    private static String serializeClojure(ASTNode node) {
-        StringBuilder builder = new StringBuilder();
-        serializeClojure(builder, node);
-        return builder.toString();
-    }
-
-    /**
-     * Re-serializes the specified AST node into a string for the Clojure reader
-     *
-     * @param builder The string builder for the result
-     * @param node    An AST node
-     */
-    private static void serializeClojure(StringBuilder builder, ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case xRDFLexer.ID.CLJ_SYMBOL:
-            case xRDFLexer.ID.CLJ_KEYWORD:
-            case xRDFLexer.ID.LITERAL_STRING:
-            case xRDFLexer.ID.LITERAL_CHAR:
-            case xRDFLexer.ID.LITERAL_NIL:
-            case xRDFLexer.ID.LITERAL_TRUE:
-            case xRDFLexer.ID.LITERAL_FALSE:
-            case xRDFLexer.ID.LITERAL_INTEGER:
-            case xRDFLexer.ID.LITERAL_FLOAT:
-            case xRDFLexer.ID.LITERAL_RATIO:
-            case xRDFLexer.ID.LITERAL_ARGUMENT:
-                builder.append(node.getValue());
-                break;
-            case xRDFParser.ID.clj_list:
-                builder.append("( ");
-                for (ASTNode child : node.getChildren())
-                    serializeClojure(builder, child);
-                builder.append(")");
-                break;
-            case xRDFParser.ID.clj_vector:
-                builder.append("[ ");
-                for (ASTNode child : node.getChildren())
-                    serializeClojure(builder, child);
-                builder.append("]");
-                break;
-            case xRDFParser.ID.clj_map:
-                builder.append("{ ");
-                for (ASTNode couple : node.getChildren()) {
-                    serializeClojure(builder, couple.getChildren().get(0));
-                    serializeClojure(builder, couple.getChildren().get(1));
-                }
-                builder.append("}");
-                break;
-            case xRDFParser.ID.clj_set:
-                builder.append("#{ ");
-                for (ASTNode child : node.getChildren())
-                    serializeClojure(builder, child);
-                builder.append("}");
-                break;
-            case xRDFParser.ID.clj_constructor:
-                builder.append("#");
-                serializeClojure(builder, node.getChildren().get(0));
-                serializeClojure(builder, node.getChildren().get(1));
-                break;
-            case xRDFParser.ID.clj_quote:
-                builder.append("'");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_deref:
-                builder.append("@");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_metadata:
-                builder.append("^");
-                serializeClojure(builder, node.getChildren().get(0));
-                serializeClojure(builder, node.getChildren().get(1));
-                break;
-            case xRDFParser.ID.clj_regexp:
-                builder.append("#");
-                builder.append(node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_var_quote:
-                builder.append("#'");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_anon_function:
-                builder.append("#");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_ignore:
-                builder.append("#_");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_syntax_quote:
-                builder.append("`");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_unquote:
-                builder.append("~");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_unquote_splicing:
-                builder.append("~@");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            case xRDFParser.ID.clj_conditional:
-                builder.append("#?");
-                serializeClojure(builder, node.getChildren().get(0));
-                break;
-            default:
-                throw new Error("Unsupported construct: " + node.getSymbol().getName());
-        }
-        builder.append(" ");
     }
 }

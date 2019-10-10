@@ -22,7 +22,6 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,21 +38,21 @@ public class ResultQuads implements Result {
     private final Collection<Quad> quads;
 
     /**
-     * Gets the quads
-     *
-     * @return The quads
-     */
-    public Collection<Quad> getQuads() {
-        return Collections.unmodifiableCollection(quads);
-    }
-
-    /**
      * Initializes this result
      *
      * @param quads The quads
      */
     public ResultQuads(Collection<Quad> quads) {
         this.quads = quads;
+    }
+
+    /**
+     * Gets the quads
+     *
+     * @return The quads
+     */
+    public Collection<Quad> getQuads() {
+        return Collections.unmodifiableCollection(quads);
     }
 
     @Override
