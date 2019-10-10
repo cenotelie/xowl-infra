@@ -46,6 +46,7 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
      * The current matches in this node
      */
     private Map<Token, Counter> matches;
+
     /**
      * Initializes this node
      *

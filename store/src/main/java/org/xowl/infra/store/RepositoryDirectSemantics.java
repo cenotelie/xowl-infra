@@ -25,11 +25,13 @@ import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.lang.runtime.RuntimeFactory;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
-import org.xowl.infra.store.rdf.DatasetNodes;
-import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
+import org.xowl.infra.store.rdf.Dataset;
+import org.xowl.infra.store.storage.cache.CachedDataset;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
 
+import java.io.Reader;
+import java.io.Writer;
 import java.util.*;
 
 /**
@@ -41,7 +43,11 @@ public class RepositoryDirectSemantics extends Repository {
     /**
      * The node manager used for loading
      */
-    private final DatasetNodes nodeManager;
+    private final Dataset dataset;
+    /**
+     * The known ontologies
+     */
+    private final Map<String, Ontology> ontologies;
     /**
      * The entities contained by the ontologies
      */
@@ -95,7 +101,8 @@ public class RepositoryDirectSemantics extends Repository {
      */
     public RepositoryDirectSemantics(IRIMapper mapper, boolean resolveDependencies) {
         super(mapper, resolveDependencies);
-        this.nodeManager = new CachedDatasetNodes();
+        this.dataset = new CachedDataset();
+        this.ontologies = new HashMap<>();
         this.mapEntities = new HashMap<>();
         this.classUnions = new ArrayList<>();
         this.classIntersections = new ArrayList<>();
@@ -120,33 +127,38 @@ public class RepositoryDirectSemantics extends Repository {
     }
 
     @Override
-    protected DatasetNodes getNodeManager() {
-        return nodeManager;
+    protected String loadInput(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax, Resource metadata) {
+        return this.loadInput(logger, reader, resourceIRI, ontologyIRI, syntax, metadata, dataset).ontology;
     }
 
     @Override
-    protected void doLoadRDF(Logger logger, Ontology ontology, RDFLoaderResult input) {
+    protected void exportResource(Logger logger, Writer writer, String resourceIRI, String syntax) {
+        this.exportResource(logger, writer, resourceIRI, syntax, dataset);
+    }
+
+    @Override
+    protected void doLoadRDF(Logger logger, String ontology, RDFLoaderResult input, Dataset dataset) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void doLoadOWL(Logger logger, Ontology ontology, OWLLoaderResult input) {
+    protected void doLoadOWL(Logger logger, String ontology, OWLLoaderResult input, Dataset dataset) {
         for (Axiom axiom : input.getAxioms())
             apply(axiom, false);
     }
 
     @Override
-    protected void doExportRDF(Logger logger, Ontology ontology, RDFSerializer output) {
+    protected void doExportRDF(Logger logger, String ontology, RDFSerializer output, Dataset dataset) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void doExportRDF(Logger logger, RDFSerializer output) {
+    protected void doExportRDF(Logger logger, RDFSerializer output, Dataset dataset) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) {
+    protected void exportResourceOWL(Logger logger, String ontology, OWLSerializer output, Dataset dataset) {
         throw new UnsupportedOperationException();
     }
 
@@ -170,10 +182,15 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The corresponding ontology
      */
     public Ontology resolveOntology(String iri) {
-        Ontology result = super.resolveOntology(iri);
-        if (!mapEntities.containsKey(result))
-            mapEntities.put(result, new HashMap<>());
-        return result;
+        Ontology ontology = ontologies.get(iri);
+        if (ontology == null) {
+            ontology = Owl2Factory.newOntology();
+            ontology.setHasIRI(Repository.getIRI(iri));
+            ontologies.put(iri, ontology);
+        }
+        if (!mapEntities.containsKey(ontology))
+            mapEntities.put(ontology, new HashMap<>());
+        return ontology;
     }
 
     /**

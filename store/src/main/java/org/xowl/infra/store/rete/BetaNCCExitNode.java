@@ -47,6 +47,7 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      * Cache of the current data
      */
     private Map<Token, Data> tokenData;
+
     /**
      * Initializes this node
      *

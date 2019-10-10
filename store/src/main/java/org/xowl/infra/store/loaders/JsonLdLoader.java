@@ -93,12 +93,14 @@ public class JsonLdLoader implements Loader {
      * Marker for the top-level object
      */
     private boolean markerTopLevel;
+
     /**
      * Initializes this loader
      */
     public JsonLdLoader() {
         this(new CachedDatasetNodes());
     }
+
     /**
      * Initializes this loader
      *

@@ -70,6 +70,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * Index of the next blank node slot
      */
     private int nextBlank;
+
     /**
      * Initializes this serializer
      */

@@ -72,6 +72,7 @@ class StoreImpl implements Store {
      * The number of running transactions
      */
     private volatile int transactionsCount;
+
     /**
      * Initializes this store
      *

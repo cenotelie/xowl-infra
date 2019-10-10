@@ -57,6 +57,7 @@ public class NTriplesParser extends LRkParser {
      */
     private static final Symbol[] virtuals = {
     };
+
     /**
      * Initializes a new instance of the parser
      *

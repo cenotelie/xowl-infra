@@ -201,6 +201,7 @@ public class xOWLParser extends RNGLRParser {
      */
     private static final Symbol[] virtuals = {
     };
+
     /**
      * Initializes a new instance of the parser
      *

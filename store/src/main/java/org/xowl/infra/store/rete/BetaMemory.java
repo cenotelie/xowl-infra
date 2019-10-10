@@ -54,6 +54,7 @@ class BetaMemory implements TokenHolder {
      * The binding operations in this node
      */
     private final Binder[] binders;
+
     /**
      * Initializes this node
      *

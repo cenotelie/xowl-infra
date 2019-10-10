@@ -101,6 +101,7 @@ public class PersistedDatasetQuads extends DatasetQuadsImpl {
      * A temporary key to the quad node entry for a subject
      */
     private long bufferQNSubject;
+
     /**
      * Initializes this dataset
      *

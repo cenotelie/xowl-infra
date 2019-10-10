@@ -49,6 +49,7 @@ public class RDFQueryEngine implements ChangeListener {
      * The thread-specific engine inputs and outputs
      */
     private final ThreadLocal<EngineIO> threadIO;
+
     /**
      * Initializes this engine
      *

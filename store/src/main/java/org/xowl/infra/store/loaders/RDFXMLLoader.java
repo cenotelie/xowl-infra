@@ -80,12 +80,14 @@ public class RDFXMLLoader implements Loader {
      * The imported ontologies
      */
     private Collection<String> imports;
+
     /**
      * Initializes this loader
      */
     public RDFXMLLoader() {
         this(new CachedDatasetNodes());
     }
+
     /**
      * Initializes this loader
      *

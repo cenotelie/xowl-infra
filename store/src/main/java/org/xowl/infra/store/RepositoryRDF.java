@@ -18,12 +18,9 @@
 package org.xowl.infra.store;
 
 import fr.cenotelie.commons.storage.ConcurrentWriteException;
-import fr.cenotelie.commons.utils.collections.AdaptingIterator;
-import fr.cenotelie.commons.utils.collections.SingleIterator;
-import fr.cenotelie.commons.utils.collections.SkippableIterator;
+import fr.cenotelie.commons.storage.NoTransactionException;
 import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.commons.utils.logging.Logging;
-import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
@@ -38,13 +35,14 @@ import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.storage.Store;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.StoreTransaction;
-import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
-import java.util.*;
+import java.io.Writer;
+import java.util.Collection;
 
 /**
  * Represents a repository of xOWL ontologies base on RDF
@@ -58,10 +56,6 @@ public class RepositoryRDF extends Repository {
      * The backing store
      */
     private final Store store;
-    /**
-     * The ontologies in this repository
-     */
-    private final Map<Ontology, GraphNode> graphs;
     /**
      * The query engine for this repository
      */
@@ -121,16 +115,6 @@ public class RepositoryRDF extends Repository {
         } catch (ConcurrentWriteException exception) {
             // cannot happen
         }
-        this.graphs = new HashMap<>();
-    }
-
-    /**
-     * Gets the backing store
-     *
-     * @return The backing store
-     */
-    public Store getStore() {
-        return store;
     }
 
     /**
@@ -192,28 +176,16 @@ public class RepositoryRDF extends Repository {
      * @return The result
      */
     public Result execute(Logger logger, String sparql) {
-        SPARQLLoader loader = new SPARQLLoader(getNodeManager());
+        // requires to be within a transaction
+        StoreTransaction transaction = store.getTransaction();
+        if (transaction == null) {
+            throw new NoTransactionException();
+        }
+        SPARQLLoader loader = new SPARQLLoader(transaction.getDataset());
         Command command = loader.load(logger, new StringReader(sparql));
         if (command == null)
             return ResultFailure.INSTANCE;
         return command.execute(this);
-    }
-
-    /**
-     * Resolves a graph node for the specified ontology
-     *
-     * @param ontology An ontology
-     * @return The associated graph node
-     */
-    public GraphNode getGraph(Ontology ontology) {
-        synchronized (graphs) {
-            GraphNode node = graphs.get(ontology);
-            if (node != null)
-                return node;
-            node = store.getTransaction().getDataset().getIRINode(ontology.getHasIRI().getHasValue());
-            graphs.put(ontology, node);
-            return node;
-        }
     }
 
     /**
@@ -256,89 +228,6 @@ public class RepositoryRDF extends Repository {
         return getOWLRuleEngine().getBackend();
     }
 
-    /**
-     * Gets a proxy on the existing entity having the specified IRI in the specified ontology
-     *
-     * @param ontology The ontology defining the entity
-     * @param iri      The IRI of an entity
-     * @return The proxy, or null if the entity does not exist
-     */
-    public ProxyObject getProxy(Ontology ontology, String iri) {
-        IRINode node = store.getTransaction().getDataset().getIRINode(iri);
-        if (node == null)
-            return null;
-        return new ProxyObject(this, ontology, node);
-    }
-
-    /**
-     * Gets a proxy on the existing entity having the specified IRI
-     * The containing ontology will be computed based on the entity's IRI
-     *
-     * @param iri The IRI of an entity
-     * @return The associated proxy, or null if the entity does not exist
-     */
-    public ProxyObject getProxy(String iri) {
-        IRINode node = store.getTransaction().getDataset().getIRINode(iri);
-        if (node == null)
-            return null;
-        String[] parts = iri.split("#");
-        Ontology ontology = ontologies.get(parts[0]);
-        if (ontology == null) {
-            ontology = resolveOntology(parts[0]);
-            ontologies.put(parts[0], ontology);
-        }
-        return new ProxyObject(this, ontology, node);
-    }
-
-    /**
-     * Gets a proxy on the existing entity having the specified subject node in the specified ontology
-     *
-     * @param ontology The ontology defining the entity
-     * @param subject  The subject node
-     * @return The proxy, or null if the entity does not exist
-     */
-    public ProxyObject getProxy(Ontology ontology, SubjectNode subject) {
-        return new ProxyObject(this, ontology, subject);
-    }
-
-    /**
-     * Gets the proxy objects on entities defined in the specified ontology
-     * An entity is defined within an ontology if at least one of its property is asserted in this ontology.
-     * The IRI of this entity may or may not start with the IRI of the ontology, although it easier if it does.
-     *
-     * @param ontology An ontology
-     * @return An iterator over the proxy objects
-     */
-    public Iterator<ProxyObject> getProxiesIn(final Ontology ontology) {
-        try {
-            Iterator<? extends Quad> quads = store.getTransaction().getDataset().getAll(getGraph(ontology));
-            final HashSet<SubjectNode> known = new HashSet<>();
-            return new SkippableIterator<>(new AdaptingIterator<>(quads, element -> {
-                SubjectNode subject = element.getSubject();
-                if (subject.getNodeType() != Node.TYPE_IRI && subject.getNodeType() != Node.TYPE_BLANK)
-                    return null;
-                if (known.contains(subject))
-                    return null;
-                known.add(subject);
-                return new ProxyObject(this, ontology, subject);
-            }));
-        } catch (UnsupportedNodeType exception) {
-            Logging.get().error(exception);
-            return new SingleIterator<>(null);
-        }
-    }
-
-    /**
-     * Creates a new object and gets a proxy on it
-     *
-     * @param ontology The containing ontology for the new object
-     * @return A proxy on the new object
-     */
-    public ProxyObject newObject(Ontology ontology) {
-        IRINode entity = store.getTransaction().getDataset().getIRINode(getGraph(ontology));
-        return new ProxyObject(this, ontology, entity);
-    }
-
     @Override
     public void close() throws Exception {
         this.store.close();
@@ -369,14 +258,26 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected DatasetNodes getNodeManager() {
-        return store.getTransaction().getDataset();
+    protected String loadInput(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax, Resource metadata) {
+        StoreTransaction transaction = store.getTransaction();
+        if (transaction == null) {
+            throw new NoTransactionException();
+        }
+        return this.loadInput(logger, reader, resourceIRI, ontologyIRI, syntax, metadata, transaction.getDataset()).ontology;
     }
 
     @Override
-    protected void doLoadRDF(Logger logger, Ontology ontology, RDFLoaderResult input) {
-        getGraph(ontology);
-        store.getTransaction().getDataset().insert(Changeset.fromAdded(input.getQuads()));
+    protected void exportResource(Logger logger, Writer writer, String resourceIRI, String syntax) {
+        StoreTransaction transaction = store.getTransaction();
+        if (transaction == null) {
+            throw new NoTransactionException();
+        }
+        this.exportResource(logger, writer, resourceIRI, syntax, transaction.getDataset());
+    }
+
+    @Override
+    protected void doLoadRDF(Logger logger, String ontology, RDFLoaderResult input, Dataset dataset) {
+        dataset.insert(Changeset.fromAdded(input.getQuads()));
 
         if (!input.getRules().isEmpty()) {
             for (RDFRule rule : input.getRules()) {
@@ -387,10 +288,10 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected void doLoadOWL(Logger logger, Ontology ontology, OWLLoaderResult input) {
-        Translator translator = new Translator(null, store.getTransaction().getDataset());
+    protected void doLoadOWL(Logger logger, String ontology, OWLLoaderResult input, Dataset dataset) {
+        Translator translator = new Translator(null, dataset);
         Collection<Quad> quads = translator.translate(input);
-        store.getTransaction().getDataset().insert(Changeset.fromAdded(quads));
+        dataset.insert(Changeset.fromAdded(quads));
 
         if (!input.getRules().isEmpty()) {
             for (Rule rule : input.getRules()) {
@@ -401,17 +302,17 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected void doExportRDF(Logger logger, Ontology ontology, RDFSerializer output) {
-        output.serialize(logger, store.getTransaction().getDataset().getAll(getGraph(ontology)));
+    protected void doExportRDF(Logger logger, String ontology, RDFSerializer output, Dataset dataset) {
+        output.serialize(logger, dataset.getAll(dataset.getIRINode(ontology)));
     }
 
     @Override
-    protected void doExportRDF(Logger logger, RDFSerializer output) {
-        output.serialize(logger, store.getTransaction().getDataset().getAll());
+    protected void doExportRDF(Logger logger, RDFSerializer output, Dataset dataset) {
+        output.serialize(logger, dataset.getAll());
     }
 
     @Override
-    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) {
+    protected void exportResourceOWL(Logger logger, String ontology, OWLSerializer output, Dataset dataset) {
         throw new UnsupportedOperationException();
     }
 }

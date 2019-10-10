@@ -199,6 +199,7 @@ public class SPARQLParser extends LRkParser {
      */
     private static final Symbol[] virtuals = {
             new Symbol(0x0109, "nil")};
+
     /**
      * Initializes a new instance of the parser
      *

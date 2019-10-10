@@ -44,6 +44,7 @@ public class ExpressionOperator implements Expression {
      * The second operand
      */
     private final Expression operand2;
+
     /**
      * Initializes an unary operation
      *

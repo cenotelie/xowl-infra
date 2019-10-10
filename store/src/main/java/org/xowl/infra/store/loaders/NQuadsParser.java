@@ -58,6 +58,7 @@ public class NQuadsParser extends LRkParser {
      */
     private static final Symbol[] virtuals = {
     };
+
     /**
      * Initializes a new instance of the parser
      *

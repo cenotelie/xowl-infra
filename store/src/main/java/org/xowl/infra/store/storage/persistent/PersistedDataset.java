@@ -19,7 +19,6 @@ package org.xowl.infra.store.storage.persistent;
 
 import fr.cenotelie.commons.storage.Transaction;
 import fr.cenotelie.commons.storage.TransactionalStorage;
-import fr.cenotelie.commons.storage.files.RawFile;
 import fr.cenotelie.commons.storage.files.RawFileBuffered;
 import fr.cenotelie.commons.storage.files.RawFileFactory;
 import fr.cenotelie.commons.storage.files.RawFileSplit;
@@ -64,12 +63,7 @@ public class PersistedDataset extends DatasetImpl {
      */
     public PersistedDataset(File directory, boolean isReadonly) throws IOException {
         this.storage = new WriteAheadLog(
-                new RawFileSplit(directory, "xowl-", ".dat", new RawFileFactory() {
-                    @Override
-                    public RawFile newStorage(File file, boolean writable) throws IOException {
-                        return new RawFileBuffered(file, writable);
-                    }
-                }, !isReadonly, 1 << 30),
+                new RawFileSplit(directory, "xowl-", ".dat", RawFileFactory.DEFAULT, !isReadonly, 1 << 30),
                 new RawFileBuffered(new File(directory, "xowl-log.dat"), !isReadonly)
         );
         boolean doInit = storage.getSize() == 0;

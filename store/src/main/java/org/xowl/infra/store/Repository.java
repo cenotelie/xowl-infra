@@ -24,12 +24,11 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.xowl.infra.lang.owl2.IRI;
-import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.owl2.Owl2Factory;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.execution.ExecutionManagerProvider;
 import org.xowl.infra.store.loaders.*;
-import org.xowl.infra.store.rdf.DatasetNodes;
+import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.writers.*;
 
 import java.io.IOException;
@@ -168,10 +167,6 @@ public abstract class Repository implements AutoCloseable {
      */
     protected final Map<String, Resource> resources;
     /**
-     * The loaded ontologies by IRI
-     */
-    protected final Map<String, Ontology> ontologies;
-    /**
      * Whether dependencies should be resolved when loading resources
      */
     protected final boolean resolveDependencies;
@@ -183,6 +178,7 @@ public abstract class Repository implements AutoCloseable {
      * The entailment regime
      */
     protected EntailmentRegime regime;
+
     /**
      * Initializes this repository
      *
@@ -192,7 +188,6 @@ public abstract class Repository implements AutoCloseable {
     public Repository(IRIMapper mapper, boolean resolveDependencies) {
         this.mapper = mapper;
         this.resources = new HashMap<>();
-        this.ontologies = new HashMap<>();
         this.resolveDependencies = resolveDependencies;
         this.executionManager = getExecutionManager(this);
         this.regime = EntailmentRegime.none;
@@ -285,6 +280,18 @@ public abstract class Repository implements AutoCloseable {
     }
 
     /**
+     * Gets an IRI for the specified value
+     *
+     * @param value The value of an IRI
+     * @return The IRI
+     */
+    public static IRI getIRI(String value) {
+        IRI iri = Owl2Factory.newIRI();
+        iri.setHasValue(value);
+        return iri;
+    }
+
+    /**
      * Gets the IRI mapper used by this repository
      *
      * @return The IRI mapper
@@ -300,27 +307,6 @@ public abstract class Repository implements AutoCloseable {
      */
     public ExecutionManager getExecutionManager() {
         return executionManager;
-    }
-
-    /**
-     * Gets the ontology with the specified IRI, or null if it is not present
-     *
-     * @param iri An IRI
-     * @return The corresponding ontology, or null if it is not present
-     */
-    public Ontology getOntology(String iri) {
-        return ontologies.get(iri);
-    }
-
-    /**
-     * Gets the known ontologies
-     *
-     * @return The known ontologies
-     */
-    public Collection<Ontology> getOntologies() {
-        synchronized (ontologies) {
-            return new ArrayList<>(ontologies.values());
-        }
     }
 
     /**
@@ -342,43 +328,6 @@ public abstract class Repository implements AutoCloseable {
     public abstract void setEntailmentRegime(EntailmentRegime regime) throws IOException;
 
     /**
-     * Gets a node manager for this repository
-     *
-     * @return A node manager for this repository
-     */
-    protected abstract DatasetNodes getNodeManager();
-
-    /**
-     * Gets an IRI for the specified value
-     *
-     * @param value The value of an IRI
-     * @return The IRI
-     */
-    public IRI getIRI(String value) {
-        IRI iri = Owl2Factory.newIRI();
-        iri.setHasValue(value);
-        return iri;
-    }
-
-    /**
-     * Resolves an ontology for the specified IRI
-     *
-     * @param iri An IRI
-     * @return The corresponding ontology
-     */
-    public Ontology resolveOntology(String iri) {
-        synchronized (ontologies) {
-            Ontology ontology = ontologies.get(iri);
-            if (ontology == null) {
-                ontology = Owl2Factory.newOntology();
-                ontology.setHasIRI(getIRI(iri));
-                ontologies.put(iri, ontology);
-            }
-            return ontology;
-        }
-    }
-
-    /**
      * Loads a resource and resolves its dependencies
      *
      * @param logger      The logger to use
@@ -386,7 +335,7 @@ public abstract class Repository implements AutoCloseable {
      * @return The loaded ontology
      * @throws IOException When the reader cannot be created
      */
-    public Ontology load(Logger logger, String resourceIRI) throws IOException {
+    public String load(Logger logger, String resourceIRI) throws IOException {
         return load(logger, resourceIRI, resourceIRI, false);
     }
 
@@ -400,7 +349,7 @@ public abstract class Repository implements AutoCloseable {
      * @return The loaded ontology
      * @throws IOException When the reader cannot be created
      */
-    public Ontology load(Logger logger, String resourceIRI, String ontologyIRI, boolean forceReload) throws IOException {
+    public String load(Logger logger, String resourceIRI, String ontologyIRI, boolean forceReload) throws IOException {
         // register the resource to be loaded
         Resource metadata;
         synchronized (resources) {
@@ -409,7 +358,7 @@ public abstract class Repository implements AutoCloseable {
                 if (!forceReload)
                     return metadata.ontology;
             } else {
-                metadata = new Resource();
+                metadata = new Resource(ontologyIRI);
                 resources.put(resourceIRI, metadata);
             }
         }
@@ -446,10 +395,23 @@ public abstract class Repository implements AutoCloseable {
      * @param syntax      The resource's syntax
      * @return The loaded ontology
      */
-    public Ontology load(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax) {
-        Resource metadata = loadInput(logger, reader, resourceIRI, ontologyIRI, syntax, new Resource());
-        return metadata.ontology;
+    public String load(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax) {
+        Resource metadata = new Resource(ontologyIRI);
+        return this.loadInput(logger, reader, resourceIRI, ontologyIRI, syntax, metadata);
     }
+
+    /**
+     * Loads a resource
+     *
+     * @param logger      The logger to use
+     * @param reader      The input reader
+     * @param resourceIRI The resource's IRI
+     * @param ontologyIRI The IRI of the ontology within the document
+     * @param syntax      The resource's syntax
+     * @param metadata    The metadata for the resource
+     * @throws IllegalArgumentException When the syntax is not supported
+     */
+    protected abstract String loadInput(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax, Resource metadata);
 
     /**
      * Loads a resource
@@ -463,18 +425,18 @@ public abstract class Repository implements AutoCloseable {
      * @return The loaded ontology
      * @throws IllegalArgumentException When the syntax is not supported
      */
-    private Resource loadInput(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax, Resource metadata) {
+    protected Resource loadInput(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax, Resource metadata, Dataset dataset) {
         switch (syntax) {
             case SYNTAX_NTRIPLES:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NTriplesLoader(getNodeManager()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NTriplesLoader(dataset), dataset);
             case SYNTAX_NQUADS:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NQuadsLoader(getNodeManager()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NQuadsLoader(dataset), dataset);
             case SYNTAX_TURTLE:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TurtleLoader(getNodeManager()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TurtleLoader(dataset), dataset);
             case SYNTAX_RDFXML:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFXMLLoader(getNodeManager()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFXMLLoader(dataset), dataset);
             case SYNTAX_JSON_LD:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLdLoader(getNodeManager()) {
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLdLoader(dataset) {
                     @Override
                     protected Reader getReaderFor(Logger logger, String iri) {
                         if (!resolveDependencies)
@@ -491,19 +453,19 @@ public abstract class Repository implements AutoCloseable {
                             return null;
                         }
                     }
-                });
+                }, dataset);
             case SYNTAX_JSON:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLoader(this, getNodeManager()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLoader(this, dataset), dataset);
             case SYNTAX_TRIG:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(getNodeManager()));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(dataset), dataset);
             case SYNTAX_XRDF:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new xRDFLoader(getNodeManager(), executionManager));
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new xRDFLoader(dataset, executionManager), dataset);
             case SYNTAX_FUNCTIONAL_OWL2:
-                return loadInputOWL(logger, reader, resourceIRI, metadata, new FunctionalOWL2Loader());
+                return loadInputOWL(logger, reader, resourceIRI, metadata, new FunctionalOWL2Loader(), dataset);
             case SYNTAX_OWLXML:
-                return loadInputOWL(logger, reader, resourceIRI, metadata, new OWLXMLLoader());
+                return loadInputOWL(logger, reader, resourceIRI, metadata, new OWLXMLLoader(), dataset);
             case SYNTAX_XOWL:
-                return loadInputOWL(logger, reader, resourceIRI, metadata, new xOWLLoader(executionManager));
+                return loadInputOWL(logger, reader, resourceIRI, metadata, new xOWLLoader(executionManager), dataset);
             default:
                 throw new IllegalArgumentException("Unsupported syntax: " + syntax);
         }
@@ -520,13 +482,13 @@ public abstract class Repository implements AutoCloseable {
      * @param loader      The RDF loader to use
      * @return The metadata for the resource
      */
-    private Resource loadInputRDF(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, Resource metadata, Loader loader) {
+    private Resource loadInputRDF(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, Resource metadata, Loader loader, Dataset dataset) {
         RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
         if (input == null)
             return null;
-        metadata.ontology = resolveOntology(ontologyIRI);
+        metadata.ontology = ontologyIRI;
         metadata.dependencies = input.getImports();
-        doLoadRDF(logger, metadata.ontology, input);
+        doLoadRDF(logger, metadata.ontology, input, dataset);
         return metadata;
     }
 
@@ -540,13 +502,13 @@ public abstract class Repository implements AutoCloseable {
      * @param loader      The RDF loader to use
      * @return The metadata for the resource
      */
-    private Resource loadInputOWL(Logger logger, Reader reader, String resourceIRI, Resource metadata, Loader loader) {
+    private Resource loadInputOWL(Logger logger, Reader reader, String resourceIRI, Resource metadata, Loader loader, Dataset dataset) {
         OWLLoaderResult input = loader.loadOWL(logger, reader, resourceIRI);
         if (input == null)
             return null;
-        metadata.ontology = resolveOntology(input.getIRI());
+        metadata.ontology = input.getIRI();
         metadata.dependencies = input.getImports();
-        doLoadOWL(logger, metadata.ontology, input);
+        doLoadOWL(logger, metadata.ontology, input, dataset);
         return metadata;
     }
 
@@ -559,7 +521,7 @@ public abstract class Repository implements AutoCloseable {
      * @throws IOException              When an error occurred during the operation
      * @throws IllegalArgumentException When the syntax is not supported
      */
-    public void export(Logger logger, Ontology ontology, String iri) throws IOException {
+    public void export(Logger logger, String ontology, String iri) throws IOException {
         String resource = mapper.get(iri);
         if (resource == null) {
             logger.error("Cannot identify the location of " + iri);
@@ -596,59 +558,15 @@ public abstract class Repository implements AutoCloseable {
     }
 
     /**
-     * Exports a resource
+     * Exports the repository to a resource
      *
-     * @param logger   The logger to use
-     * @param writer   The output writer
-     * @param ontology The ontology to export
-     * @param syntax   The resource's syntax
+     * @param logger      The logger to use
+     * @param writer      The output writer
+     * @param resourceIRI The resource's IRI
+     * @param syntax      The resource's syntax
      * @throws IllegalArgumentException When the syntax is not supported
      */
-    private void exportResource(Logger logger, Writer writer, Ontology ontology, String syntax) {
-        switch (syntax) {
-            case SYNTAX_NTRIPLES: {
-                RDFSerializer serializer = new NTripleSerializer(writer);
-                doExportRDF(logger, ontology, serializer);
-                break;
-            }
-            case SYNTAX_NQUADS: {
-                RDFSerializer serializer = new NQuadsSerializer(writer);
-                doExportRDF(logger, ontology, serializer);
-                break;
-            }
-            case SYNTAX_TURTLE: {
-                RDFSerializer serializer = new TurtleSerializer(writer);
-                doExportRDF(logger, ontology, serializer);
-                break;
-            }
-            case SYNTAX_TRIG: {
-                RDFSerializer serializer = new TriGSerializer(writer);
-                doExportRDF(logger, ontology, serializer);
-                break;
-            }
-            case SYNTAX_RDFXML: {
-                RDFSerializer serializer = new RDFXMLSerializer(writer);
-                doExportRDF(logger, ontology, serializer);
-                break;
-            }
-            case SYNTAX_JSON_LD: {
-                RDFSerializer serializer = new JsonLdSerializer(writer);
-                doExportRDF(logger, ontology, serializer);
-                break;
-            }
-            case SYNTAX_XRDF: {
-                RDFSerializer serializer = new xRDFSerializer(writer);
-                doExportRDF(logger, ontology, serializer);
-                break;
-            }
-            case SYNTAX_FUNCTIONAL_OWL2:
-            case SYNTAX_XOWL:
-            case SYNTAX_OWLXML:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
-            default:
-                throw new IllegalArgumentException("Unknown syntax: " + syntax);
-        }
-    }
+    protected abstract void exportResource(Logger logger, Writer writer, String resourceIRI, String syntax);
 
     /**
      * Exports the repository to a resource
@@ -659,41 +577,41 @@ public abstract class Repository implements AutoCloseable {
      * @param syntax      The resource's syntax
      * @throws IllegalArgumentException When the syntax is not supported
      */
-    private void exportResource(Logger logger, Writer writer, String resourceIRI, String syntax) {
+    protected void exportResource(Logger logger, Writer writer, String resourceIRI, String syntax, Dataset dataset) {
         switch (syntax) {
             case SYNTAX_NTRIPLES: {
                 RDFSerializer serializer = new NTripleSerializer(writer);
-                doExportRDF(logger, this.getOntology(resourceIRI), serializer);
+                doExportRDF(logger, resourceIRI, serializer, dataset);
                 break;
             }
             case SYNTAX_NQUADS: {
                 RDFSerializer serializer = new NQuadsSerializer(writer);
-                doExportRDF(logger, serializer);
+                doExportRDF(logger, serializer, dataset);
                 break;
             }
             case SYNTAX_TURTLE: {
                 RDFSerializer serializer = new TurtleSerializer(writer);
-                doExportRDF(logger, this.getOntology(resourceIRI), serializer);
+                doExportRDF(logger, resourceIRI, serializer, dataset);
                 break;
             }
             case SYNTAX_TRIG: {
                 RDFSerializer serializer = new TriGSerializer(writer);
-                doExportRDF(logger, serializer);
+                doExportRDF(logger, serializer, dataset);
                 break;
             }
             case SYNTAX_RDFXML: {
                 RDFSerializer serializer = new RDFXMLSerializer(writer);
-                doExportRDF(logger, this.getOntology(resourceIRI), serializer);
+                doExportRDF(logger, resourceIRI, serializer, dataset);
                 break;
             }
             case SYNTAX_JSON_LD: {
                 RDFSerializer serializer = new JsonLdSerializer(writer);
-                doExportRDF(logger, serializer);
+                doExportRDF(logger, serializer, dataset);
                 break;
             }
             case SYNTAX_XRDF: {
                 RDFSerializer serializer = new xRDFSerializer(writer);
-                doExportRDF(logger, serializer);
+                doExportRDF(logger, serializer, dataset);
                 break;
             }
             case SYNTAX_FUNCTIONAL_OWL2:
@@ -712,7 +630,7 @@ public abstract class Repository implements AutoCloseable {
      * @param ontology The containing ontology
      * @param input    The input data
      */
-    protected abstract void doLoadRDF(Logger logger, Ontology ontology, RDFLoaderResult input);
+    protected abstract void doLoadRDF(Logger logger, String ontology, RDFLoaderResult input, Dataset dataset);
 
     /**
      * Loads an ontology as a set of axioms
@@ -721,7 +639,7 @@ public abstract class Repository implements AutoCloseable {
      * @param ontology The containing ontology
      * @param input    The input data
      */
-    protected abstract void doLoadOWL(Logger logger, Ontology ontology, OWLLoaderResult input);
+    protected abstract void doLoadOWL(Logger logger, String ontology, OWLLoaderResult input, Dataset dataset);
 
     /**
      * Exports a collection of quads
@@ -730,7 +648,7 @@ public abstract class Repository implements AutoCloseable {
      * @param ontology The containing ontology
      * @param output   The output
      */
-    protected abstract void doExportRDF(Logger logger, Ontology ontology, RDFSerializer output);
+    protected abstract void doExportRDF(Logger logger, String ontology, RDFSerializer output, Dataset dataset);
 
     /**
      * Exports a collection of quads from the whole repository
@@ -738,7 +656,7 @@ public abstract class Repository implements AutoCloseable {
      * @param logger The logger to use
      * @param output The output
      */
-    protected abstract void doExportRDF(Logger logger, RDFSerializer output);
+    protected abstract void doExportRDF(Logger logger, RDFSerializer output, Dataset dataset);
 
     /**
      * Exports a collection of quads
@@ -747,19 +665,29 @@ public abstract class Repository implements AutoCloseable {
      * @param ontology The containing ontology
      * @param output   The output
      */
-    protected abstract void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output);
+    protected abstract void exportResourceOWL(Logger logger, String ontology, OWLSerializer output, Dataset dataset);
 
     /**
      * The data for the resource
      */
-    private static class Resource {
+    protected static class Resource {
         /**
          * The ontology for the resource
          */
-        public Ontology ontology;
+        public String ontology;
         /**
          * The dependencies for the resource
          */
         public Collection<String> dependencies;
+
+        /**
+         * Initializes this resource
+         *
+         * @param ontology The ontology for the resource
+         */
+        public Resource(String ontology) {
+            this.ontology = ontology;
+            this.dependencies = null;
+        }
     }
 }
