@@ -578,7 +578,7 @@ public class JsonLdLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The equivalent RDF boolean Literal node
      */
-    private LiteralNode loadLiteralBoolean(ASTNode node, JsonLdContext context, JsonLdNameInfo info) throws LoaderException {
+    private LiteralNode loadLiteralBoolean(ASTNode node, JsonLdContext context, JsonLdNameInfo info) {
         String value = node.getValue();
         if (info != null && info.valueType != null) {
             // coerced type
@@ -656,7 +656,7 @@ public class JsonLdLoader implements Loader {
             return nodes.getLiteralNode(value, context.expandName(info.valueType), null);
         }
         String language = (info != null && info.language != null) ? info.language : context.getLanguage();
-        if (language != null && Vocabulary.JSONLD.null_.equals(language))
+        if (Vocabulary.JSONLD.null_.equals(language))
             // explicit reset
             language = null;
         return nodes.getLiteralNode(value, language == null ? Vocabulary.xsdString : Vocabulary.rdfLangString, language);

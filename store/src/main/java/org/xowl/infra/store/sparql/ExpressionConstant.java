@@ -44,12 +44,12 @@ public class ExpressionConstant implements Expression {
     }
 
     @Override
-    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvaluationException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings) {
         return value;
     }
 
     @Override
-    public Object eval(EvalContext context, Solutions solutions) throws EvaluationException {
+    public Object eval(EvalContext context, Solutions solutions) {
         return value;
     }
 

@@ -360,14 +360,19 @@ public class RDFXMLLoader implements Loader {
                 }
             }
         } else {
-            if ("Literal".equals(attribute)) {
-                loadElementPropertyLiteralParseType(element, subject);
-            } else if ("Resource".equals(attribute)) {
-                loadElementPropertyResourceParseType(element, subject);
-            } else if ("Collection".equals(attribute)) {
-                loadElementPropertyCollectionParseType(element, subject);
-            } else {
-                loadElementPropertyLiteralParseType(element, subject);
+            switch (attribute) {
+                case "Literal":
+                    loadElementPropertyLiteralParseType(element, subject);
+                    break;
+                case "Resource":
+                    loadElementPropertyResourceParseType(element, subject);
+                    break;
+                case "Collection":
+                    loadElementPropertyCollectionParseType(element, subject);
+                    break;
+                default:
+                    loadElementPropertyLiteralParseType(element, subject);
+                    break;
             }
         }
     }
@@ -381,7 +386,7 @@ public class RDFXMLLoader implements Loader {
     private IRINode getProperty(XmlElement element) {
         if (Vocabulary.rdfLI.equals(element.getNodeIRI())) {
             int index = element.getIndex();
-            return nodes.getIRINode(Vocabulary.rdf + "_" + Integer.toString(index));
+            return nodes.getIRINode(Vocabulary.rdf + "_" + index);
         } else {
             return nodes.getIRINode(element.getNodeIRI());
         }

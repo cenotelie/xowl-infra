@@ -1283,9 +1283,8 @@ public class FunctionalOWL2Loader implements Loader {
      * @return The individual expression
      */
     protected IndividualExpression loadExpIndividual(ASTNode node) {
-        switch (node.getSymbol().getName()) {
-            case "BLANK_NODE_LABEL":
-                return loadExpAnonymousIndividual(node);
+        if ("BLANK_NODE_LABEL".equals(node.getSymbol().getName())) {
+            return loadExpAnonymousIndividual(node);
         }
         return loadExpEntity(node);
     }
@@ -1433,9 +1432,8 @@ public class FunctionalOWL2Loader implements Loader {
      * @return The object property expression
      */
     protected ObjectPropertyExpression loadExpObjectProperty(ASTNode node) {
-        switch (node.getSymbol().getName()) {
-            case "expInverseObjectProperty":
-                return loaExpInverseObjectProperty(node);
+        if ("expInverseObjectProperty".equals(node.getSymbol().getName())) {
+            return loaExpInverseObjectProperty(node);
         }
         return loadExpEntity(node);
     }
@@ -1567,12 +1565,10 @@ public class FunctionalOWL2Loader implements Loader {
      * @return The annotation value
      */
     protected AnnotationSubject loadExpAnnotationSubject(ASTNode node) {
-        switch (node.getSymbol().getName()) {
-            case "BLANK_NODE_LABEL":
-                return loadExpAnonymousIndividual(node);
-            default:
-                return loadEntity(node);
+        if ("BLANK_NODE_LABEL".equals(node.getSymbol().getName())) {
+            return loadExpAnonymousIndividual(node);
         }
+        return loadEntity(node);
     }
 
     /**

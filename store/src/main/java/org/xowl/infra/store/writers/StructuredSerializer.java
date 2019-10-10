@@ -173,7 +173,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
                 String target = namespaces.get(head);
                 if (target != null)
                     return;
-                namespaces.put(head, NAMESPACE_RADICAL + Integer.toString(namespaces.size()));
+                namespaces.put(head, NAMESPACE_RADICAL + namespaces.size());
                 return;
             }
             index = iri.lastIndexOf("/");
@@ -185,7 +185,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
             String target = namespaces.get(head);
             if (target != null)
                 return;
-            namespaces.put(head, NAMESPACE_RADICAL + Integer.toString(namespaces.size()));
+            namespaces.put(head, NAMESPACE_RADICAL + namespaces.size());
         }
     }
 

@@ -72,13 +72,13 @@ public abstract class ResourceAccess {
         });
         REGISTRY.add(new ResourceAccess(SCHEME_RESOURCE) {
             @Override
-            public Reader getReader(String resource) throws IOException {
+            public Reader getReader(String resource) {
                 InputStream stream = Repository.class.getResourceAsStream(resource.substring(SCHEME_RESOURCE.length()));
                 return new InputStreamReader(stream, IOUtils.CHARSET);
             }
 
             @Override
-            public Writer getWriter(String resource) throws IOException {
+            public Writer getWriter(String resource) {
                 // cannot write to resources
                 return null;
             }
@@ -86,14 +86,14 @@ public abstract class ResourceAccess {
         REGISTRY.add(new ResourceAccess(SCHEME_JAR) {
             @Override
             public Reader getReader(String resource) throws IOException {
-                String parts[] = resource.substring(SCHEME_JAR.length()).split("!");
+                String[] parts = resource.substring(SCHEME_JAR.length()).split("!");
                 JarFile jar = new JarFile(parts[0]);
                 InputStream stream = jar.getInputStream(jar.getEntry(parts[1]));
                 return new InputStreamReader(stream, IOUtils.CHARSET);
             }
 
             @Override
-            public Writer getWriter(String resource) throws IOException {
+            public Writer getWriter(String resource) {
                 // cannot write to jar
                 return null;
             }

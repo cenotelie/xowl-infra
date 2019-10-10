@@ -57,7 +57,7 @@ public class ExpressionRDF implements Expression {
     }
 
     @Override
-    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvaluationException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings) {
         Node result = node;
         if (result != null && result.getNodeType() == Node.TYPE_VARIABLE) {
             result = bindings.get((VariableNode) result);

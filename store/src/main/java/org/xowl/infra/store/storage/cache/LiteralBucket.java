@@ -40,11 +40,11 @@ class LiteralBucket {
      * The existing literal nodes
      * Do not store strong references to the literals so that they can be garbage-collected if not used
      */
-    private AtomicReferenceArray<WeakReference<LiteralNode>> nodes;
+    private final AtomicReferenceArray<WeakReference<LiteralNode>> nodes;
     /**
      * The number of literals in this bucket
      */
-    private AtomicInteger size;
+    private final AtomicInteger size;
 
     /**
      * Initializes this bucket

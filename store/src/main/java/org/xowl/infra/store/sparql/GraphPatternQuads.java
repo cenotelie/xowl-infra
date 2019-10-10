@@ -82,7 +82,7 @@ public class GraphPatternQuads implements GraphPattern {
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvaluationException {
+    public Solutions eval(EvalContext context) {
         if (pattern.getPositives().isEmpty() && pattern.getNegatives().isEmpty()) {
             // for an empty query return a single solution with no binding
             // this is because an empty match pattern matches all graphs, including the empty one

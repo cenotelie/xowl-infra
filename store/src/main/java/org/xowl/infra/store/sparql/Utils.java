@@ -141,7 +141,7 @@ class Utils {
      * @param solution The query solution mapping the variables to their value
      * @param buffer   The buffer for the realized quads
      */
-    public static void instantiate(EvalContext context, RDFPatternSolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvaluationException {
+    public static void instantiate(EvalContext context, RDFPatternSolution solution, Collection<Quad> template, Collection<Quad> buffer) {
         Map<Node, Node> blanks = new HashMap<>();
         for (Quad quad : template) {
             GraphNode graph = (GraphNode) instantiate(context, solution, blanks, quad.getGraph());
@@ -489,9 +489,8 @@ class Utils {
      * @param projection The projection variables
      * @param context    The evaluation context
      * @return The projected solutions
-     * @throws EvaluationException When an error occurs during the evaluation
      */
-    private static Solutions projectSimple(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvaluationException {
+    private static Solutions projectSimple(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
         for (RDFPatternSolution solution : solutions) {
             List<Couple<VariableNode, Node>> bindings = new ArrayList<>();

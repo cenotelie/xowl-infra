@@ -790,9 +790,9 @@ public class CachedDatasetQuads extends DatasetQuadsImpl {
      * @return An iterator over all the subjects starting edges in the graph
      */
     private Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<IRINode, EdgeBucket>> iterator1 = new AdaptingIterator<>(edgesIRI.entrySet().iterator(), entry -> new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue()));
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<BlankNode, EdgeBucket>> iterator2 = new AdaptingIterator<>(edgesBlank.entrySet().iterator(), entry -> new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue()));
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<AnonymousNode, EdgeBucket>> iterator3 = new AdaptingIterator<>(edgesAnon.entrySet().iterator(), entry -> new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue()));
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<IRINode, EdgeBucket>> iterator1 = new AdaptingIterator<>(edgesIRI.entrySet().iterator(), entry -> new Couple<>(entry.getKey(), entry.getValue()));
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<BlankNode, EdgeBucket>> iterator2 = new AdaptingIterator<>(edgesBlank.entrySet().iterator(), entry -> new Couple<>(entry.getKey(), entry.getValue()));
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<AnonymousNode, EdgeBucket>> iterator3 = new AdaptingIterator<>(edgesAnon.entrySet().iterator(), entry -> new Couple<>(entry.getKey(), entry.getValue()));
         return new ConcatenatedIterator<>(new Iterator[]{
                 iterator1,
                 iterator2,

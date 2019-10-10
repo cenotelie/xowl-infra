@@ -34,9 +34,8 @@ public class EvaluationUtils {
      *
      * @param value An expression's value
      * @return The primitive equivalent
-     * @throws EvaluationException When an error occurs during the evaluation
      */
-    public static Object primitive(Object value) throws EvaluationException {
+    public static Object primitive(Object value) {
         if (value == null)
             return null;
         if (value instanceof Node)

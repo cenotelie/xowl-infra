@@ -67,7 +67,7 @@ public class ResultQuads implements Result {
     }
 
     @Override
-    public void print(Writer writer, String syntax) throws IOException {
+    public void print(Writer writer, String syntax) {
         RDFUtils.serialize(writer, Logging.get(), quads.iterator(), syntax);
     }
 

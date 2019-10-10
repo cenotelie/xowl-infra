@@ -191,6 +191,7 @@ class StoreImpl implements Store {
             StoreTransaction transaction = createNewTransaction(writable, autocommit);
             // register this transaction
             if (transactionsCount >= transactions.length) {
+                //noinspection NonAtomicOperationOnVolatileField
                 transactions = Arrays.copyOf(transactions, transactions.length * 2);
                 transactions[transactionsCount] = transaction;
             } else {
@@ -201,6 +202,7 @@ class StoreImpl implements Store {
                     }
                 }
             }
+            //noinspection NonAtomicOperationOnVolatileField
             transactionsCount++;
             transactionsByThread.put(Thread.currentThread(), transaction);
             return transaction;
@@ -250,6 +252,7 @@ class StoreImpl implements Store {
             for (int i = 0; i != transactions.length; i++) {
                 if (transactions[i] == transaction) {
                     transactions[i] = null;
+                    //noinspection NonAtomicOperationOnVolatileField
                     transactionsCount--;
                     transactionsByThread.remove(transaction.getThread());
                     break;

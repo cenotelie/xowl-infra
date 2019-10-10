@@ -221,7 +221,7 @@ class JsonLdContext {
         int colonIndex = name.indexOf(':');
         while (colonIndex != -1) {
             String prefix = name.substring(0, colonIndex);
-            String suffix = (colonIndex == name.length() - 1) ? "" : name.substring(colonIndex + 1, name.length());
+            String suffix = (colonIndex == name.length() - 1) ? "" : name.substring(colonIndex + 1);
             if (suffix.startsWith("//"))
                 // this matches absolute URIs as per JSON-LD spec
                 return prefix + ":" + suffix;

@@ -173,8 +173,8 @@ public class RDFUtils {
      * @return The changeset representing the difference
      */
     public static Changeset diff(Collection<Quad> left, Collection<Quad> right, boolean ignoreGraph) {
-        Quad[] leftArray = left.toArray(new Quad[left.size()]);
-        Quad[] rightArray = right.toArray(new Quad[right.size()]);
+        Quad[] leftArray = left.toArray(new Quad[0]);
+        Quad[] rightArray = right.toArray(new Quad[0]);
 
         Map<BlankNode, BlankNode> blanks = new HashMap<>();
         int countLeft = leftArray.length;

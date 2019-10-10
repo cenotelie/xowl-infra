@@ -135,9 +135,8 @@ public class GraphPatternModifier {
      * @param solutions The solution set
      * @param context   The evaluation context
      * @return The transformed solution set
-     * @throws EvaluationException When an error occurs during the evaluation
      */
-    public Solutions apply(Solutions solutions, EvalContext context) throws EvaluationException {
+    public Solutions apply(Solutions solutions, EvalContext context) {
         Solutions result = solutions;
         if (!having.isEmpty()) {
             Expression exp = having.get(0);

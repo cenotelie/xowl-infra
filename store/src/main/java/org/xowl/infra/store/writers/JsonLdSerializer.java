@@ -124,7 +124,7 @@ public class JsonLdSerializer extends StructuredSerializer {
             writer.write(TextUtils.escapeStringJSON(shortName != null ? shortName : iri));
         } else {
             int id = getBlankID((BlankNode) graph);
-            writer.write("_:" + Integer.toString(id));
+            writer.write("_:" + id);
         }
         writer.write("\", \"@graph\": [");
         serializeGraphContent(content);
@@ -152,7 +152,7 @@ public class JsonLdSerializer extends StructuredSerializer {
                 writer.write(TextUtils.escapeStringJSON(shortName != null ? shortName : iri));
             } else {
                 int id = getBlankID((BlankNode) entry.getKey());
-                writer.write("_:" + Integer.toString(id));
+                writer.write("_:" + id);
             }
             writer.write("\"");
             serializeProperties(entry.getValue());

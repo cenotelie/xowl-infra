@@ -49,7 +49,7 @@ public class GraphPatternInlineData implements GraphPattern {
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvaluationException {
+    public Solutions eval(EvalContext context) {
         return new SolutionsMultiset(data);
     }
 

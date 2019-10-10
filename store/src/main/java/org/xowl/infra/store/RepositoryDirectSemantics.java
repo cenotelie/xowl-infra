@@ -202,11 +202,7 @@ public class RepositoryDirectSemantics extends Repository {
             name = parts[1];
             sub = mapEntities.get(ontology);
         } else {
-            sub = mapEntities.get(null);
-            if (sub == null) {
-                sub = new HashMap<>();
-                mapEntities.put(null, sub);
-            }
+            sub = mapEntities.computeIfAbsent(null, k -> new HashMap<>());
             name = iriValue;
         }
 
@@ -1048,8 +1044,7 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectUnionOf(ObjectUnionOf expression) {
-        List<org.xowl.infra.lang.runtime.Class> unified = new ArrayList<>();
-        unified.addAll(toEvaluatedList(expression.getClassSeq()));
+        List<org.xowl.infra.lang.runtime.Class> unified = new ArrayList<>(toEvaluatedList(expression.getClassSeq()));
         // Try to find previously resolved class
         for (org.xowl.infra.lang.runtime.Class previous : classUnions) {
             if (previous.getAllClassUnionOf().size() != unified.size())
@@ -1079,8 +1074,7 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectIntersectionOf(ObjectIntersectionOf expression) {
-        List<org.xowl.infra.lang.runtime.Class> intersected = new ArrayList<>();
-        intersected.addAll(toEvaluatedList(expression.getClassSeq()));
+        List<org.xowl.infra.lang.runtime.Class> intersected = new ArrayList<>(toEvaluatedList(expression.getClassSeq()));
         // Try to find previously resolved class
         for (org.xowl.infra.lang.runtime.Class previous : classIntersections) {
             if (previous.getAllClassIntersectionOf().size() != intersected.size())
@@ -1110,8 +1104,7 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectOneOf(ObjectOneOf expression) {
-        List<org.xowl.infra.lang.runtime.Individual> individuals = new ArrayList<>();
-        individuals.addAll(toEvaluatedList(expression.getIndividualSeq()));
+        List<org.xowl.infra.lang.runtime.Individual> individuals = new ArrayList<>(toEvaluatedList(expression.getIndividualSeq()));
         // Try to find previously resolved class
         for (org.xowl.infra.lang.runtime.Class previous : classOneOfs) {
             if (previous.getAllClassOneOf().size() != individuals.size())
@@ -1483,8 +1476,7 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Datatype evalExpDataIntersectionOf(DataIntersectionOf expression) {
-        List<org.xowl.infra.lang.runtime.Datatype> intersected = new ArrayList<>();
-        intersected.addAll(toEvaluatedList(expression.getDatarangeSeq()));
+        List<org.xowl.infra.lang.runtime.Datatype> intersected = new ArrayList<>(toEvaluatedList(expression.getDatarangeSeq()));
         // Try to find previously resolved datatype
         for (org.xowl.infra.lang.runtime.Datatype previous : dataIntersections) {
             if (previous.getAllDataIntersectionOf().size() != intersected.size())
@@ -1560,8 +1552,7 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Datatype evalExpDataUnionOf(DataUnionOf expression) {
-        List<org.xowl.infra.lang.runtime.Datatype> unified = new ArrayList<>();
-        unified.addAll(toEvaluatedList(expression.getDatarangeSeq()));
+        List<org.xowl.infra.lang.runtime.Datatype> unified = new ArrayList<>(toEvaluatedList(expression.getDatarangeSeq()));
         // Try to find previously resolved datatype
         for (org.xowl.infra.lang.runtime.Datatype previous : dataUnions) {
             if (previous.getAllDataUnionOf().size() != unified.size())

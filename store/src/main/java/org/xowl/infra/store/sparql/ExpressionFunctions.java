@@ -160,7 +160,7 @@ class ExpressionFunctions {
         });
         register(new ExpressionFunction("RAND", 0, 0) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) {
                 return (new Random()).nextDouble();
             }
         });
@@ -333,14 +333,14 @@ class ExpressionFunctions {
         });
         register(new ExpressionFunction("UUID", 0, 0) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) {
                 String value = "urn:uuid:" + UUID.randomUUID().toString();
                 return context.getNodes().getIRINode(value);
             }
         });
         register(new ExpressionFunction("STRUUID", 0, 0) {
             @Override
-            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
+            protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) {
                 return UUID.randomUUID().toString();
             }
         });
@@ -412,10 +412,8 @@ class ExpressionFunctions {
                 }
                 String s2 = v2 != null ? v2.toString() : "";
                 if (v2 instanceof Node) {
-                    switch (((Node) v2).getNodeType()) {
-                        case Node.TYPE_LITERAL:
-                            s2 = ((LiteralNode) v2).getLexicalValue();
-                            break;
+                    if (((Node) v2).getNodeType() == Node.TYPE_LITERAL) {
+                        s2 = ((LiteralNode) v2).getLexicalValue();
                     }
                 }
                 return context.getNodes().getLiteralNode(s1, null, s2.isEmpty() ? null : s2);

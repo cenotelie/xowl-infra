@@ -36,7 +36,7 @@ public class SPARQLTestSuiteGenerator {
     /**
      * List of the used names for the generated tests
      */
-    private List<String> names = new ArrayList<>();
+    private final List<String> names = new ArrayList<>();
 
     /**
      * Generates the SPARQL test suite
@@ -143,14 +143,14 @@ public class SPARQLTestSuiteGenerator {
         List<Couple<String, String>> resultData = new ArrayList<>();
 
         for (ProxyObject data : action.getObjectValues("http://www.w3.org/2009/sparql/tests/test-update#data"))
-            initialData.add(new Couple<String, String>(data.getIRIString(), null));
+            initialData.add(new Couple<>(data.getIRIString(), null));
         for (ProxyObject data : action.getObjectValues("http://www.w3.org/2009/sparql/tests/test-update#graphData")) {
             initialData.add(new Couple<>(
                     data.getObjectValue("http://www.w3.org/2009/sparql/tests/test-update#graph").getIRIString(),
                     data.getDataValue(Vocabulary.rdfs + "label").toString()));
         }
         for (ProxyObject data : result.getObjectValues("http://www.w3.org/2009/sparql/tests/test-update#data"))
-            resultData.add(new Couple<String, String>(data.getIRIString(), null));
+            resultData.add(new Couple<>(data.getIRIString(), null));
         for (ProxyObject data : result.getObjectValues("http://www.w3.org/2009/sparql/tests/test-update#graphData")) {
             resultData.add(new Couple<>(
                     data.getObjectValue("http://www.w3.org/2009/sparql/tests/test-update#graph").getIRIString(),

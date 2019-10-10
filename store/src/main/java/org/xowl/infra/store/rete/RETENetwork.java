@@ -306,7 +306,7 @@ public class RETENetwork {
         /**
          * The data for the positive joins
          */
-        public List<JoinData> positives;
+        public final List<JoinData> positives;
         /**
          * The nodes for the negative joins
          */

@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class GraphPatternUnmatchable implements GraphPattern {
     @Override
-    public Solutions eval(EvalContext context) throws EvaluationException {
+    public Solutions eval(EvalContext context) {
         return new SolutionsMultiset(0);
     }
 

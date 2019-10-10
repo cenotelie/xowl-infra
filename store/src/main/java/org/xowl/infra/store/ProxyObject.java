@@ -359,7 +359,7 @@ public class ProxyObject {
                 String property = ((IRINode) nodeProperty).getIRIValue();
                 Node nodeValue = quad.getObject();
                 if (nodeValue.getNodeType() == Node.TYPE_IRI) {
-                    return new Couple<String, Object>(property, repository.getProxy(((IRINode) nodeValue).getIRIValue()));
+                    return new Couple<>(property, repository.getProxy(((IRINode) nodeValue).getIRIValue()));
                 } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
                     return new Couple<>(property, decode((LiteralNode) nodeValue));
                 }
@@ -416,13 +416,13 @@ public class ProxyObject {
         try {
             Iterator<? extends Quad> iterator = dataset.getAll(null, property, subject);
             while (iterator.hasNext()) {
-                Node node = iterator.next().getSubject();
+                SubjectNode node = iterator.next().getSubject();
                 if (node.getNodeType() == Node.TYPE_IRI) {
                     ProxyObject po = repository.getProxy(((IRINode) node).getIRIValue());
                     if (!result.contains(po))
                         result.add(po);
                 } else if (node.getNodeType() == Node.TYPE_BLANK) {
-                    ProxyObject po = repository.getProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
+                    ProxyObject po = repository.getProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), node);
                     if (!result.contains(po))
                         result.add(po);
                 }

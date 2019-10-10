@@ -267,13 +267,10 @@ public class OWLXMLLoader implements Loader {
         axiom.setFile(baseURI);
         List<XmlElement> result = new ArrayList<>();
         for (XmlElement child : node) {
-            switch (child.getNodeName()) {
-                case Vocabulary.OWL2.ontoAnnotation:
-                    axiom.addAnnotations(loadAnnotation(child));
-                    break;
-                default:
-                    result.add(child);
-                    break;
+            if (Vocabulary.OWL2.ontoAnnotation.equals(child.getNodeName())) {
+                axiom.addAnnotations(loadAnnotation(child));
+            } else {
+                result.add(child);
             }
         }
         return result;
@@ -1258,9 +1255,8 @@ public class OWLXMLLoader implements Loader {
      * @return The individual expression
      */
     private IndividualExpression loadExpIndividual(XmlElement node) {
-        switch (node.getNodeName()) {
-            case Vocabulary.OWL2.entityAnonymousIndividual:
-                return loadExpAnonymousIndividual(node);
+        if (Vocabulary.OWL2.entityAnonymousIndividual.equals(node.getNodeName())) {
+            return loadExpAnonymousIndividual(node);
         }
         return loadExpEntity(node);
     }
@@ -1416,9 +1412,8 @@ public class OWLXMLLoader implements Loader {
      * @return The object property expression
      */
     private ObjectPropertyExpression loadExpObjectProperty(XmlElement node) {
-        switch (node.getNodeName()) {
-            case Vocabulary.OWL2.expObjectInverseOf:
-                return loaExpInverseObjectProperty(node);
+        if (Vocabulary.OWL2.expObjectInverseOf.equals(node.getNodeName())) {
+            return loaExpInverseObjectProperty(node);
         }
         return loadExpEntity(node);
     }
@@ -1481,12 +1476,10 @@ public class OWLXMLLoader implements Loader {
      * @return The annotation value
      */
     private AnnotationSubject loadExpAnnotationSubject(XmlElement node) {
-        switch (node.getNodeName()) {
-            case Vocabulary.OWL2.entityAnonymousIndividual:
-                return loadExpAnonymousIndividual(node);
-            default:
-                return loadEntity(node);
+        if (Vocabulary.OWL2.entityAnonymousIndividual.equals(node.getNodeName())) {
+            return loadExpAnonymousIndividual(node);
         }
+        return loadEntity(node);
     }
 
     /**

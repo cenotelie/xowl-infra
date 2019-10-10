@@ -193,7 +193,7 @@ public abstract class Repository implements AutoCloseable {
     /**
      * The loader for providers of execution managers
      */
-    private static ServiceLoader<ExecutionManagerProvider> EXECUTION_MANAGER_PROVIDER = ServiceLoader.load(ExecutionManagerProvider.class);
+    private static final ServiceLoader<ExecutionManagerProvider> EXECUTION_MANAGER_PROVIDER = ServiceLoader.load(ExecutionManagerProvider.class);
 
     /**
      * Gets an execution manager
@@ -633,10 +633,8 @@ public abstract class Repository implements AutoCloseable {
                 break;
             }
             case SYNTAX_FUNCTIONAL_OWL2:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
-            case SYNTAX_OWLXML:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_XOWL:
+            case SYNTAX_OWLXML:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             default:
                 throw new IllegalArgumentException("Unknown syntax: " + syntax);
@@ -690,10 +688,8 @@ public abstract class Repository implements AutoCloseable {
                 break;
             }
             case SYNTAX_FUNCTIONAL_OWL2:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
-            case SYNTAX_OWLXML:
-                throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             case SYNTAX_XOWL:
+            case SYNTAX_OWLXML:
                 throw new IllegalArgumentException("Syntax " + syntax + " is not supported");
             default:
                 throw new IllegalArgumentException("Unknown syntax: " + syntax);

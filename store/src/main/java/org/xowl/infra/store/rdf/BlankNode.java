@@ -63,6 +63,6 @@ public class BlankNode implements SubjectNode, GraphNode {
 
     @Override
     public String toString() {
-        return "_:" + Long.toString(blankID);
+        return "_:" + blankID;
     }
 }

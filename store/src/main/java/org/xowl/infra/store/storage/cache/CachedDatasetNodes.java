@@ -48,7 +48,7 @@ public class CachedDatasetNodes extends DatasetNodesImpl {
     /**
      * The next blank identifier
      */
-    private AtomicLong nextBlank;
+    private final AtomicLong nextBlank;
 
     /**
      * Initializes this store
