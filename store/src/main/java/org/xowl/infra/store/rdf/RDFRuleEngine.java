@@ -322,11 +322,11 @@ public class RDFRuleEngine implements ChangeListener {
         Iterator<RDFRuleExecution> getExecutions();
 
         /**
-         * Gets the node manager
+         * Gets the current dataset
          *
-         * @return The node manager
+         * @return The current dataset
          */
-        DatasetNodes getNodes();
+        Dataset getDataset();
 
         /**
          * Gets the current evaluator
@@ -340,6 +340,14 @@ public class RDFRuleEngine implements ChangeListener {
      * Represents the thread-specific inputs and outputs of the engine
      */
     private static class EngineIO {
+        /**
+         * The current dataset
+         */
+        public Dataset dataset;
+        /**
+         * The current evaluator
+         */
+        public Evaluator evaluator;
         /**
          * Flag whether outstanding changes are currently being applied
          */

@@ -65,7 +65,7 @@ public class GraphPatternBind implements GraphPattern {
             Solutions originalSolutions = origin.eval(context);
             return Utils.extend(originalSolutions, variable, expression, context);
         } else {
-            Node value = RDFUtils.getRDF(context.getNodes(), expression.eval(context, (RDFPatternSolution) null));
+            Node value = RDFUtils.getRDF(context.getDataset(), expression.eval(context, (RDFPatternSolution) null));
             ArrayList<Couple<VariableNode, Node>> bindings = new ArrayList<>();
             bindings.add(new Couple<>(variable, value));
             RDFPatternSolution solution = new RDFPatternSolution(bindings);

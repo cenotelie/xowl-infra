@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.Node;
@@ -63,8 +62,8 @@ public class CommandInsertData implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
-        Dataset dataset = repository.getStore().getTransaction().getDataset();
+    public Result execute(EvalContext context) {
+        Dataset dataset = context.getDataset();
         try {
             dataset.insert(Changeset.fromAdded(quads));
             return ResultSuccess.INSTANCE;

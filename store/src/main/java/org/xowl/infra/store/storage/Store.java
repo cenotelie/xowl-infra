@@ -19,7 +19,6 @@ package org.xowl.infra.store.storage;
 
 import fr.cenotelie.commons.storage.NoTransactionException;
 import org.xowl.infra.store.execution.ExecutionManager;
-import org.xowl.infra.store.rdf.ChangeListener;
 
 /**
  * Represents the public interface of a storage system for RDF quads
@@ -63,18 +62,4 @@ public interface Store extends AutoCloseable {
      * @param executionManager The execution manager to use
      */
     void setExecutionManager(ExecutionManager executionManager);
-
-    /**
-     * Adds the specified listener to this store
-     *
-     * @param listener A listener
-     */
-    void addListener(ChangeListener listener);
-
-    /**
-     * Removes the specified listener from this store
-     *
-     * @param listener A listener
-     */
-    void removeListener(ChangeListener listener);
 }

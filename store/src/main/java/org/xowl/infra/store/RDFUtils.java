@@ -477,11 +477,12 @@ public class RDFUtils {
     /**
      * De-serializes the RDF node from the specified JSON AST node
      *
-     * @param repository The repository to use
-     * @param astNode    The AST node to de-serialize from
+     * @param nodes            The nodes for the current dataset
+     * @param executionManager The current execution manager
+     * @param astNode          The AST node to de-serialize from
      * @return The RDF node
      */
-    public static Node deserializeJSON(Repository repository, ASTNode astNode) {
+    public static Node deserializeJSON(DatasetNodes nodes, ExecutionManager executionManager, ASTNode astNode) {
         Map<String, String> properties = new HashMap<>();
         for (ASTNode child : astNode.getChildren()) {
             String name = child.getChildren().get(0).getValue();
@@ -495,29 +496,28 @@ public class RDFUtils {
             return null;
         switch (type) {
             case "uri":
-                return repository.getNodeManager().getIRINode(properties.get("value"));
+                return nodes.getIRINode(properties.get("value"));
             case "bnode":
                 return new BlankNode(Long.parseLong(properties.get("value")));
             case "literal": {
                 String lexical = properties.get("value");
                 String datatype = properties.get("datatype");
                 String langTag = properties.get("xml:lang");
-                return repository.getNodeManager().getLiteralNode(lexical, datatype, langTag);
+                return nodes.getLiteralNode(lexical, datatype, langTag);
             }
             case "variable":
                 return new VariableNode(properties.get("value"));
             case "anon": {
                 AnonymousIndividual individual = Owl2Factory.newAnonymousIndividual();
                 individual.setNodeID(properties.get("value"));
-                return repository.getNodeManager().getAnonNode(individual);
+                return nodes.getAnonNode(individual);
             }
             case "dynamic": {
                 String source = properties.get("value");
-                ExecutionManager executionManager = repository.getExecutionManager();
                 if (executionManager == null)
                     return null;
                 EvaluableExpression evaluable = executionManager.loadExpression(source);
-                return repository.getNodeManager().getDynamicNode(evaluable);
+                return nodes.getDynamicNode(evaluable);
             }
         }
         return null;

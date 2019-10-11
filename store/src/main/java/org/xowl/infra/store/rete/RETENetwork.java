@@ -18,20 +18,20 @@
 package org.xowl.infra.store.rete;
 
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.storage.Store;
 
 import java.util.*;
 
 /**
  * Represents a RETE network
+ * The RETE network should be thread-safe.
  *
  * @author Laurent Wouters
  */
 public class RETENetwork {
     /**
-     * Cache of inputs for this network
+     * The dataset provider for this network
      */
-    private final Store input;
+    private final DatasetProvider datasetProvider;
     /**
      * The alpha graph, i.e. the input layer of the network
      */
@@ -44,10 +44,10 @@ public class RETENetwork {
     /**
      * Initializes this network
      *
-     * @param input The RDF store to use as input
+     * @param datasetProvider The dataset provider for this network
      */
-    public RETENetwork(Store input) {
-        this.input = input;
+    public RETENetwork(DatasetProvider datasetProvider) {
+        this.datasetProvider = datasetProvider;
         this.alpha = new AlphaGraph();
         this.rules = new HashMap<>();
     }
@@ -97,7 +97,7 @@ public class RETENetwork {
         for (Quad pattern : rule.getPositives()) {
             JoinData data = iterator.next();
             ruleData.positives.add(data);
-            FactHolder alpha = this.alpha.resolveMemory(pattern, input);
+            FactHolder alpha = this.alpha.resolveMemory(pattern, datasetProvider);
             data.nodeJoin = new BetaJoinNode(alpha, beta, data.tests, data.binders, data.bindersCount);
             beta = data.nodeJoin.getChild();
         }
@@ -108,7 +108,7 @@ public class RETENetwork {
             if (conjunction.size() == 1) {
                 JoinData data = iterator.next();
                 Quad pattern = conjunction.iterator().next();
-                FactHolder alpha = this.alpha.resolveMemory(pattern, input);
+                FactHolder alpha = this.alpha.resolveMemory(pattern, datasetProvider);
                 last = new BetaNegativeJoinNode(alpha, last, data.tests);
                 ruleData.negatives.add(last);
             } else {
@@ -116,7 +116,7 @@ public class RETENetwork {
                 last = entry;
                 for (Quad pattern : conjunction) {
                     JoinData data = iterator.next();
-                    FactHolder alpha = this.alpha.resolveMemory(pattern, input);
+                    FactHolder alpha = this.alpha.resolveMemory(pattern, datasetProvider);
                     BetaJoinNode join = new BetaJoinNode(alpha, last, data.tests, data.binders, data.bindersCount);
                     last = join.getChild();
                 }

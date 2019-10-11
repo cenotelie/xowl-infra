@@ -123,7 +123,7 @@ class Utils {
         } else if (result.getNodeType() == Node.TYPE_BLANK) {
             Node value = blanks.get(node);
             if (value == null) {
-                value = context.getNodes().getBlankNode();
+                value = context.getDataset().getBlankNode();
                 blanks.put(node, value);
             }
             return value;
@@ -298,7 +298,7 @@ class Utils {
         }
         if (value == null)
             return solution;
-        Node valueNode = RDFUtils.getRDF(context.getNodes(), value);
+        Node valueNode = RDFUtils.getRDF(context.getDataset(), value);
         if (valueNode == null)
             return solution;
         return new RDFPatternSolution(solution, variable, valueNode);
@@ -458,7 +458,7 @@ class Utils {
         for (int i = 0; i != projection.size(); i++) {
             VariableNode variable = projection.get(i).x;
             List values = projected.get(i);
-            Node value = values.isEmpty() ? null : RDFUtils.getRDF(context.getNodes(), values.get(0));
+            Node value = values.isEmpty() ? null : RDFUtils.getRDF(context.getDataset(), values.get(0));
             bindings.add(new Couple<>(variable, value));
         }
         result.add(new RDFPatternSolution(bindings));
@@ -471,7 +471,7 @@ class Utils {
                 continue;
             VariableNode variable = projection.get(i).x;
             for (Object value : values) {
-                Node valueNode = values.isEmpty() ? null : RDFUtils.getRDF(context.getNodes(), value);
+                Node valueNode = values.isEmpty() ? null : RDFUtils.getRDF(context.getDataset(), value);
                 for (RDFPatternSolution solution : result)
                     buffer.add(new RDFPatternSolution(solution, variable, valueNode));
                 for (RDFPatternSolution solution : buffer)
@@ -502,7 +502,7 @@ class Utils {
                     } catch (EvaluationException exception) {
                         // do nothing
                     }
-                    Node valueNode = RDFUtils.getRDF(context.getNodes(), value);
+                    Node valueNode = RDFUtils.getRDF(context.getDataset(), value);
                     bindings.add(new Couple<>(projector.x, valueNode));
                 } else {
                     bindings.add(new Couple<>(projector.x, solution.get(projector.x)));
@@ -636,7 +636,7 @@ class Utils {
                 }
                 keys.add(key);
                 if (expression.x != null)
-                    targetSolution = new RDFPatternSolution(targetSolution, expression.x, RDFUtils.getRDF(context.getNodes(), key));
+                    targetSolution = new RDFPatternSolution(targetSolution, expression.x, RDFUtils.getRDF(context.getDataset(), key));
             }
             result.add(keys, targetSolution);
         }

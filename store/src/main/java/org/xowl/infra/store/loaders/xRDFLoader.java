@@ -23,12 +23,12 @@ import fr.cenotelie.commons.utils.http.URIUtils;
 import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.hime.redist.*;
 import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.execution.EvaluableExpression;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.GraphPattern;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -83,16 +83,7 @@ public class xRDFLoader implements Loader {
      * Initializes this loader
      */
     public xRDFLoader() {
-        this(new RepositoryRDF());
-    }
-
-    /**
-     * Initializes this loader
-     *
-     * @param repository The repository to use
-     */
-    public xRDFLoader(RepositoryRDF repository) {
-        this(repository.getStore().getTransaction().getDataset(), repository.getExecutionManager());
+        this(new CachedDatasetNodes(), null);
     }
 
     /**

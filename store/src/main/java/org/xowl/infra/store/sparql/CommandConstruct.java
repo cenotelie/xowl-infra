@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
@@ -64,9 +63,8 @@ public class CommandConstruct implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
+    public Result execute(EvalContext context) {
         try {
-            EvalContext context = new EvalContextRepository(repository);
             Solutions solutions = pattern.eval(context);
             Collection<Quad> quads = new ArrayList<>();
             for (RDFPatternSolution solution : solutions)

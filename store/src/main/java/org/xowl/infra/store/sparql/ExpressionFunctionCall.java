@@ -83,7 +83,7 @@ public class ExpressionFunctionCall implements Expression {
             if (parameters[i] instanceof Node)
                 parameters[i] = RDFUtils.getNative((Node) parameters[i]);
         }
-        return RDFUtils.getRDF(context.getNodes(), evaluator.execute(iri, parameters));
+        return RDFUtils.getRDF(context.getDataset(), evaluator.execute(iri, parameters));
     }
 
     @Override

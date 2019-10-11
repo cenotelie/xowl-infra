@@ -17,9 +17,9 @@
 package org.xowl.infra.store.rete;
 
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.rdf.DatasetProvider;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.Store;
 
 import java.util.Arrays;
 
@@ -70,11 +70,11 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     /**
      * Create a sub-bucket
      *
-     * @param pattern The data to match
-     * @param store   The RDF data
+     * @param pattern         The data to match
+     * @param datasetProvider The dataset provider
      * @return A new sub-bucket
      */
-    protected abstract AlphaMemoryBucketElement createSub(Quad pattern, Store store);
+    protected abstract AlphaMemoryBucketElement createSub(Quad pattern, DatasetProvider datasetProvider);
 
     @Override
     public void matchMemories(AlphaMemoryBuffer buffer, Quad quad) {
@@ -91,14 +91,14 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     }
 
     @Override
-    public AlphaMemory resolveMemory(Quad pattern, Store store) {
+    public AlphaMemory resolveMemory(Quad pattern, DatasetProvider datasetProvider) {
         Node node = getNode(pattern);
         if (node == null || node.getNodeType() == Node.TYPE_VARIABLE) {
             synchronized (this) {
                 if (catchAll == null)
-                    catchAll = createSub(pattern, store);
+                    catchAll = createSub(pattern, datasetProvider);
             }
-            return catchAll.resolveMemory(pattern, store);
+            return catchAll.resolveMemory(pattern, datasetProvider);
         }
 
         AlphaMemoryBucketElement sub = null;
@@ -116,14 +116,14 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
                 if (size == nodes.length) {
                     nodes = Arrays.copyOf(nodes, nodes.length + INIT_SIZE);
                     subs = Arrays.copyOf(subs, subs.length + INIT_SIZE);
-                    sub = createSub(pattern, store);
+                    sub = createSub(pattern, datasetProvider);
                     nodes[size] = node;
                     subs[size] = sub;
                     size++;
                 } else {
                     for (int i = 0; i != nodes.length; i++) {
                         if (nodes[i] == null) {
-                            sub = createSub(pattern, store);
+                            sub = createSub(pattern, datasetProvider);
                             nodes[i] = node;
                             subs[i] = sub;
                             size++;
@@ -133,7 +133,7 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
                 }
             }
         }
-        return sub.resolveMemory(pattern, store);
+        return sub.resolveMemory(pattern, datasetProvider);
     }
 
     /**

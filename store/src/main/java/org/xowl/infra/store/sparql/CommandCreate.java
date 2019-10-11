@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -59,7 +58,7 @@ public class CommandCreate implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
+    public Result execute(EvalContext context) {
         return ResultSuccess.INSTANCE;
     }
 

@@ -19,9 +19,9 @@ package org.xowl.infra.store.rete;
 import fr.cenotelie.commons.utils.collections.SingleIterator;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.rdf.DatasetProvider;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.Store;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.Collection;
@@ -34,9 +34,9 @@ import java.util.Iterator;
  */
 class FactCollection implements Collection<Quad> {
     /**
-     * The parent RDF store
+     * The dataset provider
      */
-    private final Store store;
+    private final DatasetProvider datasetProvider;
     /**
      * The matched pattern
      */
@@ -49,11 +49,11 @@ class FactCollection implements Collection<Quad> {
     /**
      * Initializes this collection
      *
-     * @param store   The parent RDF store
-     * @param pattern The matched pattern
+     * @param datasetProvider The dataset provider
+     * @param pattern         The matched pattern
      */
-    public FactCollection(Store store, Quad pattern) {
-        this.store = store;
+    public FactCollection(DatasetProvider datasetProvider, Quad pattern) {
+        this.datasetProvider = datasetProvider;
         this.pattern = pattern;
         this.size = -1;
     }
@@ -65,7 +65,7 @@ class FactCollection implements Collection<Quad> {
      */
     private Iterator<Quad> getNewIterator() {
         try {
-            return (Iterator<Quad>) store.getTransaction().getDataset().getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+            return (Iterator<Quad>) datasetProvider.getDataset().getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);
             return new SingleIterator<>(null);
@@ -77,7 +77,7 @@ class FactCollection implements Collection<Quad> {
         if (size > -1)
             return size;
         try {
-            size = (int) store.getTransaction().getDataset().count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+            size = (int) datasetProvider.getDataset().count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);
         }
@@ -118,7 +118,7 @@ class FactCollection implements Collection<Quad> {
             return false;
         // the quad matches the pattern
         try {
-            Iterator<? extends Quad> iterator = store.getTransaction().getDataset().getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            Iterator<? extends Quad> iterator = datasetProvider.getDataset().getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
             return iterator.hasNext();
         } catch (UnsupportedNodeType exception) {
             Logging.get().error(exception);

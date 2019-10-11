@@ -27,11 +27,12 @@ import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.loaders.*;
+import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.store.storage.cache.CachedDataset;
 import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.StringReader;
@@ -159,7 +160,7 @@ public class ResultUtils {
      * @return The result
      */
     private static Result parseResponseJSON(String content) {
-        Repository repository = null;
+        Dataset dataset = null;
         BufferedLogger bufferedLogger = new BufferedLogger();
         ASTNode nodeRoot = Json.parse(bufferedLogger, content);
         if (nodeRoot == null)
@@ -231,9 +232,9 @@ public class ResultUtils {
                 for (ASTNode nodeBinding : nodeSolution.getChildren()) {
                     String varName = nodeBinding.getChildren().get(0).getValue();
                     VariableNode variable = variables.get(varName.substring(1, varName.length() - 1));
-                    if (repository == null)
-                        repository = new RepositoryRDF();
-                    Node value = RDFUtils.deserializeJSON(repository, nodeBinding.getChildren().get(1));
+                    if (dataset == null)
+                        dataset = new CachedDataset();
+                    Node value = RDFUtils.deserializeJSON(dataset, null, nodeBinding.getChildren().get(1));
                     bindings.add(new Couple<>(variable, value));
                 }
                 solutions.add(new RDFPatternSolution(bindings));

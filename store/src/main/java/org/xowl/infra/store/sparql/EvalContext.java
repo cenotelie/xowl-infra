@@ -17,9 +17,12 @@
 
 package org.xowl.infra.store.sparql;
 
+import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.store.execution.Evaluator;
-import org.xowl.infra.store.rdf.DatasetNodes;
+import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.RDFPattern;
+
+import java.io.IOException;
 
 /**
  * The evaluation context of a SPARQL query
@@ -35,11 +38,11 @@ public interface EvalContext {
     Evaluator getEvaluator();
 
     /**
-     * Gets the node manager
+     * Gets the current dataset
      *
-     * @return The node manager
+     * @return The current dataset
      */
-    DatasetNodes getNodes();
+    Dataset getDataset();
 
     /**
      * Gets the solutions for a pattern of RDF quads
@@ -48,4 +51,16 @@ public interface EvalContext {
      * @return The solutions
      */
     Solutions getSolutions(RDFPattern pattern);
+
+    /**
+     * Loads a resource and resolves its dependencies
+     *
+     * @param logger      The logger to use
+     * @param resourceIRI The resource's IRI
+     * @param ontologyIRI The IRI of the ontology within the document
+     * @param forceReload Whether to force the reloading of the resource
+     * @return The loaded ontology
+     * @throws IOException When the reader cannot be created
+     */
+    String load(Logger logger, String resourceIRI, String ontologyIRI, boolean forceReload) throws IOException;
 }

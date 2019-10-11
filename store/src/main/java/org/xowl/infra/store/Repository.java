@@ -455,7 +455,7 @@ public abstract class Repository implements AutoCloseable {
                     }
                 }, dataset);
             case SYNTAX_JSON:
-                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLoader(this, dataset), dataset);
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JsonLoader(dataset, executionManager), dataset);
             case SYNTAX_TRIG:
                 return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(dataset), dataset);
             case SYNTAX_XRDF:

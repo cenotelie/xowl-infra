@@ -101,8 +101,9 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
 
     @Override
     public void activateTokens(Collection<Token> tokens) {
-        if (!alphaMem.getFacts().isEmpty())
-            child.activate(getJoin(tokens, alphaMem.getFacts()));
+        Collection<Quad> facts = alphaMem.getFacts();
+        if (!facts.isEmpty())
+            child.activate(getJoin(tokens, facts));
     }
 
     @Override

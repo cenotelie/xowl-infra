@@ -18,9 +18,10 @@
 package org.xowl.infra.store.rete;
 
 import fr.cenotelie.commons.utils.collections.FastBuffer;
+import org.xowl.infra.store.rdf.DatasetProvider;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.Store;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -31,9 +32,9 @@ import java.util.Iterator;
  */
 class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement {
     /**
-     * The parent RDF store
+     * The dataset provider
      */
-    private final Store store;
+    private final DatasetProvider datasetProvider;
     /**
      * The pattern matched by this memory
      */
@@ -45,26 +46,34 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     /**
      * The cache of facts
      */
-    private volatile Collection<Quad> cache;
+    private ThreadLocal<WeakReference<Collection<Quad>>> cache;
 
     /**
      * Initializes this memory
      *
-     * @param pattern The data to match
-     * @param store   The RDF data
+     * @param pattern         The data to match
+     * @param datasetProvider The dataset provider
      */
-    public AlphaMemory(Quad pattern, Store store) {
-        this.store = store;
+    public AlphaMemory(Quad pattern, DatasetProvider datasetProvider) {
+        this.datasetProvider = datasetProvider;
         this.pattern = pattern;
         this.children = new FastBuffer<>(8);
     }
 
     @Override
     public Collection<Quad> getFacts() {
-        Collection<Quad> result = cache;
-        if (cache == null) {
-            result = new FactCollection(store, pattern);
-            cache = result;
+        Collection<Quad> result;
+        WeakReference<Collection<Quad>> reference = cache.get();
+        if (reference == null) {
+            result = new FactCollection(datasetProvider, pattern);
+            cache.set(new WeakReference<>(result));
+            return result;
+        }
+        result = reference.get();
+        if (result == null) {
+            result = new FactCollection(datasetProvider, pattern);
+            cache.set(new WeakReference<>(result));
+            return result;
         }
         return result;
     }
@@ -133,7 +142,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     }
 
     @Override
-    public AlphaMemory resolveMemory(Quad pattern, Store store) {
+    public AlphaMemory resolveMemory(Quad pattern, DatasetProvider datasetProvider) {
         return this;
     }
 }

@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
-import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
@@ -58,18 +56,17 @@ public class CommandDeleteWhere implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
-        Dataset dataset = repository.getStore().getTransaction().getDataset();
-        RDFQuery query = new RDFQuery();
-        query.getPositives().addAll(quads);
-        Collection<RDFPatternSolution> solutions = repository.getRDFQueryEngine().execute(query);
+    public Result execute(EvalContext context) {
+        Dataset dataset = context.getDataset();
+        RDFPattern pattern = new RDFPattern();
+        pattern.getPositives().addAll(quads);
+        Iterable<RDFPatternSolution> solutions = context.getSolutions(pattern);
         Collection<Quad> toRemove = new ArrayList<>();
         try {
-            EvalContext context = new EvalContextRepository(repository);
             for (RDFPatternSolution solution : solutions)
                 Utils.instantiate(context, solution, quads, toRemove);
             dataset.insert(Changeset.fromRemoved(toRemove));
-        } catch (UnsupportedNodeType | EvaluationException exception) {
+        } catch (UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());
         }
         return ResultSuccess.INSTANCE;

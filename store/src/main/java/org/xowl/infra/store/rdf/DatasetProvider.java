@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
+ * Copyright (c) 2019 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -15,31 +15,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.rete;
-
-import org.xowl.infra.store.rdf.DatasetProvider;
-import org.xowl.infra.store.rdf.Quad;
+package org.xowl.infra.store.rdf;
 
 /**
- * Represents a element in a bucket of alpha memories
- *
- * @author Laurent Wouters
+ * A provider of the current RDF dataset
  */
-interface AlphaMemoryBucketElement {
+public interface DatasetProvider {
     /**
-     * Retrieve the matching memories associated to the specified data
+     * Gets the current dataset
      *
-     * @param buffer The buffer to fill
-     * @param quad   The data to match
+     * @return The current dataset
      */
-    void matchMemories(AlphaMemoryBuffer buffer, Quad quad);
-
-    /**
-     * Resolves the alpha memory associated to the specified data
-     *
-     * @param pattern         The data to match
-     * @param datasetProvider The dataset provider
-     * @return The associated memory
-     */
-    AlphaMemory resolveMemory(Quad pattern, DatasetProvider datasetProvider);
+    Dataset getDataset();
 }

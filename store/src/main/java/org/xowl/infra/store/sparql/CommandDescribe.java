@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -84,8 +83,8 @@ public class CommandDescribe implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
-        Dataset dataset = repository.getStore().getTransaction().getDataset();
+    public Result execute(EvalContext context) {
+        Dataset dataset = context.getDataset();
         try {
             Collection<Quad> buffer = new ArrayList<>();
             if (variables.isEmpty() && !iris.isEmpty()) {
@@ -93,7 +92,7 @@ public class CommandDescribe implements Command {
                 for (String iri : iris)
                     describe(dataset, dataset.getIRINode(iri), buffer);
             } else {
-                Solutions solutions = pattern.eval(new EvalContextRepository(repository));
+                Solutions solutions = pattern.eval(context);
                 List<SubjectNode> explored = new ArrayList<>();
                 for (RDFPatternSolution solution : solutions) {
                     for (VariableNode variable : variables) {

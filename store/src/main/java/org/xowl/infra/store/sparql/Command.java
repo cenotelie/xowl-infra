@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -47,12 +46,12 @@ public interface Command {
     boolean isUpdateCommand();
 
     /**
-     * Executes this command on the specified repository
+     * Executes this command on the specified dataset
      *
-     * @param repository The repository on which to execute the command
+     * @param context The evaluation context
      * @return The command's result
      */
-    Result execute(RepositoryRDF repository);
+    Result execute(EvalContext context);
 
     /**
      * Gets a copy of this command

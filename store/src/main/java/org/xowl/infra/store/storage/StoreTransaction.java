@@ -20,13 +20,14 @@ package org.xowl.infra.store.storage;
 import fr.cenotelie.commons.storage.Access;
 import fr.cenotelie.commons.storage.Transaction;
 import org.xowl.infra.store.rdf.Dataset;
+import org.xowl.infra.store.rdf.DatasetProvider;
 
 /**
  * Represents a transaction for an interaction with a store of RDF quads
  *
  * @author Laurent Wouters
  */
-public abstract class StoreTransaction extends Transaction {
+public abstract class StoreTransaction extends Transaction implements DatasetProvider {
     /**
      * Initializes this transaction
      *

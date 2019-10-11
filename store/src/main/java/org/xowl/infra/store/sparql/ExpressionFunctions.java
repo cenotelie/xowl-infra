@@ -79,7 +79,7 @@ class ExpressionFunctions {
                 if (!(v1 instanceof LiteralNode))
                     throw new EvaluationException("Type error (Literal node required)");
                 String datatype = ((LiteralNode) v1).getDatatype();
-                return context.getNodes().getIRINode(datatype);
+                return context.getDataset().getIRINode(datatype);
             }
         });
         register(new ExpressionFunction("BOUND", 1, 1) {
@@ -110,7 +110,7 @@ class ExpressionFunctions {
                             break;
                     }
                 }
-                return context.getNodes().getIRINode(value);
+                return context.getDataset().getIRINode(value);
             }
         });
         register(new ExpressionFunction("URI", 1, 1) {
@@ -128,14 +128,14 @@ class ExpressionFunctions {
                             break;
                     }
                 }
-                return context.getNodes().getIRINode(value);
+                return context.getDataset().getIRINode(value);
             }
         });
         register(new ExpressionFunction("BNODE", 0, 1) {
             @Override
             protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) throws EvaluationException {
                 if (arguments.size() == 0)
-                    return context.getNodes().getBlankNode();
+                    return context.getDataset().getBlankNode();
                 throw new EvaluationException("Not implemented");
             }
         });
@@ -316,7 +316,7 @@ class ExpressionFunctions {
             @Override
             protected Object doEval(EvalContext context, RDFPatternSolution bindings, List<Expression> arguments) {
                 String value = "urn:uuid:" + UUID.randomUUID().toString();
-                return context.getNodes().getIRINode(value);
+                return context.getDataset().getIRINode(value);
             }
         });
         register(new ExpressionFunction("STRUUID", 0, 0) {
@@ -397,7 +397,7 @@ class ExpressionFunctions {
                         s2 = ((LiteralNode) v2).getLexicalValue();
                     }
                 }
-                return context.getNodes().getLiteralNode(s1, null, s2.isEmpty() ? null : s2);
+                return context.getDataset().getLiteralNode(s1, null, s2.isEmpty() ? null : s2);
             }
         });
         register(new ExpressionFunction("STRDT", 2, 2) {
@@ -427,7 +427,7 @@ class ExpressionFunctions {
                             break;
                     }
                 }
-                return context.getNodes().getLiteralNode(s1, s2.isEmpty() ? Vocabulary.xsdString : s2, null);
+                return context.getDataset().getLiteralNode(s1, s2.isEmpty() ? Vocabulary.xsdString : s2, null);
             }
         });
         register(new ExpressionFunction("sameTerm", 2, 2) {

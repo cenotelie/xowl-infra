@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -92,10 +91,9 @@ public class CommandModify implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
-        Dataset dataset = repository.getStore().getTransaction().getDataset();
+    public Result execute(EvalContext context) {
+        Dataset dataset = context.getDataset();
         try {
-            EvalContext context = new EvalContextRepository(repository);
             Solutions solutions = where.eval(context);
             Collection<Quad> toInsert = new ArrayList<>();
             Collection<Quad> toRemove = new ArrayList<>();

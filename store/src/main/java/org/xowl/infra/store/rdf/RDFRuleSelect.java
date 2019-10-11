@@ -234,9 +234,9 @@ public class RDFRuleSelect extends RDFRule {
          */
         private final Evaluator evaluator;
         /**
-         * The node manager for the output
+         * The current dataset
          */
-        private final DatasetNodes nodes;
+        private final Dataset dataset;
         /**
          * The known pattern matches
          */
@@ -286,7 +286,7 @@ public class RDFRuleSelect extends RDFRule {
         }
 
         @Override
-        public DatasetNodes getNodes() {
+        public Dataset getDataset() {
             return nodes;
         }
 

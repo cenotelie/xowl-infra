@@ -18,7 +18,6 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
@@ -73,8 +72,8 @@ public class CommandDrop implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
-        Dataset dataset = repository.getStore().getTransaction().getDataset();
+    public Result execute(EvalContext context) {
+        Dataset dataset = context.getDataset();
         try {
             switch (type) {
                 case Single:

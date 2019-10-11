@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
-import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -68,15 +66,14 @@ public class CommandAdd implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
-        Dataset dataset = repository.getStore().getTransaction().getDataset();
+    public Result execute(EvalContext context) {
         for (String origin : origins) {
-            GraphNode graphOrigin = dataset.getIRINode(origin);
+            GraphNode graphOrigin = context.getDataset().getIRINode(origin);
             for (String target : targets) {
                 if (!origin.equals(target)) {
-                    GraphNode graphTarget = dataset.getIRINode(target);
+                    GraphNode graphTarget = context.getDataset().getIRINode(target);
                     try {
-                        dataset.copy(graphOrigin, graphTarget, false);
+                        context.getDataset().copy(graphOrigin, graphTarget, false);
                     } catch (UnsupportedNodeType exception) {
                         return new ResultFailure(exception.getMessage());
                     }

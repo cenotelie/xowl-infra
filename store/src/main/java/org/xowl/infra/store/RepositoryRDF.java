@@ -18,10 +18,10 @@
 package org.xowl.infra.store;
 
 import fr.cenotelie.commons.storage.ConcurrentWriteException;
-import fr.cenotelie.commons.storage.NoTransactionException;
 import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.commons.utils.logging.Logging;
 import org.xowl.infra.lang.rules.Rule;
+import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
 import org.xowl.infra.store.loaders.SPARQLLoader;
@@ -29,9 +29,7 @@ import org.xowl.infra.store.owl.OWLQueryEngine;
 import org.xowl.infra.store.owl.OWLRuleEngine;
 import org.xowl.infra.store.owl.Translator;
 import org.xowl.infra.store.rdf.*;
-import org.xowl.infra.store.sparql.Command;
-import org.xowl.infra.store.sparql.Result;
-import org.xowl.infra.store.sparql.ResultFailure;
+import org.xowl.infra.store.sparql.*;
 import org.xowl.infra.store.storage.Store;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.StoreTransaction;
@@ -178,14 +176,32 @@ public class RepositoryRDF extends Repository {
     public Result execute(Logger logger, String sparql) {
         // requires to be within a transaction
         StoreTransaction transaction = store.getTransaction();
-        if (transaction == null) {
-            throw new NoTransactionException();
-        }
         SPARQLLoader loader = new SPARQLLoader(transaction.getDataset());
         Command command = loader.load(logger, new StringReader(sparql));
         if (command == null)
             return ResultFailure.INSTANCE;
-        return command.execute(this);
+        return command.execute(new EvalContext() {
+            @Override
+            public Evaluator getEvaluator() {
+                return RepositoryRDF.this.executionManager;
+            }
+
+            @Override
+            public Dataset getDataset() {
+                return transaction.getDataset();
+            }
+
+            @Override
+            public Solutions getSolutions(RDFPattern pattern) {
+                Collection<RDFPatternSolution> results = RepositoryRDF.this.queryEngine.getBackend().execute(new RDFQuery(pattern));
+                return new SolutionsMultiset(results);
+            }
+
+            @Override
+            public String load(Logger logger, String resourceIRI, String ontologyIRI, boolean forceReload) throws IOException {
+                return RepositoryRDF.this.load(logger, resourceIRI, ontologyIRI, forceReload);
+            }
+        });
     }
 
     /**
@@ -260,18 +276,12 @@ public class RepositoryRDF extends Repository {
     @Override
     protected String loadInput(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax, Resource metadata) {
         StoreTransaction transaction = store.getTransaction();
-        if (transaction == null) {
-            throw new NoTransactionException();
-        }
         return this.loadInput(logger, reader, resourceIRI, ontologyIRI, syntax, metadata, transaction.getDataset()).ontology;
     }
 
     @Override
     protected void exportResource(Logger logger, Writer writer, String resourceIRI, String syntax) {
         StoreTransaction transaction = store.getTransaction();
-        if (transaction == null) {
-            throw new NoTransactionException();
-        }
         this.exportResource(logger, writer, resourceIRI, syntax, transaction.getDataset());
     }
 

@@ -19,7 +19,6 @@ package org.xowl.infra.store.sparql;
 
 import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -74,10 +73,10 @@ public class CommandLoad implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
+    public Result execute(EvalContext context) {
         BufferedLogger logger = new BufferedLogger();
         try {
-            repository.load(logger, iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
+            context.load(logger, iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
         } catch (Exception exception) {
             if (isSilent)
                 return ResultSuccess.INSTANCE;

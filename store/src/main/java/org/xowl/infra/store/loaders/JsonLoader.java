@@ -24,9 +24,9 @@ import fr.cenotelie.commons.utils.logging.Logger;
 import fr.cenotelie.hime.redist.ASTNode;
 import fr.cenotelie.hime.redist.ParseResult;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.RepositoryRDF;
+import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.store.storage.cache.CachedDatasetNodes;
 
 import java.io.Reader;
 import java.util.ArrayList;
@@ -39,41 +39,31 @@ import java.util.List;
  * @author Laurent Wouters
  */
 public class JsonLoader implements Loader {
-
-    /**
-     * The repository to use
-     */
-    private final Repository repository;
     /**
      * The node manager to use
      */
     private final DatasetNodes nodes;
+    /**
+     * The current execution manager
+     */
+    private final ExecutionManager executionManager;
 
     /**
      * Initializes this loader
      */
     public JsonLoader() {
-        this(new RepositoryRDF());
+        this(new CachedDatasetNodes(), null);
     }
 
     /**
      * Initializes this loader
      *
-     * @param repository The repository to use
+     * @param nodes            The node manager to use
+     * @param executionManager The current execution manager
      */
-    public JsonLoader(RepositoryRDF repository) {
-        this(repository, repository.getStore().getTransaction().getDataset());
-    }
-
-    /**
-     * Initializes this loader
-     *
-     * @param repository The repository to use
-     * @param nodes      The node manager to use
-     */
-    public JsonLoader(Repository repository, DatasetNodes nodes) {
-        this.repository = repository;
+    public JsonLoader(DatasetNodes nodes, ExecutionManager executionManager) {
         this.nodes = nodes;
+        this.executionManager = executionManager;
     }
 
     @Override
@@ -146,7 +136,7 @@ public class JsonLoader implements Loader {
         }
         if (astGraphNode == null || astEntities == null)
             return;
-        GraphNode graph = (GraphNode) RDFUtils.deserializeJSON(repository, astGraphNode);
+        GraphNode graph = (GraphNode) RDFUtils.deserializeJSON(nodes, executionManager, astGraphNode);
         for (ASTNode child : astEntities.getChildren()) {
             loadEntity(child, graph, buffer);
         }
@@ -173,7 +163,7 @@ public class JsonLoader implements Loader {
         }
         if (astSubjectNode == null || astProperties == null)
             return;
-        SubjectNode subject = (SubjectNode) RDFUtils.deserializeJSON(repository, astSubjectNode);
+        SubjectNode subject = (SubjectNode) RDFUtils.deserializeJSON(nodes, executionManager, astSubjectNode);
         for (ASTNode child : astProperties.getChildren()) {
             loadProperty(child, graph, subject, buffer);
         }
@@ -201,7 +191,7 @@ public class JsonLoader implements Loader {
         }
         if (astPropertyNode == null || astValues == null)
             return;
-        Property property = (Property) RDFUtils.deserializeJSON(repository, astValues);
+        Property property = (Property) RDFUtils.deserializeJSON(nodes, executionManager, astValues);
         for (ASTNode child : astValues.getChildren()) {
             loadValue(child, graph, subject, property, buffer);
         }
@@ -220,11 +210,11 @@ public class JsonLoader implements Loader {
         if (node.getSymbol().getID() == JsonParser.ID.array) {
             List<Node> values = new ArrayList<>(node.getChildren().size());
             for (ASTNode child : node.getChildren())
-                values.add(RDFUtils.deserializeJSON(repository, child));
+                values.add(RDFUtils.deserializeJSON(nodes, executionManager, child));
             Node value = BaseTurtleLoader.buildRdfList(values, graph, nodes, buffer);
             buffer.add(new Quad(graph, subject, property, value));
         } else {
-            Node value = RDFUtils.deserializeJSON(repository, node);
+            Node value = RDFUtils.deserializeJSON(nodes, executionManager, node);
             buffer.add(new Quad(graph, subject, property, value));
         }
     }

@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Dataset;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
@@ -72,8 +71,8 @@ public class CommandCopy implements Command {
     }
 
     @Override
-    public Result execute(RepositoryRDF repository) {
-        Dataset dataset = repository.getStore().getTransaction().getDataset();
+    public Result execute(EvalContext context) {
+        Dataset dataset = context.getDataset();
         List<String> overwritten = new ArrayList<>();
         for (String origin : origins) {
             GraphNode graphOrigin = dataset.getIRINode(origin);

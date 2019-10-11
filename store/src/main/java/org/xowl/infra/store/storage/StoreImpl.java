@@ -21,7 +21,6 @@ import fr.cenotelie.commons.storage.ConcurrentWriteException;
 import fr.cenotelie.commons.storage.NoTransactionException;
 import fr.cenotelie.commons.storage.Transaction;
 import org.xowl.infra.store.execution.ExecutionManager;
-import org.xowl.infra.store.rdf.ChangeListener;
 import org.xowl.infra.store.rdf.Dataset;
 
 import java.util.Arrays;
@@ -89,16 +88,6 @@ class StoreImpl implements Store {
     @Override
     public void setExecutionManager(ExecutionManager executionManager) {
         base.setExecutionManager(executionManager);
-    }
-
-    @Override
-    public void addListener(ChangeListener listener) {
-        base.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(ChangeListener listener) {
-        base.removeListener(listener);
     }
 
     /**

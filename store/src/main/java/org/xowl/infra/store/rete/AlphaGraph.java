@@ -18,9 +18,9 @@
 package org.xowl.infra.store.rete;
 
 import fr.cenotelie.commons.utils.collections.FastBuffer;
+import org.xowl.infra.store.rdf.DatasetProvider;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.storage.Store;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,7 +46,7 @@ class AlphaGraph extends AlphaMemoryBucket {
     }
 
     @Override
-    protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
+    protected AlphaMemoryBucketElement createSub(Quad pattern, DatasetProvider datasetProvider) {
         return new BucketSubject();
     }
 
@@ -135,8 +135,8 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
-            return new AlphaMemory(pattern, store);
+        protected AlphaMemoryBucketElement createSub(Quad pattern, DatasetProvider datasetProvider) {
+            return new AlphaMemory(pattern, datasetProvider);
         }
     }
 
@@ -150,7 +150,7 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
+        protected AlphaMemoryBucketElement createSub(Quad pattern, DatasetProvider datasetProvider) {
             return new BucketObject();
         }
     }
@@ -165,7 +165,7 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub(Quad pattern, Store store) {
+        protected AlphaMemoryBucketElement createSub(Quad pattern, DatasetProvider datasetProvider) {
             return new BucketProperty();
         }
     }
