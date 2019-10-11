@@ -319,6 +319,7 @@ class StoreImpl implements Store {
 
         @Override
         protected void onClose() {
+            super.onClose();
             parent.onTransactionEnd(this);
         }
     }

@@ -22,12 +22,13 @@ import org.xowl.infra.store.rete.RETENetwork;
 import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
+import org.xowl.infra.store.storage.StoreTransaction;
 
 import java.util.*;
 
 /**
  * Represents a query engine for a RDF store
- * This structure is thread-safe.
+ * This structure is not thread-safe and is supposed to be used by a single thread in the context of a transaction.
  *
  * @author Laurent Wouters
  */
@@ -45,79 +46,122 @@ public class RDFQueryEngine implements ChangeListener {
      */
     private final List<CacheElem> cache;
     /**
-     * The thread-specific engine inputs and outputs
+     * Flag whether outstanding changes are currently being applied
      */
-    private final ThreadLocal<EngineIO> threadIO;
+    public boolean isFlushing;
+    /**
+     * Buffer of positive quads yet to be flushed
+     */
+    private Collection<Quad> bufferPositives;
+    /**
+     * Buffer of negative quads yet ro be flushed
+     */
+    private Collection<Quad> bufferNegatives;
 
     /**
      * Initializes this engine
      *
-     * @param datasetProvider The dataset provider
+     * @param transaction The current transaction
      */
-    public RDFQueryEngine(DatasetProvider datasetProvider) {
-        this.rete = new RETENetwork(store);
+    public RDFQueryEngine(StoreTransaction transaction) {
+        this.rete = new RETENetwork(transaction);
         this.cache = new ArrayList<>();
-        this.threadIO = new ThreadLocal<>();
-        store.addListener(this);
+        this.isFlushing = false;
+        this.bufferPositives = null;
+        this.bufferNegatives = null;
+        transaction.addListener(this);
     }
 
     /**
-     * Gets the thread-specific engine inputs and outputs
+     * Gets whether there are outstanding changes
      *
-     * @return The engine inputs and outputs for this thread
+     * @return Whether there are outstanding changes
      */
-    private EngineIO getIO() {
-        EngineIO result = threadIO.get();
-        if (result == null) {
-            result = new EngineIO();
-            threadIO.set(result);
-        }
+    private boolean hasOutstandingChanges() {
+        return (bufferPositives != null && !bufferPositives.isEmpty())
+                || (bufferNegatives != null && !bufferNegatives.isEmpty());
+    }
+
+    /**
+     * Gets the positive quads to be injected (and resets the buffer)
+     *
+     * @return The positive quads to be injected
+     */
+    private Collection<Quad> checkoutPositivesQuads() {
+        Collection<Quad> result = bufferPositives == null ? Collections.emptyList() : bufferPositives;
+        bufferPositives = null;
         return result;
     }
 
     /**
-     * Executes the specified query and gets the solutions
+     * Gets the negative quads to be injected (and resets the buffer)
      *
-     * @param query A query
-     * @return The solutions
+     * @return The negative quads to be injected
      */
-    public Collection<RDFPatternSolution> execute(RDFQuery query) {
-        // try from the cache
+    private Collection<Quad> checkoutNegativeQuads() {
+        Collection<Quad> result = bufferNegatives == null ? Collections.emptyList() : bufferNegatives;
+        bufferNegatives = null;
+        return result;
+    }
 
-        CacheElem target = null;
-        synchronized (cache) {
-            for (CacheElem element : cache) {
-                if (element.matches(query)) {
-                    target = element;
-                    break;
-                }
-            }
-        }
-        if (target != null) {
-            Collection<RDFPatternSolution> result = target.getSolutions();
-            // re-sort the cache by hit count (hottest on top)
-            synchronized (cache) {
-                cache.sort(Comparator.comparingInt(CacheElem::getHitCount));
-            }
-            return result;
-        }
+    /**
+     * Adds a quad that is being added
+     *
+     * @param quad The added quad
+     */
+    private void addAddedQuad(Quad quad) {
+        if (bufferPositives == null)
+            bufferPositives = new ArrayList<>();
+        bufferPositives.add(quad);
+    }
 
-        synchronized (cache) {
-            while (cache.size() >= CACHE_MAX_SIZE) {
-                int index = cache.size() - 1;
-                try {
-                    CacheElem toDrop = cache.remove(index);
-                    rete.removeRule(toDrop.getRule());
-                } catch (IndexOutOfBoundsException exception) {
-                    // ignore
-                }
-            }
-            // build the new query and register it in the cache
-            target = new CacheElem(query);
-            cache.add(target);
+    /**
+     * Adds a quad that is being removed
+     *
+     * @param quad The removed quad
+     */
+    private void addRemovedQuad(Quad quad) {
+        if (bufferNegatives == null)
+            bufferNegatives = new ArrayList<>();
+        bufferNegatives.add(quad);
+    }
+
+    /**
+     * Adds a changeset being injected
+     *
+     * @param changeset The injected changeset
+     */
+    private void addChangeset(Changeset changeset) {
+        if (!changeset.getAdded().isEmpty()) {
+            if (bufferPositives == null)
+                bufferPositives = new ArrayList<>();
+            bufferPositives.addAll(changeset.getAdded());
         }
-        rete.addRule(target.getRule());
-        return target.getSolutions();
+        if (!changeset.getDecremented().isEmpty()) {
+            if (bufferNegatives == null)
+                bufferNegatives = new ArrayList<>();
+            bufferNegatives.addAll(changeset.getDecremented());
+        }
+        if (!changeset.getRemoved().isEmpty()) {
+            if (bufferNegatives == null)
+                bufferNegatives = new ArrayList<>();
+            bufferNegatives.addAll(changeset.getRemoved());
+        }
+    }
+
+    /**
+     * Flushes any outstanding changes in the input or the output
+     */
+    private void flush() {
+        if (isFlushing)
+            return;
+        isFlushing = true;
+        while (hasOutstandingChanges()) {
+            // inject in the RETE network
+            rete.injectPositives(checkoutPositivesQuads());
+            rete.injectNegatives(checkoutNegativeQuads());
+        }
+        isFlushing = false;
     }
 
     @Override
@@ -132,41 +176,61 @@ public class RDFQueryEngine implements ChangeListener {
 
     @Override
     public void onAdded(Quad quad) {
-        EngineIO io = getIO();
-        io.addAddedQuad(quad);
-        flush(io);
+        addAddedQuad(quad);
+        flush();
     }
 
     @Override
     public void onRemoved(Quad quad) {
-        EngineIO io = getIO();
-        io.addRemovedQuad(quad);
-        flush(io);
+        addRemovedQuad(quad);
+        flush();
     }
 
     @Override
     public void onChange(Changeset changeset) {
-        EngineIO io = getIO();
-        io.addChangeset(changeset);
-        flush(io);
+        addChangeset(changeset);
+        flush();
     }
 
     /**
-     * Flushes any outstanding changes in the input or the output
+     * Executes the specified query and gets the solutions
      *
-     * @param io The thread-specific inputs and outputs
+     * @param query A query
+     * @return The solutions
      */
-    public void flush(EngineIO io) {
-        if (io.isFlushing)
-            return;
-        io.isFlushing = true;
-        while (io.hasOutstandingChanges()) {
-            // inject in the RETE network
-            rete.injectPositives(io.checkoutPositivesQuads());
-            rete.injectNegatives(io.checkoutNegativeQuads());
+    public Collection<RDFPatternSolution> execute(RDFQuery query) {
+        // try from the cache
+
+        CacheElem target = null;
+        for (CacheElem element : cache) {
+            if (element.matches(query)) {
+                target = element;
+                break;
+            }
         }
-        io.isFlushing = false;
+        if (target != null) {
+            Collection<RDFPatternSolution> result = target.getSolutions();
+            // re-sort the cache by hit count (hottest on top)
+            cache.sort(Comparator.comparingInt(CacheElem::getHitCount));
+            return result;
+        }
+
+        while (cache.size() >= CACHE_MAX_SIZE) {
+            int index = cache.size() - 1;
+            try {
+                CacheElem toDrop = cache.remove(index);
+                rete.removeRule(toDrop.getRule());
+            } catch (IndexOutOfBoundsException exception) {
+                // ignore
+            }
+        }
+        // build the new query and register it in the cache
+        target = new CacheElem(query);
+        cache.add(target);
+        rete.addRule(target.getRule());
+        return target.getSolutions();
     }
+
 
     /**
      * Represents a cached query that continues being executed
@@ -273,101 +337,6 @@ public class RDFQueryEngine implements ChangeListener {
                     results.add(new RDFPatternSolution(token.getBindings()));
             }
             return results;
-        }
-    }
-
-    /**
-     * Represents the thread-specific inputs and outputs of the engine
-     */
-    private static class EngineIO {
-        /**
-         * Flag whether outstanding changes are currently being applied
-         */
-        public boolean isFlushing;
-        /**
-         * Buffer of positive quads yet to be flushed
-         */
-        private Collection<Quad> bufferPositives;
-        /**
-         * Buffer of negative quads yet ro be flushed
-         */
-        private Collection<Quad> bufferNegatives;
-
-        /**
-         * Gets whether there are outstanding changes
-         *
-         * @return Whether there are outstanding changes
-         */
-        public boolean hasOutstandingChanges() {
-            return (bufferPositives != null && !bufferPositives.isEmpty())
-                    || (bufferNegatives != null && !bufferNegatives.isEmpty());
-        }
-
-        /**
-         * Gets the positive quads to be injected (and resets the buffer)
-         *
-         * @return The positive quads to be injected
-         */
-        public Collection<Quad> checkoutPositivesQuads() {
-            Collection<Quad> result = bufferPositives == null ? Collections.emptyList() : bufferPositives;
-            bufferPositives = null;
-            return result;
-        }
-
-        /**
-         * Gets the negative quads to be injected (and resets the buffer)
-         *
-         * @return The negative quads to be injected
-         */
-        public Collection<Quad> checkoutNegativeQuads() {
-            Collection<Quad> result = bufferNegatives == null ? Collections.emptyList() : bufferNegatives;
-            bufferNegatives = null;
-            return result;
-        }
-
-        /**
-         * Adds a quad that is being added
-         *
-         * @param quad The added quad
-         */
-        public void addAddedQuad(Quad quad) {
-            if (bufferPositives == null)
-                bufferPositives = new ArrayList<>();
-            bufferPositives.add(quad);
-        }
-
-        /**
-         * Adds a quad that is being removed
-         *
-         * @param quad The removed quad
-         */
-        public void addRemovedQuad(Quad quad) {
-            if (bufferNegatives == null)
-                bufferNegatives = new ArrayList<>();
-            bufferNegatives.add(quad);
-        }
-
-        /**
-         * Adds a changeset being injected
-         *
-         * @param changeset The injected changeset
-         */
-        public void addChangeset(Changeset changeset) {
-            if (!changeset.getAdded().isEmpty()) {
-                if (bufferPositives == null)
-                    bufferPositives = new ArrayList<>();
-                bufferPositives.addAll(changeset.getAdded());
-            }
-            if (!changeset.getDecremented().isEmpty()) {
-                if (bufferNegatives == null)
-                    bufferNegatives = new ArrayList<>();
-                bufferNegatives.addAll(changeset.getDecremented());
-            }
-            if (!changeset.getRemoved().isEmpty()) {
-                if (bufferNegatives == null)
-                    bufferNegatives = new ArrayList<>();
-                bufferNegatives.addAll(changeset.getRemoved());
-            }
         }
     }
 }
