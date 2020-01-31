@@ -25,9 +25,7 @@ import org.xowl.infra.store.execution.EvaluationUtils;
 import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.storage.NodeManager;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a RDF rule for a RDF rule engine
@@ -226,108 +224,16 @@ public abstract class RDFRule {
     protected Changeset produceQuads(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, RDFPattern pattern) {
         List<Quad> positives = new ArrayList<>();
         List<Quad> negatives = new ArrayList<>();
-        for (Quad quad : pattern.getPositives()) {
-            Quad result = produceQuad(execution, nodes, evaluator, quad);
-            if (result == null)
-                return null;
-            positives.add(result);
-        }
+        Map<Node, Node> cache = new HashMap<>();
+        RDFUtils.instantiateQuads(nodes, evaluator, resolver, execution.getSolution(), cache, pattern.getPositives(), positives, false);
         for (Collection<Quad> collection : pattern.getNegatives()) {
-            for (Quad quad : collection) {
-                Quad result = produceQuad(execution, nodes, evaluator, quad);
-                if (result == null)
-                    return null;
-                negatives.add(result);
-            }
+            RDFUtils.instantiateQuads(nodes, evaluator, resolver, execution.getSolution(), cache, collection, negatives, false);
         }
         if (negatives.isEmpty())
             return Changeset.fromAdded(positives);
         if (positives.isEmpty())
             return Changeset.fromRemoved(negatives);
         return Changeset.fromAddedRemoved(positives, negatives);
-    }
-
-    /**
-     * Processes the specified quad
-     *
-     * @param execution The execution data
-     * @param nodes     The node manager for producing the changeset
-     * @param evaluator The current evaluator
-     * @param quad      The quad to process
-     * @return The processed quad
-     */
-    protected Quad produceQuad(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, Quad quad) {
-        Node nodeGraph = produceResolveNode(execution, nodes, evaluator, quad.getGraph(), true);
-        Node nodeSubject = produceResolveNode(execution, nodes, evaluator, quad.getSubject(), false);
-        Node nodeProperty = produceResolveNode(execution, nodes, evaluator, quad.getProperty(), false);
-        Node nodeObject = produceResolveNode(execution, nodes, evaluator, quad.getObject(), false);
-        if ((!(nodeGraph instanceof GraphNode)) || (!(nodeSubject instanceof SubjectNode)) || (!(nodeProperty instanceof Property)))
-            return null;
-        return new Quad((GraphNode) nodeGraph, (SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
-    }
-
-    /**
-     * Processes the specified node
-     *
-     * @param execution The execution data
-     * @param nodes     The node manager for producing the changeset
-     * @param evaluator The current evaluator
-     * @param node      The node to process
-     * @param isGraph   Whether the node to resolve is a graph
-     * @return The processed node
-     */
-    private Node produceResolveNode(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, Node node, boolean isGraph) {
-        if (node == null)
-            return produceResolveVariable(execution, nodes, null, isGraph);
-        switch (node.getNodeType()) {
-            case Node.TYPE_VARIABLE:
-                return produceResolveVariable(execution, nodes, (VariableNode) node, isGraph);
-            case Node.TYPE_DYNAMIC:
-                return produceResolveDynamic(execution, nodes, evaluator, (DynamicNode) node);
-            default:
-                return node;
-        }
-    }
-
-    /**
-     * Resolves the specified variable node
-     *
-     * @param execution The execution data
-     * @param nodes     The node manager for producing the changeset
-     * @param variable  A variable node
-     * @param isGraph   Whether the node to resolve is a graph
-     * @return The variable value
-     */
-    protected Node produceResolveVariable(RDFRuleExecution execution, NodeManager nodes, VariableNode variable, boolean isGraph) {
-        Node result = execution.getBinding(variable);
-        if (result != null)
-            return result;
-        result = execution.getSpecial(variable);
-        if (result != null)
-            return result;
-        result = resolver.resolve(variable, execution, nodes, isGraph);
-        execution.bindSpecial(variable, result);
-        return result;
-    }
-
-    /**
-     * Resolves the specified dynamic node node
-     *
-     * @param execution   The execution data
-     * @param nodes       The node manager for producing the changeset
-     * @param evaluator   The current evaluator
-     * @param dynamicNode A dynamic node
-     * @return The variable value
-     */
-    protected Node produceResolveDynamic(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, DynamicNode dynamicNode) {
-        if (evaluator == null)
-            return dynamicNode;
-        Node result = execution.getSpecial(dynamicNode);
-        if (result != null)
-            return result;
-        result = RDFUtils.getRDF(nodes, evaluator.eval(execution.getEvaluatorBindings(), dynamicNode.getEvaluable()));
-        execution.bindSpecial(dynamicNode, result);
-        return result;
     }
 
     @Override

@@ -17,18 +17,13 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.execution.EvaluationException;
-import org.xowl.infra.store.rdf.Changeset;
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents the SPARQL DELETE/INSERT command.
@@ -101,9 +96,11 @@ public class CommandModify implements Command {
             Solutions solutions = where.eval(context);
             Collection<Quad> toInsert = new ArrayList<>();
             Collection<Quad> toRemove = new ArrayList<>();
+            VariableResolver resolver = VariableResolveStandard.INSTANCE;
             for (RDFPatternSolution solution : solutions) {
-                Utils.instantiate(context, solution, insert, toInsert);
-                Utils.instantiate(context, solution, delete, toRemove);
+                Map<Node, Node> cache = new HashMap<>();
+                RDFUtils.instantiateQuads(context.getNodes(), context.getEvaluator(), resolver, solution, cache, insert, toInsert, true);
+                RDFUtils.instantiateQuads(context.getNodes(), context.getEvaluator(), resolver, solution, cache, delete, toRemove, true);
             }
             repository.getStore().insert(Changeset.fromAddedRemoved(toInsert, toRemove));
             repository.getStore().commit();

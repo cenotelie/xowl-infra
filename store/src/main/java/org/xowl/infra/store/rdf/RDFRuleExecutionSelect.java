@@ -17,10 +17,6 @@
 
 package org.xowl.infra.store.rdf;
 
-import fr.cenotelie.commons.utils.collections.Couple;
-
-import java.util.Iterator;
-
 /**
  * Represents the data of a SELECT RDF rule execution
  *
@@ -43,22 +39,8 @@ public class RDFRuleExecutionSelect extends RDFRuleExecution {
         this.solution = solution;
     }
 
-    /**
-     * Gets the solution that triggered this execution
-     *
-     * @return The solution that triggered this execution
-     */
+    @Override
     public RDFPatternSolution getSolution() {
         return solution;
-    }
-
-    @Override
-    public Node getBinding(VariableNode variable) {
-        return solution.get(variable);
-    }
-
-    @Override
-    public Iterator<Couple<VariableNode, Node>> getBindings() {
-        return solution.iterator();
     }
 }

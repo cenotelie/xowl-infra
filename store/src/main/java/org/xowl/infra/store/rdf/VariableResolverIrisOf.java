@@ -42,7 +42,7 @@ public class VariableResolverIrisOf extends VariableResolver {
     }
 
     @Override
-    public Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph) {
+    public Node resolve(VariableNode variable, RDFPatternSolution solution, NodeManager nodes, boolean isGraph) {
         if (isGraph)
             return nodes.getIRINode((GraphNode) null);
         return nodes.getIRINode(target);

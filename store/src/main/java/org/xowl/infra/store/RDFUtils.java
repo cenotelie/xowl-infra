@@ -26,6 +26,7 @@ import org.xowl.infra.lang.actions.QueryVariable;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.store.execution.EvaluableExpression;
+import org.xowl.infra.store.execution.Evaluator;
 import org.xowl.infra.store.execution.ExecutionManager;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
@@ -159,6 +160,164 @@ public class RDFUtils {
             Couple<String, String> data = Datatypes.toLiteral(element);
             return store.getLiteralNode(data.x, data.y, null);
         }
+    }
+
+    /**
+     * Instantiate of template of quads given a solution, i.e. a set of bindings for the variable nodes.
+     * This replaces the variable nodes in the template by their value.
+     *
+     * @param nodes     The node manager
+     * @param evaluator The current evaluator
+     * @param resolver  The variable resolver to use
+     * @param solution  The solution
+     * @param cache     The cache of evaluated nodes
+     * @param template  The template
+     * @param buffer    The buffer for the realized quads
+     * @param mapBlanks Whether to map blank nodes
+     */
+    public static void instantiateQuads(NodeManager nodes, Evaluator evaluator, VariableResolver resolver, RDFPatternSolution solution, Map<Node, Node> cache, Collection<Quad> template, Collection<Quad> buffer, boolean mapBlanks) {
+        for (Quad quad : template) {
+            Quad instantiated = instantiateQuad(nodes, evaluator, resolver, solution, cache, quad, mapBlanks);
+            if (instantiated != null)
+                buffer.add(instantiated);
+        }
+    }
+
+    /**
+     * Processes the specified quad
+     *
+     * @param nodes     The node manager
+     * @param evaluator The current evaluator
+     * @param resolver  The variable resolver to use
+     * @param solution  The solution
+     * @param cache     The cache of evaluated nodes
+     * @param quad      The quad to process
+     * @param mapBlanks Whether to map blank nodes
+     * @return The processed quad
+     */
+    public static Quad instantiateQuad(NodeManager nodes, Evaluator evaluator, VariableResolver resolver, RDFPatternSolution solution, Map<Node, Node> cache, Quad quad, boolean mapBlanks) {
+        Node nodeGraph = instantiateNode(nodes, evaluator, resolver, solution, cache, quad.getGraph(), true, mapBlanks);
+        Node nodeSubject = instantiateNode(nodes, evaluator, resolver, solution, cache, quad.getSubject(), false, mapBlanks);
+        Node nodeProperty = instantiateNode(nodes, evaluator, resolver, solution, cache, quad.getProperty(), false, mapBlanks);
+        Node nodeObject = instantiateNode(nodes, evaluator, resolver, solution, cache, quad.getObject(), false, mapBlanks);
+        if ((!(nodeGraph instanceof GraphNode)) || (!(nodeSubject instanceof SubjectNode)) || (!(nodeProperty instanceof Property)))
+            return null;
+        return new Quad((GraphNode) nodeGraph, (SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
+    }
+
+    /**
+     * Processes the specified node
+     *
+     * @param nodes     The node manager
+     * @param evaluator The current evaluator
+     * @param resolver  The variable resolver to use
+     * @param solution  The solution
+     * @param cache     The cache of evaluated nodes
+     * @param node      The node to process
+     * @param isGraph   Whether the node to resolve is a graph
+     * @param mapBlanks Whether to map blank nodes
+     * @return The processed node
+     */
+    private static Node instantiateNode(NodeManager nodes, Evaluator evaluator, VariableResolver resolver, RDFPatternSolution solution, Map<Node, Node> cache, Node node, boolean isGraph, boolean mapBlanks) {
+        if (node == null)
+            return instantiateNodeVariable(nodes, evaluator, resolver, solution, cache, null, isGraph);
+        switch (node.getNodeType()) {
+            case Node.TYPE_BLANK:
+                return instantiateNodeBlank(nodes, cache, (BlankNode) node, mapBlanks);
+            case Node.TYPE_VARIABLE:
+                return instantiateNodeVariable(nodes, evaluator, resolver, solution, cache, (VariableNode) node, isGraph);
+            case Node.TYPE_DYNAMIC:
+                return instantiateNodeDynamic(nodes, evaluator, solution, cache, (DynamicNode) node);
+            default:
+                return node;
+        }
+    }
+
+    /**
+     * Resolves a blank node
+     *
+     * @param nodes     The node manager
+     * @param cache     The cache of evaluated nodes
+     * @param node      A blank node
+     * @param mapBlanks Whether to map blank nodes
+     * @return The instantiated blank node
+     */
+    private static Node instantiateNodeBlank(NodeManager nodes, Map<Node, Node> cache, BlankNode node, boolean mapBlanks) {
+        if (!mapBlanks) {
+            return node;
+        }
+        Node result = cache.get(node);
+        if (result != null)
+            return result;
+        result = nodes.getBlankNode();
+        cache.put(node, result);
+        return result;
+    }
+
+    /**
+     * Resolves the specified variable node
+     *
+     * @param nodes     The node manager
+     * @param evaluator The current evaluator
+     * @param resolver  The variable resolver to use
+     * @param solution  The solution
+     * @param cache     The cache of evaluated nodes
+     * @param variable  A variable node
+     * @param isGraph   Whether the node to resolve is a graph
+     * @return The variable value
+     */
+    private static Node instantiateNodeVariable(NodeManager nodes, Evaluator evaluator, VariableResolver resolver, RDFPatternSolution solution, Map<Node, Node> cache, VariableNode variable, boolean isGraph) {
+        Node result = solution.get(variable);
+        if (result != null)
+            return result;
+        result = cache.get(variable);
+        if (result != null)
+            return result;
+        result = resolver.resolve(variable, solution, nodes, isGraph);
+        cache.put(variable, result);
+        return result;
+    }
+
+    /**
+     * Resolves the specified dynamic node node
+     *
+     * @param nodes       The node manager
+     * @param evaluator   The current evaluator
+     * @param solution    The solution
+     * @param cache       The cache of evaluated nodes
+     * @param dynamicNode A dynamic node
+     * @return The variable value
+     */
+    private static Node instantiateNodeDynamic(NodeManager nodes, Evaluator evaluator, RDFPatternSolution solution, Map<Node, Node> cache, DynamicNode dynamicNode) {
+        Node result = cache.get(dynamicNode);
+        if (result != null)
+            return result;
+        if (evaluator == null)
+            return dynamicNode;
+        result = RDFUtils.getRDF(nodes, evaluator.eval(instantiateNodeDynamicGetBindings(solution, cache), dynamicNode.getEvaluable()));
+        cache.put(dynamicNode, result);
+        return result;
+    }
+
+    /**
+     * Creates bindings for the evaluator
+     *
+     * @param solution The current solution
+     * @param cache    The current evaluation cache
+     * @return The bindings
+     */
+    private static Map<String, Object> instantiateNodeDynamicGetBindings(RDFPatternSolution solution, Map<Node, Node> cache) {
+        Map<String, Object> bindings = new HashMap<>();
+        for (Couple<VariableNode, Node> entry : solution) {
+            if (!bindings.containsKey(entry.x.getName()))
+                bindings.put(entry.x.getName(), RDFUtils.getNative(entry.y));
+        }
+        for (Map.Entry<Node, Node> entry : cache.entrySet()) {
+            if (entry.getKey().getNodeType() == Node.TYPE_VARIABLE) {
+                bindings.put(((VariableNode) entry.getValue()).getName(), RDFUtils.getNative(entry.getValue()));
+            }
+        }
+        return bindings;
     }
 
     /**

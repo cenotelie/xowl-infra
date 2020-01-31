@@ -45,13 +45,13 @@ public class VariableResolverIriTemplate extends VariableResolver {
     }
 
     @Override
-    public Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph) {
+    public Node resolve(VariableNode variable, RDFPatternSolution solution, NodeManager nodes, boolean isGraph) {
         if (isGraph)
             return nodes.getIRINode((GraphNode) null);
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i != templateParts.length; i++) {
             if (templateParts[i] instanceof VariableNode) {
-                Node node = execution.getBinding((VariableNode) templateParts[i]);
+                Node node = solution.get((VariableNode) templateParts[i]);
                 if (node != null) {
                     switch (node.getNodeType()) {
                         case Node.TYPE_IRI:

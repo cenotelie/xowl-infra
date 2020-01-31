@@ -100,67 +100,6 @@ class Utils {
     }
 
     /**
-     * Instantiates a RDF node given a solution, i.e. a set of bindings for the variable nodes and the current mapping of blank nodes.
-     * A variable node is replaced by its value in the solution.
-     * A blank node is replaced by its instance-specific value in the blanks mapping.
-     * If this is the first time this blank node has been encountered in the template, the new instance-specific blank node is created and associated.
-     *
-     * @param context  The evaluation context
-     * @param solution The current bindings
-     * @param blanks   The current mapping of blank nodes to their instance
-     * @param node     The node to instantiate
-     * @return The instantiated node, or null if it cannot be instantiated
-     */
-    private static Node instantiate(EvalContext context, RDFPatternSolution solution, Map<Node, Node> blanks, Node node) {
-        if (node == null)
-            return null;
-        Node result = node;
-        if (result.getNodeType() == Node.TYPE_VARIABLE) {
-            Node value = solution.get((VariableNode) result);
-            if (value == null)
-                return null;
-            result = value;
-        } else if (result.getNodeType() == Node.TYPE_BLANK) {
-            Node value = blanks.get(node);
-            if (value == null) {
-                value = context.getNodes().getBlankNode();
-                blanks.put(node, value);
-            }
-            return value;
-        }
-        return result;
-    }
-
-    /**
-     * Instantiate of template of quads given a solution, i.e. a set of bindings for the variable nodes.
-     * This replaces the variable nodes in the template by their value.
-     * The blank nodes in the template are also instantiated into new instance-specific blank nodes.
-     *
-     * @param context  The evaluation context
-     * @param template The template
-     * @param solution The query solution mapping the variables to their value
-     * @param buffer   The buffer for the realized quads
-     */
-    public static void instantiate(EvalContext context, RDFPatternSolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvaluationException {
-        Map<Node, Node> blanks = new HashMap<>();
-        for (Quad quad : template) {
-            GraphNode graph = (GraphNode) instantiate(context, solution, blanks, quad.getGraph());
-            if (graph == null)
-                continue;
-            SubjectNode subject = (SubjectNode) instantiate(context, solution, blanks, quad.getSubject());
-            if (subject == null)
-                continue;
-            Property property = (Property) instantiate(context, solution, blanks, quad.getProperty());
-            if (property == null)
-                continue;
-            Node object = instantiate(context, solution, blanks, quad.getObject());
-            if (object == null)
-                continue;
-            buffer.add(new Quad(graph, subject, property, object));
-        }
-    }
-
-    /**
      * Filters a set of solutions based on the value of an expression
      *
      * @param solutions  The solutions to filter

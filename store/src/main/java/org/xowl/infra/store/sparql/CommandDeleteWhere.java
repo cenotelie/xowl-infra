@@ -17,15 +17,12 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.RepositoryRDF;
-import org.xowl.infra.store.execution.EvaluationException;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents the SPARQL DELETE WHERE command.
@@ -65,11 +62,14 @@ public class CommandDeleteWhere implements Command {
         Collection<Quad> toRemove = new ArrayList<>();
         try {
             EvalContext context = new EvalContextRepository(repository);
-            for (RDFPatternSolution solution : solutions)
-                Utils.instantiate(context, solution, quads, toRemove);
+            VariableResolver resolver = VariableResolveStandard.INSTANCE;
+            for (RDFPatternSolution solution : solutions) {
+                Map<Node, Node> cache = new HashMap<>();
+                RDFUtils.instantiateQuads(context.getNodes(), context.getEvaluator(), resolver, solution, cache, quads, toRemove, true);
+            }
             repository.getStore().insert(Changeset.fromRemoved(toRemove));
             repository.getStore().commit();
-        } catch (UnsupportedNodeType | EvaluationException exception) {
+        } catch (UnsupportedNodeType exception) {
             repository.getStore().rollback();
             return new ResultFailure(exception.getMessage());
         }

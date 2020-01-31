@@ -17,16 +17,12 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.execution.EvaluationException;
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.rdf.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents the SPARQL CONSTRUCT command.
@@ -69,8 +65,11 @@ public class CommandConstruct implements Command {
             EvalContext context = new EvalContextRepository(repository);
             Solutions solutions = pattern.eval(context);
             Collection<Quad> quads = new ArrayList<>();
-            for (RDFPatternSolution solution : solutions)
-                Utils.instantiate(context, solution, template, quads);
+            VariableResolver resolver = VariableResolveStandard.INSTANCE;
+            for (RDFPatternSolution solution : solutions) {
+                Map<Node, Node> cache = new HashMap<>();
+                RDFUtils.instantiateQuads(context.getNodes(), context.getEvaluator(), resolver, solution, cache, template, quads, true);
+            }
             return new ResultQuads(quads);
         } catch (EvaluationException exception) {
             return new ResultFailure(exception.getMessage());

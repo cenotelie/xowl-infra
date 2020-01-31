@@ -28,10 +28,11 @@ public abstract class VariableResolver {
     /**
      * Resolves the specified variable
      *
-     * @param variable  A variable
-     * @param execution The current rule execution
-     * @param nodes     The nodes manager to user
-     * @param isGraph   Whether the variable is used as a graph   @return The resolved node
+     * @param variable A variable
+     * @param solution The current solution
+     * @param nodes    The nodes manager to user
+     * @param isGraph  Whether the variable is used as a graph
+     * @return The resolved node
      */
-    public abstract Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph);
+    public abstract Node resolve(VariableNode variable, RDFPatternSolution solution, NodeManager nodes, boolean isGraph);
 }

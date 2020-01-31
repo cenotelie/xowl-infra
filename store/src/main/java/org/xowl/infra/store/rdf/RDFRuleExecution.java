@@ -63,19 +63,10 @@ public abstract class RDFRuleExecution implements Serializable {
     }
 
     /**
-     * Gets the value bound to the specified variable in this token
-     *
-     * @param variable A variable
-     * @return The value bound to the variable, or null if none is
+     * Gets the solution representing this execution
+     * @return The solution
      */
-    public abstract Node getBinding(VariableNode variable);
-
-    /**
-     * Gets all the variable bindings
-     *
-     * @return The variable bindings
-     */
-    public abstract Iterator<Couple<VariableNode, Node>> getBindings();
+    public abstract RDFPatternSolution getSolution();
 
     /**
      * Gets all the bindings for an evaluator
@@ -84,9 +75,7 @@ public abstract class RDFRuleExecution implements Serializable {
      */
     public Map<String, Object> getEvaluatorBindings() {
         Map<String, Object> bindings = new HashMap<>();
-        Iterator<Couple<VariableNode, Node>> iterator = getBindings();
-        while (iterator.hasNext()) {
-            Couple<VariableNode, Node> entry = iterator.next();
+        for (Couple<VariableNode, Node> entry : getSolution()) {
             if (!bindings.containsKey(entry.x.getName()))
                 bindings.put(entry.x.getName(), RDFUtils.getNative(entry.y));
         }
@@ -130,9 +119,7 @@ public abstract class RDFRuleExecution implements Serializable {
             writer.append("{\"bindings\": {");
             boolean first = true;
             Collection<String> names = new ArrayList<>();
-            Iterator<Couple<VariableNode, Node>> iterator = getBindings();
-            while (iterator.hasNext()) {
-                Couple<VariableNode, Node> entry = iterator.next();
+            for (Couple<VariableNode, Node> entry : getSolution()) {
                 if (!names.contains(entry.x.getName())) {
                     names.add(entry.x.getName());
                     names.add(entry.x.getName());

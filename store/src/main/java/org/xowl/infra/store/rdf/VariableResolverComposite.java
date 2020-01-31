@@ -65,10 +65,10 @@ public class VariableResolverComposite extends VariableResolver {
     }
 
     @Override
-    public Node resolve(VariableNode variable, RDFRuleExecution execution, NodeManager nodes, boolean isGraph) {
+    public Node resolve(VariableNode variable, RDFPatternSolution solution, NodeManager nodes, boolean isGraph) {
         VariableResolver resolver = parts.get(variable);
         if (resolver == null)
             resolver = fallback;
-        return resolver.resolve(variable, execution, nodes, isGraph);
+        return resolver.resolve(variable, solution, nodes, isGraph);
     }
 }
