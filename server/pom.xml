@@ -3,11 +3,11 @@
     <parent>
         <groupId>org.xowl.infra</groupId>
         <artifactId>xowl-infra</artifactId>
-        <version>2.2.0</version>
+        <version>2.2.1-SNAPSHOT</version>
     </parent>
     <artifactId>xowl-server</artifactId>
     <packaging>bundle</packaging>
-    <version>2.2.0</version>
+    <version>2.2.1-SNAPSHOT</version>
     <name>xOWL Infra - Server</name>
     <description>Provides the facilities for serving datasets on a network</description>
     <url>https://xowl.org/</url>
@@ -21,19 +21,19 @@
         <dependency>
             <groupId>org.xowl.infra</groupId>
             <artifactId>xowl-store</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.xowl.infra</groupId>
             <artifactId>xowl-engine</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.xowl.infra</groupId>
             <artifactId>xowl-server-api</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
