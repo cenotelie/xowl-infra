@@ -3,7 +3,7 @@
     <groupId>org.xowl.infra</groupId>
     <artifactId>xowl-infra</artifactId>
     <packaging>pom</packaging>
-    <version>2.3.1-SNAPSHOT</version>
+    <version>2.3.1</version>
     <name>xOWL Infrastructure</name>
     <description>Infrastructure for the storage, manipulation and execution of xOWL ontologies</description>
     <url>https://xowl.org/</url>
@@ -29,7 +29,7 @@
         <connection>scm:git:https://github.com/cenotelie/xowl-infra</connection>
         <developerConnection>scm:git:ssh://git@github.com:cenotelie/xowl-infra</developerConnection>
         <url>https://github.com/cenotelie/xowl-infra</url>
-        <tag>HEAD</tag>
+        <tag>v2.3.1</tag>
     </scm>
     <distributionManagement>
         <snapshotRepository>
