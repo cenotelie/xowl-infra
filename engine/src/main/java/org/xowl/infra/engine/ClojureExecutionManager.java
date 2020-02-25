@@ -141,6 +141,7 @@ public class ClojureExecutionManager implements ExecutionManager {
                     builder.append(TextUtils.escapeStringBaseDoubleQuote(value.toString()));
                     builder.append("\"");
                 }
+                builder.append(" ");
             }
             builder.append("] ");
             builder.append(expression.getSource());
