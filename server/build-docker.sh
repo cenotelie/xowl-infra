@@ -6,7 +6,7 @@ ROOT="$(dirname "$DIR")"
 
 source "$ROOT/build-env.sh"
 
-MVNVERSION=$(grep -E "^\s<version>([^<]*)</version>" < "$ROOT/pom.xml" | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?")
+MVNVERSION=$(grep -E "^\s{4}<version>([^<]*)</version>" < "$ROOT/pom.xml" | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?")
 
 cp "$DIR/target/xowl-server-$MVNVERSION-jar-with-dependencies.jar" "$DIR/xowl-server.jar"
 rm -f "$DIR/xowl-server.manifest"
