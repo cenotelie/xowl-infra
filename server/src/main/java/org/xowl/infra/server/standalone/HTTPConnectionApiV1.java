@@ -20,6 +20,7 @@ package org.xowl.infra.server.standalone;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpsExchange;
+import fr.cenotelie.commons.utils.Base64;
 import fr.cenotelie.commons.utils.IOUtils;
 import fr.cenotelie.commons.utils.api.Reply;
 import fr.cenotelie.commons.utils.api.ReplyApiError;
@@ -127,6 +128,21 @@ class HTTPConnectionApiV1 implements Runnable {
                 }
             }
         }
+        values = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_AUTHORIZATION);
+        if (values != null) {
+            for (String content : values) {
+                if (content.startsWith("Basic ")) {
+                    String encoded = content.substring("Basic ".length()).trim();
+                    String decoded = new String(Base64.decodeBase64(encoded));
+                    if (decoded.contains(":")) {
+                        String[] parts = decoded.split(":");
+                        if (parts.length == 2) {
+                            return controller.authenticate(httpExchange.getRemoteAddress().getAddress(), parts[0], parts[1]);
+                        }
+                    }
+                }
+            }
+        }
         return ReplyUnauthenticated.instance();
     }
 
@@ -157,7 +173,7 @@ class HTTPConnectionApiV1 implements Runnable {
         String cookieName = (httpExchange instanceof HttpsExchange ? "__Secure-" : "") + ApiV1.AUTH_TOKEN;
         httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
                 cookieName + "=" + token +
-                        "; Max-Age=" + Long.toString(controller.getSecurityTokenTTL()) +
+                        "; Max-Age=" + controller.getSecurityTokenTTL() +
                         "; Path=" + ApiV1.URI_PREFIX +
                         (this.httpExchange instanceof HttpsExchange ? ("; Secure; HttpOnly") : "")
 
@@ -564,7 +580,7 @@ class HTTPConnectionApiV1 implements Runnable {
         }
 
         resource = resource.substring("/procedures/".length());
-        String procedureId = resource.substring(0, resource.length());
+        String procedureId = resource;
         procedureId = URIUtils.decodeComponent(procedureId);
 
         switch (method) {

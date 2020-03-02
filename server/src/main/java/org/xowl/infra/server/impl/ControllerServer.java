@@ -50,20 +50,6 @@ import java.util.*;
  */
 public class ControllerServer implements Closeable {
     /**
-     * The data about a client
-     */
-    private static class ClientLogin {
-        /**
-         * The number of failed attempt
-         */
-        public int failedAttempt = 0;
-        /**
-         * The timestamp of the ban
-         */
-        public long banTimeStamp = -1;
-    }
-
-    /**
      * The logger for this controller
      */
     protected final Logger logger;
@@ -99,7 +85,6 @@ public class ControllerServer implements Closeable {
      * The map of clients with failed login attempts
      */
     private final Map<InetAddress, ClientLogin> clients;
-
     /**
      * Initializes this controller
      *
@@ -315,6 +300,23 @@ public class ControllerServer implements Closeable {
             return reply;
         }
         UserImpl user = getPrincipal(((ReplyResult<String>) reply).getData());
+        return new ReplyResult<>(user);
+    }
+
+    /**
+     * Performs the authentication of a user using a login and a password
+     *
+     * @param client   The requesting client
+     * @param login    The login
+     * @param password The password
+     * @return The protocol reply, or null if the client is banned
+     */
+    public Reply authenticate(InetAddress client, String login, String password) {
+        Reply reply = login(client, login, password);
+        if (reply.isSuccess()) {
+            return reply;
+        }
+        UserImpl user = getPrincipal(login);
         return new ReplyResult<>(user);
     }
 
@@ -1206,7 +1208,6 @@ public class ControllerServer implements Closeable {
         return ReplyUnauthorized.instance();
     }
 
-
     /**
      * Builds an authentication token for the specified login
      *
@@ -1539,5 +1540,19 @@ public class ControllerServer implements Closeable {
             adminDB.dbController.getRepository().getStore().commit();
         }
         return ReplySuccess.instance();
+    }
+
+    /**
+     * The data about a client
+     */
+    private static class ClientLogin {
+        /**
+         * The number of failed attempt
+         */
+        public int failedAttempt = 0;
+        /**
+         * The timestamp of the ban
+         */
+        public long banTimeStamp = -1;
     }
 }
