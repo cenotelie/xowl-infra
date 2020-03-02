@@ -6,7 +6,7 @@ ROOT="$(dirname "$DIR")"
 
 source "$ROOT/build-env.sh"
 
-MVNVERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -f "$ROOT/pom.xml" -Dexpression=project.version|grep -Ev '(^\[|Download\w+:)')
+MVNVERSION=$(grep -E "^\s<version>([^<]*)</version>" < "$ROOT/pom.xml" | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?")
 
 cp "$DIR/target/xowl-server-$MVNVERSION-jar-with-dependencies.jar" "$DIR/xowl-server.jar"
 rm -f "$DIR/xowl-server.manifest"
