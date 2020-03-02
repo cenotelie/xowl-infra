@@ -21,6 +21,8 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
+    - script: |
+        docker login -u $(dockerLogin) -p $(dockerPassword)
     - task: DownloadSecureFile@1
       name: gpgKey
       inputs:
@@ -40,3 +42,13 @@ stages:
         testResultsFiles: '**/TEST-*.xml'
         goals: 'deploy'
         options: '--settings $(mvnSettings.secureFilePath) "-Dgpg.passphrase=$(gpgPass)"'
+    - task: ShellScript@2
+      displayName: Build docker images
+      inputs:
+        scriptPath: build-docker.sh
+        args: --target=integration
+    - task: ShellScript@2
+      displayName: Publish docker images
+      inputs:
+        scriptPath: build-publish.sh
+        args: --target=integration
