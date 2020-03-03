@@ -27,6 +27,7 @@ import fr.cenotelie.commons.utils.metrics.Metric;
 import fr.cenotelie.commons.utils.metrics.MetricComposite;
 import fr.cenotelie.commons.utils.metrics.MetricSnapshot;
 import fr.cenotelie.hime.redist.ASTNode;
+import org.xowl.infra.server.api.XOWLDatabaseConfiguration;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
@@ -168,17 +169,39 @@ public class ControllerDatabase implements Closeable {
      * @param name             The name of the database
      * @throws Exception When the location cannot be accessed
      */
-    public ControllerDatabase(File location, int defaultMaxThread, ProxyObject proxy, String name) throws Exception {
+    public ControllerDatabase(File location, int defaultMaxThread, ProxyObject proxy, String name, XOWLDatabaseConfiguration initConfig) throws Exception {
         this.proxy = proxy;
         this.name = name != null ? name : (String) proxy.getDataValue(Schema.ADMIN_NAME);
         this.location = location;
         this.configuration = loadConfiguration(location);
+        if (initConfig != null) {
+            boolean changed = false;
+            if (initConfig.isInMemory()) {
+                this.configuration.set(CONFIG_STORAGE, CONFIG_STORAGE_MEMORY);
+                changed = true;
+            }
+            if (initConfig.getEntailmentRegime() != EntailmentRegime.none) {
+                this.configuration.set(CONFIG_ENTAILMENT, initConfig.getEntailmentRegime().toString());
+                changed = true;
+            }
+            if (changed) {
+                configuration.save((new File(location, REPO_CONF_NAME)));
+            }
+        }
         this.repository = createRepository(configuration, location);
         this.procedures = new HashMap<>();
         this.maxThreads = getMaxThreads(defaultMaxThread, configuration);
         this.currentThreads = new AtomicInteger(0);
         this.metricDB = new MetricComposite((MetricComposite) repository.getStore().getMetric(), "Database " + location.getAbsolutePath());
         initRepository();
+        if (initConfig != null) {
+            for (XOWLRule rule : initConfig.getRules()) {
+                addRule(rule.getDefinition(), rule.isActive());
+            }
+            for (XOWLStoredProcedure procedure : initConfig.getProcedures()) {
+                addStoredProcedure(procedure.getIdentifier(), procedure.getDefinition(), procedure.getParameters());
+            }
+        }
     }
 
     /**

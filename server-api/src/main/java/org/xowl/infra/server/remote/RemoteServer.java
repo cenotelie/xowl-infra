@@ -297,12 +297,20 @@ public class RemoteServer implements XOWLServer {
 
 
     @Override
-    public Reply createDatabase(String identifier) {
+    public Reply createDatabase(String identifier, XOWLDatabaseConfiguration configuration) {
         // not logged in
         if (currentUser == null)
             return ReplyNetworkError.instance();
         // supposed to be logged-in
-        Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
+        Reply reply = configuration != null
+                ? XOWLReplyUtils.fromHttpResponse(connection.request(
+                "/database/" + URIUtils.encodeComponent(identifier),
+                HttpConstants.METHOD_PUT,
+                configuration.serializedJSON().getBytes(),
+                HttpConstants.MIME_JSON,
+                false,
+                HttpConstants.MIME_JSON), deserializer)
+                : XOWLReplyUtils.fromHttpResponse(connection.request(
                 "/database/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), deserializer);
@@ -775,7 +783,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + Boolean.toString(activate),
+                "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + activate,
                 HttpConstants.METHOD_PUT,
                 content,
                 Repository.SYNTAX_XRDF,
@@ -790,7 +798,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + Boolean.toString(activate),
+                "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + activate,
                 HttpConstants.METHOD_PUT,
                 content,
                 Repository.SYNTAX_XRDF,

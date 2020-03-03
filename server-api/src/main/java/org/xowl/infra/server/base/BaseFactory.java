@@ -39,6 +39,8 @@ public class BaseFactory implements ApiFactory {
             return new BaseUser(definition);
         } else if (XOWLUserPrivileges.class.getCanonicalName().equals(type)) {
             return new BaseUserPrivileges(definition);
+        } else if (XOWLDatabaseConfiguration.class.getCanonicalName().equals(type)) {
+            return new XOWLDatabaseConfiguration(definition);
         }
         return null;
     }

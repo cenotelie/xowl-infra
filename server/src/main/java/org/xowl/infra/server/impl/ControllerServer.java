@@ -85,6 +85,7 @@ public class ControllerServer implements Closeable {
      * The map of clients with failed login attempts
      */
     private final Map<InetAddress, ClientLogin> clients;
+
     /**
      * Initializes this controller
      *
@@ -149,7 +150,8 @@ public class ControllerServer implements Closeable {
                         new File(configuration.getDatabasesFolder(), location),
                         configuration.getDefaultMaxThreads(),
                         poDB,
-                        name));
+                        name,
+                        null));
                 databases.put(db.getIdentifier(), db);
                 logger.info("Loaded database " + poDB.getIRIString() + " as " + db.getIdentifier());
             } catch (Exception exception) {
@@ -313,7 +315,7 @@ public class ControllerServer implements Closeable {
      */
     public Reply authenticate(InetAddress client, String login, String password) {
         Reply reply = login(client, login, password);
-        if (reply.isSuccess()) {
+        if (!reply.isSuccess()) {
             return reply;
         }
         UserImpl user = getPrincipal(login);
@@ -432,11 +434,12 @@ public class ControllerServer implements Closeable {
     /**
      * Creates a new database
      *
-     * @param client The requesting client
-     * @param name   The name of the new database
+     * @param client   The requesting client
+     * @param name     The name of the new database
+     * @param dbConfig The initial configuration
      * @return The protocol reply
      */
-    public Reply createDatabase(UserImpl client, String name) {
+    public Reply createDatabase(UserImpl client, String name, XOWLDatabaseConfiguration dbConfig) {
         if (client == null)
             return ReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -458,7 +461,8 @@ public class ControllerServer implements Closeable {
                         folder,
                         configuration.getDefaultMaxThreads(),
                         proxy,
-                        name));
+                        name,
+                        dbConfig));
                 adminDB.dbController.getRepository().getStore().commit();
                 db.dbController.getRepository().getStore().commit();
                 databases.put(name, db);

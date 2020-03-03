@@ -23,6 +23,7 @@ import fr.cenotelie.commons.utils.api.ReplyUnsupported;
 import fr.cenotelie.commons.utils.logging.Logger;
 import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.XOWLDatabase;
+import org.xowl.infra.server.api.XOWLDatabaseConfiguration;
 import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.*;
@@ -162,8 +163,8 @@ public class EmbeddedServer implements XOWLServer, Closeable {
     }
 
     @Override
-    public Reply createDatabase(String identifier) {
-        return controller.createDatabase(admin, identifier);
+    public Reply createDatabase(String identifier, XOWLDatabaseConfiguration configuration) {
+        return controller.createDatabase(admin, identifier, configuration);
     }
 
     @Override

@@ -56,6 +56,8 @@ public class RemoteFactory implements ApiFactory {
             return new RemoteUser(server, definition);
         } else if (XOWLUserPrivileges.class.getCanonicalName().equals(type)) {
             return new BaseUserPrivileges(definition);
+        } else if (XOWLDatabaseConfiguration.class.getCanonicalName().equals(type)) {
+            return new XOWLDatabaseConfiguration(definition);
         }
         return null;
     }

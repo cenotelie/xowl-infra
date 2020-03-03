@@ -121,10 +121,11 @@ public interface XOWLServer extends Closeable {
     /**
      * Creates a new database
      *
-     * @param identifier The identifier of the database
+     * @param identifier    The identifier of the database
+     * @param configuration The configuration for the database
      * @return The protocol reply
      */
-    Reply createDatabase(String identifier);
+    Reply createDatabase(String identifier, XOWLDatabaseConfiguration configuration);
 
     /**
      * Drops a database

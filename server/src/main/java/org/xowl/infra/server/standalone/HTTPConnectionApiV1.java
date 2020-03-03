@@ -34,6 +34,7 @@ import fr.cenotelie.commons.utils.logging.BufferedLogger;
 import fr.cenotelie.commons.utils.logging.Logging;
 import fr.cenotelie.hime.redist.ASTNode;
 import org.xowl.infra.server.api.ApiV1;
+import org.xowl.infra.server.api.XOWLDatabaseConfiguration;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.api.XOWLReplyUtils;
 import org.xowl.infra.server.base.BaseStoredProcedure;
@@ -338,7 +339,19 @@ class HTTPConnectionApiV1 implements Runnable {
             case HttpConstants.METHOD_GET:
                 return response(controller.getDatabase(client, name));
             case HttpConstants.METHOD_PUT:
-                return response(controller.createDatabase(client, name));
+                String body;
+                try {
+                    body = Utils.getRequestBody(httpExchange);
+                } catch (IOException exception) {
+                    Logging.get().error(exception);
+                    return response(new ReplyApiError(ApiV1.ERROR_FAILED_TO_READ_CONTENT));
+                }
+                XOWLDatabaseConfiguration dbConfig = null;
+                ASTNode root = Json.parse(Logging.get(), body);
+                if (root != null) {
+                    dbConfig = new XOWLDatabaseConfiguration(root);
+                }
+                return response(controller.createDatabase(client, name, dbConfig));
             case HttpConstants.METHOD_DELETE:
                 return response(controller.dropDatabase(client, name));
             case HttpConstants.METHOD_POST:
