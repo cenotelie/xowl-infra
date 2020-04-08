@@ -277,7 +277,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(identifier),
+                "/databases/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -290,7 +290,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(identifier),
+                "/databases/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -304,14 +304,14 @@ public class RemoteServer implements XOWLServer {
         // supposed to be logged-in
         Reply reply = configuration != null
                 ? XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(identifier),
+                "/databases/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 configuration.serializedJSON().getBytes(),
                 HttpConstants.MIME_JSON,
                 false,
                 HttpConstants.MIME_JSON), deserializer)
                 : XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(identifier),
+                "/databases/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -323,8 +323,16 @@ public class RemoteServer implements XOWLServer {
             // failed => unauthenticated
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
-        return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(identifier),
+        return configuration != null
+                ? XOWLReplyUtils.fromHttpResponse(connection.request(
+                "/databases/" + URIUtils.encodeComponent(identifier),
+                HttpConstants.METHOD_PUT,
+                configuration.serializedJSON().getBytes(),
+                HttpConstants.MIME_JSON,
+                false,
+                HttpConstants.MIME_JSON), deserializer)
+                : XOWLReplyUtils.fromHttpResponse(connection.request(
+                "/databases/" + URIUtils.encodeComponent(identifier),
                 HttpConstants.METHOD_PUT,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -341,7 +349,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database),
+                "/databases/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -354,7 +362,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database),
+                "/databases/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -450,7 +458,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/metric",
+                "/databases/" + URIUtils.encodeComponent(database) + "/metric",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -463,7 +471,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/metric",
+                "/databases/" + URIUtils.encodeComponent(database) + "/metric",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -480,7 +488,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/statistics",
+                "/databases/" + URIUtils.encodeComponent(database) + "/statistics",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -493,7 +501,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/statistics",
+                "/databases/" + URIUtils.encodeComponent(database) + "/statistics",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -517,7 +525,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/sparql",
+                "/databases/" + URIUtils.encodeComponent(database) + "/sparql",
                 HttpConstants.METHOD_POST,
                 sparql,
                 Command.MIME_SPARQL_QUERY,
@@ -532,7 +540,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/sparql",
+                "/databases/" + URIUtils.encodeComponent(database) + "/sparql",
                 HttpConstants.METHOD_POST,
                 sparql,
                 Command.MIME_SPARQL_QUERY,
@@ -551,7 +559,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/entailment",
+                "/databases/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -564,7 +572,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/entailment",
+                "/databases/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -582,7 +590,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/entailment",
+                "/databases/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_POST,
                 regime.toString(),
                 HttpConstants.MIME_TEXT_PLAIN,
@@ -597,7 +605,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/entailment",
+                "/databases/" + URIUtils.encodeComponent(database) + "/entailment",
                 HttpConstants.METHOD_POST,
                 regime.toString(),
                 HttpConstants.MIME_TEXT_PLAIN,
@@ -616,7 +624,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/privileges",
+                "/databases/" + URIUtils.encodeComponent(database) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -629,7 +637,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/privileges",
+                "/databases/" + URIUtils.encodeComponent(database) + "/privileges",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -649,7 +657,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/privileges/grant" +
+                "/databases/" + URIUtils.encodeComponent(database) + "/privileges/grant" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
@@ -664,7 +672,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/privileges/grant" +
+                "/databases/" + URIUtils.encodeComponent(database) + "/privileges/grant" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
@@ -686,7 +694,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/privileges/revoke" +
+                "/databases/" + URIUtils.encodeComponent(database) + "/privileges/revoke" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
@@ -701,7 +709,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/privileges/revoke" +
+                "/databases/" + URIUtils.encodeComponent(database) + "/privileges/revoke" +
                         "?user=" + URIUtils.encodeComponent(user) +
                         "?access=" + access,
                 HttpConstants.METHOD_POST,
@@ -720,7 +728,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules",
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -733,7 +741,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules",
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -751,7 +759,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -764,7 +772,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(name),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -783,7 +791,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + activate,
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules?active=" + activate,
                 HttpConstants.METHOD_PUT,
                 content,
                 Repository.SYNTAX_XRDF,
@@ -798,7 +806,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules?active=" + activate,
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules?active=" + activate,
                 HttpConstants.METHOD_PUT,
                 content,
                 Repository.SYNTAX_XRDF,
@@ -818,7 +826,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -831,7 +839,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -849,7 +857,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -862,7 +870,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/activate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -880,7 +888,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -893,7 +901,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/deactivate",
                 HttpConstants.METHOD_POST,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -911,7 +919,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -924,7 +932,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
+                "/databases/" + URIUtils.encodeComponent(database) + "/rules/" + URIUtils.encodeComponent(rule) + "/status",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -941,7 +949,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures",
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -954,7 +962,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures",
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures",
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -972,7 +980,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -985,7 +993,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_GET,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -1006,7 +1014,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_PUT,
                 procedure.serializedJSON(),
                 HttpConstants.MIME_JSON,
@@ -1021,7 +1029,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(iri),
                 HttpConstants.METHOD_PUT,
                 procedure.serializedJSON(),
                 HttpConstants.MIME_JSON,
@@ -1041,7 +1049,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
         if (reply != ReplyExpiredSession.instance())
@@ -1054,7 +1062,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_DELETE,
                 HttpConstants.MIME_JSON), deserializer);
     }
@@ -1073,7 +1081,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_POST,
                 context.serializedJSON(),
                 HttpConstants.MIME_JSON,
@@ -1088,7 +1096,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
+                "/databases/" + URIUtils.encodeComponent(database) + "/procedures/" + URIUtils.encodeComponent(procedure),
                 HttpConstants.METHOD_POST,
                 context.serializedJSON(),
                 HttpConstants.MIME_JSON,
@@ -1120,7 +1128,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyNetworkError.instance();
         // supposed to be logged-in
         Reply reply = XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database),
+                "/databases/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_POST,
                 input,
                 syntax,
@@ -1136,7 +1144,7 @@ public class RemoteServer implements XOWLServer {
             return ReplyUnauthenticated.instance();
         // now that we are logged-in, retry
         return XOWLReplyUtils.fromHttpResponse(connection.request(
-                "/database/" + URIUtils.encodeComponent(database),
+                "/databases/" + URIUtils.encodeComponent(database),
                 HttpConstants.METHOD_POST,
                 input,
                 syntax,
