@@ -3,11 +3,11 @@
     <parent>
         <groupId>org.xowl.infra</groupId>
         <artifactId>xowl-infra</artifactId>
-        <version>2.3.4</version>
+        <version>2.3.5-SNAPSHOT</version>
     </parent>
     <artifactId>xowl-server-api</artifactId>
     <packaging>bundle</packaging>
-    <version>2.3.4</version>
+    <version>2.3.5-SNAPSHOT</version>
     <name>xOWL Infra - Server API</name>
     <description>Java API for interacting with a remote xOWL Server</description>
     <url>https://xowl.org/</url>
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>org.xowl.infra</groupId>
             <artifactId>xowl-store</artifactId>
-            <version>2.3.4</version>
+            <version>2.3.5-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
