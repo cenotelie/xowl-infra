@@ -3,11 +3,11 @@
     <parent>
         <groupId>org.xowl.infra</groupId>
         <artifactId>xowl-infra</artifactId>
-        <version>2.3.4-SNAPSHOT</version>
+        <version>2.3.4</version>
     </parent>
     <artifactId>xowl-denotation</artifactId>
     <packaging>bundle</packaging>
-    <version>2.3.4-SNAPSHOT</version>
+    <version>2.3.4</version>
     <name>xOWL Infra - Denotation</name>
     <description>API for the capture of a user's denotation of its artifacts</description>
     <url>https://xowl.org/</url>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.xowl.infra</groupId>
             <artifactId>xowl-store</artifactId>
-            <version>2.3.4-SNAPSHOT</version>
+            <version>2.3.4</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
